@@ -1,0 +1,6 @@
+RewriteEngine On
+RewriteBase /local/activities/
+RewriteRule ^index\.php＄ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /local/activities/index.php [L]
