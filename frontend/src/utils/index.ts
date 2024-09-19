@@ -15,7 +15,7 @@ const queryString = (params: any) => {
     .join("&")
 }
 
-const createUrl = (queryOptions: any, url?: string) => {
+const createUrl = (url?: string, queryOptions?: any) => {
   if (url === undefined) {
     url = getConfig().wwwroot + '/local/activities/service.php';
   }
@@ -36,7 +36,7 @@ const fetchData = async (options: any, url?: string) => {
     throw new Error('Body or query required.'); 
   }
 
-  const response = await fetch(createUrl(mergedOptions.query, url), {
+  const response = await fetch(createUrl(url, mergedOptions.query), {
     method: mergedOptions.method || "GET",
     headers: {
       "Content-Type": "application/json",

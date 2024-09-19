@@ -30,7 +30,7 @@ export function Dashboard() {
                     <div className="flex justify-between items-center">
                       <div className="font-medium">Activities</div>
                       { getConfig().roles.includes('staff') 
-                        ? <Button component={Link} to="/new" size="compact-md" radius="lg" variant="light" leftSection={<IconCalendarPlus size={14} />}>Add events</Button> : null
+                        ? <Button component={Link} to="/new" size="compact-md" radius="lg" variant="light" leftSection={<IconCalendarPlus size={14} />}>Add event</Button> : null
                       }
                     </div>
                   </Card.Section>

@@ -1,6 +1,6 @@
 
 import hash from "object-hash";
-import { useBasicDetailsStore, useStaffDetailsStore, useStudentListStore } from "../pages/Team/store/formFieldsStore"
+import { useBasicDetailsStore, useStaffDetailsStore, useStudentListStore } from "../pages/Activity/store/formFieldsStore";
 
 const exportTeamHash = () => {
   const basic = useBasicDetailsStore.getState()

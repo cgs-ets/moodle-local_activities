@@ -1,6 +1,7 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "inter-ui/inter.css";
 import './App.css'
+import '@mantine/tiptap/styles.css';
 import { Dashboard } from "./pages/Dashboard";
 import { Activity } from "./pages/Activity";
 

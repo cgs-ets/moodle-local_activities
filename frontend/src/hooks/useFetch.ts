@@ -35,7 +35,7 @@ function useFetch(): {
     const method = options?.method || "GET";
     
     try {
-      const response = await fetch(createUrl(options?.query || {}, url), {
+      const response = await fetch(createUrl(url, options?.query), {
         method,
         headers: {
           "Content-Type": "application/json",
