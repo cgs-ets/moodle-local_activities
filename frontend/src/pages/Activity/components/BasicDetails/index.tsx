@@ -49,10 +49,10 @@ export function BasicDetails() {
               <TextInput
                 withAsterisk
                 placeholder="Eg. Basketball 9A"
-                label="Team name"
-                value={basicDetails.teamname}
-                error={errors.teamname}
-                onChange={(e) => updateField('teamname', e.target.value)}
+                label="Activity name"
+                value={basicDetails.activityname}
+                error={errors.activityname}
+                onChange={(e) => updateField('activityname', e.target.value)}
               />
             </Grid.Col>
 

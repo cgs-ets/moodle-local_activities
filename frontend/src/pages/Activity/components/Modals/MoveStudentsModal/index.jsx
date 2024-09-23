@@ -1,17 +1,17 @@
 
 import { Box, Button, Flex, Modal, Tabs } from '@mantine/core';
 import { useState } from 'react';
-import { TeamSearch } from '/src/components/TeamSearch';
-import { TeamBrowser } from '/src/components/TeamBrowser';
+import { ActivitySearch } from '/src/components/ActivitySearch';
+import { ActivityBrowser } from '/src/components/ActivityBrowser';
 import { IconCheck, IconFolderSymlink, IconFolderUp, IconPlus, IconSearch } from '@tabler/icons-react';
 
 export function MoveStudentsModal({opened, close, category, callback}) {
 
-  const [moveToTeam, setMoveToTeam] = useState(null)
+  const [moveToActivity, setMoveToActivity] = useState(null)
 
   const moveAndClose = () => {
-    callback(moveToTeam)
-    setMoveToTeam(null)
+    callback(moveToActivity)
+    setMoveToActivity(null)
     close()
   }
 
@@ -19,7 +19,7 @@ export function MoveStudentsModal({opened, close, category, callback}) {
     <Modal 
       opened={opened} 
       onClose={close} 
-      title="Select a team" 
+      title="Select a activity" 
       size="xl"
       styles={{
         content: {
@@ -40,14 +40,14 @@ export function MoveStudentsModal({opened, close, category, callback}) {
               <Tabs.Tab value="browse" icon={<IconFolderSymlink size="0.8rem" />}>Browse</Tabs.Tab>
             </Tabs.List>
             <Tabs.Panel value="search" px="md" pb="md" mih={150}>
-              <TeamSearch callback={setMoveToTeam} />
+              <ActivitySearch callback={setMoveToActivity} />
             </Tabs.Panel>
             <Tabs.Panel value="browse" px="md" pb="md" mih={150}>
-              <TeamBrowser category={opened ? category : null} callback={setMoveToTeam} />
+              <ActivityBrowser category={opened ? category : null} callback={setMoveToActivity} />
             </Tabs.Panel>
           </Tabs>
           <Flex pt="sm" justify="end">
-            <Button onClick={moveAndClose} disabled={!moveToTeam} type="submit" leftIcon={<IconCheck size="1rem" />} radius="xl" >Move to this team</Button>
+            <Button onClick={moveAndClose} disabled={!moveToActivity} type="submit" leftIcon={<IconCheck size="1rem" />} radius="xl" >Move to this activity</Button>
           </Flex>
         </Box>
     </Modal>

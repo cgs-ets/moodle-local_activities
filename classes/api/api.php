@@ -4,19 +4,17 @@ namespace local_activities;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once(__DIR__.'/team.api.php');
-require_once(__DIR__.'/events.api.php');
-require_once(__DIR__.'/messages.api.php');
-require_once(__DIR__.'/tu.api.php');
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-use \local_activities\api\team_api;
-use \local_activities\api\events_api;
-use \local_activities\api\messages_api;
-use \local_activities\api\tu_api;
+require_once(__DIR__.'/activities.api.php');
+require_once(__DIR__.'/utils.api.php');
+
+use \local_activities\api\activities_api;
+use \local_activities\api\utils_api;
 
 class API {
-    use team_api;
-    use events_api;
-    use messages_api;
-    use tu_api;
+    use activities_api;
+    use utils_api;
 }

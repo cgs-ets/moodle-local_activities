@@ -11,8 +11,8 @@ export function CancelEventModal({deleteOrCancel, eventid, opened, close, submit
   const [submitResponse, submitError, submitLoading, submitAjax, setSubmitData] = useAjax(); // destructure state and fetch function
   const [eventInfo, setEventInfo] = useState({})
   const [series, setSeries] = useState('one');
-  const [teams, setTeams] = useState('all');
-  const [teamsChecked, setTeamsChecked] = useState({});
+  const [activities, setActivitys] = useState('all');
+  const [activitysChecked, setActivitysChecked] = useState({});
   const [notifyChecked, setNotifyChecked] = useState([]);
   const [error, setError] = useState('');
   const {start, clear} = useTimeout(() => submitted(), 3000);
@@ -37,16 +37,16 @@ export function CancelEventModal({deleteOrCancel, eventid, opened, close, submit
   }, [fetchResponse]);
 
   const handleSubmit = () => {
-    if (teams == 'select' && Object.keys(teamsChecked).length === 0) {
-      setError('You must select at least one team.')
+    if (activities == 'select' && Object.keys(activitysChecked).length === 0) {
+      setError('You must select at least one activity.')
       return;
     }
     const data = {
       eventid: eventid,
       action: action,
       series: series,
-      teams: teams,
-      teamsChecked: Object.keys(teamsChecked),
+      activities: activities,
+      activitysChecked: Object.keys(activitysChecked),
       notifyChecked: notifyChecked,
     }
     setError('')
@@ -80,8 +80,8 @@ export function CancelEventModal({deleteOrCancel, eventid, opened, close, submit
   const reset = () => {
     setEventInfo({})
     setSeries('one')
-    setTeams('all')
-    setTeamsChecked({})
+    setActivitys('all')
+    setActivitysChecked({})
     setNotifyChecked([])
     setSubmitData({response: null, error: false, loading: false})
     setFetchedData({response: null, error: false, loading: false})
@@ -119,30 +119,30 @@ export function CancelEventModal({deleteOrCancel, eventid, opened, close, submit
                   </Radio.Group>
                 </>
               }
-              { (series == "all" && eventInfo.hasTeams || series == "one" && eventInfo.hasTeamsOnThisDate) &&
+              { (series == "all" && eventInfo.hasActivitys || series == "one" && eventInfo.hasActivitysOnThisDate) &&
                 <>
-                  <Text fz="md" mt="lg" mb={5} fw={500}>Which teams does this {series == "all" ? 'series' : 'event'} {action == 'cancel' ? 'cancellation' : 'deletion'} apply to?</Text>
+                  <Text fz="md" mt="lg" mb={5} fw={500}>Which activities does this {series == "all" ? 'series' : 'event'} {action == 'cancel' ? 'cancellation' : 'deletion'} apply to?</Text>
                   <Radio.Group 
-                    value={teams}
-                    onChange={setTeams}>
+                    value={activities}
+                    onChange={setActivitys}>
                     <Flex mt="xs" gap="xs" direction="column">
-                      <Radio value="all" label="All teams" />
-                      <Radio value="select" label="Select teams" />
+                      <Radio value="all" label="All activities" />
+                      <Radio value="select" label="Select activities" />
                     </Flex>
                   </Radio.Group>
                   
-                  { teams == "select"
+                  { activities == "select"
                     ? series == "all"
-                      ? <Group mt="sm">{eventInfo.teams.map( (team, i) => {
-                          return (<Chip key={i} checked={teamsChecked[team.teamid]} onChange={() => setTeamsChecked((current) => (
-                            {...current, [team.teamid]: !current[team.teamid]}
-                          ))}>{team.teamname}</Chip>)
+                      ? <Group mt="sm">{eventInfo.activities.map( (activity, i) => {
+                          return (<Chip key={i} checked={activitysChecked[activity.activityid]} onChange={() => setActivitysChecked((current) => (
+                            {...current, [activity.activityid]: !current[activity.activityid]}
+                          ))}>{activity.activityname}</Chip>)
                         })}</Group>
                         
-                      : <Group mt="sm">{eventInfo.teamsOnThisDate.map( (team, i) => {
-                        return (<Chip key={i} checked={teamsChecked[team.teamid]} onChange={() => setTeamsChecked((current) => (
-                          {...current, [team.teamid]: !current[team.teamid]}
-                        ))}>{team.teamname}</Chip>)
+                      : <Group mt="sm">{eventInfo.activitysOnThisDate.map( (activity, i) => {
+                        return (<Chip key={i} checked={activitysChecked[activity.activityid]} onChange={() => setActivitysChecked((current) => (
+                          {...current, [activity.activityid]: !current[activity.activityid]}
+                        ))}>{activity.activityname}</Chip>)
                       })}</Group>
                     : ''
                   }
@@ -160,7 +160,7 @@ export function CancelEventModal({deleteOrCancel, eventid, opened, close, submit
             onChange={setNotifyChecked}
           >
             <Flex mt="xs" gap="xs" direction="column">
-              <Checkbox value="teamstaff" label="Coaches/Assistants" />
+              <Checkbox value="activitystaff" label="Coaches/Assistants" />
               <Checkbox value="students" label="Students" />
               <Checkbox value="parents" label="Parents" />
             </Flex>

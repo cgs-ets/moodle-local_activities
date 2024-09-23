@@ -2,7 +2,7 @@ import { Fragment, useState } from "react";
 import { MultiSelect, Loader } from '@mantine/core';
 import { fetchData } from 'src/utils/index'
 
-export function TeamSearch({callback}) {
+export function ActivitySearch({callback}) {
   const decorateResult = (item) => ({
     value: JSON.stringify({id: item.id, name: item.name}),
     label: item.name,
@@ -10,14 +10,14 @@ export function TeamSearch({callback}) {
 
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const searchTeams = async (text) => {
+  const searchActivitys = async (text) => {
     if (!text.length) {
       return;
     }
     setIsLoading(true);
     const response = await fetchData({
       query: {
-        methodname: 'local_activities-search_teams',
+        methodname: 'local_activities-search_activitys',
         text: text,
       }
     })
@@ -33,12 +33,12 @@ export function TeamSearch({callback}) {
     <Fragment>
       <MultiSelect 
         maxSelectedValues={1}
-        placeholder="Search teams"
+        placeholder="Search activities"
         limit={8}
         rightSection={isLoading ? <Loader size="xs" /> : ''}
         data={searchResults}
         searchable
-        onSearchChange={(value) => searchTeams(value)}
+        onSearchChange={(value) => searchActivitys(value)}
         onChange={handleChange}
         clearSearchOnChange={true}
         shadow="lg"

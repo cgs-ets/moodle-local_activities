@@ -4,17 +4,17 @@ import { useEffect, useState } from 'react';
 import { IconCheck, IconSend, IconUser } from '@tabler/icons-react';
 import { useAjax } from '/src/hooks/useAjax';
 import { useTimeout } from '@mantine/hooks';
-import { TeamBrowser } from '/src/components/TeamBrowser/index.jsx';
+import { ActivityBrowser } from '/src/components/ActivityBrowser/index.jsx';
 
-export function SendMessageModal({opened, close, students, teamid}) {
+export function SendMessageModal({opened, close, students, activityid}) {
   const defaultMessage = {
-    teams: [],
+    activities: [],
     notify: ['students'],
     subject: '',
     message: '',
   }
   const [message, setMessage] = useState(defaultMessage)
-  const [teamBadges, setTeamBadges] = useState([])
+  const [activityBadges, setActivityBadges] = useState([])
   const [recipients, setRecipients] = useState(students)
   const [errors, setErrors] = useState([])
   const [showSuccess, setShowSuccess] = useState(false)
@@ -27,8 +27,8 @@ export function SendMessageModal({opened, close, students, teamid}) {
     message: [
       (value) => (value.length ? null : 'Message is required. '),
     ],
-    teams: [
-      (value) => (!teamid && !value.length ? 'Teams are required. ' : null),
+    activities: [
+      (value) => (!activityid && !value.length ? 'activities are required. ' : null),
     ],
   }
   useEffect(() => {
@@ -73,14 +73,14 @@ export function SendMessageModal({opened, close, students, teamid}) {
       return
     }
     let formData = JSON.parse(JSON.stringify({...message}))
-    if (teamid) {
-      // Single team messaging.
+    if (activityid) {
+      // Single activity messaging.
       formData.students = recipients.map((student) => (student.un))
-      formData.teams = [teamid]
+      formData.activities = [activityid]
     } else {
-      // Team selection.
+      // Activity selection.
       formData.students = []
-      formData.teams = formData.teams.map(team => team.id)
+      formData.activities = formData.activities.map(activity => activity.id)
     }
     console.log(formData)
     submitAjax({
@@ -142,25 +142,25 @@ export function SendMessageModal({opened, close, students, teamid}) {
     )
   }
 
-  const handleTeamClick = (value) => {
+  const handleActivityClick = (value) => {
     const attrs = JSON.parse(value)
-    const isSelected = message.teams.some((t) => attrs.id == t.id)
+    const isSelected = message.activities.some((t) => attrs.id == t.id)
     if (!isSelected) {
-      setMessage((current) => ({...current, teams: [...current.teams, attrs]}));
+      setMessage((current) => ({...current, activities: [...current.activities, attrs]}));
     }
   }
-  const removeTeam = (id) => {
-    setMessage((current) => ({...current, teams: current.teams.filter((t) => t.id != id)}));
+  const removeActivity = (id) => {
+    setMessage((current) => ({...current, activities: current.activities.filter((t) => t.id != id)}));
   }
   useEffect(() => {
-    setTeamBadges(
-      message.teams.map((team, i) => {
+    setActivityBadges(
+      message.activities.map((activity, i) => {
         return (
           <Badge pr={0} mr="xs" mb="xs" key={i} variant='filled' color="gray.2" size="lg" radius="xl">
             <Flex gap={4}>
-              <Text sx={{textTransform: "none", fontWeight: "400", color: "#000"}}>{team.name}</Text>
+              <Text sx={{textTransform: "none", fontWeight: "400", color: "#000"}}>{activity.name}</Text>
               <CloseButton
-                onMouseDown={() => removeTeam(team.id)}
+                onMouseDown={() => removeActivity(activity.id)}
                 variant="transparent"
                 size={22}
                 iconSize={14}
@@ -171,12 +171,12 @@ export function SendMessageModal({opened, close, students, teamid}) {
         )
       })
     )
-  }, [message.teams])
+  }, [message.activities])
 
 
   const messageForm = (
     <Box>
-      { teamid
+      { activityid
         ? <Box mb="md">
             <Text fz="sm" mb={5} weight={500} color="#212529">Students</Text>
             <ScrollArea h={recipients.length > 12 ? 100 : 'auto'} type="auto">
@@ -186,11 +186,11 @@ export function SendMessageModal({opened, close, students, teamid}) {
             </ScrollArea>
           </Box>
         : <Box mb="md">
-            <Text fz="sm" mb={5} weight={500} color="#212529">Select teams</Text>
-            <Flex>{teamBadges}</Flex>
-            {errors.teams ? <Text mb={5} fz={12} c="red" sx={{wordBreak: "break-all"}}>{errors.teams}</Text> : ''}
+            <Text fz="sm" mb={5} weight={500} color="#212529">Select activities</Text>
+            <Flex>{activityBadges}</Flex>
+            {errors.activities ? <Text mb={5} fz={12} c="red" sx={{wordBreak: "break-all"}}>{errors.activities}</Text> : ''}
             <Paper radius="sm" px="md" sx={{border: "0.0625rem solid #dee2e6"}}>
-              <TeamBrowser category={opened ? -1 : false} callback={handleTeamClick} showCheckbox={false} />
+              <ActivityBrowser category={opened ? -1 : false} callback={handleActivityClick} showCheckbox={false} />
             </Paper>
           </Box>
       }
@@ -223,7 +223,7 @@ export function SendMessageModal({opened, close, students, teamid}) {
           <Flex mt="xs" gap="xs" direction="column">
             <Checkbox value="students" label="Students" />
             <Checkbox value="parents" label="Parents" />
-            <Checkbox value="teamstaff" label="Coaches/Assistants" />
+            <Checkbox value="activitystaff" label="Coaches/Assistants" />
           </Flex>
         </Checkbox.Group>
       </Box>

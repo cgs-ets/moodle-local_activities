@@ -35,10 +35,10 @@ export function StudentList({reload}) {
       if (!reload && fetchResponse && !fetchError) {
         return
       }
-      // Fetch student list for this team.
+      // Fetch student list for this activity.
       fetchAjax({
         query: {
-          methodname: 'local_teamup-get_team_students',
+          methodname: 'local_activities-get_activity_students',
           id: id,
         }
       })
@@ -88,17 +88,17 @@ export function StudentList({reload}) {
     setRowSelection({})
   }
 
-  const moveStudents = (teamJSON) => {
+  const moveStudents = (activityJSON) => {
     const selectedUsernames = Object.keys(rowSelection)
     
     // Update data.
-    const team = JSON.parse(teamJSON)
+    const activity = JSON.parse(activityJSON)
     const data = studentListStore.data.map(udata => {
       if (selectedUsernames.includes(udata.un)) {
         return {
           ...udata,
-          moveToTeamId: team.id,
-          moveToTeamName: team.name,
+          moveToActivityId: activity.id,
+          moveToActivityName: activity.name,
         }
       }
       return udata
@@ -107,8 +107,8 @@ export function StudentList({reload}) {
     setRowSelection({})
     
     // Store moving list.
-    const moveData = data.filter(udata => !!udata.moveToTeamId)
-    studentListStore.setState({move: moveData.map((u) => ({username: u.un, teamid: u.moveToTeamId}))})
+    const moveData = data.filter(udata => !!udata.moveToActivityId)
+    studentListStore.setState({move: moveData.map((u) => ({username: u.un, activityid: u.moveToActivityId}))})
 
   }
 
@@ -207,7 +207,7 @@ export function StudentList({reload}) {
                       { Object.keys(rowSelection).length > 0 && 
                         <>
                         <Button onClick={removeStudents} variant="light" compact radius="xl" leftIcon={<IconMinus size={14} />}>Remove</Button>
-                        <Button onClick={moveStudentsModalHandlers.open}  variant="light" compact radius="xl" leftIcon={<IconArrowBounce size={14} />}>Change team</Button>
+                        <Button onClick={moveStudentsModalHandlers.open}  variant="light" compact radius="xl" leftIcon={<IconArrowBounce size={14} />}>Change activity</Button>
                         </>
                       }
                     </Flex>
@@ -230,7 +230,7 @@ export function StudentList({reload}) {
           ? studentListStore.data.filter(s => Object.keys(rowSelection).includes(s.un))
           : studentListStore.data
         } 
-        teamid={id}
+        activityid={id}
         opened={isOpenMessageModal} close={messageModalHandlers.close} />
 
     </>

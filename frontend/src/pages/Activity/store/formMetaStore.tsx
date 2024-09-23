@@ -1,6 +1,6 @@
 
 import { create } from 'zustand'
-import { exportTeamHash } from '../../../exporters/teamHash'
+import { exportActivityHash } from '../../../exporters/activityHash'
 
 
 
@@ -81,7 +81,7 @@ const useFormStateStore = create<FormStateStore>((set) => ({
   reset: () => set(formStateInit),
   reloadStudents: () => set({reloadstulist: true}),
   baselineHash: () => {
-    const hash = exportTeamHash()
+    const hash = exportActivityHash()
     set({
       oldhash: hash, 
       hash: hash
@@ -95,7 +95,7 @@ const useFormStateStore = create<FormStateStore>((set) => ({
     })
   },
   updateHash: () => {
-    const hash = exportTeamHash()
+    const hash = exportActivityHash()
     set((state: FormState) => ({ 
       hash: hash, 
       haschanges: (hash !== state.oldhash) 

@@ -147,7 +147,7 @@ export function FileUploader ({inputName, title, desc, maxFiles, maxSize}) {
         setFileProgress(f);
       }
     };
-    const url = getConfig().wwwroot + '/local/teamup/upload.php?upload=1&sesskey=' + getConfig().sesskey;
+    const url = getConfig().wwwroot + '/local/activities/upload.php?upload=1&sesskey=' + getConfig().sesskey;
     xhr.open('POST', url); //'https://httpbin.org/post');
     xhr.send(formData)
     //console.log("Kicked off upload...")
@@ -179,7 +179,7 @@ export function FileUploader ({inputName, title, desc, maxFiles, maxSize}) {
         if (copy[i].index == deleteIndex) {
           // Remove the temp file from server.
           if (!copy[i].existing && copy[i].completed && copy[i].serverfilename) {
-            const url = getConfig().wwwroot + '/local/teamup/upload.php?remove=1&fileid=' + copy[i].serverfilename + "&sesskey=" + getConfig().sesskey
+            const url = getConfig().wwwroot + '/local/activities/upload.php?remove=1&fileid=' + copy[i].serverfilename + "&sesskey=" + getConfig().sesskey
             const xhr = new XMLHttpRequest()
             xhr.open("GET", url)
             xhr.send()

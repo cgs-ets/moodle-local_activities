@@ -3,7 +3,7 @@ import { IconFolderFilled } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { fetchData } from 'src/utils/index'
 
-export function TeamBrowser({category, callback, showCheckbox = true}) {
+export function ActivityBrowser({category, callback, showCheckbox = true}) {
 
   const [dirCache, setDirCache] = useState({})
 
@@ -85,7 +85,7 @@ export function TeamBrowser({category, callback, showCheckbox = true}) {
                 ? <Checkbox size={15} checked={selectedItem == item.id ? true : false} onChange={() => {}}/>
                 : ''
               }
-              <Text color={item.type == 'team' ? 'tablrblue' : null}>{item.label}</Text>
+              <Text color={item.type == 'activity' ? 'tablrblue' : null}>{item.label}</Text>
             </Group>
           </UnstyledButton>
         ))}

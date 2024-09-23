@@ -31,15 +31,14 @@ export function Activity() {
 
   const [submitResponse, submitError, submitLoading, submitAjax, setSubmitData] = useAjax(); // destructure state and fetch function
   const [fetchResponse, fetchError, fetchLoading, fetchAjax, setFetchData] = useAjax(); // destructure state and fetch function
-  const [reloadStudents, setReloadStudents] = useState(false);
   
   useEffect(() => {
-    document.title = 'Manage Team'
-    // Load existing team.
+    document.title = 'Manage Activity'
+    // Load existing activity.
     if (id) {
       fetchAjax({
         query: {
-          methodname: 'local_teamup-get_team',
+          methodname: 'local_activities-get_activity',
           id: id,
         }
       })
@@ -59,7 +58,7 @@ export function Activity() {
       
       setBasicDetailsState({
         idnumber: fetchResponse.data.idnumber,
-        teamname: fetchResponse.data.teamname,
+        activityname: fetchResponse.data.activityname,
         category: fetchResponse.data.category,
         categoryName: fetchResponse.data.categoryname,
         initDescription: fetchResponse.data.details,
@@ -91,6 +90,7 @@ export function Activity() {
   }, [fetchResponse]);
 
   const navigate = useNavigate()
+
   useEffect(() => {
     if (!submitError && submitResponse) {
       // If something other than an int was returned, something went wrong.
@@ -106,7 +106,7 @@ export function Activity() {
 
       // Successful save.
       if (!id) {
-        navigate('/team/' + submitResponse.data.id, {replace: true})
+        navigate('/activity/' + submitResponse.data.id, {replace: true})
       } else {
         setMetaState({
           status: submitResponse.data.status,
@@ -114,7 +114,6 @@ export function Activity() {
         // Refetch student list.
         //setFormState({reload: true})
         console.log("Triggering student reload.")
-        setReloadStudents(true);
       }
     }
     if (submitError) {
@@ -123,9 +122,9 @@ export function Activity() {
   }, [submitResponse])
 
 
-  const handleSubmit = () => {
-    //e.preventDefault();
-    setReloadStudents(false)
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    
     const basic = useBasicDetailsStore.getState()
     const staff = useStaffDetailsStore.getState()
     const students = useStudentListStore.getState()
@@ -133,6 +132,12 @@ export function Activity() {
     let formData = JSON.parse(JSON.stringify({...meta, ...basic, ...staff}))
     formData.studentlist = students.usernames
     formData.studentlistmove = students.move
+
+    setSubmitData({
+      response: null,
+      error: false,
+      loading: false,
+    })
 
     let hasErrors = false
     let errors = {} as Errors
@@ -152,6 +157,7 @@ export function Activity() {
         }
       }
     }
+    
     setFormErrors(errors)
     if (hasErrors) {
       setSubmitData({
@@ -173,7 +179,7 @@ export function Activity() {
     submitAjax({
       method: "POST", 
       body: {
-        methodname: 'local_teamup-post_team',
+        methodname: 'local_activities-post_activity',
         args: formData,
       }
     })
@@ -189,7 +195,7 @@ export function Activity() {
             id && fetchError
             ? <Container size="xl">
                 <Center h={300}>
-                  <Text fw={600} fz="lg">Failed to load team...</Text>
+                  <Text fw={600} fz="lg">Failed to load activity...</Text>
                 </Center>
               </Container>
             : <>

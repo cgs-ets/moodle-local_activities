@@ -5,14 +5,14 @@ namespace local_activities\api;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once(__DIR__.'/../lib/tu.lib.php');
+require_once(__DIR__.'/../lib/utils.lib.php');
 
-use \local_activities\lib\tu_lib;
+use \local_activities\lib\utils_lib;
 
 /**
  * Generic API trait
  */
-trait tu_api {
+trait utils_api {
 
     /**
      * Search for a staff member in the user index.
@@ -21,7 +21,7 @@ trait tu_api {
      */
     static public function search_staff() {
         $text = required_param('text', PARAM_ALPHANUMEXT);
-        return tu_lib::search_staff($text);
+        return utils_lib::search_staff($text);
     }
 
     /**
@@ -31,7 +31,7 @@ trait tu_api {
      */
     static public function search_students() {
         $text = required_param('text', PARAM_ALPHANUMEXT);
-        return tu_lib::search_students($text);
+        return utils_lib::search_students($text);
     }
 
     /**
@@ -41,7 +41,7 @@ trait tu_api {
      */
     static public function search_categories() {
         $text = required_param('text', PARAM_ALPHANUMEXT);
-        return tu_lib::search_categories($text);
+        return utils_lib::search_categories($text);
     }
 
     /**
@@ -51,7 +51,7 @@ trait tu_api {
      */
     static public function get_category_dir() {
         $category = required_param('category', PARAM_ALPHANUMEXT);
-        return tu_lib::get_category_dir($category);
+        return utils_lib::get_category_dir($category);
     }
 
     /**
@@ -60,7 +60,7 @@ trait tu_api {
      * @return array.
      */
     static public function get_users_children() {
-        return tu_lib::get_users_children();
+        return utils_lib::get_users_children();
     }
 
     /**

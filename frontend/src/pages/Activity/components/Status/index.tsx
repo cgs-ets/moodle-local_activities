@@ -34,7 +34,7 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
   const { start, clear } = useTimeout(() => setSaveComplete(false), 5000);
   useEffect(() => {
     if (!submitError && submitResponse) {
-      //console.log("Just saved.. popup a link to go read only team, or back back to list.")
+      //console.log("Just saved.. popup a link to go read only activity, or back back to list.")
       setSaveComplete(true)
       start()
     }
@@ -64,7 +64,7 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
     pubAjax({
       method: "POST", 
       body: {
-        methodname: 'local_teamup-publish_team',
+        methodname: 'local_activities-publish_activity',
         args: {
           id: id,
           publish: newStatus
@@ -129,10 +129,10 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
       { !submitLoading && !errMessage && !haschanges &&
         <Text color="dimmed" size="sm">
         { status == statuses.saved 
-          ? "Publish this team to make it visible."
+          ? "Publish this activity to make it visible."
           : status == statuses.live 
-            ? "Team is live! You may continue to make changes to information."
-            : "Get started by entering the details for this team."
+            ? "Activity is live! You may continue to make changes to information."
+            : "Get started by entering the details for this activity."
         }
         </Text>
       }

@@ -3,7 +3,7 @@ import { create } from 'zustand'
 
 export type BasicDetails = {
   idnumber: string,
-  teamname: string,
+  activityname: string,
   category: string,
   categoryName: string,
   details: string,
@@ -11,7 +11,7 @@ export type BasicDetails = {
 }
 
 type BasicDetailsStore = {
-  teamname: string,
+  activityname: string,
   category: string,
   categoryName: string,
   details: string,
@@ -22,7 +22,7 @@ type BasicDetailsStore = {
 
 const basicDetailsInit = {
   idnumber: '',
-  teamname: '',
+  activityname: '',
   category: '',
   categoryName: '',
   details: '',
@@ -107,8 +107,8 @@ type FormValidationStore = {
 const useFormValidationStore = create<FormValidationStore>((set) => ({
   formErrors: {},
   rules: {
-    teamname: [
-      (value: string) => (value.length ? null : 'Team name is required. '),
+    activityname: [
+      (value: string) => (value.length ? null : 'Activity name is required. '),
     ],
   },
   setFormErrors: (errors) => set({ formErrors: errors }),

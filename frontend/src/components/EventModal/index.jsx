@@ -18,7 +18,7 @@ export function EventModal({opened, eventData, showOptions, close, viewRole, onC
       setShowEditOptions(false)
       fetchAjax({
         query: {
-          methodname: 'local_activities-is_event_teamstaff',
+          methodname: 'local_activities-is_event_activitystaff',
           id: eventData.id,
         }
       })
@@ -62,7 +62,7 @@ export function EventModal({opened, eventData, showOptions, close, viewRole, onC
                     </Group>
                     { showOptions 
                       ? <Group spacing="xs">
-                          { !eventData.cancelled && (showEditOptions || viewRole == "teamstaff" || getConfig().roles.includes('manager'))
+                          { !eventData.cancelled && (showEditOptions || viewRole == "activitystaff" || getConfig().roles.includes('manager'))
                             ? <>
                                 <Link to={"/attendance/" + eventData.id}><Button radius="lg" compact variant="filled" leftIcon={<IconUserCheck size={12} />}>Attendance</Button></Link> 
                                 <Menu shadow="md" width={200} position="bottom">
@@ -88,18 +88,18 @@ export function EventModal({opened, eventData, showOptions, close, viewRole, onC
                   <Group position="apart" mb={5} spacing={5}>
                     <Text fz="sm">{eventData.location}</Text>
                     <Group spacing="xs">
-                      {eventData?.teams?.map((team, i) => {
+                      {eventData?.activities?.map((activity, i) => {
                         return (
-                          showEditOptions || viewRole == "teamstaff" || getConfig().roles.includes('manager')
+                          showEditOptions || viewRole == "activitystaff" || getConfig().roles.includes('manager')
                           ? <>
-                              <Link to={"/team/" + team.teamid}>
+                              <Link to={"/activity/" + activity.activityid}>
                                 <Badge key={i} variant='filled' color="gray.2" size="lg">
-                                  <Text tt="none" fw={400} c="#000" td={team.cancelled == '1' ? 'line-through' : ''}>{team.teamname}</Text>
+                                  <Text tt="none" fw={400} c="#000" td={activity.cancelled == '1' ? 'line-through' : ''}>{activity.activityname}</Text>
                                 </Badge>
                               </Link>
                             </>
                           : <Badge key={i} variant='filled' color="gray.2" size="lg">
-                              <Text tt="none" fw={400} c="#000" td={team.cancelled == '1' ? 'line-through' : ''}>{team.teamname}</Text>
+                              <Text tt="none" fw={400} c="#000" td={activity.cancelled == '1' ? 'line-through' : ''}>{activity.activityname}</Text>
                             </Badge>
                         )
                       })}

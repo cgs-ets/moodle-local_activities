@@ -14,7 +14,7 @@ export function StaffSelector({valueprop, label, max}) {
     value: JSON.stringify({ un: item.un, fn: item.fn, ln: item.ln }), // What we'll send to the server for saving.
     label: item.fn + " " + item.ln,
     username: item.un,
-    image: '/local/teamup/avatar.php?username=' + item.un
+    image: '/local/activities/avatar.php?username=' + item.un
   })
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export function StaffSelector({valueprop, label, max}) {
     setIsLoading(true);
     const response = await fetchData({
       query: {
-        methodname: 'local_teamup-search_staff',
+        methodname: 'local_activities-search_staff',
         text: text,
       }
     })
