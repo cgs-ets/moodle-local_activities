@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect } from "react";
 import { Box, Container, Grid, Center, Text, Loader, Card } from '@mantine/core';
 import { useNavigate, useParams } from "react-router-dom";
 import { Header } from "../../components/Header";
@@ -11,6 +11,7 @@ import { useAjax } from '../../hooks/useAjax';
 import { useBasicDetailsStore, useStaffDetailsStore, useFormValidationStore, useStudentListStore, Errors } from './store/formFieldsStore'
 import { useFormMetaStore, useFormStateStore } from "./store/formMetaStore"
 import { BasicDetails } from "./components/BasicDetails";
+import dayjs from "dayjs";
 
 export function Activity() {
   let { id } = useParams();
@@ -55,14 +56,17 @@ export function Activity() {
 
   useEffect(() => {
     if (fetchResponse && !fetchError) {
-      
+      console.log(fetchResponse.data)
       setBasicDetailsState({
         idnumber: fetchResponse.data.idnumber,
         activityname: fetchResponse.data.activityname,
+        activitytype: fetchResponse.data.activitytype,
         category: fetchResponse.data.category,
         categoryName: fetchResponse.data.categoryname,
         initDescription: fetchResponse.data.details,
         details: fetchResponse.data.details,
+        timestart: Number(fetchResponse.data.timestart) ? fetchResponse.data.timestart : dayjs().unix(),
+        timeend: Number(fetchResponse.data.timestart) ? fetchResponse.data.timestart : dayjs().unix(),
       })
 
       // Prep these for the multi selelctor
@@ -207,7 +211,7 @@ export function Activity() {
                     <Grid grow>
                       <Grid.Col span={{ base: 12, lg: 9 }}>
                         <Box>
-                          <Card withBorder className="overflow-visible rounded p-4 flex flex-col gap-6">
+                          <Card withBorder className="overflow-visible rounded py-6 px-4 flex flex-col gap-6">
                             <BasicDetails />
                             {/*<StaffDetails />*/}
                           </Card>

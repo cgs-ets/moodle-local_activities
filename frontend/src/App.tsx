@@ -4,6 +4,11 @@ import './App.css'
 import '@mantine/tiptap/styles.css';
 import { Dashboard } from "./pages/Dashboard";
 import { Activity } from "./pages/Activity";
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import 'dayjs/locale/en-gb';
+
+
 
 function App() { 
 
@@ -30,9 +35,12 @@ function App() {
   );
 
   return (
+    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en-gb">
     <div className="page">
       <RouterProvider router={router} />
     </div>
+
+    </LocalizationProvider>
   );
 }
 

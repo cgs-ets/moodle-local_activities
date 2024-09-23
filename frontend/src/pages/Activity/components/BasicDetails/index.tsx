@@ -4,7 +4,10 @@ import { RichTextEditor, Link } from '@mantine/tiptap';
 import { useEditor } from '@tiptap/react';
 import { StarterKit } from '@tiptap/starter-kit';
 import { BasicDetails as BasicDetailsType, useBasicDetailsStore, useFormValidationStore } from '../../store/formFieldsStore'
-import { IconEdit } from "@tabler/icons-react";
+import { IconArrowRight, IconEdit } from "@tabler/icons-react";
+import { DateTimePicker } from "@mui/x-date-pickers";
+import dayjs from "dayjs";
+import { TextField } from "@mui/material";
 
 export function BasicDetails() {
 
@@ -104,6 +107,29 @@ export function BasicDetails() {
         </Button>
       </div>
 
+      <div className="flex gap-4 items-center">
+        <div>
+          <Text fz="sm" mb="5px" fw={500} c="#212529">Start time</Text>
+          <DateTimePicker 
+            value={dayjs.unix(Number(basicDetails.timestart))}
+            onChange={(newValue) => updateField('timestart', (newValue?.unix() ?? 0).toString())}
+            views={['day', 'month', 'year', 'hours', 'minutes']}
+          />
+        </div>
+        <div>
+          <span>&nbsp;</span>
+          <IconArrowRight />
+        </div>
+        <div>
+        <Text fz="sm" mb="5px" fw={500} c="#212529">End time</Text>
+          <DateTimePicker 
+            value={dayjs.unix(Number(basicDetails.timestart))}
+            onChange={(newValue) => updateField('timestart', (newValue?.unix() ?? 0).toString())}
+            views={['day', 'month', 'year', 'hours', 'minutes']}
+          />
+        </div>
+      </div>
+      
       <div>
         <Text fz="sm" mb="5px" fw={500} c="#212529">Description</Text>
         <RichTextEditor 
