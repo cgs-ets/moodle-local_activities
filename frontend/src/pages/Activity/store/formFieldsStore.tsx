@@ -4,18 +4,14 @@ import { create } from 'zustand'
 export type BasicDetails = {
   idnumber: string,
   activityname: string,
+  activitytype: string,
   category: string,
   categoryName: string,
   details: string,
   initDescription: string,
 }
 
-type BasicDetailsStore = {
-  activityname: string,
-  category: string,
-  categoryName: string,
-  details: string,
-  initDescription: string,
+type BasicDetailsStore = BasicDetails & {
   setState: (newState: BasicDetails | null) => void,
   reset: () => void,
 }
@@ -23,6 +19,7 @@ type BasicDetailsStore = {
 const basicDetailsInit = {
   idnumber: '',
   activityname: '',
+  activitytype: '',
   category: '',
   categoryName: '',
   details: '',
@@ -44,9 +41,7 @@ type StaffDetails= {
   assistants: string[],
 }
 
-type StaffDetailsStore = {
-  coaches: string[],
-  assistants: string[],
+type StaffDetailsStore = StaffDetails & {
   setState: (newState: StaffDetails | null) => void,
   reset: () => void,
 }
@@ -72,13 +67,11 @@ type StudentList= {
   move: string[],
 }
 
-type StudentListStore = {
-  data: string[],
-  usernames: string[],
-  move: string[],
+type StudentListStore = StudentList & {
   setState: (newState: StudentList | null) => void,
   reset: () => void,
 }
+
 
 const studentListInit = {
   data: [],

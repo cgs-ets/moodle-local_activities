@@ -14,7 +14,7 @@ function App() {
         element: <Dashboard />
       },
       {
-        path: "new",
+        path: "activity",
         element: <Activity />,
         children: [
           {

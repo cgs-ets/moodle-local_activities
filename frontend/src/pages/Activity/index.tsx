@@ -207,7 +207,7 @@ export function Activity() {
                     <Grid grow>
                       <Grid.Col span={{ base: 12, lg: 9 }}>
                         <Box>
-                          <Card withBorder radius="sm" pb="xs" mb="lg" className="overflow-visible">
+                          <Card withBorder className="overflow-visible rounded p-4 flex flex-col gap-6">
                             <BasicDetails />
                             {/*<StaffDetails />*/}
                           </Card>

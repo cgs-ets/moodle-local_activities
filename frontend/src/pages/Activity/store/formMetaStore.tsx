@@ -13,13 +13,7 @@ type FormMeta = {
   timemodified?: number,
 }
 
-type FormMetaStore = {
-  id?: number,
-  idnumber?: string,
-  creator?: string,
-  status?: number, // 0: Unsaved, 1: Saved draft, 2: Live
-  timecreated?: number,
-  timemodified?: number,
+type FormMetaStore = FormMeta & {
   setState: (newState: FormMeta | null) => void,
   reset: () => void
 }
@@ -49,13 +43,7 @@ type FormState = {
   reloadstulist: boolean,
 }
 
-type FormStateStore = {
-  oldhash: string,
-  hash: string,
-  formloaded: boolean,
-  studentsloaded: boolean,
-  haschanges: boolean,
-  reloadstulist: boolean,
+type FormStateStore = FormState & {
   setState: (newState: FormState | null) => void,
   reset: () => void,
   reloadStudents: () => void,
