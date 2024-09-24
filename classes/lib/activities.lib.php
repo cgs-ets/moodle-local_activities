@@ -33,12 +33,13 @@ class activities_lib {
      * @param array $data
      * @return array
      */
-    public static function save_activity($data) {
+    public static function save_from_data($data) {
         global $USER, $DB;
 
         $activity = null;
 
         try {
+            // Check if data came through with some valid attributes
             if (!isset($data->id))  {
                 throw new \Exception("Submitted data is malformed.");
             }
@@ -53,7 +54,7 @@ class activities_lib {
                 }
                 $activity = new Activity($data->id);
             } else {
-                // Can this user create an team? Must be a Moodle Admin or TeamUp Manager.
+                // Can this user create an activity? Must be a Moodle Admin or Planning staff.
                 if (!utils_lib::has_capability_create_activity()) {
                     throw new \Exception("Permission denied.");
                     exit;
@@ -73,21 +74,82 @@ class activities_lib {
                 $activity->set('idnumber', $slug.'-'.$random);
                 $activity->save();
             }
+
             // Save data.
-            //$activity->set('category', $data->category);
             $activity->set('activityname', $data->activityname);
-            $activity->set('details', $data->details);
+            $activity->set('campus', $data->campus);
+            $activity->set('activitytype', $data->activitytype);
+            $activity->set('location', $data->location);
+            $activity->set('timestart', $data->timestart);
+            $activity->set('timeend', $data->timeend);
+            $activity->set('description', $data->description);
+            $activity->set('transport', $data->transport);
+            $activity->set('cost', $data->cost);
+            $activity->set('permissions', $data->permissions);
+            $activity->set('permissionstype', $data->permissionstype);
+            $activity->set('permissionslimit', $data->permissionslimit);
+            $activity->set('permissionsdueby', $data->permissionsdueby);
+            $activity->set('riskassessment', $data->riskassessment);
+            $activity->set('attachments', $data->attachments);
+            $activity->set('otherparticipants', $data->otherparticipants);
+            $activity->set('colourcategory', $data->colourcategory);
+            $activity->set('displaypublic', $data->displaypublic);
+            $activity->set('isactivity', $data->isactivity);
+            $activity->set('isassessment', $data->isassessment);
+            $activity->set('courseid', $data->courseid);
+            $activity->set('assessmenturl', $data->assessmenturl);
+
+            // Set absences flag back to 0 so that absences are cleaned in case of student list change.
+            $activity->set('absencesprocessed', 0);
+            $activity->set('classrollprocessed', 0);
+
+            // Set the staff in charge.
+            //$activity->set('staffincharge', $USER->username);
+            //$staffincharge = json_decode($data->staffinchargejson);
+            //if ($staffincharge) {
+            //    $staffincharge = array_pop($staffincharge);
+            //    $activity->set('staffincharge', $staffincharge->idfield);
+            //}
+
+            //$activity->set('studentlistjson', $data->studentlistjson);
+            //$activity->set('staffinchargejson', $data->staffinchargejson);
+            //$activity->set('planningstaffjson', $data->planningstaffjson);
+            //$activity->set('accompanyingstaffjson', $data->accompanyingstaffjson);
+            //$activity->set('areasjson', $data->areasjson);
+            
+            /*
+            $activity->set('categoriesjson', $data->categoriesjson);
+            $areas = json_decode($formdata->categoriesjson);
+            $areas = array_map(function($cat) {
+                $split = explode('/', $cat);
+                return [end($split)];
+            }, $areas);
+            $areas = call_user_func_array('array_merge', $areas);
+            $areas = array_values(array_unique($areas));
+            $activity->set('areasjson', json_encode($areas));
+            if (!count($areas) || in_array('CGS Board', $areas)) {
+                $activity->set('displaypublic', 0);
+            }*/
+
+
             $activity->save();
+            //var_export($activity); exit;
 
             // Sync the staff lists.
-            static::sync_staff_from_data($activity->get('id'), 'planning', $data->planningstaff);
-            static::sync_staff_from_data($activity->get('id'), 'accompany', $data->accompanystaff);
+            //static::sync_staff_from_data($activity->get('id'), 'planning', $data->planningstaff);
+            //static::sync_staff_from_data($activity->get('id'), 'accompany', $data->accompanystaff);
 
             // Sync the student list.
-            static::sync_students_from_data($activity->get('id'), $data->studentlist);
+            //static::sync_students_from_data($activity->get('id'), $data->studentlist);
 
-            // Change student teams if necessary.
-            static::move_students_from_data($activity->get('id'), $data->studentlistmove);
+            // Generate permissions based on student list.
+            //static::generate_permissions($data->id);
+
+            // If sending for review or saving after already in review, determine the approvers based on campus.
+            //if ($data->status == locallib::ACTIVITY_STATUS_INREVIEW ||
+                //$data->status == locallib::ACTIVITY_STATUS_APPROVED) {
+                //static::generate_approvals($originalactivity, $activity);
+            //}
 
         } catch (\Exception $e) {
             // Log and rethrow. 
@@ -236,9 +298,17 @@ class activities_lib {
 
 
 
-
-
-
+    /**
+     * Get and decorate the data.
+     *
+     * @param int $id activity id
+     * @return array
+     */
+    public static function get_activity($id) {
+        $activity = new Activity($id);
+        return $activity->export();
+    }
+    
 
 
  

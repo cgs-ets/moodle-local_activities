@@ -1,40 +1,8 @@
 
 import { create } from 'zustand'
-import { exportActivityHash } from '../../../exporters/activityHash'
+import { exportActivityHash } from '../exporters/activityHash'
 
-
-
-type FormMeta = {
-  id?: number,
-  idnumber?: string,
-  creator?: string,
-  status?: number, // 0: Unsaved, 1: Saved draft, 2: Live
-  timecreated?: number,
-  timemodified?: number,
-}
-
-type FormMetaStore = FormMeta & {
-  setState: (newState: FormMeta | null) => void,
-  reset: () => void
-}
-
-const formMetaInit = {
-  id: 0,
-  idnumber: '',
-  creator: '',
-  status: 0, // 0: Unsaved, 1: Saved draft, 2: Live
-  timecreated: 0,
-  timemodified: 0,
-}
-const useFormMetaStore = create<FormMetaStore>((set) => ({
-  ...formMetaInit,
-  setState: (newState) => set(newState || formMetaInit),
-  reset: () => set(formMetaInit)
-}))
-
-
-
-type FormState = {
+type State = {
   oldhash: string,
   hash: string,
   formloaded: boolean,
@@ -43,8 +11,8 @@ type FormState = {
   reloadstulist: boolean,
 }
 
-type FormStateStore = FormState & {
-  setState: (newState: FormState | null) => void,
+type StateStore = State & {
+  setState: (newState: State | null) => void,
   reset: () => void,
   reloadStudents: () => void,
   baselineHash: () =>  void,
@@ -63,7 +31,7 @@ const formStateInit = {
   haschanges: false,
   reloadstulist: false,
 }
-const useFormStateStore = create<FormStateStore>((set) => ({
+const useStateStore = create<StateStore>((set, get) => ({
   ...formStateInit,
   setState: (newState) => set(newState ? newState : formStateInit),
   reset: () => set(formStateInit),
@@ -84,12 +52,14 @@ const useFormStateStore = create<FormStateStore>((set) => ({
   },
   updateHash: () => {
     const hash = exportActivityHash()
-    set((state: FormState) => ({ 
+    //console.log('hash', hash)
+    //console.log('oldhash', get().oldhash)
+    set((state: State) => ({ 
       hash: hash, 
       haschanges: (hash !== state.oldhash) 
     }))
   },
-  resetHash: () => set((state: FormState) => ({
+  resetHash: () => set((state: State) => ({
     hash: state.oldhash,
     haschanges: false,
   })),
@@ -99,4 +69,4 @@ const useFormStateStore = create<FormStateStore>((set) => ({
 
 
 
-export { useFormMetaStore, useFormStateStore };
+export { useStateStore };

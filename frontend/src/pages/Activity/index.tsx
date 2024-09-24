@@ -1,4 +1,4 @@
-import { Fragment, useEffect } from "react";
+import { useEffect } from "react";
 import { Box, Container, Grid, Center, Text, Loader, Card } from '@mantine/core';
 import { useNavigate, useParams } from "react-router-dom";
 import { Header } from "../../components/Header";
@@ -8,24 +8,23 @@ import { Status } from "./components/Status";
 //import { StaffDetails } from "./components/StaffDetails/index.jsx";
 //import { StudentList } from "./components/StudentList/index.jsx";
 import { useAjax } from '../../hooks/useAjax';
-import { useBasicDetailsStore, useStaffDetailsStore, useFormValidationStore, useStudentListStore, Errors } from './store/formFieldsStore'
-import { useFormMetaStore, useFormStateStore } from "./store/formMetaStore"
 import { BasicDetails } from "./components/BasicDetails";
 import dayjs from "dayjs";
+import { useStateStore } from "../../stores/stateStore";
+import { defaults, Errors, Form, useFormStore, useFormValidationStore, useStaffDetailsStore, useStudentListStore } from "../../stores/formStore";
 
 export function Activity() {
   let { id } = useParams();
 
-  const setBasicDetailsState = useBasicDetailsStore((state) => state.setState)
-  const setStaffDetailsState = useStaffDetailsStore((state) => state.setState)
-  const setStudentListState = useStudentListStore((state) => state.setState)
-  const setMetaState = useFormMetaStore((state) => state.setState)
-  const setFormState = useFormStateStore((state) => state.setState)
+  const setFormData = useFormStore((state) => state.setState)
+  const setFormState = useStateStore((state) => state.setState)
 
-  const formLoaded = useFormStateStore((state) => (state.setFormLoaded))
-  const baselineHash = useFormStateStore((state) => (state.baselineHash))
-  const clearHash = useFormStateStore((state) => (state.clearHash))
-  const resetHash = useFormStateStore((state) => (state.resetHash))
+  const formLoaded = useStateStore((state) => (state.setFormLoaded))
+  const baselineHash = useStateStore((state) => (state.baselineHash))
+  const clearHash = useStateStore((state) => (state.clearHash))
+  const resetHash = useStateStore((state) => (state.resetHash))
+  const staff = useStaffDetailsStore.getState()
+  const students = useStudentListStore.getState()
   
   const validationRules = useFormValidationStore((state) => state.rules)
   const setFormErrors = useFormValidationStore((state) => state.setFormErrors)
@@ -44,10 +43,7 @@ export function Activity() {
         }
       })
     } else {
-      setBasicDetailsState(null)
-      setStaffDetailsState(null)
-      setStudentListState(null)
-      setMetaState(null)
+      setFormData(null)
       setFormState(null)
       clearHash()
     }
@@ -57,17 +53,16 @@ export function Activity() {
   useEffect(() => {
     if (fetchResponse && !fetchError) {
       console.log(fetchResponse.data)
-      setBasicDetailsState({
-        idnumber: fetchResponse.data.idnumber,
-        activityname: fetchResponse.data.activityname,
-        activitytype: fetchResponse.data.activitytype,
-        category: fetchResponse.data.category,
-        categoryName: fetchResponse.data.categoryname,
-        initDescription: fetchResponse.data.details,
-        details: fetchResponse.data.details,
+      
+      const data = {
+        ...fetchResponse.data,
+        timecreated: Number(fetchResponse.data.timecreated) ? fetchResponse.data.timecreated : dayjs().unix(),
+        timemodified: Number(fetchResponse.data.timemodified) ? fetchResponse.data.timemodified : dayjs().unix(),
         timestart: Number(fetchResponse.data.timestart) ? fetchResponse.data.timestart : dayjs().unix(),
-        timeend: Number(fetchResponse.data.timestart) ? fetchResponse.data.timestart : dayjs().unix(),
-      })
+        timeend: Number(fetchResponse.data.timeend) ? fetchResponse.data.timeend : dayjs().unix(),
+      }
+      // Merge into default values
+      setFormData({...defaults, ...data})
 
       // Prep these for the multi selelctor
       /*const coaches = fetchResponse.data.coaches 
@@ -81,15 +76,8 @@ export function Activity() {
         assistants: assistants,
       })*/
 
-      setMetaState({
-        id: fetchResponse.data.id,
-        creator: fetchResponse.data.creator,
-        status: fetchResponse.data.status,
-        timecreated: fetchResponse.data.timecreated,
-        timemodified: fetchResponse.data.timemodified,
-      })
-
       formLoaded()
+      baselineHash()
     }
   }, [fetchResponse]);
 
@@ -112,9 +100,9 @@ export function Activity() {
       if (!id) {
         navigate('/activity/' + submitResponse.data.id, {replace: true})
       } else {
-        setMetaState({
+        setFormData({
           status: submitResponse.data.status,
-        })
+        } as Form)
         // Refetch student list.
         //setFormState({reload: true})
         console.log("Triggering student reload.")
@@ -128,14 +116,10 @@ export function Activity() {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    
-    const basic = useBasicDetailsStore.getState()
-    const staff = useStaffDetailsStore.getState()
-    const students = useStudentListStore.getState()
-    const meta = useFormMetaStore.getState()
-    let formData = JSON.parse(JSON.stringify({...meta, ...basic, ...staff}))
+
+    let formData = JSON.parse(JSON.stringify({...useFormStore.getState()}))
     formData.studentlist = students.usernames
-    formData.studentlistmove = students.move
+    console.log(formData);
 
     setSubmitData({
       response: null,
@@ -190,7 +174,7 @@ export function Activity() {
   }
 
   return (
-    <Fragment>
+    <>
       <Header />
       <div className="page-wrapper" style={{minHeight: 'calc(100vh - 154px)'}}>
         { id && !fetchResponse ? (
@@ -211,7 +195,7 @@ export function Activity() {
                     <Grid grow>
                       <Grid.Col span={{ base: 12, lg: 9 }}>
                         <Box>
-                          <Card withBorder className="overflow-visible rounded py-6 px-4 flex flex-col gap-6">
+                          <Card withBorder className="overflow-visible rounded p-4 flex flex-col gap-6">
                             <BasicDetails />
                             {/*<StaffDetails />*/}
                           </Card>
@@ -228,6 +212,6 @@ export function Activity() {
         )}
       </div>
       <Footer />
-    </Fragment>
+    </>
   )
 }

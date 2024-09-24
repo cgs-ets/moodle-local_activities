@@ -22,6 +22,51 @@ class Activity {
     
     private $data = null;
 
+    private const defaults = [
+        'id' => 0,
+        'creator' => '',
+        'activityname' => '',
+        'idnumber' => '',
+        'campus' => 'senior',
+        'activitytype' => 'excursion',
+        'location' => '',
+        'timestart' => 0,
+        'timeend' => 0,
+        'studentlistjson' => '',
+        'description' => '',
+        'transport' => '',
+        'cost' => '',
+        'status' => 0,
+        'permissions' => 0,
+        'permissionstype' => '',
+        'permissionslimit' => 0,
+        'permissionsdueby' => 0,
+        'deleted' => 0,
+        'riskassessment' => '',
+        'attachments' => '',
+        'timecreated' => 0,
+        'timemodified' => 0,
+        'staffincharge' => '',
+        'staffinchargejson' => '',
+        'planningstaffjson' => '',
+        'accompanyingstaffjson' => '',
+        'otherparticipants' => '',
+        'absencesprocessed' => 0,
+        'remindersprocessed' => 0,
+        'categoriesjson' => '',
+        'colourcategory' => '',
+        'areasjson' => '',
+        'displaypublic' => 0,
+        'pushpublic' => 0,
+        'isactivity' => 0,
+        'timesynclive' => 0,
+        'timesyncplanning' => 0,
+        'isassessment' => 0,
+        'courseid' => 0,
+        'assessmenturl' => ''
+    ];
+
+
     /**
      * Create an instance of this class.
      *
@@ -30,7 +75,7 @@ class Activity {
     public function __construct($id = 0) {
         global $CFG;
 
-        $this->data = new \stdClass();
+        $this->data = (object) static::defaults;
 
         if ($id > 0) {
             return $this->read($id);
@@ -44,13 +89,18 @@ class Activity {
      */
     public function export() {
         if (!$this->get('id')) {
-            return [];
+            return static::defaults;
         }
 
-        $this->load_planningstaffdata();
-        $this->load_accompanyingstaffdata();
+        $data = clone($this->data);
+        $data->iseditor = utils_lib::has_capability_edit_activity($this->get('id'));
 
-        return [
+        return $this->data;
+
+        //$this->load_planningstaffdata();
+        //$this->load_accompanyingstaffdata();
+
+        /*return [
             'id' => $this->get('id'),
             'idnumber' => $this->get('idnumber'),
             'creator' => $this->get('creator'),
@@ -63,7 +113,7 @@ class Activity {
             'assistants' => $this->get('assistantsdata'),
             'timecreated' => $this->get('timecreated'),
             'timemodified' => $this->get('timemodified'),
-        ];
+        ];*/
     }
     
     /**
@@ -165,6 +215,65 @@ class Activity {
         usort($students, fn($a, $b) => strcmp($a->ln, $b->ln));
 
         $this->set('studentsdata', json_encode($students));
+    }
+
+    /**
+     * create a new block record in the db and return a block instance.
+     *
+     * @return static
+     */
+    public function create() {
+        global $DB;
+
+        
+        $data = clone($this->data); // Make a copy.
+        $data->timecreated = time();
+        $data->timemodified = time();
+
+        // Merge into default values
+        $data = (object) array_replace(static::defaults, (array) $data);
+        //var_export($data); exit;
+        //$this->validate_data();
+
+        $id = $DB->insert_record(static::TABLE, $data);
+
+        return $this->read($id);
+    }
+
+    /**
+     * Create or update an activity.
+     *
+     * @return static
+     */
+    public function save() {
+        global $DB;
+
+        if (empty($this->data->id)) {
+            // Create new
+            $this->data->id = $this->create()->data->id;
+        } else {
+            $this->update();
+        }
+
+        return $this->data->id;
+    }
+
+    /**
+     * update activity data.
+     *
+     * @param $data
+     * @return static
+     */
+    public function update() {
+        global $DB;
+
+        if (!empty($this->data->id)) {
+            $this->data->timemodified = time();
+            $DB->update_record(static::TABLE, $this->data);
+            return $this->data->id;
+        }
+
+        return;
     }
 
     /**

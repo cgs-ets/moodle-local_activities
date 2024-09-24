@@ -1,11 +1,11 @@
 import { Breadcrumbs, Container, Text } from '@mantine/core';
-import { useBasicDetailsStore } from '../../store/formFieldsStore'
-import { useFormMetaStore } from '../../store/formMetaStore'
 import { Link } from "react-router-dom";
 import { statuses } from "../../../../utils";
+import { useFormMetaStore } from '../../../../stores/metaStore';
+import { useFormStore } from '../../../../stores/formStore';
 
 export function PageHeader() {
-  const name = useBasicDetailsStore((state) => (state.activityname))
+  const name = useFormStore((state) => (state.activityname))
   const status = useFormMetaStore((state) => (state.status))
 
   return (

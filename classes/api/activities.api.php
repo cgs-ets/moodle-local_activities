@@ -22,7 +22,7 @@ trait activities_api {
      */
     static public function get_activity() {
         $id = required_param('id', PARAM_INT);
-        return activities_lib::get_activity_for_editing($id);
+        return activities_lib::get_activity($id);
     }
 
     /**
@@ -31,7 +31,7 @@ trait activities_api {
      * @return array containing activityid and new status.
      */
     static public function post_activity($args) { 
-        return activities_lib::save_activity( (object) $args);
+        return activities_lib::save_from_data( (object) $args);
     }
 
     /**

@@ -2,33 +2,41 @@ import { Card, Group, Button, Text, Menu, Loader, Transition, Box,  } from '@man
 import { IconDots, IconCloudUp, IconCheckbox, IconArrowMoveLeft, IconCheck } from '@tabler/icons-react';
 //import { useClipboard } from 'use-clipboard-copy';
 import { useEffect, useState } from 'react';
-import { useFormMetaStore, useFormStateStore } from '../../store/formMetaStore';
-import { useBasicDetailsStore, useStaffDetailsStore, useStudentListStore } from "../../store/formFieldsStore"
 import { useTimeout } from '@mantine/hooks';
 import { statuses } from '../../../../utils';
 import { useAjax } from '../../../../hooks/useAjax';
 import { useParams } from 'react-router-dom';
+import { useFormMetaStore } from '../../../../stores/metaStore';
+import { useFormStore } from '../../../../stores/formStore';
+import { useStateStore } from '../../../../stores/stateStore';
+
 
 export function Status({submitLoading, submitError, submitResponse}: {submitLoading: boolean, submitError: boolean, submitResponse: any}) {
   let { id } = useParams();
 
-  const basic = useBasicDetailsStore()
-  const staff = useStaffDetailsStore()
-  const students = useStudentListStore()
+  const formData = useFormStore()
   const meta = useFormMetaStore()
   const setMetaState = useFormMetaStore((state) => state.setState)
   const status = useFormMetaStore((state) => (state.status))
-  const formloaded = useFormStateStore((state) => (state.formloaded))
-  const studentsloaded = useFormStateStore((state) => (state.studentsloaded))
-  const haschanges = useFormStateStore((state) => (state.haschanges))
-  const updateHash = useFormStateStore((state) => (state.updateHash))
+  const formloaded = useStateStore((state) => (state.formloaded))
+  const studentsloaded = useStateStore((state) => (state.studentsloaded))
+  const haschanges = useStateStore((state) => (state.haschanges))
+  const updateHash = useStateStore((state) => (state.updateHash))
+  const baselineHash = useStateStore((state) => (state.baselineHash))
+
+  // On page load, set the baseline hash
+  useEffect(() => {
+    if (!id) {
+      baselineHash()
+    }
+  }, [])
 
   useEffect(() => {
-    if (!id || (formloaded && studentsloaded)) {
+    if (id && formloaded) {
       // Everything is loaded now.
       updateHash()
     }
-  }, [basic, staff, students, meta])
+  }, [formData])
 
   const [saveComplete, setSaveComplete] = useState(false);
   const { start, clear } = useTimeout(() => setSaveComplete(false), 5000);
@@ -139,7 +147,14 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
 
       <Group justify="space-between" mt="xs">
         <Group gap="xs">
-          <Button type="submit" size="compact-md" radius="xl" leftSection={<IconCloudUp size={14} />} loading={submitLoading}>Save { haschanges ? " changes" : "" }</Button>
+          <Button 
+            type="submit" 
+            size="compact-md" 
+            radius="xl" 
+            leftSection={<IconCloudUp className='size-4' />} 
+            loading={submitLoading}>
+              Save { haschanges ? " changes" : "" }
+          </Button>
           { !haschanges && status == statuses.saved && <Button onClick={handlePublish} size="compact-md" radius="xl" leftSection={<IconCheckbox size={14} />} loading={pubLoading}>Publish</Button> }
         </Group>
         { (status == statuses.live) &&
