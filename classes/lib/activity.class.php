@@ -267,6 +267,7 @@ class Activity {
     public function update() {
         global $DB;
 
+        //var_export($this->data); exit;
         if (!empty($this->data->id)) {
             $this->data->timemodified = time();
             $DB->update_record(static::TABLE, $this->data);

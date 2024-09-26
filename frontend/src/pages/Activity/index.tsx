@@ -52,10 +52,11 @@ export function Activity() {
 
   useEffect(() => {
     if (fetchResponse && !fetchError) {
-      console.log(fetchResponse.data)
+      //console.log(fetchResponse.data)
       
       const data = {
         ...fetchResponse.data,
+        categories: JSON.parse(fetchResponse.data.categoriesjson || '[]'),
         timecreated: Number(fetchResponse.data.timecreated) ? fetchResponse.data.timecreated : dayjs().unix(),
         timemodified: Number(fetchResponse.data.timemodified) ? fetchResponse.data.timemodified : dayjs().unix(),
         timestart: Number(fetchResponse.data.timestart) ? fetchResponse.data.timestart : dayjs().unix(),
@@ -119,7 +120,7 @@ export function Activity() {
 
     let formData = JSON.parse(JSON.stringify({...useFormStore.getState()}))
     formData.studentlist = students.usernames
-    console.log(formData);
+    //console.log(formData);
 
     setSubmitData({
       response: null,

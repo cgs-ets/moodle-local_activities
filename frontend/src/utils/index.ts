@@ -54,8 +54,10 @@ const fetchData = async (options: any, url?: string) => {
 
 const statuses = {
   unsaved: 0,
-  saved: 1,
-  live: 2,
+  draft: 1,
+  inreview: 2,
+  approved: 3,
+  cancelled: 4,
 }
 
 export { fetchData, getConfig, queryString, createUrl, statuses };

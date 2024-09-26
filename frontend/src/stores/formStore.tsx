@@ -34,6 +34,7 @@ export type Form = {
   otherparticipants: string;
   //absencesprocessed: string;
   //remindersprocessed: string;
+  categories: string[];
   categoriesjson: string;
   colourcategory: string;
   areasjson: string;
@@ -83,6 +84,7 @@ const defaults: Form = {
     otherparticipants: '',
     //absencesprocessed: '',
     //remindersprocessed: '',
+    categories: [],
     categoriesjson: '',
     colourcategory: '',
     areasjson: '',

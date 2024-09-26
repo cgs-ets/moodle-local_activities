@@ -1,6 +1,5 @@
 import { Card, Group, Button, Text, Menu, Loader, Transition, Box,  } from '@mantine/core';
 import { IconDots, IconCloudUp, IconCheckbox, IconArrowMoveLeft, IconCheck } from '@tabler/icons-react';
-//import { useClipboard } from 'use-clipboard-copy';
 import { useEffect, useState } from 'react';
 import { useTimeout } from '@mantine/hooks';
 import { statuses } from '../../../../utils';
@@ -15,25 +14,20 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
   let { id } = useParams();
 
   const formData = useFormStore()
-  const meta = useFormMetaStore()
   const setMetaState = useFormMetaStore((state) => state.setState)
-  const status = useFormMetaStore((state) => (state.status))
+  //const status = useFormMetaStore((state) => (state.status))
+  const status = useFormStore((state) => (state.status))
   const formloaded = useStateStore((state) => (state.formloaded))
   const studentsloaded = useStateStore((state) => (state.studentsloaded))
   const haschanges = useStateStore((state) => (state.haschanges))
   const updateHash = useStateStore((state) => (state.updateHash))
   const baselineHash = useStateStore((state) => (state.baselineHash))
+  const hash = useStateStore((state) => (state.hash))
 
-  // On page load, set the baseline hash
   useEffect(() => {
-    if (!id) {
+    if (!hash) {
       baselineHash()
-    }
-  }, [])
-
-  useEffect(() => {
-    if (id && formloaded) {
-      // Everything is loaded now.
+    } else {
       updateHash()
     }
   }, [formData])
@@ -53,18 +47,6 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
       clear()
     }
   }, [submitLoading])
-
-  // Get current status.
-  /*const clipboard = useClipboard({
-    copiedTimeout: 1000,
-  });
-  const handleCopyLink = useCallback(
-    () => {
-      clipboard.copy(window.location)
-    },
-    [clipboard.copy]
-  )*/
-
 
 
   const [pubResponse, pubError, pubLoading, pubAjax] = useAjax(); // destructure state and fetch function
@@ -96,27 +78,25 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
     }
   }, [pubResponse])
 
-  
-
-
   let errMessage = null;
   if (submitError && submitResponse.exception) {
     errMessage = submitResponse.exception.message;
   }
 
-  if (id && (!formloaded || !studentsloaded)) {
-    return null
-  }
+  //if (id && (!formloaded || !studentsloaded)) {
+  //  return null
+  //}
 
   return (
     <Card withBorder radius="sm" p="md" mb="lg" className="overflow-visible"
-      bg={status == statuses.saved ? "orange.1" : (status == statuses.live ? "apprgreen.1" : '')}
+      bg={status == statuses.inreview ? "orange.1" : (status == statuses.approved ? "apprgreen.1" : '')}
     >
       <div className="page-pretitle">Status</div>      
       <Text size="md" fw={500}>
       { status == statuses.unsaved && "Draft"}
-      { status == statuses.saved && "Draft"}
-      { status == statuses.live && "Published"}
+      { status == statuses.draft && "Draft"}
+      { status == statuses.inreview && "In Review"}
+      { status == statuses.approved && "Approved"}
       </Text>
 
       { submitLoading || pubLoading && <Loader size="sm" m="xs" pos="absolute" right={5} top={5} /> }
@@ -136,35 +116,39 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
 
       { !submitLoading && !errMessage && !haschanges &&
         <Text color="dimmed" size="sm">
-        { status == statuses.saved 
-          ? "Publish this activity to make it visible."
-          : status == statuses.live 
-            ? "Activity is live! You may continue to make changes to information."
-            : "Get started by entering the details for this activity."
+        { status == statuses.draft 
+          ? "When ready, submit this activity for review."
+          : status == statuses.inreview
+            ? "Your activity is under review. You may continue to update information."
+            : status == statuses.approved 
+              ? "Activity is approved! You may continue to make changes to information."
+              : "Get started by entering the details for this activity."
         }
         </Text>
       }
 
       <Group justify="space-between" mt="xs">
         <Group gap="xs">
-          <Button 
-            type="submit" 
-            size="compact-md" 
-            radius="xl" 
-            leftSection={<IconCloudUp className='size-4' />} 
-            loading={submitLoading}>
-              Save { haschanges ? " changes" : "" }
-          </Button>
-          { !haschanges && status == statuses.saved && <Button onClick={handlePublish} size="compact-md" radius="xl" leftSection={<IconCheckbox size={14} />} loading={pubLoading}>Publish</Button> }
+          { haschanges && 
+            <Button 
+              type="submit" 
+              size="compact-md" 
+              radius="xl" 
+              leftSection={<IconCloudUp className='size-4' />} 
+              loading={submitLoading}>
+                Save { haschanges ? " changes" : "" }
+            </Button>
+          }
+          { !haschanges && status == statuses.draft && <Button color="apprgreen" onClick={handlePublish} size="compact-md" radius="xl" leftSection={<IconCheckbox size={14} />} loading={pubLoading}>Send for review</Button> }
         </Group>
-        { (status == statuses.live) &&
+        { (status == statuses.approved) &&
           <Menu shadow="lg" position="bottom">
             <Menu.Target>
-              <Button  size="compact-md" variant="outline" radius="xl" rightSection={<IconDots size="1rem" />} >More</Button>
+              <Button  size="compact-md" variant="subtle" radius="xl"><IconDots size="1rem" /></Button>
             </Menu.Target>
             <Menu.Dropdown>       
 
-              { status == statuses.live && 
+              { status == statuses.approved && 
                 <Menu.Item onMouseDown={handleReturnToPlanning} leftSection={<IconArrowMoveLeft size={14} />}>Return to planning status</Menu.Item>
               }
 

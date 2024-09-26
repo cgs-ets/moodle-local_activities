@@ -36,6 +36,8 @@ class activities_lib {
     public static function save_from_data($data) {
         global $USER, $DB;
 
+        //var_export($data); exit;
+
         $activity = null;
 
         try {
@@ -117,9 +119,8 @@ class activities_lib {
             //$activity->set('accompanyingstaffjson', $data->accompanyingstaffjson);
             //$activity->set('areasjson', $data->areasjson);
             
-            /*
             $activity->set('categoriesjson', $data->categoriesjson);
-            $areas = json_decode($formdata->categoriesjson);
+            $areas = json_decode($data->categoriesjson);
             $areas = array_map(function($cat) {
                 $split = explode('/', $cat);
                 return [end($split)];
@@ -129,7 +130,7 @@ class activities_lib {
             $activity->set('areasjson', json_encode($areas));
             if (!count($areas) || in_array('CGS Board', $areas)) {
                 $activity->set('displaypublic', 0);
-            }*/
+            }
 
 
             $activity->save();
