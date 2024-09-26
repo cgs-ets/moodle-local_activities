@@ -108,7 +108,7 @@ const useFormStore = create<FormStore>((set) => ({
 
 
 
-type StaffDetails= {
+export type StaffDetails= {
   planning: string[],
   accompanying: string[],
 }
@@ -118,22 +118,22 @@ type StaffDetailsStore = StaffDetails & {
   reset: () => void,
 }
 
-const staffDetailsInit = {
+const staffDefaults = {
   planning: [],
   accompanying: [],
 }
 
 const useStaffDetailsStore = create<StaffDetailsStore>((set) => ({
-  ...staffDetailsInit,
-  setState: (newState) => set(newState || staffDetailsInit),
-  reset: () => set(staffDetailsInit),
+  ...staffDefaults,
+  setState: (newState) => set(newState || staffDefaults),
+  reset: () => set(staffDefaults),
 }))
 
 
 
 
 
-type StudentList= {
+export type StudentList= {
   data: string[],
   usernames: string[],
 }

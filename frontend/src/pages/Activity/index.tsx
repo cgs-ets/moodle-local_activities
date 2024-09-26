@@ -12,6 +12,7 @@ import { BasicDetails } from "./components/BasicDetails";
 import dayjs from "dayjs";
 import { useStateStore } from "../../stores/stateStore";
 import { defaults, Errors, Form, useFormStore, useFormValidationStore, useStaffDetailsStore, useStudentListStore } from "../../stores/formStore";
+import { StaffDetails } from "./components/StaffDetails";
 
 export function Activity() {
   let { id } = useParams();
@@ -198,7 +199,7 @@ export function Activity() {
                         <Box>
                           <Card withBorder className="overflow-visible rounded p-4 flex flex-col gap-6">
                             <BasicDetails />
-                            {/*<StaffDetails />*/}
+                            <StaffDetails />
                           </Card>
                           {/*<StudentList reload={reloadStudents} />*/}
                         </Box>

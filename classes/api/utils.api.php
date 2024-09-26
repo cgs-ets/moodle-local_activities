@@ -20,8 +20,8 @@ trait utils_api {
      * @return array results.
      */
     static public function search_staff() {
-        $text = required_param('text', PARAM_ALPHANUMEXT);
-        return utils_lib::search_staff($text);
+        $query = required_param('query', PARAM_ALPHANUMEXT);
+        return utils_lib::search_staff($query);
     }
 
     /**

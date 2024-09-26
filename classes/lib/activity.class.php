@@ -137,7 +137,7 @@ class Activity {
 
         $assistants = array();
         foreach($records as $rec) {
-            $assistant = \local_activities\service_lib::user_stub($rec->username);
+            $assistant = \local_activities\utils_lib::user_stub($rec->username);
             if (empty($assistant)) {
                 continue;
             }
@@ -168,7 +168,7 @@ class Activity {
 
         $coaches = array();
         foreach($records as $rec) {
-            $coach = \local_activities\lib\service_lib::user_stub($rec->username);
+            $coach = \local_activities\lib\utils_lib::user_stub($rec->username);
             if (empty($coach)) {
                 continue;
             }

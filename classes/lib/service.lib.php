@@ -118,24 +118,6 @@ class service_lib {
     }
 
     /**
-     * Create a user stub object from a username.
-     *
-     * @param string $username
-     * @return object
-     */
-    public static function user_stub($username) {
-        $mdluser = \core_user::get_user_by_username($username);
-        if (empty($mdluser)) {
-            return null;
-        }
-        $user = new \stdClass();
-        $user->un = $mdluser->username;
-        $user->fn = $mdluser->firstname;
-        $user->ln = $mdluser->lastname;
-        return $user;
-    }
-
-    /**
     * Helper function to get avatar src for user.
     *
     * @param string $username
