@@ -84,7 +84,7 @@ export function CategoriesModal({opened, close, categories, handleChange}: {open
           </Checkbox.Group>
 
           <Flex pt="sm" justify="end">
-            <Button onClick={close} type="submit" radius="xl" >{"Close"}</Button>
+            <Button onClick={close} type="submit" radius="xl" >Done</Button>
           </Flex>
         </Box>
     </Modal>

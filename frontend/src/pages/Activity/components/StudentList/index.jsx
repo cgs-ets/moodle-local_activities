@@ -153,23 +153,18 @@ export function StudentList({reload}) {
                     getRowId={(row) => row.un} //give each row a more useful id
                     onRowSelectionChange={setRowSelection} //connect internal row selection state to your own
                     state={{ rowSelection }} //pass our managed row selection state to the table to use
-
                     initialState={{ density: 'xs' }}
-
                     displayColumnDefOptions={{ 'mrt-row-select': { size: 30 } }} //change width of select column to 30px
-                    
                     enableColumnActions={false}
                     enableColumnFilters={false}
                     enablePagination={false}
                     enableSorting={false}
                     enableBottomToolbar={false}
                     enableTopToolbar={false}
-
                     mantinePaperProps={{
                       shadow: false,
                       withBorder: false,
                     }}
-
                     mantineTableProps={{
                       highlightOnHover: false,
                       withColumnBorders: false,

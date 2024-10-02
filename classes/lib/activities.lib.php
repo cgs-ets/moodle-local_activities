@@ -105,19 +105,19 @@ class activities_lib {
             $activity->set('absencesprocessed', 0);
             $activity->set('classrollprocessed', 0);
 
-            // Set the staff in charge.
-            //$activity->set('staffincharge', $USER->username);
             //$staffincharge = json_decode($data->staffinchargejson);
-            //if ($staffincharge) {
-            //    $staffincharge = array_pop($staffincharge);
-            //    $activity->set('staffincharge', $staffincharge->idfield);
-            //}
+            // Default staff in charge.
+            if (empty($data->staffincharge)) {
+                $activity->set('staffincharge', $USER->username);
+                $activity->set('staffinchargejson', json_encode(utils_lib::user_stub($USER->username)));
+            } else {
+                $staffincharge = array_pop($data->staffincharge);
+                $activity->set('staffincharge', $staffincharge->un);
+                $activity->set('staffinchargejson', $data->staffinchargejson);
+            }
 
-            //$activity->set('studentlistjson', $data->studentlistjson);
-            //$activity->set('staffinchargejson', $data->staffinchargejson);
-            //$activity->set('planningstaffjson', $data->planningstaffjson);
-            //$activity->set('accompanyingstaffjson', $data->accompanyingstaffjson);
-            //$activity->set('areasjson', $data->areasjson);
+            $activity->set('planningstaffjson', $data->planningstaffjson);
+            $activity->set('accompanyingstaffjson', $data->accompanyingstaffjson);
             
             $activity->set('categoriesjson', $data->categoriesjson);
             $areas = json_decode($data->categoriesjson);
@@ -132,13 +132,13 @@ class activities_lib {
                 $activity->set('displaypublic', 0);
             }
 
+            //$activity->set('studentlistjson', $data->studentlistjson);
 
             $activity->save();
-            //var_export($activity); exit;
 
             // Sync the staff lists.
-            //static::sync_staff_from_data($activity->get('id'), 'planning', $data->planningstaff);
-            //static::sync_staff_from_data($activity->get('id'), 'accompany', $data->accompanystaff);
+            static::sync_staff_from_data($activity->get('id'), 'planning', $data->planningstaff);
+            static::sync_staff_from_data($activity->get('id'), 'accompany', $data->accompanyingstaff);
 
             // Sync the student list.
             //static::sync_students_from_data($activity->get('id'), $data->studentlist);
@@ -176,6 +176,8 @@ class activities_lib {
     public static function sync_staff_from_data($activityid, $type, $newstaff) {
         global $DB;
 
+        //var_export($newstaff); exit;
+
         // Copy usernames into keys.
         $usernames = array_column($newstaff, "un");
         $newstaff = array_combine($usernames, $newstaff);
@@ -209,8 +211,6 @@ class activities_lib {
         if (count($existingstaff)) {
             list($insql, $inparams) = $DB->get_in_or_equal($existingstaff);
             $params = array_merge([$activityid, $type], $inparams);
-
-            // If syncing from db, delete db staff.
             $sql = "DELETE FROM {activity_staff} 
             WHERE activityid = ? 
             AND usertype = ? 

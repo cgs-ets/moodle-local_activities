@@ -11,7 +11,7 @@ import { useAjax } from '../../hooks/useAjax';
 import { BasicDetails } from "./components/BasicDetails";
 import dayjs from "dayjs";
 import { useStateStore } from "../../stores/stateStore";
-import { defaults, Errors, Form, useFormStore, useFormValidationStore, useStaffDetailsStore, useStudentListStore } from "../../stores/formStore";
+import { defaults, Errors, Form, useFormStore, useFormValidationStore, useStudentListStore } from "../../stores/formStore";
 import { StaffDetails } from "./components/StaffDetails";
 
 export function Activity() {
@@ -24,7 +24,6 @@ export function Activity() {
   const baselineHash = useStateStore((state) => (state.baselineHash))
   const clearHash = useStateStore((state) => (state.clearHash))
   const resetHash = useStateStore((state) => (state.resetHash))
-  const staff = useStaffDetailsStore.getState()
   const students = useStudentListStore.getState()
   
   const validationRules = useFormValidationStore((state) => state.rules)
@@ -62,6 +61,9 @@ export function Activity() {
         timemodified: Number(fetchResponse.data.timemodified) ? fetchResponse.data.timemodified : dayjs().unix(),
         timestart: Number(fetchResponse.data.timestart) ? fetchResponse.data.timestart : dayjs().unix(),
         timeend: Number(fetchResponse.data.timeend) ? fetchResponse.data.timeend : dayjs().unix(),
+        planningstaff: JSON.parse(fetchResponse.data.planningstaffjson || '[]'),
+        accompanyingstaff: JSON.parse(fetchResponse.data.accompanyingstaffjson || '[]'),
+        staffincharge: [JSON.parse(fetchResponse.data.staffinchargejson || null)].filter(item => item !== null)
       }
       // Merge into default values
       setFormData({...defaults, ...data})
@@ -120,7 +122,11 @@ export function Activity() {
     event.preventDefault();
 
     let formData = JSON.parse(JSON.stringify({...useFormStore.getState()}))
+    formData.categoriesjson = JSON.stringify(formData.categories)
     formData.studentlist = students.usernames
+    formData.planningstaffjson = JSON.stringify(formData.planningstaff)
+    formData.accompanyingstaffjson = JSON.stringify(formData.accompanyingstaff)
+    formData.staffinchargejson = JSON.stringify(formData.staffincharge.length ? formData.staffincharge[0] : '')
     //console.log(formData);
 
     setSubmitData({

@@ -1,6 +1,7 @@
 
 import dayjs from 'dayjs'
 import { create } from 'zustand'
+import { getConfig } from '../utils';
 
 export type Form = {
   id?: number,
@@ -27,10 +28,14 @@ export type Form = {
   //deleted: string;
   riskassessment: string;
   attachments: string;
-  staffincharge: string;
+
+  staffincharge: any[];
   staffinchargejson: string;
+  planningstaff: any[];
   planningstaffjson: string;
+  accompanyingstaff: any[];
   accompanyingstaffjson: string;
+
   otherparticipants: string;
   //absencesprocessed: string;
   //remindersprocessed: string;
@@ -60,42 +65,40 @@ const defaults: Form = {
   status: 0, // 0: Unsaved, 1: Saved draft, 2: Live
   timecreated: dayjs().unix(),
   timemodified: dayjs().unix(),
-    activityname: '',
-    campus: 'primary',
-    activitytype: 'excursion',
-    location: '',
-    timestart: dayjs().unix(),
-    timeend: dayjs().unix(),
-    studentlistjson: '',
-    description: '',
-    transport: '',
-    cost: '',
-    permissions: '',
-    permissionstype: '',
-    permissionslimit: '',
-    permissionsdueby: dayjs().unix(),
-    //deleted: '',
-    riskassessment: '',
-    attachments: '',
-    staffincharge: '',
-    staffinchargejson: '',
-    planningstaffjson: '',
-    accompanyingstaffjson: '',
-    otherparticipants: '',
-    //absencesprocessed: '',
-    //remindersprocessed: '',
-    categories: [],
-    categoriesjson: '',
-    colourcategory: '',
-    areasjson: '',
-    displaypublic: false,
-    //pushpublic: '',
-    isactivity: '',
-    //timesynclive: dayjs().unix(),
-    //timesyncplanning: dayjs().unix(),
-    isassessment: '',
-    courseid: '',
-    assessmenturl: ''
+  activityname: '',
+  campus: 'primary',
+  activitytype: 'excursion',
+  location: '',
+  timestart: dayjs().unix(),
+  timeend: dayjs().unix(),
+  studentlistjson: '',
+  description: '',
+  transport: '',
+  cost: '',
+  permissions: '',
+  permissionstype: '',
+  permissionslimit: '',
+  permissionsdueby: dayjs().unix(),
+  riskassessment: '',
+  attachments: '',
+
+  staffincharge: [getConfig().user],
+  staffinchargejson: '',
+  planningstaff: [],
+  planningstaffjson: '',
+  accompanyingstaff: [],
+  accompanyingstaffjson: '',
+  
+  otherparticipants: '',
+  categories: [],
+  categoriesjson: '',
+  colourcategory: '',
+  areasjson: '',
+  displaypublic: false,
+  isactivity: '',
+  isassessment: '',
+  courseid: '',
+  assessmenturl: ''
 };
 
 const useFormStore = create<FormStore>((set) => ({
@@ -106,7 +109,7 @@ const useFormStore = create<FormStore>((set) => ({
 
 
 
-
+/*
 
 export type StaffDetails= {
   planning: string[],
@@ -129,7 +132,7 @@ const useStaffDetailsStore = create<StaffDetailsStore>((set) => ({
   reset: () => set(staffDefaults),
 }))
 
-
+*/
 
 
 
@@ -185,7 +188,7 @@ const useFormValidationStore = create<FormValidationStore>((set) => ({
 export { 
   defaults,
   useFormStore, 
-  useStaffDetailsStore,
+  //useStaffDetailsStore,
   useStudentListStore,
   useFormValidationStore
 };

@@ -47,7 +47,6 @@ export function BasicDetails() {
   const handleCatsChange = (cats: string[]) => {
     const sorted = cats.sort()
     updateField('categories', sorted)
-    updateField('categoriesjson', JSON.stringify(sorted))
   }
 
   return (
@@ -143,27 +142,7 @@ export function BasicDetails() {
       </div>
 
       <div>
-        <Text fz="sm" mb="5px" fw={500} c="#212529">Calendar settings</Text>
-        <div className="flex flex-col gap-6 p-4 border rounded-sm bg-gray-50">
-          <div>
-            { formData.categories.length
-              ? <div>{formData.categories.map(cat => (<div key={cat}>{cat.replace('/', ' > ')}</div>))}</div>
-              : <div>Categories</div>
-            }
-            <Button onClick={openCatsModal} size="compact-md" className="rounded-md mt-2" variant="light" rightSection={<IconEdit className="size-5" />}>{formData.categories.length ? "Change" : "Select"}</Button>
-          </div>
-          <div className="flex">
-            <Switch
-              checked={formData.displaypublic}
-              onChange={(event) => updateField('displaypublic', event.currentTarget.checked)}
-              label={<span>Display event on the <a href="https://calendar.cgs.act.edu.au/" target="_blank" className="underline">public calendar</a>?</span>}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <Text fz="sm" fw={500} c="#212529">Description</Text>
+        <Text fz="sm" fw={500} c="#212529">Event description</Text>
         <Text className="text-sm mb-1 text-gray-500">Information placed here will flow through to the staff and public calendars, please include a brief description, who is attending or is required to attend.</Text>
         <RichTextEditor 
           editor={editor}
@@ -199,6 +178,26 @@ export function BasicDetails() {
 
           <RichTextEditor.Content />
         </RichTextEditor>
+      </div>
+
+      <div>
+        <Text fz="sm" mb="5px" fw={500} c="#212529">Calendar settings</Text>
+        <div className="flex flex-col gap-6 p-4 border border-gray-300 rounded-sm bg-gray-50">
+          <div>
+            { formData.categories.length
+              ? <div>{formData.categories.map(cat => (<div key={cat}>{cat.replace('/', ' > ')}</div>))}</div>
+              : <div>Categories</div>
+            }
+            <Button onClick={openCatsModal} size="compact-md" className="rounded-md mt-2" variant="light" rightSection={<IconEdit className="size-5" />}>{formData.categories.length ? "Change" : "Select"}</Button>
+          </div>
+          <div className="flex">
+            <Switch
+              checked={formData.displaypublic}
+              onChange={(event) => updateField('displaypublic', event.currentTarget.checked)}
+              label={<span>Display event on the <a href="https://calendar.cgs.act.edu.au/" target="_blank" className="underline">public calendar</a>?</span>}
+            />
+          </div>
+        </div>
       </div>
 
       <CategoriesModal categories={formData.categories} opened={catsModalOpened} close={closeCatsModal} handleChange={handleCatsChange} />

@@ -117,7 +117,7 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
       { !submitLoading && !errMessage && !haschanges &&
         <Text color="dimmed" size="sm">
         { status == statuses.draft 
-          ? "When ready, submit this activity for review."
+          ? "Activity saved. When ready, submit it for review."
           : status == statuses.inreview
             ? "Your activity is under review. You may continue to update information."
             : status == statuses.approved 
