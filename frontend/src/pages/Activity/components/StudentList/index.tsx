@@ -1,32 +1,34 @@
-import { Card, Flex, Group, Text, Button, Loader, Center, Tooltip } from '@mantine/core';
+import { Card, Flex, Group, Text, Button, Loader, Center, Tooltip, MantineTheme } from '@mantine/core';
 import { IconPlus, IconMinus, IconMail, IconArrowBounce } from '@tabler/icons-react';
-import { useAjax } from 'src/hooks/useAjax';
-import { useBasicDetailsStore, useStudentListStore } from '../../store/formFieldsStore'
 import { useEffect, useMemo, useState } from 'react';
 import { MantineReactTable } from 'mantine-react-table';
 import { useParams } from 'react-router-dom';
-import { useFormMetaStore, useFormStateStore } from '../../store/formMetaStore';
 import { statuses } from '../../../../utils';
 import { studentColumn } from './columns';
 import { AddStudentsModal } from '../Modals/AddStudentsModal';
-import { MoveStudentsModal } from '../Modals/MoveStudentsModal';
 import { useDisclosure } from '@mantine/hooks';
-import { SendMessageModal } from '/src/components/SendMessageModal';
+import { SendMessageModal } from '../../../../components/SendMessageModal';
+import { useStudentListStore } from '../../../../stores/formStore';
+import { useFormMetaStore } from '../../../../stores/metaStore';
+import { useStateStore } from '../../../../stores/stateStore';
+import { useAjax } from '../../../../hooks/useAjax';
+import { User } from '../../../../types/types';
 
-export function StudentList({reload}) {
+type Props = {
+  reload: boolean
+}
+
+export function StudentList({reload}: Props) {
   let { id } = useParams();
 
-  const category = useBasicDetailsStore((state) => state.category)
   const status = useFormMetaStore((state) => state.status)
   const studentListStore = useStudentListStore()
-  const studentsLoaded = useFormStateStore((state) => (state.setStudentsLoaded))
-  const baselineHash = useFormStateStore((state) => (state.baselineHash))
-  const haschanges = useFormStateStore((state) => (state.haschanges))
+  const studentsLoaded = useStateStore((state) => (state.setStudentsLoaded))
+  const baselineHash = useStateStore((state) => (state.baselineHash))
+  const haschanges = useStateStore((state) => (state.haschanges))
 
   const [isOpenAddStudentsModal, addStudentsModalHandlers] = useDisclosure(false)
-  const [isOpenMoveStudentsModal, moveStudentsModalHandlers] = useDisclosure(false)
   const [isOpenMessageModal, messageModalHandlers] = useDisclosure(false);
-
   
   const [fetchResponse, fetchError, fetchLoading, fetchAjax] = useAjax(); // destructure state and fetch function
   useEffect(() => {
@@ -47,21 +49,19 @@ export function StudentList({reload}) {
 
   useEffect(() => { 
     if (fetchResponse && !fetchError) {
-      studentListStore.setState({data: fetchResponse.data, move: []})
-      const usernames = fetchResponse.data.map((student) => (student.un))
-      studentListStore.setState({usernames: usernames})
+      const usernames = fetchResponse.data.map((student: User) => (student.un))
+      studentListStore.setState({data: fetchResponse.data, usernames: usernames})
       baselineHash()
       studentsLoaded()
     }
   }, [fetchResponse]);
 
-  const insertStudents = (students) => {
+  const insertStudents = (students: User[]) => {
     // Deduplicate.
     const newStudents = students.filter(student => !studentListStore.usernames.includes(student.un))
 
     // Merge usernames.
     const newusernames = newStudents.map(student => student.un)
-    studentListStore.setState({usernames: studentListStore.usernames.concat(newusernames)})
 
     // Merge data.
     const newStudentData = newStudents.map((student) => {
@@ -70,46 +70,19 @@ export function StudentList({reload}) {
         attributes: [],
       }
     })
-    studentListStore.setState({data: studentListStore.data.concat(newStudentData)})
+
+    studentListStore.setState({data: studentListStore.data.concat(newStudentData), usernames: studentListStore.usernames.concat(newusernames)})
   }
 
   const removeStudents = () => {
     const selectedUsernames = Object.keys(rowSelection)
 
     const filteredUsernames = studentListStore.usernames.filter(username => !selectedUsernames.includes(username))
-    studentListStore.setState({usernames: filteredUsernames})
 
     const filteredData = studentListStore.data.filter(udata => !selectedUsernames.includes(udata.un))
-    studentListStore.setState({data: filteredData})
-
-    const filteredMove = studentListStore.move.filter(udata => !selectedUsernames.includes(udata.username)) 
-    studentListStore.setState({move: filteredMove})
+    studentListStore.setState({data: filteredData, usernames: filteredUsernames})
 
     setRowSelection({})
-  }
-
-  const moveStudents = (activityJSON) => {
-    const selectedUsernames = Object.keys(rowSelection)
-    
-    // Update data.
-    const activity = JSON.parse(activityJSON)
-    const data = studentListStore.data.map(udata => {
-      if (selectedUsernames.includes(udata.un)) {
-        return {
-          ...udata,
-          moveToActivityId: activity.id,
-          moveToActivityName: activity.name,
-        }
-      }
-      return udata
-    }) 
-    studentListStore.setState({data: data})
-    setRowSelection({})
-    
-    // Store moving list.
-    const moveData = data.filter(udata => !!udata.moveToActivityId)
-    studentListStore.setState({move: moveData.map((u) => ({username: u.un, activityid: u.moveToActivityId}))})
-
   }
 
   const columns = useMemo(() => ([studentColumn()]), [])
@@ -117,28 +90,28 @@ export function StudentList({reload}) {
 
   return (
     <>
-      <Card withBorder radius="sm" mb="lg">
+      <Card withBorder radius="sm" mb="lg" className="p-0">
 
-        <Card.Section inheritPadding py="sm">
-          <Group position="apart">
-            <Text size="md" weight={500}>Students</Text>
-              <Text color='dimmed'> {
+        <div className="px-4 py-3">
+          <Group justify="space-between">
+            <Text fz="md" w={500}>Students</Text>
+              <Text c='dimmed'> {
                 Object.keys(rowSelection).length
                 ? Object.keys(rowSelection).length + ' selected'
                 : studentListStore.data?.length + ' students'
               } </Text>
           </Group>
-        </Card.Section>
+        </div>
         
         { fetchLoading 
-          ? <Card.Section py="lg" sx={{borderTop: "0.0625rem solid #dee2e6"}}><Center><Loader size="sm" /></Center></Card.Section>
+          ? <div className="border-t border-gray-300 py-4"><Center><Loader size="sm" /></Center></div>
           : (
             studentListStore.data?.length == 0 
-            ? <Card.Section inheritPadding py="sm" sx={{borderTop: "0.0625rem solid #dee2e6"}}>
-                <Button onClick={addStudentsModalHandlers.open} variant="filled" radius="xl" leftIcon={<IconPlus size={14} />} >Add students</Button>
-              </Card.Section>
+            ? <div className="p-4 border-t border-gray-300">
+                <Button onClick={addStudentsModalHandlers.open} variant="filled" radius="xl" leftSection={<IconPlus size={14} />} >Add students</Button>
+              </div>
             : <>
-                <Card.Section sx={{borderTop: "0.0625rem solid #dee2e6"}}>
+                <div className="border-t border-gray-300">
                   <MantineReactTable
                     columns={columns}
                     data={studentListStore.data}
@@ -147,7 +120,7 @@ export function StudentList({reload}) {
                     //clicking anywhere on the row will select it
                     mantineTableBodyRowProps={({ row }) => ({
                       onClick: row.getToggleSelectedHandler(),
-                      sx: { cursor: 'pointer' },
+                      style: { cursor: 'pointer' },
                     })}
 
                     getRowId={(row) => row.un} //give each row a more useful id
@@ -162,8 +135,8 @@ export function StudentList({reload}) {
                     enableBottomToolbar={false}
                     enableTopToolbar={false}
                     mantinePaperProps={{
-                      shadow: false,
                       withBorder: false,
+                      shadow: undefined,
                     }}
                     mantineTableProps={{
                       highlightOnHover: false,
@@ -174,14 +147,14 @@ export function StudentList({reload}) {
                     }}
 
                     mantineTableHeadCellProps={{
-                      sx: (theme) => ({
-                        backgroundColor: theme.colors.gray[0],
+                      style: {
+                        backgroundColor: '#f8f9fa',
                         textTransform: 'none',
                         letterSpacing: 0,
                         fontWeight: '500!important',
                         fontSize: '0.875rem',
                         color: '#000!important',
-                      }),
+                      },
                       className: 'student-list-table-headcell',
                     }}
 
@@ -193,33 +166,31 @@ export function StudentList({reload}) {
                       size: "xs",
                     }}
                   />
-                </Card.Section>
+                </div>
 
-                <Card.Section inheritPadding pt="md">
-                  <Group position="apart">
+                <div className="p-4">
+                  <Group justify="space-between">
                     <Flex gap="sm">
-                      <Button onClick={addStudentsModalHandlers.open} variant="light" compact radius="xl" leftIcon={<IconPlus size={14} />} >Add students</Button>
+                      <Button onClick={addStudentsModalHandlers.open} size="compact-sm" variant="light" radius="xl" leftSection={<IconPlus size={14} />} >Add students</Button>
                       { Object.keys(rowSelection).length > 0 && 
                         <>
-                        <Button onClick={removeStudents} variant="light" compact radius="xl" leftIcon={<IconMinus size={14} />}>Remove</Button>
-                        <Button onClick={moveStudentsModalHandlers.open}  variant="light" compact radius="xl" leftIcon={<IconArrowBounce size={14} />}>Change activity</Button>
+                          <Button onClick={removeStudents} variant="light" size="compact-sm" radius="xl" leftSection={<IconMinus size={14} />}>Remove</Button>
                         </>
                       }
                     </Flex>
-                    { status == statuses.saved || status == statuses.live &&
+                    { status == statuses.approved &&
                       <Tooltip.Floating disabled={!haschanges} label="You must save changes before you may send messages.">
-                        <Button variant="filled" color={haschanges ? "gray.4" : null} onClick={() => (haschanges ? null : messageModalHandlers.open())} compact radius="xl" leftIcon={<IconMail size={14} />}>Send a message</Button>
+                        <Button variant="filled" color={haschanges ? "gray.4" : undefined} onClick={() => (haschanges ? null : messageModalHandlers.open())} size="compact-sm" radius="xl" leftSection={<IconMail size={14} />}>Send a message</Button>
                       </Tooltip.Floating>
                     }
                   </Group>
-                </Card.Section>
+                </div>
               </>
           )
         }
       </Card>
       <AddStudentsModal opened={isOpenAddStudentsModal} close={addStudentsModalHandlers.close} insert={insertStudents} />
-      <MoveStudentsModal category={category} opened={isOpenMoveStudentsModal} close={moveStudentsModalHandlers.close} callback={moveStudents} />
-      <SendMessageModal 
+      <SendMessageModal
         students={
           Object.keys(rowSelection).length 
           ? studentListStore.data.filter(s => Object.keys(rowSelection).includes(s.un))

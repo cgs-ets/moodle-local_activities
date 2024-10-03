@@ -5,7 +5,6 @@ import { useTimeout } from '@mantine/hooks';
 import { statuses } from '../../../../utils';
 import { useAjax } from '../../../../hooks/useAjax';
 import { useParams } from 'react-router-dom';
-import { useFormMetaStore } from '../../../../stores/metaStore';
 import { useFormStore } from '../../../../stores/formStore';
 import { useStateStore } from '../../../../stores/stateStore';
 
@@ -14,7 +13,7 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
   let { id } = useParams();
 
   const formData = useFormStore()
-  const setMetaState = useFormMetaStore((state) => state.setState)
+  //const setMetaState = useFormMetaStore((state) => state.setState)
   //const status = useFormMetaStore((state) => (state.status))
   const status = useFormStore((state) => (state.status))
   const formloaded = useStateStore((state) => (state.formloaded))
@@ -72,9 +71,9 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
     if (!pubError && pubResponse) {
       setSaveComplete(true)
       start()
-      setMetaState({
+      /*setMetaState({
         status: pubResponse.data.status,
-      })
+      })*/
     }
   }, [pubResponse])
 

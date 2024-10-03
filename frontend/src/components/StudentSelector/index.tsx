@@ -1,35 +1,38 @@
-import { useState } from "react";
-import { Group, Avatar, Text, Loader, Badge, Flex, CloseButton, Combobox, useCombobox, Pill, PillsInput } from '@mantine/core';
+import { Fragment, useState, forwardRef, useEffect } from "react";
+import { Group, Avatar, Text, MultiSelect, Loader, Badge, Flex, CloseButton, useCombobox, Combobox, PillsInput, Pill } from '@mantine/core';
 import { IconUser, IconUsers } from '@tabler/icons-react';
-import { fetchData } from "../../../../../../utils";
-import { DecordatedUser, User } from "../../../../../../types/types";
+import { DecordatedUser, User } from "../../types/types";
+import { fetchData } from "../../utils";
 
 type Props = {
-  staff: User[],
-  setStaff: (value: any[]) => void,
-  label: string,
-  multiple: boolean,
+  students: User[],
+  setStudents: (students: User[]) => void,
 }
 
-export function StaffSelector({staff, setStaff, label, multiple}: Props) {
-
+export function StudentSelector({students, setStudents}: Props) {
   const [search, setSearch] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [searchResults, setSearchResults] = useState<DecordatedUser[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
     onDropdownOpen: () => combobox.updateSelectedOptionIndex('active'),
   });
-  
-  const decorateStaff = (item: User) => ({
+
+  const decorateUser = (item: User) => ({
     value: { un: item.un, fn: item.fn, ln: item.ln }, // What we'll send to the server for saving.
     label: item.fn + " " + item.ln,
     username: item.un,
     image: '/local/activities/avatar.php?username=' + item.un
   })
 
-  const loadStaff = async (query: string) => {
+  /*useEffect(() => {
+    const initialData = students.map((item) => decorateUser(item));
+    setSearchResults(initialData)
+  }, [students])*/
+
+
+  const searchStudents = async (query: string) => {
     setSearch(query)
     combobox.updateSelectedOptionIndex();
     combobox.openDropdown();
@@ -40,11 +43,11 @@ export function StaffSelector({staff, setStaff, label, multiple}: Props) {
     setIsLoading(true);
     const response = await fetchData({
       query: {
-        methodname: 'local_activities-search_staff',
+        methodname: 'local_activities-search_students',
         query: query,
       }
     })
-    const data = response.data.map(decorateStaff);
+    const data = response.data.map(decorateUser);
     setSearchResults(data)
     setIsLoading(false)
   };
@@ -53,18 +56,15 @@ export function StaffSelector({staff, setStaff, label, multiple}: Props) {
   const handleValueSelect = (val: User) => {
     setSearch('')
     setSearchResults([])
-    if (multiple) {
-      if (!staff.map(s => JSON.stringify(s)).includes(JSON.stringify(val))) {
-        setStaff([...staff, val])
-      }
-    } else {
-      setStaff([val])
+    if (!students.map(s => JSON.stringify(s)).includes(JSON.stringify(val))) {
+      setStudents([...students, val])
     }
   }
 
   const handleValueRemove = (val: User) => {
-    setStaff(staff.filter((v: any) => JSON.stringify(v) !== JSON.stringify(val)))
+    setStudents(students.filter((v: any) => JSON.stringify(v) !== JSON.stringify(val)))
   }
+  
 
   // The search result
   const options = searchResults.map((item) => (
@@ -77,8 +77,8 @@ export function StaffSelector({staff, setStaff, label, multiple}: Props) {
   ));
 
   // The selected pills
-  const values = staff.map((item, i) => {
-    const user = decorateStaff(item)
+  const values = students.map((item, i) => {
+    const user = decorateUser(item)
     return (
       <Badge key={user.username} variant='filled' p={0} color="gray.2" size="lg" radius="xl" leftSection={
         <Avatar alt={user.label} size={24} mr={5} src={user.image} radius="xl"><IconUser size={14} /></Avatar>
@@ -86,7 +86,7 @@ export function StaffSelector({staff, setStaff, label, multiple}: Props) {
         <Flex gap={4}>
           <Text className="normal-case font-normal text-black text-sm">{user.label}</Text>
           <CloseButton
-            onMouseDown={() => {handleValueRemove(staff[i])}}
+            onMouseDown={() => {handleValueRemove(students[i])}}
             variant="transparent"
             size={22}
             iconSize={14}
@@ -98,9 +98,10 @@ export function StaffSelector({staff, setStaff, label, multiple}: Props) {
   });
 
 
+
+
   return (
-    <div>
-      <Text fz="sm" mb="5px" fw={500} c="#212529">{label}</Text>
+    <Fragment>
       <Combobox 
         store={combobox} 
         onOptionSubmit={(optionValue: string) => {
@@ -112,7 +113,7 @@ export function StaffSelector({staff, setStaff, label, multiple}: Props) {
           <PillsInput 
             pointer 
             rightSection={isLoading ? <Loader size="xs" /> : ''}
-            leftSection={multiple ? <IconUsers size={18} /> : <IconUser size={18} />}
+            leftSection={<IconUsers size={18} />}
           >
             <Pill.Group>
               {values}
@@ -122,18 +123,16 @@ export function StaffSelector({staff, setStaff, label, multiple}: Props) {
                   onClick={() => combobox.openDropdown()}
                   onBlur={() => combobox.closeDropdown()}
                   value={search}
-                  placeholder="Search staff"
+                  placeholder="Search student"
                   onChange={(event) => {
-                    loadStaff(event.currentTarget.value)
+                    searchStudents(event.currentTarget.value)
                   }}
                   onKeyDown={(event) => {
                     if (event.key === 'Backspace' && search.length === 0) {
                       event.preventDefault();
-                      handleValueRemove(staff[staff.length - 1]);
+                      handleValueRemove(students[students.length - 1]);
                     }
                   }}
-                  className={(multiple || !staff.length) ? "" : "hidden"}
-                  
                 />
               </Combobox.EventsTarget>
             </Pill.Group>
@@ -149,6 +148,6 @@ export function StaffSelector({staff, setStaff, label, multiple}: Props) {
           </Combobox.Options>
         </Combobox.Dropdown>
       </Combobox>
-    </div>
+    </Fragment>
   );
 };

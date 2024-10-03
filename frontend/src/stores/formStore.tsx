@@ -137,7 +137,7 @@ const useStaffDetailsStore = create<StaffDetailsStore>((set) => ({
 
 
 export type StudentList= {
-  data: string[],
+  data: any[],
   usernames: string[],
 }
 

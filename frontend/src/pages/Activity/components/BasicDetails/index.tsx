@@ -105,19 +105,6 @@ export function BasicDetails() {
       </div>
       
 
-      <div>
-        <TextInput
-          withAsterisk
-          placeholder="Snow Concert Hall"
-          label="Location"
-          value={formData.location}
-          error={errors.Location}
-          onChange={(e) => updateField('location', e.target.value)}
-        />
-        <div className="mt-1 text-sm text-gray-500">You are responsible for booking arrangements. For internal bookings use SOBS.</div>
-      </div>
-      
-
       <div className="flex gap-4 items-center">
         <div>
           <Text fz="sm" mb="5px" fw={500} c="#212529">Start time</Text>
@@ -139,6 +126,18 @@ export function BasicDetails() {
             views={['day', 'month', 'year', 'hours', 'minutes']}
           />
         </div>
+      </div>
+
+      <div>
+        <TextInput
+          withAsterisk
+          placeholder="Snow Concert Hall"
+          label="Location"
+          value={formData.location}
+          error={errors.Location}
+          onChange={(e) => updateField('location', e.target.value)}
+        />
+        <div className="mt-1 text-sm text-gray-500">You are responsible for booking arrangements. For internal bookings use SOBS.</div>
       </div>
 
       <div>

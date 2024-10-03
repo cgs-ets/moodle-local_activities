@@ -1,6 +1,6 @@
 
 import { create } from 'zustand'
-import { exportActivityHash } from '../exporters/activityHash'
+import { exportActivityHash } from '../utils/activityHash'
 
 type State = {
   oldhash: string,

@@ -1,6 +1,7 @@
 import { Text } from "@mantine/core";
 import { Form, useFormStore } from "../../../../stores/formStore";
 import { StaffSelector } from "./components/StaffSelector";
+import { showExcursionFields } from "../../../../utils/utils";
 
 
 export function StaffDetails() {
@@ -27,8 +28,12 @@ export function StaffDetails() {
       <div className="flex flex-col gap-6 p-4 border border-gray-300 rounded-sm bg-gray-50">
         <div className="flex flex-col gap-2">
           <StaffSelector staff={staffincharge} setStaff={setStaffInCharge} label="Leader" multiple={false} />
-          <StaffSelector staff={planningstaff} setStaff={setPlanning} label="Planning" multiple={true} />
-          <StaffSelector staff={accompanyingstaff} setStaff={setAccompanying} label="Accompanying" multiple={true} />
+          { showExcursionFields() &&
+            <>
+              <StaffSelector staff={planningstaff} setStaff={setPlanning} label="Planning" multiple={true} />
+              <StaffSelector staff={accompanyingstaff} setStaff={setAccompanying} label="Accompanying" multiple={true} />
+            </>
+          }
         </div>
       </div>
     </div>

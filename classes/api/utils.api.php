@@ -30,8 +30,8 @@ trait utils_api {
      * @return array results.
      */
     static public function search_students() {
-        $text = required_param('text', PARAM_ALPHANUMEXT);
-        return utils_lib::search_students($text);
+        $query = required_param('query', PARAM_ALPHANUMEXT);
+        return utils_lib::search_students($query);
     }
 
     /**

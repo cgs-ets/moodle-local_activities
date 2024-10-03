@@ -3,3 +3,10 @@ export type User = {
   fn: string,
   ln: string
 }
+
+export type DecordatedUser = {
+  value: string,
+  label: string,
+  username: string,
+  image: string,
+}

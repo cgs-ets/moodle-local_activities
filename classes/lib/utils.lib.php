@@ -56,6 +56,35 @@ class utils_lib {
     }
 
     /**
+     * Search students.
+     *
+     * @param string $query
+     * @return array results
+     */
+    public static function search_students($query) {
+        global $DB;
+
+        $sql = "SELECT DISTINCT u.username
+        FROM {user} u, {user_info_field} f, {user_info_data} d
+        WHERE u.id = d.userid 
+		AND d.fieldid = f.id
+		AND f.shortname = 'CampusRoles'
+		AND d.data LIKE '%:Student%'
+        AND ( u.firstname LIKE ?
+        OR u.lastname LIKE ?
+        OR u.username LIKE ? )";
+
+        $likesearch = "%" . $query . "%";
+        $data = $DB->get_records_sql($sql, [$likesearch, $likesearch, $likesearch]);
+
+        $staff = [];
+        foreach ($data as $row) {
+            $staff[] = static::user_stub($row->username);
+        }
+        return $staff;
+    }
+
+    /**
      * Check if the current user has the capability to create an activity.
      *
      * @param int $activityid

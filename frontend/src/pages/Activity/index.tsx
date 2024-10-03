@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Box, Container, Grid, Center, Text, Loader, Card } from '@mantine/core';
 import { useNavigate, useParams } from "react-router-dom";
 import { Header } from "../../components/Header";
@@ -13,6 +13,7 @@ import dayjs from "dayjs";
 import { useStateStore } from "../../stores/stateStore";
 import { defaults, Errors, Form, useFormStore, useFormValidationStore, useStudentListStore } from "../../stores/formStore";
 import { StaffDetails } from "./components/StaffDetails";
+import { StudentList } from "./components/StudentList";
 
 export function Activity() {
   let { id } = useParams();
@@ -31,6 +32,8 @@ export function Activity() {
 
   const [submitResponse, submitError, submitLoading, submitAjax, setSubmitData] = useAjax(); // destructure state and fetch function
   const [fetchResponse, fetchError, fetchLoading, fetchAjax, setFetchData] = useAjax(); // destructure state and fetch function
+
+  const [reloadStudents, setReloadStudents] = useState(false);
   
   useEffect(() => {
     document.title = 'Manage Activity'
@@ -108,8 +111,8 @@ export function Activity() {
           status: submitResponse.data.status,
         } as Form)
         // Refetch student list.
-        //setFormState({reload: true})
         console.log("Triggering student reload.")
+        setReloadStudents(true);
       }
     }
     if (submitError) {
@@ -120,6 +123,7 @@ export function Activity() {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setReloadStudents(false)
 
     let formData = JSON.parse(JSON.stringify({...useFormStore.getState()}))
     formData.categoriesjson = JSON.stringify(formData.categories)
@@ -202,12 +206,12 @@ export function Activity() {
                   <form noValidate onSubmit={handleSubmit}>
                     <Grid grow>
                       <Grid.Col span={{ base: 12, lg: 9 }}>
-                        <Box>
+                        <Box className="flex flex-col gap-4">
                           <Card withBorder className="overflow-visible rounded p-4 flex flex-col gap-6">
                             <BasicDetails />
                             <StaffDetails />
                           </Card>
-                          {/*<StudentList reload={reloadStudents} />*/}
+                          <StudentList reload={reloadStudents} />
                         </Box>
                       </Grid.Col>
                       <Grid.Col span={{ base: 12, lg: 3 }}>
