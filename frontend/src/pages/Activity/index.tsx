@@ -1,17 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Box, Container, Grid, Center, Text, Loader, Card } from '@mantine/core';
 import { useNavigate, useParams } from "react-router-dom";
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
 import { PageHeader } from "./components/PageHeader";
 import { Status } from "./components/Status";
-//import { StaffDetails } from "./components/StaffDetails/index.jsx";
-//import { StudentList } from "./components/StudentList/index.jsx";
 import { useAjax } from '../../hooks/useAjax';
 import { BasicDetails } from "./components/BasicDetails";
 import dayjs from "dayjs";
 import { useStateStore } from "../../stores/stateStore";
-import { defaults, Errors, Form, useFormStore, useFormValidationStore, useStudentListStore } from "../../stores/formStore";
+import { defaults, Errors, Form, useFormStore, useFormValidationStore } from "../../stores/formStore";
 import { StaffDetails } from "./components/StaffDetails";
 import { StudentList } from "./components/StudentList";
 
@@ -25,7 +23,6 @@ export function Activity() {
   const baselineHash = useStateStore((state) => (state.baselineHash))
   const clearHash = useStateStore((state) => (state.clearHash))
   const resetHash = useStateStore((state) => (state.resetHash))
-  const students = useStudentListStore.getState()
   
   const validationRules = useFormValidationStore((state) => state.rules)
   const setFormErrors = useFormValidationStore((state) => state.setFormErrors)
@@ -33,7 +30,6 @@ export function Activity() {
   const [submitResponse, submitError, submitLoading, submitAjax, setSubmitData] = useAjax(); // destructure state and fetch function
   const [fetchResponse, fetchError, fetchLoading, fetchAjax, setFetchData] = useAjax(); // destructure state and fetch function
 
-  const [reloadStudents, setReloadStudents] = useState(false);
   
   useEffect(() => {
     document.title = 'Manage Activity'
@@ -64,6 +60,7 @@ export function Activity() {
         timemodified: Number(fetchResponse.data.timemodified) ? fetchResponse.data.timemodified : dayjs().unix(),
         timestart: Number(fetchResponse.data.timestart) ? fetchResponse.data.timestart : dayjs().unix(),
         timeend: Number(fetchResponse.data.timeend) ? fetchResponse.data.timeend : dayjs().unix(),
+        studentlist: JSON.parse(fetchResponse.data.studentlistjson || '[]'),
         planningstaff: JSON.parse(fetchResponse.data.planningstaffjson || '[]'),
         accompanyingstaff: JSON.parse(fetchResponse.data.accompanyingstaffjson || '[]'),
         staffincharge: [JSON.parse(fetchResponse.data.staffinchargejson || null)].filter(item => item !== null)
@@ -112,7 +109,6 @@ export function Activity() {
         } as Form)
         // Refetch student list.
         console.log("Triggering student reload.")
-        setReloadStudents(true);
       }
     }
     if (submitError) {
@@ -123,11 +119,10 @@ export function Activity() {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setReloadStudents(false)
 
     let formData = JSON.parse(JSON.stringify({...useFormStore.getState()}))
     formData.categoriesjson = JSON.stringify(formData.categories)
-    formData.studentlist = students.usernames
+    formData.studentlistjson = JSON.stringify(formData.studentlist)
     formData.planningstaffjson = JSON.stringify(formData.planningstaff)
     formData.accompanyingstaffjson = JSON.stringify(formData.accompanyingstaff)
     formData.staffinchargejson = JSON.stringify(formData.staffincharge.length ? formData.staffincharge[0] : '')
@@ -211,7 +206,7 @@ export function Activity() {
                             <BasicDetails />
                             <StaffDetails />
                           </Card>
-                          <StudentList reload={reloadStudents} />
+                          <StudentList />
                         </Box>
                       </Grid.Col>
                       <Grid.Col span={{ base: 12, lg: 3 }}>

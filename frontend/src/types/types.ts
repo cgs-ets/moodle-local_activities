@@ -10,3 +10,9 @@ export type DecordatedUser = {
   username: string,
   image: string,
 }
+
+export type Course = {
+  id: number,
+  idnumber: string,
+  fullname: string,
+}

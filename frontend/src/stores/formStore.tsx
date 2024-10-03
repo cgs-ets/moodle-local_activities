@@ -17,7 +17,6 @@ export type Form = {
   location: string;
   timestart: number;
   timeend: number;
-  studentlistjson: string;
   description: string;
   transport: string;
   cost: string;
@@ -25,10 +24,11 @@ export type Form = {
   permissionstype: string;
   permissionslimit: string;
   permissionsdueby: number;
-  //deleted: string;
   riskassessment: string;
   attachments: string;
 
+  studentlist: any[];
+  studentlistjson: string;
   staffincharge: any[];
   staffinchargejson: string;
   planningstaff: any[];
@@ -37,17 +37,12 @@ export type Form = {
   accompanyingstaffjson: string;
 
   otherparticipants: string;
-  //absencesprocessed: string;
-  //remindersprocessed: string;
   categories: string[];
   categoriesjson: string;
   colourcategory: string;
   areasjson: string;
   displaypublic: boolean;
-  //pushpublic: string;
   isactivity: string;
-  //timesynclive: number;
-  //timesyncplanning: number;
   isassessment: string;
   courseid: string;
   assessmenturl: string;
@@ -71,7 +66,6 @@ const defaults: Form = {
   location: '',
   timestart: dayjs().unix(),
   timeend: dayjs().unix(),
-  studentlistjson: '',
   description: '',
   transport: '',
   cost: '',
@@ -82,6 +76,8 @@ const defaults: Form = {
   riskassessment: '',
   attachments: '',
 
+  studentlist: [],
+  studentlistjson: '',
   staffincharge: [getConfig().user],
   staffinchargejson: '',
   planningstaff: [],
@@ -135,7 +131,7 @@ const useStaffDetailsStore = create<StaffDetailsStore>((set) => ({
 */
 
 
-
+/*
 export type StudentList= {
   data: any[],
   usernames: string[],
@@ -155,7 +151,7 @@ const useStudentListStore = create<StudentListStore>((set) => ({
   setState: (newState) => set(newState || studentListInit),
   reset: () => set(studentListInit),
 }))
-
+*/
 
 
 
@@ -189,6 +185,6 @@ export {
   defaults,
   useFormStore, 
   //useStaffDetailsStore,
-  useStudentListStore,
+  //useStudentListStore,
   useFormValidationStore
 };
