@@ -29,7 +29,7 @@ export function Activity() {
   const [submitResponse, submitError, submitLoading, submitAjax, setSubmitData] = useAjax(); // destructure state and fetch function
   const [fetchResponse, fetchError, fetchLoading, fetchAjax, setFetchData] = useAjax(); // destructure state and fetch function
 
-  const [approvals, setApprovals] = useState<any>([])
+  //const [approvals, setApprovals] = useState<any>([])
   
   useEffect(() => {
     document.title = 'Manage Activity'
@@ -69,7 +69,7 @@ export function Activity() {
       // Merge into default values
       setFormData({...defaults, ...data})
 
-      setApprovals(fetchResponse.data.approvals)
+      //setApprovals(fetchResponse.data.approvals)
 
       formLoaded()
       baselineHash()
@@ -201,7 +201,7 @@ export function Activity() {
                       </Grid.Col>
                       <Grid.Col span={{ base: 12, lg: 3 }}>
                         <Status submitLoading={submitLoading} submitError={submitError} submitResponse={submitResponse} />
-                        <Workflow approvals={approvals} setApprovals={setApprovals} />
+                        <Workflow activityid={Number(id)} />
                       </Grid.Col>
                     </Grid>
                   </form>

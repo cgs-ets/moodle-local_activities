@@ -94,7 +94,7 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
   //}
 
   return (
-    <Card withBorder radius="sm" p="md" mb="lg" className="overflow-visible"
+    <Card withBorder radius="sm" p="md"  className="overflow-visible"
       bg={status == statuses.inreview ? "orange.1" : (status == statuses.approved ? "apprgreen.1" : '')}
     >
       <div className="page-pretitle">Status</div>      
