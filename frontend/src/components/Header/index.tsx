@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Container, Avatar, Menu, UnstyledButton, Group, Text, Box } from '@mantine/core';
-import { IconLogout } from '@tabler/icons-react';
+import { IconHome2, IconLogout } from '@tabler/icons-react';
 import { useInterval } from "@mantine/hooks";
 import { useEffect } from "react";
 import { fetchData, getConfig } from "../../utils";
@@ -42,6 +42,7 @@ export function Header() {
               </UnstyledButton>
             </Menu.Target>
             <Menu.Dropdown>
+              <Menu.Item leftSection={<IconHome2 size={14} />} onMouseDown={() => window.location.replace('/')}>Home</Menu.Item>
               <Menu.Item leftSection={<IconLogout size={14} />} onMouseDown={() => window.location.replace(getConfig().logoutUrl)}>Logout</Menu.Item>
             </Menu.Dropdown>
           </Menu>

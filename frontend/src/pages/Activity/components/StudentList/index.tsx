@@ -2,12 +2,10 @@ import { Card, Flex, Group, Text, Button, Tooltip } from '@mantine/core';
 import { IconPlus, IconMinus, IconMail } from '@tabler/icons-react';
 import { useMemo, useState } from 'react';
 import { MantineReactTable } from 'mantine-react-table';
-import { useParams } from 'react-router-dom';
 import { statuses } from '../../../../utils';
 import { studentColumn } from './columns';
 import { AddStudentsModal } from '../Modals/AddStudentsModal';
 import { useDisclosure } from '@mantine/hooks';
-import { SendMessageModal } from '../../../../components/SendMessageModal';
 import { useStateStore } from '../../../../stores/stateStore';
 import { User } from '../../../../types/types';
 import { showExcursionFields } from '../../../../utils/utils';
@@ -15,7 +13,6 @@ import { Form, useFormStore } from '../../../../stores/formStore';
 
 
 export function StudentList() {
-  let { id } = useParams();
 
   const status = useFormStore((state) => state.status)
   const studentlist = useFormStore((state) => state.studentlist) 
@@ -23,7 +20,6 @@ export function StudentList() {
   const haschanges = useStateStore((state) => (state.haschanges))
 
   const [isOpenAddStudentsModal, addStudentsModalHandlers] = useDisclosure(false)
-  const [isOpenMessageModal, messageModalHandlers] = useDisclosure(false);
 
   const insertStudents = (students: User[]) => {
     // Deduplicate.
@@ -51,7 +47,7 @@ export function StudentList() {
 
           <div className="px-4 py-3">
             <Group justify="space-between">
-              <Text fz="md" w={500}>Students</Text>
+              <Text fz="md">Students</Text>
                 <Text c='dimmed'> {
                   Object.keys(rowSelection).length
                   ? Object.keys(rowSelection).length + ' selected'
@@ -134,7 +130,7 @@ export function StudentList() {
                       </Flex>
                       { status == statuses.approved &&
                         <Tooltip.Floating disabled={!haschanges} label="You must save changes before you may send messages.">
-                          <Button variant="filled" color={haschanges ? "gray.4" : undefined} onClick={() => (haschanges ? null : messageModalHandlers.open())} size="compact-sm" radius="xl" leftSection={<IconMail size={14} />}>Send a message</Button>
+                          <Button variant="filled" color={haschanges ? "gray.4" : undefined} onClick={() => (haschanges ? null : null)} size="compact-sm" radius="xl" leftSection={<IconMail size={14} />}>Send a message</Button>
                         </Tooltip.Floating>
                       }
                     </Group>
@@ -143,14 +139,7 @@ export function StudentList() {
           }
         </Card>
         <AddStudentsModal opened={isOpenAddStudentsModal} close={addStudentsModalHandlers.close} insert={insertStudents} />
-        <SendMessageModal
-          students={
-            Object.keys(rowSelection).length 
-            ? studentlist.filter(s => Object.keys(rowSelection).includes(s.un))
-            : studentlist
-          } 
-          activityid={id}
-          opened={isOpenMessageModal} close={messageModalHandlers.close} />
+        
 
       </div>
     : null

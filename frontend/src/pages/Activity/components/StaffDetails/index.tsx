@@ -1,4 +1,4 @@
-import { Text } from "@mantine/core";
+import { Card, Text } from "@mantine/core";
 import { Form, useFormStore } from "../../../../stores/formStore";
 import { StaffSelector } from "./components/StaffSelector";
 import { showExcursionFields } from "../../../../utils/utils";
@@ -23,9 +23,11 @@ export function StaffDetails() {
   }
 
   return (
-    <div>
-      <Text fz="sm" mb="5px" fw={500} c="#212529">Staff</Text>
-      <div className="flex flex-col gap-6 p-4 border border-gray-300 rounded-sm bg-gray-50">
+    <Card withBorder radius="sm" className="p-0">
+      <div className="px-4 py-3">
+        <Text fz="md">Staff</Text>
+      </div>
+      <div className="flex flex-col gap-6 p-4 border-t border-gray-300">
         <div className="flex flex-col gap-2">
           <StaffSelector staff={staffincharge} setStaff={setStaffInCharge} label="Leader" multiple={false} />
           { showExcursionFields() &&
@@ -36,6 +38,6 @@ export function StaffDetails() {
           }
         </div>
       </div>
-    </div>
+    </Card>
   );
 };

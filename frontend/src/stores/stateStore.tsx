@@ -37,6 +37,7 @@ const useStateStore = create<StateStore>((set, get) => ({
   reset: () => set(formStateInit),
   reloadStudents: () => set({reloadstulist: true}),
   baselineHash: () => {
+    console.log("Baselining hash")
     const hash = exportActivityHash()
     set({
       oldhash: hash, 
@@ -44,6 +45,7 @@ const useStateStore = create<StateStore>((set, get) => ({
     })
   },
   clearHash: () => {
+    console.log("Clearing hash")
     set({
       oldhash: '', 
       hash: '',
@@ -51,6 +53,7 @@ const useStateStore = create<StateStore>((set, get) => ({
     })
   },
   updateHash: () => {
+    console.log("Updating hash")
     const hash = exportActivityHash()
     //console.log('hash', hash)
     //console.log('oldhash', get().oldhash)
@@ -59,10 +62,13 @@ const useStateStore = create<StateStore>((set, get) => ({
       haschanges: (hash !== state.oldhash) 
     }))
   },
-  resetHash: () => set((state: State) => ({
-    hash: state.oldhash,
-    haschanges: false,
-  })),
+  resetHash: () => {
+    const hash = exportActivityHash()
+    set((state: State) => ({
+      hash: state.oldhash,
+      haschanges: (hash !== state.oldhash) ,
+    }))
+  },
   setFormLoaded: () => set({formloaded: true}),
   setStudentsLoaded: () => set({studentsloaded: true}),
 }))

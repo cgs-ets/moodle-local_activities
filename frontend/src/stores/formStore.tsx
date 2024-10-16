@@ -174,7 +174,10 @@ const useFormValidationStore = create<FormValidationStore>((set) => ({
   formErrors: {},
   rules: {
     activityname: [
-      (value: string) => (value.length ? null : 'Activity name is required. '),
+      (value: string, formData: Form) => (value.length ? null : 'Activity name is required. '),
+    ],
+    timestart: [
+      (value: string, formData: Form) => (Number(value) == formData.timeend || Number(value) > formData.timeend ? 'End time must be greater than start time. ' : null),
     ],
   },
   setFormErrors: (errors) => set({ formErrors: errors }),

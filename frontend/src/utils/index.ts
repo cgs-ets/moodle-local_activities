@@ -16,7 +16,7 @@ const queryString = (params: any) => {
 }
 
 const createUrl = (url?: string, queryOptions?: any) => {
-  if (url === undefined) {
+  if (!url) {
     url = getConfig().wwwroot + '/local/activities/service.php';
   }
   queryOptions = queryOptions || {}

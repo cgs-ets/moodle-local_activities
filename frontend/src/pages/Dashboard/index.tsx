@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
-import { Box, Button, Card, Container, Grid, Group } from "@mantine/core";
+import { Box, Button, Card, Container, Grid } from "@mantine/core";
 import { getConfig } from "../../utils";
 import { IconCalendarPlus } from "@tabler/icons-react";
 import { Link } from "react-router-dom";

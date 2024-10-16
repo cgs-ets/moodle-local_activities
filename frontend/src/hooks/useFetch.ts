@@ -15,7 +15,7 @@ interface FetchOptions {
 }
 
 function useFetch(): {
-  call: (url: string, options?: FetchOptions) => Promise<any>,
+  call: (options?: FetchOptions, url?: string) => Promise<any>,
   state: FetchState,
   setState: React.Dispatch<React.SetStateAction<FetchState>>
 } {
@@ -27,8 +27,7 @@ function useFetch(): {
     data: null,
   });
 
-  //const call = async (url: string, options?: FetchOptions) => {
-  const call = async (url: string, options?: FetchOptions): Promise<any> => {
+  const call = async (options?: FetchOptions, url?: string): Promise<any> => {
 
     setState({ error: false, success: false, loading: true, data: null });
 

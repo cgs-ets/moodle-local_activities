@@ -1,5 +1,5 @@
-import { Fragment, useState, forwardRef, useEffect } from "react";
-import { Group, Avatar, Text, MultiSelect, Loader, Badge, Flex, CloseButton, useCombobox, Combobox, PillsInput, Pill } from '@mantine/core';
+import { Fragment, useState } from "react";
+import { Group, Avatar, Text, Loader, Badge, Flex, CloseButton, useCombobox, Combobox, PillsInput, Pill } from '@mantine/core';
 import { IconUser, IconUsers } from '@tabler/icons-react';
 import { DecordatedUser, User } from "../../types/types";
 import { fetchData } from "../../utils";

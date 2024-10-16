@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { Box, Container, Grid, Center, Text, Loader, Card } from '@mantine/core';
+import { useEffect, useState } from "react";
+import { Box, Container, Grid, Center, Text, Loader } from '@mantine/core';
 import { useNavigate, useParams } from "react-router-dom";
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
@@ -12,29 +12,30 @@ import { useStateStore } from "../../stores/stateStore";
 import { defaults, Errors, Form, useFormStore, useFormValidationStore } from "../../stores/formStore";
 import { StaffDetails } from "./components/StaffDetails";
 import { StudentList } from "./components/StudentList";
+import { CalendarSettings } from "./components/CalendarSettings";
+import { Workflow } from "./components/Workflow";
 
 export function Activity() {
   let { id } = useParams();
 
   const setFormData = useFormStore((state) => state.setState)
   const setFormState = useStateStore((state) => state.setState)
-
   const formLoaded = useStateStore((state) => (state.setFormLoaded))
   const baselineHash = useStateStore((state) => (state.baselineHash))
   const clearHash = useStateStore((state) => (state.clearHash))
   const resetHash = useStateStore((state) => (state.resetHash))
-  
   const validationRules = useFormValidationStore((state) => state.rules)
   const setFormErrors = useFormValidationStore((state) => state.setFormErrors)
-
   const [submitResponse, submitError, submitLoading, submitAjax, setSubmitData] = useAjax(); // destructure state and fetch function
   const [fetchResponse, fetchError, fetchLoading, fetchAjax, setFetchData] = useAjax(); // destructure state and fetch function
 
+  const [approvals, setApprovals] = useState<any>([])
   
   useEffect(() => {
     document.title = 'Manage Activity'
     // Load existing activity.
     if (id) {
+      console.log("fetching activity..")
       fetchAjax({
         query: {
           methodname: 'local_activities-get_activity',
@@ -68,17 +69,7 @@ export function Activity() {
       // Merge into default values
       setFormData({...defaults, ...data})
 
-      // Prep these for the multi selelctor
-      /*const coaches = fetchResponse.data.coaches 
-        ? JSON.parse(fetchResponse.data.coaches).map((item) => (JSON.stringify({ un: item.un, fn: item.fn, ln: item.ln })))
-        : []
-      const assistants = fetchResponse.data.assistants
-        ? JSON.parse(fetchResponse.data.assistants).map((item) => (JSON.stringify({ un: item.un, fn: item.fn, ln: item.ln })))
-        : []
-      setStaffDetailsState({
-        coaches: coaches,
-        assistants: assistants,
-      })*/
+      setApprovals(fetchResponse.data.approvals)
 
       formLoaded()
       baselineHash()
@@ -126,7 +117,6 @@ export function Activity() {
     formData.planningstaffjson = JSON.stringify(formData.planningstaff)
     formData.accompanyingstaffjson = JSON.stringify(formData.accompanyingstaff)
     formData.staffinchargejson = JSON.stringify(formData.staffincharge.length ? formData.staffincharge[0] : '')
-    //console.log(formData);
 
     setSubmitData({
       response: null,
@@ -139,7 +129,7 @@ export function Activity() {
     for (let field in validationRules) {
       for (let [index, rule] of validationRules[field].entries()) {
         // Exec the rule against the data.
-        let error = rule(formData[field])
+        let error = rule(formData[field], formData)
         if (error) {
           hasErrors = true
           let fieldErrors: string[] = []
@@ -160,6 +150,7 @@ export function Activity() {
         error: true,
         loading: false,
       })
+      console.log("Form has errors, not submitting.")
       return
     }
 
@@ -202,15 +193,15 @@ export function Activity() {
                     <Grid grow>
                       <Grid.Col span={{ base: 12, lg: 9 }}>
                         <Box className="flex flex-col gap-4">
-                          <Card withBorder className="overflow-visible rounded p-4 flex flex-col gap-6">
-                            <BasicDetails />
-                            <StaffDetails />
-                          </Card>
+                          <BasicDetails />
+                          <CalendarSettings />
+                          <StaffDetails />
                           <StudentList />
                         </Box>
                       </Grid.Col>
                       <Grid.Col span={{ base: 12, lg: 3 }}>
                         <Status submitLoading={submitLoading} submitError={submitError} submitResponse={submitResponse} />
+                        <Workflow approvals={approvals} setApprovals={setApprovals} />
                       </Grid.Col>
                     </Grid>
                   </form>

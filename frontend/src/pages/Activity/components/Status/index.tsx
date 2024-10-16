@@ -7,17 +7,14 @@ import { useAjax } from '../../../../hooks/useAjax';
 import { useParams } from 'react-router-dom';
 import { useFormStore } from '../../../../stores/formStore';
 import { useStateStore } from '../../../../stores/stateStore';
+import { entryStatus, excursionStatus, showExcursionFields } from '../../../../utils/utils';
 
 
 export function Status({submitLoading, submitError, submitResponse}: {submitLoading: boolean, submitError: boolean, submitResponse: any}) {
   let { id } = useParams();
 
   const formData = useFormStore()
-  //const setMetaState = useFormMetaStore((state) => state.setState)
-  //const status = useFormMetaStore((state) => (state.status))
   const status = useFormStore((state) => (state.status))
-  const formloaded = useStateStore((state) => (state.formloaded))
-  const studentsloaded = useStateStore((state) => (state.studentsloaded))
   const haschanges = useStateStore((state) => (state.haschanges))
   const updateHash = useStateStore((state) => (state.updateHash))
   const baselineHash = useStateStore((state) => (state.baselineHash))
@@ -53,19 +50,19 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
     pubAjax({
       method: "POST", 
       body: {
-        methodname: 'local_activities-publish_activity',
+        methodname: 'local_activities-update_status',
         args: {
           id: id,
-          publish: newStatus
+          status: newStatus
         },
       }
     })
   }
-  const handlePublish = () => {
-    updateStatus(1)
+  const handleSendReview = () => {
+    updateStatus(statuses.inreview)
   }
   const handleReturnToPlanning = () => {
-    updateStatus(0)
+    updateStatus(statuses.draft)
   }
   useEffect(() => {
     if (!pubError && pubResponse) {
@@ -82,6 +79,16 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
     errMessage = submitResponse.exception.message;
   }
 
+  const showReviewButton = () => {
+    return showExcursionFields() && !haschanges && status == statuses.draft
+  }
+
+  const statusText = () => {
+    return showExcursionFields()
+    ? excursionStatus()
+    : entryStatus()
+  }
+
   //if (id && (!formloaded || !studentsloaded)) {
   //  return null
   //}
@@ -91,12 +98,7 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
       bg={status == statuses.inreview ? "orange.1" : (status == statuses.approved ? "apprgreen.1" : '')}
     >
       <div className="page-pretitle">Status</div>      
-      <Text size="md" fw={500}>
-      { status == statuses.unsaved && "Draft"}
-      { status == statuses.draft && "Draft"}
-      { status == statuses.inreview && "In Review"}
-      { status == statuses.approved && "Approved"}
-      </Text>
+      <Text size="md" fw={500}>{ statusText() }</Text>
 
       { submitLoading || pubLoading && <Loader size="sm" m="xs" pos="absolute" right={5} top={5} /> }
       <Transition mounted={(!submitLoading && !submitError && !haschanges && saveComplete)} transition="fade" duration={500} timingFunction="ease">
@@ -116,7 +118,7 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
       { !submitLoading && !errMessage && !haschanges &&
         <Text color="dimmed" size="sm">
         { status == statuses.draft 
-          ? "Activity saved. When ready, submit it for review."
+          ? "All information is saved."
           : status == statuses.inreview
             ? "Your activity is under review. You may continue to update information."
             : status == statuses.approved 
@@ -138,7 +140,7 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
                 Save { haschanges ? " changes" : "" }
             </Button>
           }
-          { !haschanges && status == statuses.draft && <Button color="apprgreen" onClick={handlePublish} size="compact-md" radius="xl" leftSection={<IconCheckbox size={14} />} loading={pubLoading}>Send for review</Button> }
+          { showReviewButton() && <Button color="apprgreen" onClick={handleSendReview} size="compact-md" radius="xl" leftSection={<IconCheckbox size={14} />} loading={pubLoading}>Send for review</Button> }
         </Group>
         { (status == statuses.approved) &&
           <Menu shadow="lg" position="bottom">

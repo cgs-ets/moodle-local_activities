@@ -6,6 +6,7 @@ import { User } from '../../../../../types/types';
 import { StudentSelector } from '../../../../../components/StudentSelector';
 import { CourseBrowser } from '../../../../../components/CourseBrowser';
 import { fetchData } from '../../../../../utils';
+import { GroupsBrowser } from '../../../../../components/GroupsBrowser';
 
 type Props = {
   opened: boolean,
@@ -16,6 +17,7 @@ type Props = {
 export function AddStudentsModal({opened, close, insert}: Props) {
   const [students, setStudents] = useState<User[]>([]);
   const [selectedCourses, setSelectedCourses] = useState<number[]>([]);
+  const [selectedGroups, setSelectedGroups] = useState<number[]>([]);
 
   const insertAndClose = async () => {
     let studentObjects = [] as User[];
@@ -27,7 +29,17 @@ export function AddStudentsModal({opened, close, insert}: Props) {
         }
       })
       studentObjects = response.data
-    } else if (students.length) {
+    } 
+    else if (selectedGroups.length) {
+      const response = await fetchData({
+        query: {
+          methodname: 'local_activities-get_group_students',
+          ids: selectedGroups,
+        }
+      })
+      studentObjects = response.data
+    }
+    else if (students.length) {
       studentObjects = students
     }
     insert(studentObjects)
@@ -67,9 +79,12 @@ export function AddStudentsModal({opened, close, insert}: Props) {
             <Tabs.Panel value="courses" px="md" pb="md" mih={150}>
               <CourseBrowser selectedIds={selectedCourses} setSelectedIds={setSelectedCourses}/>
             </Tabs.Panel>
+            <Tabs.Panel value="groups" px="md" pb="md" mih={150}>
+              <GroupsBrowser selectedIds={selectedGroups} setSelectedIds={setSelectedGroups}/>
+            </Tabs.Panel>
           </Tabs>
           <Flex pt="sm" justify="end">
-            <Button onClick={insertAndClose} disabled={!students.length && !selectedCourses.length} type="submit" leftSection={<IconUsersPlus size="1rem" />} radius="xl" >Insert students</Button>
+            <Button onClick={insertAndClose} disabled={!students.length && !selectedCourses.length && !selectedGroups.length} type="submit" leftSection={<IconUsersPlus size="1rem" />} radius="xl" >Insert students</Button>
           </Flex>
         </Box>
     </Modal>
