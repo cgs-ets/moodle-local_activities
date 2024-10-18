@@ -45,13 +45,21 @@ trait utils_api {
     }
 
     /**
-     * Get category directory information.
+     * Get course list for user.
      *
      * @return array.
      */
-    static public function get_category_dir() {
-        $category = required_param('category', PARAM_ALPHANUMEXT);
-        return utils_lib::get_category_dir($category);
+    static public function get_users_courses() {
+        return utils_lib::get_users_courses();
+    }
+
+    /**
+     * Get groups list for user.
+     *
+     * @return array.
+     */
+    static public function get_users_groups() {
+        return utils_lib::get_users_groups();
     }
 
     /**
@@ -73,6 +81,26 @@ trait utils_api {
         if (!isloggedin()) {
             throw new \require_login_exception('Login required.');
         }
+    }
+
+    /**
+     * Get current authenticated user's activities.
+     *
+     * @return array results.
+     */
+    static public function get_courses_students() {
+        $ids = required_param('ids', PARAM_RAW);
+        return utils_lib::get_students_from_courses($ids);
+    }
+
+    /**
+     * Get current authenticated user's activities.
+     *
+     * @return array results.
+     */
+    static public function get_group_students() {
+        $ids = required_param('ids', PARAM_RAW);
+        return utils_lib::get_students_from_groups($ids);
     }
 
 }

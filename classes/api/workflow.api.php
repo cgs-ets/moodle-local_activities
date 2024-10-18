@@ -1,0 +1,53 @@
+<?php
+
+namespace local_activities\api;
+
+defined('MOODLE_INTERNAL') || die();
+
+require_once(__DIR__.'/../lib/workflow.lib.php');
+require_once(__DIR__.'/../lib/activities.lib.php');
+
+use \local_activities\lib\workflow_lib;
+use \local_activities\lib\activities_lib;
+
+/**
+ * Activity API trait
+ */
+trait workflow_api {
+
+    /**
+     * Get workflow info for activity.
+     *
+     * @return array results.
+     */
+    static public function get_workflow() {
+        $id = required_param('id', PARAM_INT);
+        return workflow_lib::get_workflow($id);
+    }    
+    
+    /**
+    * Tick or untick an approval row.
+    */
+   static public function save_approval($args) { 
+       ['activityid' => $activityid, 'approvalid' => $approvalid, 'status' => $status] = $args;
+       return workflow_lib::save_approval($activityid, $approvalid, $status);
+   }
+       
+   /**
+    * Skip/unskip.
+    */
+    static public function skip_approval($args) { 
+        ['activityid' => $activityid, 'approvalid' => $approvalid, 'skip' => $skip] = $args;
+        return workflow_lib::save_skip($activityid, $approvalid, $skip);
+    }
+
+   /**
+    * Select an approver.
+    */
+    static public function nominate_approver($args) { 
+        ['activityid' => $activityid, 'approvalid' => $approvalid, 'nominated' => $nominated] = $args;
+        return workflow_lib::nominate_approver($activityid, $approvalid, $nominated);
+    }
+
+
+}

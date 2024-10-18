@@ -4,6 +4,9 @@ namespace local_activities\lib;
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once(__DIR__.'/activities.lib.php');
+
+use \local_activities\lib\activities_lib;
 use \stdClass;
 
 class utils_lib {
@@ -85,6 +88,174 @@ class utils_lib {
     }
 
     /**
+     * Get users courses.
+     *
+     * @return array results
+     */
+    public static function get_users_courses($user = null) {
+        global $DB, $USER;
+
+        if (!$user) {
+            $user = $USER;
+        }
+
+        $out = array();
+
+        // First process courses that the user is enrolled in.
+        $courses = enrol_get_users_courses($user->id, true, 'enddate');
+        $timenow = time();
+        foreach ($courses as $course) {
+            // Remove ended courses.
+            if ($course->enddate && ($timenow > $course->enddate)) {
+                continue;
+            }
+            $out[] = array(
+                'id' => $course->id,
+                'fullname' => $course->fullname,
+            );
+        }
+
+        // Next process all other courses.
+        $courses = get_courses();
+        foreach ($courses as $course) {
+            // Skip course if already in list.
+            if (in_array($course->id, array_column($out, 'id'))) {
+                continue;
+            }
+            // Remove ended courses.
+            if ($course->enddate && ($timenow > $course->enddate)) {
+                continue;
+            }
+
+            // Get the course category and skip if not a part of Primary or Senior.
+            $allowed = false;
+            $allowedcats = array(2, 3); // ids of allowed categories. Child categories are also allowed.
+            $sql = "SELECT path FROM {course_categories} WHERE id = {$course->category}";
+            $catpath = $DB->get_field_sql($sql, null);
+            foreach ($allowedcats as $allowedcat) {
+                if(preg_match('/\/' . $allowedcat . '(\/|$)/', $catpath)) {
+                    $allowed = true;
+                    break;
+                }
+            }
+            if (!$allowed) {
+                continue;
+            }
+
+            $out[] = array(
+                'id' => $course->id,
+                'fullname' => $course->fullname,
+            );
+        }
+
+        // Sort by course name.
+        usort($out, function($a, $b) {
+            return $a['fullname'] <=> $b['fullname'];
+        });
+
+        return $out;
+    }
+
+    public static function get_students_from_courses($courseids) {
+        global $DB;
+
+        list($insql, $inparams) = $DB->get_in_or_equal($courseids);
+        $sql = "SELECT DISTINCT u.id, u.username, u.firstname, u.lastname
+                  FROM {user} u, {user_enrolments} ue, {enrol} e, {course} c, {role_assignments} ra, {context} cn, {role} r
+                 WHERE c.id $insql
+                   AND e.courseid = c.id
+                   AND ue.enrolid = e.id
+                   AND cn.instanceid = c.id
+                   AND cn.contextlevel = 50
+                   AND u.id = ue.userid
+                   AND ra.contextid =  cn.id
+                   AND ra.userid = ue.userid
+                   AND r.id = ra.roleid
+                   AND r.shortname = 'student'";
+        $params = array($courseids);
+        $records = $DB->get_records_sql($sql, $params);
+
+        $students = array();
+        foreach($records as $r) {
+            $student = new \stdClass();
+            $student->un = $r->username;
+            $student->fn = $r->firstname;
+            $student->ln = $r->lastname;
+            $students[] = $student;
+        }
+
+        return $students;
+    }
+
+    /**
+     * Get users groups.
+     *
+     * @return array results
+     */
+    public static function get_users_groups($user = null) {
+        global $DB, $USER;
+
+        if (!$user) {
+            $user = $USER;
+        }
+
+        $out = array();
+
+        $courses = static::get_users_courses($user);
+        foreach ($courses as $course) {
+            // Get the groups in this course.
+            $groups = $DB->get_records('groups', array('courseid' => $course['id']));
+            foreach ($groups as $group) {
+                $out[] = array(
+                    'id' => $group->id,
+                    'fullname' => $course['fullname'] . ' > ' . $group->name,
+                );
+            }
+        }
+        
+        // Sort by course name.
+        usort($out, function($a, $b) {
+            return $a['fullname'] <=> $b['fullname'];
+        });
+        
+        return $out;
+    }
+
+    public static function get_students_from_groups($groupids) {
+        global $DB;
+
+        list($insql, $inparams) = $DB->get_in_or_equal($groupids);
+        $sql = "SELECT DISTINCT u.id, u.username, u.firstname, u.lastname 
+                FROM mdl_groups g, mdl_groups_members m, mdl_user u, mdl_user_enrolments ue, mdl_enrol e, mdl_role_assignments ra, mdl_context cn, mdl_role r
+                WHERE g.id $insql
+                AND m.groupid = g.id
+                AND u.id = m.userid
+                AND e.courseid = g.courseid
+                AND ue.enrolid = e.id
+                AND cn.instanceid = g.courseid
+                AND cn.contextlevel = 50
+                AND u.id = ue.userid
+                AND ra.contextid =  cn.id
+                AND ra.userid = ue.userid
+                AND ra.userid = m.userid
+                AND r.id = ra.roleid
+                AND r.shortname = 'student'";
+        $params = array($groupids);
+        $records = $DB->get_records_sql($sql, $params);
+
+        $students = array();
+        foreach($records as $r) {
+            $student = new \stdClass();
+            $student->un = $r->username;
+            $student->fn = $r->firstname;
+            $student->ln = $r->lastname;
+            $students[] = $student;
+        }
+
+        return $students;
+    }
+
+    /**
      * Check if the current user has the capability to create an activity.
      *
      * @param int $activityid
@@ -93,7 +264,7 @@ class utils_lib {
     public static function has_capability_create_activity() {
         global $USER, $DB;
 
-            //Any staff memeber
+        //Any staff memeber
         
         return true;
     }
@@ -105,22 +276,10 @@ class utils_lib {
      * @return boolean
      */
     public static function has_capability_edit_activity($activityid) {
-        global $USER, $DB;
-
-        // Planning staff
-        $planningstaff = $DB->record_exists_sql("SELECT username FROM {activity_staff} WHERE activityid = ? AND username = ? AND usertype = 'planning'", [$activityid, $USER->username]);
-        if ($planningstaff) {
+        $activity = activities_lib::get_activity($activityid);
+        if ($activity->usercanedit) {
             return true;
         }
-
-        // Staff in charge
-
-    
-        // Moodle Admin.
-        if (has_capability('moodle/site:config', \context_user::instance($USER->id))) {
-            return true;
-        }
-
         return false;
     }
 

@@ -14,6 +14,8 @@ import { StaffDetails } from "./components/StaffDetails";
 import { StudentList } from "./components/StudentList";
 import { CalendarSettings } from "./components/CalendarSettings";
 import { Workflow } from "./components/Workflow";
+import { showExcursionFields } from "../../utils/utils";
+import { useWorkflowStore } from "../../stores/workflowStore";
 
 export function Activity() {
   let { id } = useParams();
@@ -28,9 +30,9 @@ export function Activity() {
   const setFormErrors = useFormValidationStore((state) => state.setFormErrors)
   const [submitResponse, submitError, submitLoading, submitAjax, setSubmitData] = useAjax(); // destructure state and fetch function
   const [fetchResponse, fetchError, fetchLoading, fetchAjax, setFetchData] = useAjax(); // destructure state and fetch function
+  const setApprovals = useWorkflowStore((state) => state.setApprovals)
+  const activitytype = useFormStore((state) => state.activitytype)
 
-  //const [approvals, setApprovals] = useState<any>([])
-  
   useEffect(() => {
     document.title = 'Manage Activity'
     // Load existing activity.
@@ -49,11 +51,8 @@ export function Activity() {
     }
   }, [id]);
 
-
   useEffect(() => {
     if (fetchResponse && !fetchError) {
-      //console.log(fetchResponse.data)
-      
       const data = {
         ...fetchResponse.data,
         categories: JSON.parse(fetchResponse.data.categoriesjson || '[]'),
@@ -68,9 +67,6 @@ export function Activity() {
       }
       // Merge into default values
       setFormData({...defaults, ...data})
-
-      //setApprovals(fetchResponse.data.approvals)
-
       formLoaded()
       baselineHash()
     }
@@ -80,7 +76,7 @@ export function Activity() {
 
   useEffect(() => {
     if (!submitError && submitResponse) {
-      // If something other than an int was returned, something went wrong.
+
       if (!submitResponse.data.id) {
         resetHash() // Revert to old hash as changes were not saved
         setSubmitData({
@@ -98,9 +94,11 @@ export function Activity() {
         setFormData({
           status: submitResponse.data.status,
         } as Form)
+        setApprovals(submitResponse.data.workflow)
         // Refetch student list.
         console.log("Triggering student reload.")
       }
+
     }
     if (submitError) {
       resetHash() // Revert to old hash as changes were not saved
@@ -154,10 +152,6 @@ export function Activity() {
       return
     }
 
-    // Decode the multiselect values into objects.
-    //formData.coaches = formData.coaches.map((val) => JSON.parse(val));
-    //formData.assistants = formData.assistants.map((val) => JSON.parse(val));
-
     // Set a new baseline for change detection, anticipating all will be saved.
     baselineHash()
 
@@ -170,6 +164,8 @@ export function Activity() {
       }
     })
   }
+
+
 
   return (
     <>
@@ -201,7 +197,7 @@ export function Activity() {
                       </Grid.Col>
                       <Grid.Col span={{ base: 12, lg: 3 }}>
                         <Status submitLoading={submitLoading} submitError={submitError} submitResponse={submitResponse} />
-                        <Workflow activityid={Number(id)} />
+                        { (activitytype == 'excursion' || activitytype == 'incursion') && <Workflow activityid={Number(id)} /> }
                       </Grid.Col>
                     </Grid>
                   </form>

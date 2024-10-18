@@ -5,9 +5,10 @@ import { useTimeout } from '@mantine/hooks';
 import { statuses } from '../../../../utils';
 import { useAjax } from '../../../../hooks/useAjax';
 import { useParams } from 'react-router-dom';
-import { useFormStore } from '../../../../stores/formStore';
+import { Form, useFormStore } from '../../../../stores/formStore';
 import { useStateStore } from '../../../../stores/stateStore';
 import { entryStatus, excursionStatus, showExcursionFields } from '../../../../utils/utils';
+import { useWorkflowStore } from '../../../../stores/workflowStore';
 
 
 export function Status({submitLoading, submitError, submitResponse}: {submitLoading: boolean, submitError: boolean, submitResponse: any}) {
@@ -15,10 +16,14 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
 
   const formData = useFormStore()
   const status = useFormStore((state) => (state.status))
+  const activitytype = useFormStore((state) => (state.activitytype))
   const haschanges = useStateStore((state) => (state.haschanges))
   const updateHash = useStateStore((state) => (state.updateHash))
   const baselineHash = useStateStore((state) => (state.baselineHash))
   const hash = useStateStore((state) => (state.hash))
+  const setFormData = useFormStore((state) => state.setState)
+  const setApprovals = useWorkflowStore((state) => state.setApprovals)
+
 
   useEffect(() => {
     if (!hash) {
@@ -61,16 +66,15 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
   const handleSendReview = () => {
     updateStatus(statuses.inreview)
   }
-  const handleReturnToPlanning = () => {
-    updateStatus(statuses.draft)
-  }
+
   useEffect(() => {
     if (!pubError && pubResponse) {
       setSaveComplete(true)
       start()
-      /*setMetaState({
+      setFormData({
         status: pubResponse.data.status,
-      })*/
+      } as Form)
+      setApprovals(pubResponse.data.workflow)
     }
   }, [pubResponse])
 
@@ -89,13 +93,18 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
     : entryStatus()
   }
 
-  //if (id && (!formloaded || !studentsloaded)) {
-  //  return null
-  //}
-
   return (
     <Card withBorder radius="sm" p="md"  className="overflow-visible"
-      bg={status == statuses.inreview ? "orange.1" : (status == statuses.approved ? "apprgreen.1" : '')}
+      bg={
+        activitytype == 'excursion' || activitytype == 'incursion'
+        ? status == statuses.inreview 
+          ? "orange.1" 
+          : (status == statuses.approved 
+            ? "apprgreen.1" 
+            : ''
+          )
+        : ""
+      }
     >
       <div className="page-pretitle">Status</div>      
       <Text size="md" fw={500}>{ statusText() }</Text>
@@ -117,13 +126,17 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
 
       { !submitLoading && !errMessage && !haschanges &&
         <Text color="dimmed" size="sm">
-        { status == statuses.draft 
-          ? "All information is saved."
-          : status == statuses.inreview
-            ? "Your activity is under review. You may continue to update information."
-            : status == statuses.approved 
-              ? "Activity is approved! You may continue to make changes to information."
-              : "Get started by entering the details for this activity."
+        { activitytype == 'excursion' || activitytype == 'incursion'
+          ?  status == statuses.draft 
+            ? "All information is saved."
+            : status == statuses.inreview
+              ? "Your activity is under review. You may continue to update information."
+              : status == statuses.approved 
+                ? "Activity is approved! You may continue to make changes to information."
+                : "Get started by entering the details for this activity."
+          : status || 0 > statuses.draft
+            ? "All information is saved."
+            : ""
         }
         </Text>
       }
@@ -142,17 +155,12 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
           }
           { showReviewButton() && <Button color="apprgreen" onClick={handleSendReview} size="compact-md" radius="xl" leftSection={<IconCheckbox size={14} />} loading={pubLoading}>Send for review</Button> }
         </Group>
-        { (status == statuses.approved) &&
+        { false && (status == statuses.approved) &&
           <Menu shadow="lg" position="bottom">
             <Menu.Target>
               <Button  size="compact-md" variant="subtle" radius="xl"><IconDots size="1rem" /></Button>
             </Menu.Target>
-            <Menu.Dropdown>       
-
-              { status == statuses.approved && 
-                <Menu.Item onMouseDown={handleReturnToPlanning} leftSection={<IconArrowMoveLeft size={14} />}>Return to planning status</Menu.Item>
-              }
-
+            <Menu.Dropdown>     
             </Menu.Dropdown>
           </Menu>
         }

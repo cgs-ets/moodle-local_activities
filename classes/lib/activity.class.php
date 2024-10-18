@@ -87,33 +87,25 @@ class Activity {
      *
      * @return array
      */
-    public function export() {
+    public function export($usercontext = null) {
+        global $USER;
+
         if (!$this->get('id')) {
             return static::defaults;
         }
 
-        $data = clone($this->data);
-        $data->iseditor = utils_lib::has_capability_edit_activity($this->get('id'));
+        if (empty($usercontext)) {
+            $usercontext = $USER;
+        }
 
-        return $this->data;
+        $data = clone($this->data);
+        $other = $this->get_other_values($usercontext);
+        $merged = (object) array_merge((array) $data, (array) $other);
+
+        return $merged;
 
         //$this->load_planningstaffdata();
         //$this->load_accompanyingstaffdata();
-
-        /*return [
-            'id' => $this->get('id'),
-            'idnumber' => $this->get('idnumber'),
-            'creator' => $this->get('creator'),
-            'status' => $this->get('status'),
-            'teamname' => $this->get('teamname'),
-            'category' => $this->get('category'),
-            'categoryname' => service_lib::get_cat_name($this->get('category')),
-            'details' => $this->get('details'),
-            'coaches' => $this->get('coachesdata'),
-            'assistants' => $this->get('assistantsdata'),
-            'timecreated' => $this->get('timecreated'),
-            'timemodified' => $this->get('timemodified'),
-        ];*/
     }
     
     /**
@@ -192,8 +184,7 @@ class Activity {
 
         $sql = "SELECT *
                 FROM {activity_students}
-                WHERE activityid = ?
-                AND status = 0";
+                WHERE activityid = ?";
         $params = array($this->get('id'));
         $records = $DB->get_records_sql($sql, $params);
 
@@ -212,7 +203,9 @@ class Activity {
         }
 
         // Sort by last name.
-        usort($students, fn($a, $b) => strcmp($a->ln, $b->ln));
+        usort($students, function($a, $b) {
+            return strcmp($a->ln, $b->ln);
+        });
 
         $this->set('studentsdata', json_encode($students));
     }
@@ -371,5 +364,113 @@ class Activity {
             return $this->data->$property;
         }
     }
+
+    public function get_data() {
+        return $this->data;
+    }
+
+
+    /**
+     * Get the additional values to inject while exporting.
+     *
+     * @return array Keys are the property names, values are their values.
+     */
+    protected function get_other_values($usercontext) {
+        global $USER, $DB;
+
+        $usercontext = $USER;
+        if (isset($this->related['usercontext'])) {
+            $usercontext = $this->related['usercontext'];
+        }
+
+        $manageurl = new \moodle_url('/local/excursions/activity.php', array(
+            'edit' => $this->data->id,
+        ));
+
+        $permissionsurl = new \moodle_url('/local/excursions/permissions.php', array(
+            'activityid' => $this->data->id,
+        ));
+
+        $summaryurl = new \moodle_url('/local/excursions/summary.php', array(
+            'id' => $this->data->id,
+        ));
+
+        $ispast = false;
+        if ($this->data->timeend && $this->data->timeend < time()) {
+            $ispast = true;
+        }
+        
+        $statushelper = activities_lib::status_helper($this->data->status);
+
+        $iscreator = ($this->data->creator == $usercontext->username);
+
+        $isplanner = false;
+        $planning = json_decode($this->data->planningstaffjson);
+        if ($planning) {
+            foreach ($planning as $user) {
+                if ($USER->username == $user->un) {
+                    $isplanner = true;
+                    break;
+                }
+            }
+        }
+
+        $isaccompanying = false;
+        $accompanying = json_decode($this->data->accompanyingstaffjson);
+        if ($accompanying) {
+            foreach ($accompanying as $user) {
+                if ($USER->username == $user->un) {
+                    $isaccompanying = true;
+                    break;
+                }
+            }
+        }
+
+        $isapprover = workflow_lib::is_approver_of_activity($this->data->id);
+        if ($isapprover) {
+            $userapprovertypes = workflow_lib::get_approver_types($usercontext->username);
+        }
+
+        $isstaffincharge = false;
+        if ($this->data->staffincharge == $usercontext->username) {
+            $isstaffincharge = true;
+        }
+
+        $usercanedit = false;
+        if ($iscreator || $isstaffincharge || $isapprover || $isplanner || has_capability('moodle/site:config', \context_user::instance($USER->id))) {
+            $usercanedit = true;
+        }
+
+        $usercansendmail = false;
+        if ($iscreator || $isstaffincharge || $isplanner) {
+            $usercansendmail = true;
+        }
+
+        $dateDiff = intval(($this->data->timeend-$this->data->timestart)/60);
+        $days = intval($dateDiff/60/24);
+        $hours = (int) ($dateDiff/60)%24;
+        $minutes = $dateDiff%60;
+        $duration = '';
+        $duration .= $days ? $days . 'd ' : '';
+        $duration .= $hours ? $hours . 'h ' : '';
+        $duration .= $minutes ? $minutes . 'm ' : '';
+
+    	return [
+            'manageurl' => $manageurl->out(false),
+            'permissionsurl' => $permissionsurl->out(false),
+            'summaryurl' => $summaryurl->out(false),
+            'statushelper' => $statushelper,
+            'iscreator' => $iscreator,
+            'isapprover' => $isapprover,
+            'isplanner' => $isplanner,
+            'isaccompanying' => $isaccompanying,
+            'isstaffincharge' => $isstaffincharge,
+            'usercanedit' => $usercanedit,
+            'usercansendmail' => $usercansendmail,
+            'ispast' => $ispast,
+            'duration' => $duration,
+	    ];
+    }
+
 
 }

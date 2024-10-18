@@ -4,9 +4,11 @@ namespace local_activities\api;
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once(__DIR__.'/../lib/activity.class.php');
 require_once(__DIR__.'/../lib/activities.lib.php');
 require_once(__DIR__.'/../lib/service.lib.php');
 
+use \local_activities\lib\Activity;
 use \local_activities\lib\activities_lib;
 use \local_activities\lib\service_lib;
 
@@ -39,8 +41,9 @@ trait activities_api {
      *
      * @return array containing activityid and new status.
      */
-    static public function publish_activity($args) { 
-        return activities_lib::publish_activity( (object) $args);
+    static public function update_status($args) { 
+        ['id' => $id, 'status' => $status] = $args;
+        return activities_lib::update_status($id, $status);
     }
 
     /**
@@ -50,7 +53,7 @@ trait activities_api {
      */
     static public function get_activity_students() {
         $id = required_param('id', PARAM_INT);
-        $activity = new activity($id);
+        $activity = new Activity($id);
         $activity->load_studentsdata();
         return json_decode($activity->get('studentsdata'));
     }
@@ -70,8 +73,9 @@ trait activities_api {
      *
      * @return array results.
      */
-    static public function get_user_activitys() {
-        return activities_lib::get_activitys();
+    static public function get_user_activities() {
+        return activities_lib::get_activities();
     }
+
 
 }

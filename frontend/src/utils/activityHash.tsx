@@ -4,6 +4,8 @@ import { useFormStore } from "../stores/formStore";
 
 const exportActivityHash = () => {
   const formData = useFormStore.getState()
-  return hash(JSON.parse(JSON.stringify(formData)))
+  // Unset some props.
+  const { status, ...rest } = formData;
+  return hash(JSON.parse(JSON.stringify(rest)))
 };
 export {exportActivityHash}
