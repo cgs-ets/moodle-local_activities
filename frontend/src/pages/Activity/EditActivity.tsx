@@ -11,13 +11,12 @@ import dayjs from "dayjs";
 import { useStateStore } from "../../stores/stateStore";
 import { defaults, Errors, Form, useFormStore, useFormValidationStore } from "../../stores/formStore";
 import { StaffDetails } from "./components/StaffDetails";
-import { StudentList } from "./components/StudentList";
 import { CalendarSettings } from "./components/CalendarSettings";
 import { Workflow } from "./components/Workflow";
-import { showExcursionFields } from "../../utils/utils";
 import { useWorkflowStore } from "../../stores/workflowStore";
+import { StudentList } from "./components/StudentList/StudentList";
 
-export function Activity() {
+export function EditActivity() {
   let { id } = useParams();
 
   const setFormData = useFormStore((state) => state.setState)
@@ -53,6 +52,7 @@ export function Activity() {
 
   useEffect(() => {
     if (fetchResponse && !fetchError) {
+      document.title = fetchResponse.data.activityname
       const data = {
         ...fetchResponse.data,
         categories: JSON.parse(fetchResponse.data.categoriesjson || '[]'),
@@ -89,7 +89,7 @@ export function Activity() {
 
       // Successful save.
       if (!id) {
-        navigate('/activity/' + submitResponse.data.id, {replace: true})
+        navigate('/activity/' + submitResponse.data.id + '/edit', {replace: true})
       } else {
         setFormData({
           status: submitResponse.data.status,

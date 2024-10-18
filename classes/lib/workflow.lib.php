@@ -107,7 +107,6 @@ class workflow_lib extends \local_activities\local_activities_config {
                 break;
             }
         }
-
         //echo "<pre>"; var_export($approvals); exit;
 
         // Invalidate approvals that should not be there.
@@ -304,22 +303,24 @@ class workflow_lib extends \local_activities\local_activities_config {
             $approver = static::WORKFLOW[$approval->type]['approvers'][$nominated];
             if ($approver['contacts']) {
                 foreach ($approver['contacts'] as $email) {
-                    static::send_next_approval_email($activity, static::WORKFLOW[$approval->type]['name'], $nominated, $email, [$USER->email]);
+                    //static::send_next_approval_email($activity, static::WORKFLOW[$approval->type]['name'], $nominated, $email, [$USER->email]);
                 }
             } else {
-                static::send_next_approval_email($activity, static::WORKFLOW[$approval->type]['name'], $nominated, null, [$USER->email]);
+                //static::send_next_approval_email($activity, static::WORKFLOW[$approval->type]['name'], $nominated, null, [$USER->email]);
             }
         }
 
-        // Check for approval finalisation and return new status.
-        return json_encode(['status' => 'complete']);
+        // Return updated status and workflow.
+        $newstatusinfo = static::check_status($activityid, null, true, [$USER->email]);
+
+        return $newstatusinfo;
     }
 
     
     /*
     * Check status
     */
-    public static function check_status($activityid, $fieldschanged = null, $progressed = false) {
+    public static function check_status($activityid, $fieldschanged = null, $progressed = false, $bccemail = null) {
         global $DB, $PAGE, $OUTPUT;
 
         $activity = new Activity($activityid);
@@ -348,7 +349,7 @@ class workflow_lib extends \local_activities\local_activities_config {
         // Approver needs to be notified when:
         // When workflow has progressed, or moving in-review from another status.
         if ($newstatus->inreview && ($oldstatus->status != $newstatus->status || $progressed)) {
-            //static::notify_next_approver($activityid);
+            //static::notify_next_approver($activityid, $bccemail);
         }
 
         // Creator needs to be notified whenever there is a status change.
@@ -443,24 +444,37 @@ class workflow_lib extends \local_activities\local_activities_config {
 
     }
 
-    protected static function notify_next_approver($activityid) {
+
+    protected static function notify_next_approver($activityid, $bccemail = null) {
         $activity = new static($activityid);
         // Get the next approval step.
         $approvals = static::get_unactioned_approvals($activityid);
         $approvals = static::filter_approvals_with_prerequisites($approvals); 
         foreach ($approvals as $nextapproval) {
-            $approvers = static::WORKFLOW[$nextapproval->type]['approvers'];
-            foreach($approvers as $approver) {
-                // Skip if approver does not want this notification.
-                if (isset($approver['notifications']) && !in_array('approvalrequired', $approver['notifications'])) {
-                    continue;
-                }
+
+            if ($nextapproval->selectable && $nextapproval->nominated) {
+                $approver = static::WORKFLOW[$approval->type]['approvers'][$nextapproval->nominated];
                 if ($approver['contacts']) {
                     foreach ($approver['contacts'] as $email) {
-                        static::send_next_approval_email($activity, static::WORKFLOW[$nextapproval->type]['name'], $approver['username'], $email);
+                        static::send_next_approval_email($activity, static::WORKFLOW[$approval->type]['name'], $nextapproval->nominated, $email, $bccemail);
                     }
                 } else {
-                    static::send_next_approval_email($activity, static::WORKFLOW[$nextapproval->type]['name'], $approver['username']);
+                    static::send_next_approval_email($activity, static::WORKFLOW[$approval->type]['name'], $nextapproval->nominated, null, $bccemail);
+                }
+            } else {
+                $approvers = static::WORKFLOW[$nextapproval->type]['approvers'];
+                foreach($approvers as $approver) {
+                    // Skip if approver does not want this notification.
+                    if (isset($approver['notifications']) && !in_array('approvalrequired', $approver['notifications'])) {
+                        continue;
+                    }
+                    if ($approver['contacts']) {
+                        foreach ($approver['contacts'] as $email) {
+                            static::send_next_approval_email($activity, static::WORKFLOW[$nextapproval->type]['name'], $approver['username'], $email, $bccemail);
+                        }
+                    } else {
+                        static::send_next_approval_email($activity, static::WORKFLOW[$nextapproval->type]['name'], $approver['username'], null, $bccemail);
+                    }
                 }
             }
         }
@@ -683,7 +697,8 @@ class workflow_lib extends \local_activities\local_activities_config {
                         }
                     }
                 }
-                if (isset(static::WORKFLOW[$approval->type]['selectable'])) {
+                $approval->selectable = false;
+                if (isset(static::WORKFLOW[$approval->type]['selectable']) && static::WORKFLOW[$approval->type]['selectable']) {
                     // Can this user select someone in this step?
                     if (empty($prerequisites)) {
                         $approval->selectable = true;

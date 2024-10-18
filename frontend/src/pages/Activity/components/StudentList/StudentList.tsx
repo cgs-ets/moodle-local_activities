@@ -44,7 +44,6 @@ export function StudentList() {
     showExcursionFields() 
     ? <div>
         <Card withBorder radius="sm" mb="lg" className="p-0">
-
           <div className="px-4 py-3">
             <Group justify="space-between">
               <Text fz="md">Students</Text>

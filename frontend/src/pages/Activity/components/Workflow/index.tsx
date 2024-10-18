@@ -1,5 +1,5 @@
-import { ActionIcon, Avatar, Card, LoadingOverlay, Switch, Text } from "@mantine/core"
-import { IconBell, IconBellOff, IconCancel, IconUser, IconUserCancel, IconUserCheck, IconUserX } from "@tabler/icons-react"
+import { ActionIcon, Avatar, Button, Card, LoadingOverlay, Select, Switch, Text } from "@mantine/core"
+import { IconBell, IconBellOff, IconCancel, IconPencil, IconUser, IconUserCancel, IconUserCheck, IconUserX } from "@tabler/icons-react"
 import { cn } from "../../../../utils/utils"
 import { useEffect, useState } from "react";
 import { useAjax } from "../../../../hooks/useAjax";
@@ -60,9 +60,7 @@ export function Workflow({
   }
 
   useEffect(() => {
-    console.log(submitResponse)
     if (submitResponse && !submitError) {
-      // Approval saved - Get the workflow again.
       setApprovals(submitResponse.data.workflow)
       setFormData({
         status: submitResponse.data.status,
@@ -100,6 +98,42 @@ export function Workflow({
     })
   }
 
+  const unsetNominated = (id: string) => {
+    const newApprovals = approvals.map((approval: { id: string }) => 
+      approval.id === id
+        ? { ...approval, nominated: "" } 
+        : approval
+    )
+    setApprovals(newApprovals)
+  }
+
+  const updateNominated = (id: string, nominated: string | null) => {
+    const newApprovals = approvals.map((approval: { id: string }) => 
+      approval.id === id
+        ? { ...approval, tempnominated: nominated ? nominated : "" } 
+        : approval
+    )
+    setApprovals(newApprovals)
+  }
+
+  const submitNominated = (id: string) => {
+    const approval = approvals.filter((approval: { id: string, tempnominated: string }) =>  approval.id === id)
+    if (!approval.length) {
+      return
+    }
+    return submitAjax({
+      method: "POST", 
+      body: {
+        methodname: 'local_activities-nominate_approver',
+        args: {
+          activityid: activityid,
+          approvalid: id,
+          nominated: approval[0].tempnominated,
+        },
+      }
+    })
+  }
+
   
   return (
     approvals.length ?
@@ -110,7 +144,8 @@ export function Workflow({
       
       <div className="relative flex flex-col border-t text-sm">
         <LoadingOverlay visible={fetchLoading || submitLoading} />
-        {approvals.map((approval: any) => {
+        {approvals.map((approval: any, i) => {
+          console.log("approval", approval)
           return(
             <div 
               key={approval.id} 
@@ -126,11 +161,31 @@ export function Workflow({
               }
             >
               <div className="flex items-center gap-2">
-                <span>{approval.description}</span>
+                { approval.status == '0' && approval.skip == '0' && approval.selectable
+                  ? approval.nominated
+                    ? <div className="flex gap-1 items-center">
+                        <Avatar alt="Nominated approver" title="Nominated approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.nominated} radius="xl"><IconUser size={14} /></Avatar> 
+                        {approval.description}
+                        <ActionIcon variant="transparent"><IconPencil onClick={() => unsetNominated(approval.id)} className="size-4" /></ActionIcon>
+                      </div>
+                    : <div className="flex gap-2 items-center">
+                        <Select
+                          size="xs"
+                          placeholder="Nominate approver"
+                          value={approval.tempnominated ? approval.tempnominated : approval.nominated}
+                          onChange={(value) => updateNominated(approval.id, value)}
+                          data={approval.approvers.map((a: any) => ({value: a.username, label: a.fullname}))}
+                          className="flex-1"
+                        />
+                        {approval.tempnominated && approval.tempnominated != approval.nominated ? <Button onClick={() => submitNominated(approval.id)} variant="light" size="compact-xs">Save</Button> : '' }
+                      </div>
+                  : <span>{approval.description}</span>
+                }
+                
               </div>
               <div className="flex items-center gap-2">
-                { approval.username &&
-                 <Avatar alt="Approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.username} radius="xl"><IconUser size={14} /></Avatar>
+                { approval.username && (approval.status == '1' || approval.skip == '1') &&
+                 <Avatar alt="Approver" title="Approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.username} radius="xl"><IconUser size={14} /></Avatar>
                 }
                 { approval.status == '0' && approval.isapprover && approval.canskip && 
                   <ActionIcon onClick={() => skipApproval(approval.id, approval.skip == '1' ? 0 : 1)} variant="transparent" title={approval.skip == '1' ? "Enable Approval" : "Skip Approval"}>

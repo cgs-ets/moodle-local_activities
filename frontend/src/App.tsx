@@ -3,10 +3,11 @@ import "inter-ui/inter.css";
 import './App.css'
 import '@mantine/tiptap/styles.css';
 import { Dashboard } from "./pages/Dashboard";
-import { Activity } from "./pages/Activity";
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import 'dayjs/locale/en-gb';
+import { EditActivity } from "./pages/Activity/EditActivity";
+import { ViewActivity } from "./pages/Activity/ViewActivity";
 
 
 
@@ -20,11 +21,18 @@ function App() {
       },
       {
         path: "activity",
-        element: <Activity />,
         children: [
           {
-            path: ":id",
-            element: <Activity />,
+            index: true, // Matches /activity
+            element: <EditActivity />,
+          },
+          {
+            path: ":id", // Matches /activity/<number>
+            element: <ViewActivity />,
+          },
+          {
+            path: ":id/edit", // Matches /activity/<number>/edit
+            element: <EditActivity />,
           },
         ],
       },

@@ -5,7 +5,21 @@ namespace local_activities;
 class local_activities_config {
 
 	const WORKFLOW = array(
-
+        // Senior RA
+        'senior_ra' => array(
+	    	'name' => 'RA Approval',
+	    	'invalidated_on_edit' => array (
+	    		'timestart',
+	    		'timeend',
+	    	),
+	    	'approvers' => array(
+		        'admin' => array(
+		            'username' => 'admin',
+		            'contacts' => null, // Default email in Moodle used.
+		        ),
+		    ),
+		    'prerequisites' => null,
+	    ),
 		// SENIOR ADMIN
 	    'senior_admin' => array(
 	    	'name' => 'Admin Approval',
@@ -14,12 +28,12 @@ class local_activities_config {
 	    		'timeend',
 	    	),
 	    	'approvers' => array(
-		        array(
+		        'admin' => array(
 		            'username' => 'admin',
 		            'contacts' => null, // Default email in Moodle used.
 		        ),
-		        array(
-		            'username' => 'admin',
+		        'teacher1' => array(
+		            'username' => 'teacher1',
 		            'contacts' => array(
 		            	'admin.email@gmail.com',
 		            ),
@@ -42,10 +56,14 @@ class local_activities_config {
 	    		'riskassessment',
 	    	),
 	    	'approvers' => array(
-		        array(
-		            'username' => 'admin', 
+                'admin' => array(
+		            'username' => 'admin',
 		            'contacts' => null,
-					'notifications' => array('none'),
+                    'notifications' => array('none'),
+		        ),
+		        'teacher1' => array(
+		            'username' => 'teacher1',
+		            'contacts' => null,
 		        ),
 		    ),
 		    'prerequisites' => array(
@@ -65,7 +83,7 @@ class local_activities_config {
                 'riskassessment',
             ),
             'approvers' => array(
-                array(
+                'admin' => array(
                     'username' => 'admin',
                     'contacts' => null,
                 ),
@@ -102,7 +120,7 @@ class local_activities_config {
 	    		'riskassessment',
 	    	),
 	    	'approvers' => array(
-		        array(
+		        'admin' => array(
 		            'username' => 'admin',
 		            'contacts' => null,
 		        ),
@@ -124,7 +142,7 @@ class local_activities_config {
 	    		'riskassessment',
 	    	),
 	    	'approvers' => array(
-		        array(
+		        'admin' => array(
 		            'username' => 'admin',
 		            'contacts' => null,
 		        ),
@@ -141,7 +159,7 @@ class local_activities_config {
 	    		'riskassessment',
 	    	),
 	    	'approvers' => array(
-		        array(
+		        'admin' => array(
 		            'username' => 'admin',
 		            'contacts' => null,
 		        ),
