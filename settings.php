@@ -40,6 +40,12 @@ if ($hassiteconfig) {
     $visiblename = get_string('headerfg', 'local_activities');
     $setting = new admin_setting_configcolourpicker($name, $visiblename, '', '#FFFFFF', null , true);
     $settings->add($setting);
-
+    
+    // Header logo url. //https://cgs.act.edu.au/wp-content/uploads/2021/04/header-logo.svg
+    $name = 'local_activities/headerlogourl';
+    $visiblename = get_string('headerlogourl', 'local_activities');
+    $setting = new admin_setting_configtext($name, $visiblename, '', null);
+    $settings->add($setting);
+    
 
 }

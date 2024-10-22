@@ -77,6 +77,8 @@ export function CategoriesModal({opened, close, categories, handleChange}: {open
                 <Checkbox value="Whole School/Educational Opportunity" label="Educational Opportunity" />
                 <Checkbox value="Whole School/Community" label="Community" />
                 <Checkbox value="Whole School/CGS Board" label="CGS Board" />
+                <Checkbox value="Whole School/External Events" label="External Events" />
+                <Checkbox value="Whole School/Campus Management" label="Campus Management" />
                 <Checkbox value="Whole School/Website External" label="Website External" />
                 <Checkbox value="Whole School/Alumni Website" label="Alumni Website" />
               </div>

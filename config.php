@@ -43,6 +43,21 @@ class local_activities_config {
 						'activitychanged',
 					),
 		        ),
+                'teacher2' => array(
+		            'username' => 'teacher2',
+		            'contacts' => null,
+                    'silent' => true,
+		        ),
+                'teacher3' => array(
+		            'username' => 'teacher3',
+		            'contacts' => null,
+                    'silent' => true,
+		        ),
+                'teacher4' => array(
+		            'username' => 'teacher4',
+		            'contacts' => null,
+                    'silent' => true,
+		        ),
 		    ),
 		    'prerequisites' => null,
 	    ),

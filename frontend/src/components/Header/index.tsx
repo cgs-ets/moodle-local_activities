@@ -30,7 +30,7 @@ export function Header() {
         <Group h={54} justify="space-between">
           <Group gap="md">
             <Link to="/" style={{ textDecoration: 'none' }}>
-              <Text fz="md" c={getConfig().headerfg}>{getConfig().toolname}</Text>
+              <Text className="text-lg" c={getConfig().headerfg}>{getConfig().toolname}</Text>
             </Link>
           </Group>
           <Menu position="bottom-end" width={200} shadow="md">
@@ -48,6 +48,11 @@ export function Header() {
           </Menu>
         </Group>
       </Container>
+      {getConfig().headerlogourl &&
+        <div className="absolute right-0 top-0 w-[170px]">
+          <a href="/"><img className="w-full" src={getConfig().headerlogourl} /></a>
+        </div>
+      }
     </Box>
   </>
   );

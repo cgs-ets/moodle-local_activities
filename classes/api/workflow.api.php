@@ -23,7 +23,17 @@ trait workflow_api {
     static public function get_workflow() {
         $id = required_param('id', PARAM_INT);
         return workflow_lib::get_workflow($id);
-    }    
+    }  
+    
+    /**
+     * Get draft workflow based on campus.
+     *
+     * @return array results.
+     */
+    static public function get_draft_workflow() {
+        $campus = required_param('campus', PARAM_TEXT);
+        return workflow_lib::get_draft_workflow($campus);
+    }  
     
     /**
     * Tick or untick an approval row.

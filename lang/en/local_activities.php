@@ -11,3 +11,4 @@ $string['logo'] = 'Logo';
 $string['logo_desc'] = 'URL to custom logo.';
 $string['headerbg'] = 'Header background color';
 $string['headerfg'] = 'Header foreground color';
+$string['headerlogourl'] = 'Header logo url';

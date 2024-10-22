@@ -1,28 +1,43 @@
 import { ActionIcon, Avatar, Button, Card, LoadingOverlay, Select, Switch, Text } from "@mantine/core"
-import { IconBell, IconBellOff, IconCancel, IconPencil, IconUser, IconUserCancel, IconUserCheck, IconUserX } from "@tabler/icons-react"
+import { IconBell, IconBellOff, IconCancel, IconPencil, IconPlus, IconUser, IconUserCancel, IconUserCheck, IconUserX, IconX } from "@tabler/icons-react"
 import { cn } from "../../../../utils/utils"
 import { useEffect, useState } from "react";
 import { useAjax } from "../../../../hooks/useAjax";
 import useFetch from "../../../../hooks/useFetch";
 import { Form, useFormStore } from "../../../../stores/formStore";
 import { useWorkflowStore } from "../../../../stores/workflowStore";
+import { Approval } from "./Approval";
 
 export function Workflow({
   activityid,
 }: {
   activityid: number,
 }) {
-  const setFormData = useFormStore((state) => state.setState)
   const [fetchResponse, fetchError, fetchLoading, fetchAjax, setFetchData] = useAjax(); // destructure state and fetch function
-  const [submitResponse, submitError, submitLoading, submitAjax, setSubmitData] = useAjax(); // destructure state and fetch function
-  //const [approvals, setApprovals] = useState<any>([])
+  const [fetchDraftResponse, fetchDraftError, fetchDraftLoading, fetchDraftAjax, setFetchDraftData] = useAjax(); // destructure state and fetch function
   const approvals = useWorkflowStore((state) => state.approvals)
   const setApprovals = useWorkflowStore((state) => state.setApprovals)
+  const campus = useFormStore((state) => state.campus)
+  const activitytype = useFormStore((state) => state.activitytype)
+
+  const [initialCampus, setInitialCampus] = useState<string>(campus)
+  const [draftApprovals, setDraftApprovals] = useState<any[]>([])
 
   useEffect(() => {
     getWorkflow()
+    setInitialCampus(campus)
   }, []);
 
+  useEffect(() => {
+    if (activityid > 0 && initialCampus == campus) {
+      setDraftApprovals([])
+    } else {
+      getDraftWorkflow()
+    }
+  }, [campus])
+
+
+  
   const getWorkflow = () => {
     console.log("getting workflow...")
     setFetchData({
@@ -43,169 +58,69 @@ export function Workflow({
       setApprovals(fetchResponse.data)
     }
   }, [fetchResponse]);
-  
-  const saveApproval = (id: string, checked: boolean) => {
-    console.log("save approval...")
-    return submitAjax({
-      method: "POST", 
-      body: {
-        methodname: 'local_activities-save_approval',
-        args: {
-          activityid: activityid,
-          approvalid: id,
-          status: checked ? 1 : 0
-        },
+
+
+
+
+  const getDraftWorkflow = () => {
+    setFetchDraftData({
+      response: null,
+      error: false,
+      loading: false,
+    })
+    fetchDraftAjax({
+      query: {
+        methodname: 'local_activities-get_draft_workflow',
+        id: activityid,
+        campus: campus,
       }
     })
   }
-
   useEffect(() => {
-    if (submitResponse && !submitError) {
-      setApprovals(submitResponse.data.workflow)
-      setFormData({
-        status: submitResponse.data.status,
-      } as Form)
+    if (fetchDraftResponse && !fetchDraftError) {
+      setDraftApprovals(fetchDraftResponse.data)
     }
-  }, [submitResponse]);
-
-  const onApprove = (id: string, checked: boolean) => {
-    const newApprovals = approvals.map((approval: { id: string }) => 
-      approval.id === id
-        ? { ...approval, status: checked ? "1" : "0" } 
-        : approval
-    )
-    setApprovals(newApprovals)
-    saveApproval(id, checked);
-  }
-
-  const skipApproval = (id: string, skip: number) => {
-    const newApprovals = approvals.map((approval: { id: string }) => 
-      approval.id === id
-        ? { ...approval, skip: skip ? "1" : "0" } 
-        : approval
-    )
-    setApprovals(newApprovals)
-    return submitAjax({
-      method: "POST", 
-      body: {
-        methodname: 'local_activities-skip_approval',
-        args: {
-          activityid: activityid,
-          approvalid: id,
-          skip: skip,
-        },
-      }
-    })
-  }
-
-  const unsetNominated = (id: string) => {
-    const newApprovals = approvals.map((approval: { id: string }) => 
-      approval.id === id
-        ? { ...approval, nominated: "" } 
-        : approval
-    )
-    setApprovals(newApprovals)
-  }
-
-  const updateNominated = (id: string, nominated: string | null) => {
-    const newApprovals = approvals.map((approval: { id: string }) => 
-      approval.id === id
-        ? { ...approval, tempnominated: nominated ? nominated : "" } 
-        : approval
-    )
-    setApprovals(newApprovals)
-  }
-
-  const submitNominated = (id: string) => {
-    const approval = approvals.filter((approval: { id: string, tempnominated: string }) =>  approval.id === id)
-    if (!approval.length) {
-      return
-    }
-    return submitAjax({
-      method: "POST", 
-      body: {
-        methodname: 'local_activities-nominate_approver',
-        args: {
-          activityid: activityid,
-          approvalid: id,
-          nominated: approval[0].tempnominated,
-        },
-      }
-    })
-  }
+  }, [fetchDraftResponse]);
+  
 
   
   return (
-    approvals.length ?
+    (activitytype == 'excursion' || activitytype == 'incursion') && (approvals.length || draftApprovals.length) ?
     <Card withBorder radius="sm" className="p-0 rounded-t-none -mt-1 xborder-t-0">
-      <div className="px-4 py-2">
+      <div className="px-4 py-2 bg-gray-100">
         <span className="text-sm">Workflow</span>
       </div>
       
       <div className="relative flex flex-col border-t text-sm">
-        <LoadingOverlay visible={fetchLoading || submitLoading} />
-        {approvals.map((approval: any, i) => {
-          console.log("approval", approval)
-          return(
-            <div 
-              key={approval.id} 
-              className={
-                cn(
-                  "flex justify-between items-center gap-2 border-b px-4 h-10",
-                  approval.status == "1" 
-                  ? "bg-[#e9f8ed]" 
-                  : approval.skip == '1' 
-                    ? "bg-gray-200" 
-                    : approval.status == "0" ? "bg-[#ffe8cc]" : ""
-                )
-              }
-            >
-              <div className="flex items-center gap-2">
-                { approval.status == '0' && approval.skip == '0' && approval.selectable
-                  ? approval.nominated
-                    ? <div className="flex gap-1 items-center">
-                        <Avatar alt="Nominated approver" title="Nominated approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.nominated} radius="xl"><IconUser size={14} /></Avatar> 
-                        {approval.description}
-                        <ActionIcon variant="transparent"><IconPencil onClick={() => unsetNominated(approval.id)} className="size-4" /></ActionIcon>
-                      </div>
-                    : <div className="flex gap-2 items-center">
-                        <Select
-                          size="xs"
-                          placeholder="Nominate approver"
-                          value={approval.tempnominated ? approval.tempnominated : approval.nominated}
-                          onChange={(value) => updateNominated(approval.id, value)}
-                          data={approval.approvers.map((a: any) => ({value: a.username, label: a.fullname}))}
-                          className="flex-1"
-                        />
-                        {approval.tempnominated && approval.tempnominated != approval.nominated ? <Button onClick={() => submitNominated(approval.id)} variant="light" size="compact-xs">Save</Button> : '' }
-                      </div>
-                  : <span>{approval.description}</span>
-                }
-                
-              </div>
-              <div className="flex items-center gap-2">
-                { approval.username && (approval.status == '1' || approval.skip == '1') &&
-                 <Avatar alt="Approver" title="Approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.username} radius="xl"><IconUser size={14} /></Avatar>
-                }
-                { approval.status == '0' && approval.isapprover && approval.canskip && 
-                  <ActionIcon onClick={() => skipApproval(approval.id, approval.skip == '1' ? 0 : 1)} variant="transparent" title={approval.skip == '1' ? "Enable Approval" : "Skip Approval"}>
-                    { approval.skip == '1'
-                      ? <IconUserCheck className="size-5" />
-                      : <IconCancel className="size-5" /> 
-                    }
-                  </ActionIcon>
-                }
-                { approval.skip == '0' && approval.isapprover && approval.canapprove && 
-                  <Switch
-                    checked={approval.status == "1"}
-                    onChange={(event) => onApprove(approval.id, event.currentTarget.checked)}
-                  />
-                }
-              </div>
+        <LoadingOverlay visible={fetchLoading} />
+        { draftApprovals.length
+          ? <div className="z-10 absolute top-0 left-0 w-full h-full bg-red-600/40">
+              <IconX stroke={0.3} className="w-full h-full text-white" />
             </div>
+          : null
+        }
+        {approvals.map((approval: any, i) => {
+          return(
+            <Approval key={approval.id} activityid={activityid} approval={approval} />
           )
         })}
       </div>
+
+      { draftApprovals.length 
+        ? <div className="relative flex flex-col text-sm">
+            <LoadingOverlay visible={fetchDraftLoading} />
+            <div className="hidden z-10 absolute top-0 left-0 w-full h-full bg-green-600/40">
+              <IconPlus stroke={0.3} className="w-full h-full text-white" />
+            </div>
+            {draftApprovals.map((approval: any, i) => {
+              return(
+                <Approval key={i} activityid={activityid} approval={approval} />
+              )
+            })}
+          </div>
+        : null
+      }
+
     </Card> : null
   )
 }

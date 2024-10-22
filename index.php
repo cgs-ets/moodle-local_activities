@@ -13,6 +13,7 @@
     $config->toolname = \local_activities\lib\service_lib::get_toolname();
     $config->headerbg = $activitiesconfig->headerbg;
     $config->headerfg = $activitiesconfig->headerfg;
+    $config->headerlogourl = $activitiesconfig->headerlogourl;
     $user = \local_activities\lib\utils_lib::user_stub($USER->username);
     $config->user = $user;
     $config->roles = \local_activities\lib\service_lib::get_user_roles($USER->username);

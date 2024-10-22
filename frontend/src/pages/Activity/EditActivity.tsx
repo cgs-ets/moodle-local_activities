@@ -197,7 +197,7 @@ export function EditActivity() {
                       </Grid.Col>
                       <Grid.Col span={{ base: 12, lg: 3 }}>
                         <Status submitLoading={submitLoading} submitError={submitError} submitResponse={submitResponse} />
-                        { (activitytype == 'excursion' || activitytype == 'incursion') && <Workflow activityid={Number(id)} /> }
+                        <Workflow activityid={Number(id || 0)} />
                       </Grid.Col>
                     </Grid>
                   </form>

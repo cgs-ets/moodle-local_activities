@@ -17,6 +17,67 @@ class workflow_lib extends \local_activities\local_activities_config {
     const APPROVAL_STATUS_APPROVED = 1;
     const APPROVAL_STATUS_REJECTED = 2;
 
+
+    private static function get_approval_clone($name, $sequence, $activityid, $campus) {
+        // Approval stub.
+        $approval = new \stdClass();
+        $approval->activityid = $activityid;
+        $approval->username = ''; // The person that eventually approves it.
+        $approval->timemodified = time();
+        $approval->type = $name;
+        $approval->sequence = $sequence;
+        $approval->description = static::WORKFLOW[$approval->type]['name'];
+        $approval->approvers = array_filter(
+            static::WORKFLOW[$approval->type]['approvers'], 
+            function($item) { return !isset($item['silent']) || !$item['silent']; }
+        );
+
+        return $approval;
+    }
+
+    private static function get_approval_stubs($activityid, $campus) {
+        
+        $approvals = array();
+
+        // Workflow.
+        switch ($campus) {
+            case 'senior': {
+                // Senior School - 1st approver.
+                $approvals[] = static::get_approval_clone('senior_ra', 1, $activityid, $campus);
+
+                // Senior School - 2nd approver.
+                $approvals[] = static::get_approval_clone('senior_admin', 2, $activityid, $campus);
+
+                // Senior School - 3st approver.
+                $approvals[] = static::get_approval_clone('senior_hoss', 3, $activityid, $campus);
+                break;
+            }
+            case 'primary': {
+                // Primary School - 1st approver.
+                $approvals[] = static::get_approval_clone('primary_ra', 1, $activityid, $campus);
+
+                // Primary School - 2nd approver.
+                $approvals[] = static::get_approval_clone('primary_admin', 2, $activityid, $campus);
+
+                // Primary School - 3rd approver.
+                $approvals[] = static::get_approval_clone('primary_hops', 3, $activityid, $campus);
+                break;
+            }
+            case 'whole': {    
+                // Whole School - 1st approver.
+                $approvals[] = static::get_approval_clone('whole_ra', 1, $activityid, $campus);
+
+                // Whole School - 2nd approver.
+                $approvals[] = static::get_approval_clone('whole_admin', 2, $activityid, $campus);
+
+                // Whole School - 3rd approver.
+                $approvals[] = static::get_approval_clone('whole_final', 3, $activityid, $campus);
+                break;
+            }
+        }
+        return $approvals;
+    }
+
     public static function generate_approvals($originalactivity, $newactivity) {
         global $DB, $USER;
 
@@ -37,76 +98,7 @@ class workflow_lib extends \local_activities\local_activities_config {
             }
         }
 
-        // Approval stub.
-        $approvals = array();
-        $approval = new \stdClass();
-        $approval->activityid = $newactivity->get('id');
-        $approval->username = ''; // The person that eventually approves it.
-        $approval->timemodified = time();
-
-        // Workflow.
-        switch ($newactivity->get('campus')) {
-            case 'senior': {
-                // Senior School - 1st approver.
-                $approval->type = 'senior_ra';
-                $approval->sequence = 1;
-                $approval->description = static::WORKFLOW['senior_ra']['name'];
-                $approvals[] = clone $approval;
-
-                // Senior School - 2nd approver.
-                $approval->type = 'senior_admin';
-                $approval->sequence = 2;
-                $approval->description = static::WORKFLOW['senior_admin']['name'];
-                $approvals[] = clone $approval;
-
-                // Senior School - 3st approver.
-                $approval->type = 'senior_hoss';
-                $approval->sequence = 3;
-                $approval->description = static::WORKFLOW['senior_hoss']['name'];
-                $approvals[] = clone $approval;
-                break;
-            }
-            case 'primary': {
-                // Primary School - 1st approver.
-                $approval->type = 'primary_ra';
-                $approval->sequence = 1;
-                $approval->description = static::WORKFLOW['primary_ra']['name'];
-                $approvals[] = clone $approval;
-
-                // Primary School - 2nd approver.
-                $approval->type = 'primary_admin';
-                $approval->sequence = 2;
-                $approval->description = static::WORKFLOW['primary_admin']['name'];
-                $approvals[] = clone $approval;
-
-                // Primary School - 3rd approver.
-                $approval->type = 'primary_hops';
-                $approval->sequence = 3;
-                $approval->description = static::WORKFLOW['primary_hops']['name'];
-                $approvals[] = clone $approval;
-                break;
-            }
-            case 'whole': {    
-                // Whole School - 1st approver.
-                $approval->type = 'whole_ra';
-                $approval->sequence = 1;
-                $approval->description = static::WORKFLOW['whole_ra']['name'];
-                $approvals[] = clone $approval;
-
-                // Whole School - 2nd approver.
-                $approval->type = 'whole_admin';
-                $approval->sequence = 2;
-                $approval->description = static::WORKFLOW['whole_admin']['name'];
-                $approvals[] = clone $approval;
-
-                // Whole School - 3rd approver.
-                $approval->type = 'whole_final';
-                $approval->sequence = 3;
-                $approval->description = static::WORKFLOW['whole_final']['name'];
-                $approvals[] = clone $approval;
-                break;
-            }
-        }
+        $approvals = static::get_approval_stubs($newactivity->get('id'), $newactivity->get('campus'));
         //echo "<pre>"; var_export($approvals); exit;
 
         // Invalidate approvals that should not be there.
@@ -465,7 +457,7 @@ class workflow_lib extends \local_activities\local_activities_config {
                 $approvers = static::WORKFLOW[$nextapproval->type]['approvers'];
                 foreach($approvers as $approver) {
                     // Skip if approver does not want this notification.
-                    if (isset($approver['notifications']) && !in_array('approvalrequired', $approver['notifications'])) {
+                    if ((isset($approver['silent']) && $approver['silent']) || (isset($approver['notifications']) && !in_array('approvalrequired', $approver['notifications']))) {
                         continue;
                     }
                     if ($approver['contacts']) {
@@ -571,7 +563,7 @@ class workflow_lib extends \local_activities\local_activities_config {
             $approvers = static::WORKFLOW[$nextapproval->type]['approvers'];
             foreach($approvers as $approver) {
                 // Skip if approver does not want this notification.
-                if (isset($approver['notifications']) && !in_array('activitychanged', $approver['notifications'])) {
+                if ((isset($approver['silent']) && $approver['silent']) || (isset($approver['notifications']) && !in_array('activitychanged', $approver['notifications']))) {
                     continue;
                 }
                 if ($approver['contacts']) {
@@ -698,6 +690,10 @@ class workflow_lib extends \local_activities\local_activities_config {
                     }
                 }
                 $approval->selectable = false;
+                $approval->approvers = array_filter(
+                    static::WORKFLOW[$approval->type]['approvers'], 
+                    function($item) { return !isset($item['silent']) || !$item['silent']; }
+                );
                 if (isset(static::WORKFLOW[$approval->type]['selectable']) && static::WORKFLOW[$approval->type]['selectable']) {
                     // Can this user select someone in this step?
                     if (empty($prerequisites)) {
@@ -728,6 +724,10 @@ class workflow_lib extends \local_activities\local_activities_config {
         return $approvals;
     }
 
+
+    public static function get_draft_workflow($campus) {
+        return static::get_approval_stubs(0, $campus);
+    }
 
 
 
