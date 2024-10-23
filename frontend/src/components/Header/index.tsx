@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import { Container, Avatar, Menu, UnstyledButton, Group, Text, Box } from '@mantine/core';
-import { IconHome2, IconLogout } from '@tabler/icons-react';
+import { Container, Avatar, Menu, UnstyledButton, Group, Text, Box, Button } from '@mantine/core';
+import { IconCalendarPlus, IconHome2, IconLogout, IconPlus } from '@tabler/icons-react';
 import { useInterval } from "@mantine/hooks";
 import { useEffect } from "react";
 import { fetchData, getConfig } from "../../utils";
@@ -33,19 +33,25 @@ export function Header() {
               <Text className="text-lg" c={getConfig().headerfg}>{getConfig().toolname}</Text>
             </Link>
           </Group>
-          <Menu position="bottom-end" width={200} shadow="md">
-            <Menu.Target>
-              <UnstyledButton> 
-                <Group>
-                  <Avatar size="sm" radius="xl" src={'/local/activities/avatar.php?username=' + getConfig().user.un} />
-                </Group>
-              </UnstyledButton>
-            </Menu.Target>
-            <Menu.Dropdown>
-              <Menu.Item leftSection={<IconHome2 size={14} />} onMouseDown={() => window.location.replace('/')}>CGS Connect</Menu.Item>
-              <Menu.Item leftSection={<IconLogout size={14} />} onMouseDown={() => window.location.replace(getConfig().logoutUrl)}>Logout</Menu.Item>
-            </Menu.Dropdown>
-          </Menu>
+          <div className="flex items-center gap-4">
+            { getConfig().roles.includes('staff') 
+              ? <Button component={Link} to="/activity" size="compact-md" radius="lg" color="blue" leftSection={<IconCalendarPlus size={14} />}>Create new</Button> : null
+            }
+            <Menu position="bottom-end" width={200} shadow="md">
+              <Menu.Target>
+                <UnstyledButton> 
+                  <Group>
+                    <Avatar size="sm" radius="xl" src={'/local/activities/avatar.php?username=' + getConfig().user.un} />
+                  </Group>
+                </UnstyledButton>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Item leftSection={<IconHome2 size={14} />} onMouseDown={() => window.location.replace('/')}>CGS Connect</Menu.Item>
+                <Menu.Item leftSection={<IconLogout size={14} />} onMouseDown={() => window.location.replace(getConfig().logoutUrl)}>Logout</Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
+          </div>
+          
         </Group>
       </Container>
       {getConfig().headerlogourl &&

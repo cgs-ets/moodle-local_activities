@@ -7,6 +7,7 @@ import useFetch from "../../../../hooks/useFetch";
 import { Form, useFormStore } from "../../../../stores/formStore";
 import { useWorkflowStore } from "../../../../stores/workflowStore";
 import { Approval } from "./Approval";
+import { statuses } from "../../../../utils";
 
 export function Workflow({
   activityid,
@@ -19,6 +20,7 @@ export function Workflow({
   const setApprovals = useWorkflowStore((state) => state.setApprovals)
   const campus = useFormStore((state) => state.campus)
   const activitytype = useFormStore((state) => state.activitytype)
+  const status = useFormStore((state) => state.status)
 
   const [initialCampus, setInitialCampus] = useState<string>(campus)
   const [draftApprovals, setDraftApprovals] = useState<any[]>([])
@@ -29,10 +31,10 @@ export function Workflow({
   }, []);
 
   useEffect(() => {
-    if (activityid > 0 && initialCampus == campus) {
-      setDraftApprovals([])
-    } else {
+    if (status == statuses.unsaved || status == statuses.draft || initialCampus != campus) {
       getDraftWorkflow()
+    } else {
+      setDraftApprovals([])
     }
   }, [campus])
 
@@ -78,7 +80,9 @@ export function Workflow({
   }
   useEffect(() => {
     if (fetchDraftResponse && !fetchDraftError) {
-      setDraftApprovals(fetchDraftResponse.data)
+      if (status == statuses.unsaved || status == statuses.draft || initialCampus != campus) {
+        setDraftApprovals(fetchDraftResponse.data)
+      }
     }
   }, [fetchDraftResponse]);
   
@@ -88,14 +92,14 @@ export function Workflow({
     (activitytype == 'excursion' || activitytype == 'incursion') && (approvals.length || draftApprovals.length) ?
     <Card withBorder radius="sm" className="p-0 rounded-t-none -mt-1 xborder-t-0">
       <div className="px-4 py-2 bg-gray-100">
-        <span className="text-sm">Workflow</span>
+        <span className="text-sm">Workflow {status == statuses.unsaved || status == statuses.draft ? "(Not started)" : ""}</span>
       </div>
       
       <div className="relative flex flex-col border-t text-sm">
         <LoadingOverlay visible={fetchLoading} />
         { draftApprovals.length
-          ? <div className="z-10 absolute top-0 left-0 w-full h-full bg-red-600/40">
-              <IconX stroke={0.3} className="w-full h-full text-white" />
+          ? <div className="z-10 absolute top-0 left-0 w-full h-full xbg-black/40 backdrop-blur-[2px]">
+              <IconX stroke={0.3} className="w-full h-full text-gray-500" />
             </div>
           : null
         }

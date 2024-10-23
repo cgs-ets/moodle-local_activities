@@ -174,8 +174,8 @@ export function BasicDetails() {
                     {conflicts.length} {conflicts.length > 1 ? "activities" : "activity" } occuring at selected time
                   </Button>
                 </Alert>
-                <Alert className="p-0 inline-block shadow-none -mt-1 rounded-tl-none" variant="light" color="orange">
-                  { conflictsOpened &&
+                { conflictsOpened &&
+                  <Alert className="p-0 shadow-none -mt-1 rounded-tl-none" variant="light" color="orange">
                     <div>
                       <Table>
                         <Table.Tbody>
@@ -200,8 +200,8 @@ export function BasicDetails() {
                         </Table.Tbody>
                       </Table>
                     </div>
-                  }
-                </Alert>
+                  </Alert>
+                }
             </div>
           }
         </div>

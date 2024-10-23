@@ -6,7 +6,7 @@ export function Footer() {
     <Fragment>
       <footer>
         <Container size="xl" py="md" className="flex gap-4 items-center">
-          <Text className="flex gap-1 items-center text-xs opacity-60 hover:opacity-100">Credits</Text>
+          <Text className="hidden flex gap-1 items-center text-xs opacity-60 hover:opacity-100">Credits</Text>
         </Container>
       </footer>
     </Fragment>
