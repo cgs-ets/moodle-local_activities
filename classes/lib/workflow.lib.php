@@ -726,7 +726,7 @@ class workflow_lib extends \local_activities\local_activities_config {
 
 
     public static function get_draft_workflow($campus) {
-        return static::get_approval_stubs(0, $campus);
+        return static::get_approval_stubs(0, $campus == 'whole' ? 'senior' : $campus);
     }
 
 
