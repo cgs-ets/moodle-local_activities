@@ -67,6 +67,7 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
     updateStatus(statuses.inreview)
   }
 
+
   useEffect(() => {
     if (!pubError && pubResponse) {
       setSaveComplete(true)
@@ -84,7 +85,7 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
   }
 
   const showReviewButton = () => {
-    return showExcursionFields() && !haschanges && status == statuses.draft
+    return showExcursionFields() && !haschanges && status == statuses.saved
   }
 
   const statusText = () => {
@@ -93,8 +94,20 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
     : entryStatus()
   }
 
+  const getExtraOptions = () => {
+    let options = []
+    if ((activitytype == 'calendar' || activitytype == 'assessment') && (status ?? 0) >= statuses.saved) {
+      options.push(<Menu.Item onMouseDown={() => updateStatus(0)} leftSection={<IconArrowMoveLeft size={14} />}>Return to draft</Menu.Item>)
+    }
+
+    if ((activitytype == 'excursion' || activitytype == 'incursion') && (status ?? 0) > statuses.saved) {
+      options.push(<Menu.Item onMouseDown={() => updateStatus(1)} leftSection={<IconArrowMoveLeft size={14} />}>Return to draft</Menu.Item>)
+    }
+    return options
+  }
+
   return (
-    <Card withBorder radius="sm" p="md"  className="overflow-visible"
+    <Card withBorder radius="sm" p="md"  className="overflow-visible rounded-b-none"
       bg={
         activitytype == 'excursion' || activitytype == 'incursion'
         ? status == statuses.inreview 
@@ -125,44 +138,49 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
       }
 
       { !submitLoading && !errMessage && !haschanges &&
-        <Text color="dimmed" size="sm">
+        <Text c="dimmed" size="sm">
         { activitytype == 'excursion' || activitytype == 'incursion'
-          ?  status == statuses.draft 
+          ?  status == statuses.saved 
             ? "All information is saved."
             : status == statuses.inreview
               ? "Your activity is under review. You may continue to update information."
               : status == statuses.approved 
                 ? "Activity is approved! You may continue to make changes to information."
                 : "Get started by entering the details for this activity."
-          : status || 0 > statuses.draft
+          : (status ?? 0) > statuses.saved
             ? "All information is saved."
-            : ""
+            : "Complete the form."
         }
         </Text>
       }
 
       <Group justify="space-between" mt="xs">
         <Group gap="xs">
-          { haschanges && 
-            <Button 
-              type="submit" 
-              size="compact-md" 
-              radius="xl" 
-              leftSection={<IconCloudUp className='size-4' />} 
-              loading={submitLoading}>
-                Save { haschanges ? " changes" : "" }
-            </Button>
-          }
-          { showReviewButton() && <Button color="apprgreen" onClick={handleSendReview} size="compact-md" radius="xl" leftSection={<IconCheckbox size={14} />} loading={pubLoading}>Send for review</Button> }
+          <Button 
+            type="submit" 
+            size="compact-md" 
+            radius="xl" 
+            leftSection={<IconCloudUp className='size-4' />} 
+            loading={submitLoading}>
+              {activitytype == 'calendar' || activitytype == 'assessment' 
+              ? (status ?? 0) >= statuses.saved
+                ? "Update"
+                : "Submit"
+              : haschanges ? "Save changes" : "Save" }
+          </Button>
+          { showReviewButton() && <Button color="apprgreen" onClick={handleSendReview} size="compact-md" radius="xl" leftSection={<IconCheckbox size={14} />} loading={pubLoading}>Start review</Button> }
         </Group>
-        { false && (status == statuses.approved) &&
-          <Menu shadow="lg" position="bottom">
-            <Menu.Target>
-              <Button  size="compact-md" variant="subtle" radius="xl"><IconDots size="1rem" /></Button>
-            </Menu.Target>
-            <Menu.Dropdown>     
-            </Menu.Dropdown>
-          </Menu>
+
+        { getExtraOptions().length 
+          ? <Menu shadow="lg" position="bottom">
+              <Menu.Target>
+                <Button size="compact-md" variant="subtle" radius="xl"><IconDots size="1rem" /></Button>
+              </Menu.Target>
+              <Menu.Dropdown> 
+                {getExtraOptions()}
+              </Menu.Dropdown>
+            </Menu>
+          : null
         }
       </Group>
     </Card>

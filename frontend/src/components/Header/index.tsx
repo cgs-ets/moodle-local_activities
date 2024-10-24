@@ -55,7 +55,7 @@ export function Header() {
         </Group>
       </Container>
       {getConfig().headerlogourl &&
-        <div className="absolute right-0 top-0 w-[170px]">
+        <div className="hidden 3xl:block absolute right-0 top-0 w-[170px]">
           <a href="/"><img className="w-full" src={getConfig().headerlogourl} /></a>
         </div>
       }

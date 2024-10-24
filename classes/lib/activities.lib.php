@@ -65,6 +65,7 @@ class activities_lib {
                 }
                 $originalactivity = new Activity($data->id);
                 $activity = new Activity($data->id);
+                $activity->set('status', max(static::ACTIVITY_STATUS_DRAFT, $activity->get('status')));
             } else {
                 // Can this user create an activity? Must be a Moodle Admin or Planning staff.
                 if (!utils_lib::has_capability_create_activity()) {
@@ -88,6 +89,7 @@ class activities_lib {
             }
 
             // Save data.
+            $newstatusinfo->status = $activity->get('status');
             $activity->set('activityname', $data->activityname);
             $activity->set('campus', $data->campus);
             $activity->set('activitytype', $data->activitytype);
@@ -161,6 +163,8 @@ class activities_lib {
             // If saving after already in review or approved, determine the approvers based on campus.
             if ($originalactivity && ($data->status == static::ACTIVITY_STATUS_INREVIEW || $data->status == static::ACTIVITY_STATUS_APPROVED)) {
                 $newstatusinfo = workflow_lib::generate_approvals($originalactivity, $activity);
+            } else if ($data->activitytype == 'calendar' || $data->activitytype == 'assessment') {
+                $newstatusinfo->status = static::ACTIVITY_STATUS_DRAFT;
             }
 
         } catch (\Exception $e) {
@@ -331,6 +335,8 @@ class activities_lib {
      * @return
      */
     public static function update_status($activityid, $status) {
+        global $DB;
+
         if (!activity::exists($activityid)) {
             return;
         }
@@ -343,8 +349,18 @@ class activities_lib {
         $activity->set('status', $status);
         $activity->save();
 
+        // If going to draft, remove any existing approvals.
+        if ($status == static::ACTIVITY_STATUS_DRAFT) {
+            $sql = "UPDATE mdl_activity_approvals
+                    SET invalidated = 1
+                    WHERE activityid = ?
+                    AND invalidated = 0";
+            $params = array($activityid);
+            $DB->execute($sql, $params);
+        }
+
         // If sending for review, determine the approvers.
-        $newstatusinfo = (object) array('status' => -1, 'workflow' => []);
+        $newstatusinfo = (object) array('status' => $status, 'workflow' => []);
         if ($status == static::ACTIVITY_STATUS_INREVIEW) {
             $newstatusinfo = workflow_lib::generate_approvals($originalactivity, $activity);
         }

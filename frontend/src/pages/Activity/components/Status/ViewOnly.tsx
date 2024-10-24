@@ -17,7 +17,7 @@ export function StatusViewOnly() {
   }
 
   return (
-    <Card withBorder radius="sm" p="md"  className="overflow-visible"
+    <Card withBorder radius="sm" p="md"  className="overflow-visible rounded-b-none"
       bg={
         activitytype == 'excursion' || activitytype == 'incursion'
         ? status == statuses.inreview 

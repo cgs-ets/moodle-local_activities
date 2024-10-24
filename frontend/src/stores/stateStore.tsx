@@ -9,6 +9,7 @@ type State = {
   studentsloaded: boolean,
   haschanges: boolean,
   reloadstulist: boolean,
+  savedtime: number,
 }
 
 type StateStore = State & {
@@ -21,6 +22,7 @@ type StateStore = State & {
   resetHash: () => void,
   setFormLoaded: () => void,
   setStudentsLoaded: () => void,
+  updateSavedTime: () => void,
 }
 
 const formStateInit = {
@@ -30,6 +32,7 @@ const formStateInit = {
   studentsloaded: false,
   haschanges: false,
   reloadstulist: false,
+  savedtime: 0,
 }
 const useStateStore = create<StateStore>((set, get) => ({
   ...formStateInit,
@@ -71,6 +74,7 @@ const useStateStore = create<StateStore>((set, get) => ({
   },
   setFormLoaded: () => set({formloaded: true}),
   setStudentsLoaded: () => set({studentsloaded: true}),
+  updateSavedTime: () => set({savedtime: Date.now()}),
 }))
 
 

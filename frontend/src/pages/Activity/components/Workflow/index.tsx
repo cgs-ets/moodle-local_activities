@@ -8,6 +8,7 @@ import { Form, useFormStore } from "../../../../stores/formStore";
 import { useWorkflowStore } from "../../../../stores/workflowStore";
 import { Approval } from "./Approval";
 import { statuses } from "../../../../utils";
+import { useStateStore } from "../../../../stores/stateStore";
 
 export function Workflow({
   activityid,
@@ -24,21 +25,27 @@ export function Workflow({
 
   const [initialCampus, setInitialCampus] = useState<string>(campus)
   const [draftApprovals, setDraftApprovals] = useState<any[]>([])
+  const savedtime = useStateStore((state) => (state.savedtime))
 
   useEffect(() => {
-    getWorkflow()
-    setInitialCampus(campus)
-  }, []);
+      getWorkflow()
+      setInitialCampus(campus)
+  }, [activityid]);
 
   useEffect(() => {
-    if (status == statuses.unsaved || status == statuses.draft || initialCampus != campus) {
+    if (status == statuses.draft || status == statuses.saved || initialCampus != campus) {
       getDraftWorkflow()
     } else {
       setDraftApprovals([])
     }
-  }, [campus])
+  }, [campus, activityid, status])
 
-
+  // Reset draft workflow if changes saved.
+  useEffect(() => {
+    console.log("resetting draft workflow...")
+    setInitialCampus(campus)
+    setDraftApprovals([])
+  }, [savedtime]);
   
   const getWorkflow = () => {
     console.log("getting workflow...")
@@ -80,7 +87,7 @@ export function Workflow({
   }
   useEffect(() => {
     if (fetchDraftResponse && !fetchDraftError) {
-      if (status == statuses.unsaved || status == statuses.draft || initialCampus != campus) {
+      if (status == statuses.draft || status == statuses.saved || initialCampus != campus) {
         setDraftApprovals(fetchDraftResponse.data)
       }
     }
@@ -90,9 +97,9 @@ export function Workflow({
   
   return (
     (activitytype == 'excursion' || activitytype == 'incursion') && (approvals.length || draftApprovals.length) ?
-    <Card withBorder radius="sm" className="p-0 rounded-t-none -mt-1 xborder-t-0">
+    <Card withBorder radius="sm" className="p-0 rounded-t-none -mt-[1px]">
       <div className="px-4 py-2 bg-gray-100">
-        <span className="text-sm">Workflow {status == statuses.unsaved || status == statuses.draft ? "(Not started)" : ""}</span>
+        <span className="text-sm">Workflow {status == statuses.draft || status == statuses.saved ? "(Not started)" : ""}</span>
       </div>
       
       <div className="relative flex flex-col border-t text-sm">

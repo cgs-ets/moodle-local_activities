@@ -15,6 +15,7 @@ import { CalendarSettings } from "./components/CalendarSettings";
 import { Workflow } from "./components/Workflow";
 import { useWorkflowStore } from "../../stores/workflowStore";
 import { StudentList } from "./components/StudentList/StudentList";
+import { Conflicts } from "./components/Conflicts/Conflicts";
 
 export function EditActivity() {
   let { id } = useParams();
@@ -30,7 +31,7 @@ export function EditActivity() {
   const [submitResponse, submitError, submitLoading, submitAjax, setSubmitData] = useAjax(); // destructure state and fetch function
   const [fetchResponse, fetchError, fetchLoading, fetchAjax, setFetchData] = useAjax(); // destructure state and fetch function
   const setApprovals = useWorkflowStore((state) => state.setApprovals)
-  const activitytype = useFormStore((state) => state.activitytype)
+  const updateSavedTime = useStateStore((state) => (state.updateSavedTime))
 
   useEffect(() => {
     document.title = 'Manage Activity'
@@ -44,6 +45,7 @@ export function EditActivity() {
         }
       })
     } else {
+      console.log("clearing form state")
       setFormData(null)
       setFormState(null)
       clearHash()
@@ -96,7 +98,8 @@ export function EditActivity() {
         } as Form)
         setApprovals(submitResponse.data.workflow)
         // Refetch student list.
-        console.log("Triggering student reload.")
+        console.log("Triggering student/workflow reload.")
+        updateSavedTime()
       }
 
     }
@@ -197,6 +200,7 @@ export function EditActivity() {
                       </Grid.Col>
                       <Grid.Col span={{ base: 12, lg: 3 }}>
                         <Status submitLoading={submitLoading} submitError={submitError} submitResponse={submitResponse} />
+                        <Conflicts />
                         <Workflow activityid={Number(id || 0)} />
                       </Grid.Col>
                     </Grid>

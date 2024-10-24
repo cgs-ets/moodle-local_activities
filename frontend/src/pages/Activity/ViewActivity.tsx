@@ -19,6 +19,7 @@ import { StaffDetailsViewOnly } from "./components/StaffDetails/ViewOnly";
 import { StudentListViewOnly } from "./components/StudentList/ViewOnly";
 import { StatusViewOnly } from "./components/Status/ViewOnly";
 import { WorkflowViewOnly } from "./components/Workflow/ViewOnly";
+import { Conflicts } from "./components/Conflicts/Conflicts";
 
 export function ViewActivity() {
   let { id } = useParams();
@@ -117,6 +118,7 @@ export function ViewActivity() {
                       { isExcursion() && 
                         <>
                           <StatusViewOnly />
+                          <Conflicts />
                           <WorkflowViewOnly activityid={Number(id)} /> 
                         </>
                       }

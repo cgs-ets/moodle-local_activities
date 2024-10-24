@@ -25,14 +25,20 @@ class conflicts_lib {
         global $DB;
         $conflicts = array();
 
-        // Find activitys that intersect with this start and end time.
+        // Find approved activitys that intersect with this start and end time.
         $sql = "SELECT * 
                 FROM {activities}
                 WHERE deleted = 0 
-                AND ((timestart > ? AND timestart < ?) 
-                OR (timeend > ? AND timeend < ?)
-                OR (timestart <= ? AND timeend >= ?) 
-                OR (timestart >= ? AND timeend <= ?))
+                AND (
+                    status = 3 OR 
+                    (activitytype = 'calendar' AND status = 1)
+                )
+                AND (
+                    (timestart > ? AND timestart < ?) OR 
+                    (timeend > ? AND timeend < ?) OR 
+                    (timestart <= ? AND timeend >= ?) OR  
+                    (timestart >= ? AND timeend <= ?)
+                )
         ";
         $rawactivityconflicts = $DB->get_records_sql($sql, [$timestart, $timeend, $timestart, $timeend, $timestart, $timeend, $timestart, $timeend]);
         foreach ($rawactivityconflicts as $activity) {
@@ -47,7 +53,7 @@ class conflicts_lib {
                 'activityname' => $activity->activityname,
                 'location' => $activity->location,
                 'nonnegotiable' => $activity->nonnegotiable,
-                'activitytype' => 'activity',
+                'activitytype' => $activity->activitytype,
                 'timestart' => date('g:ia', $activity->timestart),
                 'datestart' => date('j M Y', $activity->timestart),
                 'timeend' => date('g:ia', $activity->timeend),

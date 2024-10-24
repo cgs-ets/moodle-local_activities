@@ -62,10 +62,10 @@ export function Calendar({month, year}: Props) {
   return (
     <div>
       
-      <div className="h-[54px] w-full flex justify-between items-center">
+      <div className="h-[54px] w-full flex justify-between items-center mt-10">
         <ActionIcon onClick={getCalendar} variant="subtle" size="lg"><IconArrowNarrowLeft className="size-7" /></ActionIcon>
 
-        <div className="text-lg">{dayjs(`${year}-${month}-15`).format("MMM YYYY")}</div>
+        <div className="text-xl">{dayjs(`${year}-${month}-15`).format("MMM YYYY")}</div>
 
         <ActionIcon variant="subtle" size="lg"><IconArrowNarrowRight className="size-7" /></ActionIcon>
       </div>
@@ -73,7 +73,7 @@ export function Calendar({month, year}: Props) {
       <table className="ev-calendar full-calendar">
         <thead>
           <tr className="days-names">
-            {['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map((weekday) => <td key={weekday}>{weekday}</td>)}
+            {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map((weekday) => <td key={weekday}>{weekday}</td>)}
           </tr>
         </thead>
         <tbody>
@@ -82,8 +82,17 @@ export function Calendar({month, year}: Props) {
                 { week.map((cell: any) => {
                   return (
                     cell.events.length 
-                    ? <td key={cell.date} className={`eventful ${cell.type}`}><span className="day-num">{cell.date}</span></td>
-                    : <td key={cell.date} className={`eventless ${cell.type}`}><span className="day-num">{cell.date}</span></td>
+                    ? <td key={cell.date} className={`eventful ${cell.type}`}>
+                        <span className="day-num">{dayjs.unix(cell.date).format("D") }</span>
+                        <ul>
+                          { cell.events.map((event: any) => (
+                            <span>tease-full-event</span>
+                          ))}
+                        </ul>
+                      </td>
+                    : <td key={cell.date} className={`eventless ${cell.type}`}>
+                        <span className="day-num">{dayjs.unix(cell.date).format("D") }</span>
+                      </td>
                   )
                 })}
               </tr>

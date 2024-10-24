@@ -1,15 +1,15 @@
-import { useEffect, useState } from "react";
-import { TextInput, Text, Button, SegmentedControl, Card, Table, Avatar, Anchor, Alert } from '@mantine/core';
+import { useEffect } from "react";
+import { TextInput, Text, SegmentedControl, Card } from '@mantine/core';
 import { RichTextEditor, Link } from '@mantine/tiptap';
 import { useEditor } from '@tiptap/react';
 import { StarterKit } from '@tiptap/starter-kit';
-import { IconArrowNarrowRight, IconChevronDown, IconChevronUp } from "@tabler/icons-react";
+import { IconArrowNarrowRight } from "@tabler/icons-react";
 import { DateTimePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { Form, useFormStore, useFormValidationStore } from "../../../../stores/formStore";
 import { useDisclosure } from "@mantine/hooks";
 import { CategoriesModal } from "../Modals/CategoriesModal";
-import useFetch from "../../../../hooks/useFetch";
+import { Conflicts } from "../Conflicts/Conflicts";
 
 export function BasicDetails() {
 
@@ -17,9 +17,6 @@ export function BasicDetails() {
   const description = useFormStore((state) => (state.description))
   const setState = useFormStore(state => state.setState)
   const [catsModalOpened, {close: closeCatsModal}] = useDisclosure(false);
-  const [conflictsOpened, {open: showConflicts, close: hideConflicts}] = useDisclosure(false);
-  const getConflictsAPI = useFetch()
-  const [conflicts, setConflicts] = useState<any>([])
 
   const updateField = (name: string, value: any) => {
     setState({
@@ -52,26 +49,7 @@ export function BasicDetails() {
     updateField('categories', sorted)
   }
 
-  const getConflicts = async () => {
-    console.log("Checking for conflicts..")
-    hideConflicts()
-    const res = await getConflictsAPI.call({
-      query: {
-        methodname: 'local_activities-check_conflicts',
-        timestart: formData.timestart,
-        timeend: formData.timeend,
-        activityid: formData.id,
-      }
-    })
-    setConflicts(res.data)
-  }
-
-  // When times change, look for conflicts
-  useEffect(() => {
-    if (formData.timestart && formData.timeend && formData.timestart != formData.timeend) {
-      getConflicts()
-    }
-  }, [formData.timestart, formData.timeend])
+  
 
   return (
     <Card withBorder className="overflow-visible rounded p-4 flex flex-col gap-6">
@@ -167,43 +145,8 @@ export function BasicDetails() {
           </div>
           {errors.timestart ? <div className="text-red-600 text-sm mt-1">{errors.timestart}</div> : null}
 
-          {!!conflicts.length &&
-            <div className="mt-2">
-                <Alert className="p-0 inline-block shadow-none rounded-b-none" variant="light" color="orange">
-                  <Button c="black" onClick={() => conflictsOpened ? hideConflicts() : showConflicts()} variant="transparent" className="px-2 font-normal" rightSection={conflictsOpened ? <IconChevronUp className="size-5"/> : <IconChevronDown className="size-5"/>}>
-                    {conflicts.length} {conflicts.length > 1 ? "activities" : "activity" } occuring at selected time
-                  </Button>
-                </Alert>
-                { conflictsOpened &&
-                  <Alert className="p-0 shadow-none -mt-1 rounded-tl-none" variant="light" color="orange">
-                    <div>
-                      <Table>
-                        <Table.Tbody>
-                          <Table.Tr>
-                            <Table.Th>Title</Table.Th>
-                            <Table.Th>Start</Table.Th>
-                            <Table.Th>End</Table.Th>
-                            <Table.Th>Location</Table.Th>
-                            <Table.Th>Areas</Table.Th>
-                            <Table.Th>Owner</Table.Th>
-                          </Table.Tr>
-                          {conflicts.map((conflict: any) => (
-                            <Table.Tr key={conflict.activityid}>
-                              <Table.Td><Anchor target="_blank" href={`/local/activities/activity/${conflict.activityid}`}>{conflict.activityname}</Anchor></Table.Td>
-                              <Table.Td>{conflict.timestart} <span className="text-xs">{conflict.datestart}</span></Table.Td>
-                              <Table.Td>{conflict.timeend} <span className="text-xs">{conflict.dateend}</span></Table.Td>
-                              <Table.Td>{conflict.location}</Table.Td>
-                              <Table.Td>{conflict.areas && conflict.areas.join(', ')}</Table.Td>
-                              <Table.Td><Avatar size="sm" radius="xl" src={'/local/activities/avatar.php?username=' + conflict.owner.un} /></Table.Td>
-                            </Table.Tr>
-                          ))}
-                        </Table.Tbody>
-                      </Table>
-                    </div>
-                  </Alert>
-                }
-            </div>
-          }
+          {false && <Conflicts />}
+          
         </div>
 
         

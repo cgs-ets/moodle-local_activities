@@ -19,7 +19,7 @@ export function PageHeader() {
                 <Text color="gray.6">Activity</Text>
               </Link>
             </Breadcrumbs>
-            <h2 className="page-title">{name ? name : ( status == statuses.unsaved ? 'New activity' : 'Edit activity') }</h2>
+            <h2 className="page-title">{name ? name : ( status == statuses.draft ? 'New activity' : 'Edit activity') }</h2>
         </Container>
       </div>
     </>

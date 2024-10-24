@@ -53,8 +53,8 @@ const fetchData = async (options: any, url?: string) => {
 };
 
 const statuses = {
-  unsaved: 0,
-  draft: 1,
+  draft: 0,
+  saved: 1,
   inreview: 2,
   approved: 3,
   cancelled: 4,

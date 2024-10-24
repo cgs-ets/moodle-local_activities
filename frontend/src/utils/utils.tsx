@@ -12,16 +12,17 @@ export const showExcursionFields = () => {
 
 export const excursionStatus = () => {
   const status = useFormStore((state) => state.status) 
-  return status == statuses.unsaved ? "Draft" :
-        status == statuses.draft ? "Draft" :
+  return status == statuses.draft ? "New" :
+        status == statuses.saved ? "Draft" :
         status == statuses.inreview ? "In Review" :
         status == statuses.approved ? "Approved" : "";
 }
 
 export const entryStatus = () => {
   const status = useFormStore((state) => state.status) 
-  return status == statuses.unsaved ? "Draft" :
-        status == statuses.draft ? "Saved" : "";
+  console.log("status", status)
+  return status == statuses.draft ? "Draft" :
+        status == statuses.saved ? "Saved" : "";
 }
 
 export function cn(...inputs: ClassValue[]) {

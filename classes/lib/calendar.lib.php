@@ -64,7 +64,8 @@ class calendar_lib {
 			$limit = $args['events_per_day']; //limit arg will be used per day and not for events search
 		}
 		
-	   	$start_of_week = 0;
+        // First day of the week.
+	   	$start_of_week = 1;
 		
 		// Get the first day of the month 
 		$month_start = mktime(0,0,0,$month, 1, $year);
