@@ -97,11 +97,11 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
   const getExtraOptions = () => {
     let options = []
     if ((activitytype == 'calendar' || activitytype == 'assessment') && (status ?? 0) >= statuses.saved) {
-      options.push(<Menu.Item onMouseDown={() => updateStatus(0)} leftSection={<IconArrowMoveLeft size={14} />}>Return to draft</Menu.Item>)
+      options.push(<Menu.Item key={0} onMouseDown={() => updateStatus(0)} leftSection={<IconArrowMoveLeft size={14} />}>Return to draft</Menu.Item>)
     }
 
     if ((activitytype == 'excursion' || activitytype == 'incursion') && (status ?? 0) > statuses.saved) {
-      options.push(<Menu.Item onMouseDown={() => updateStatus(1)} leftSection={<IconArrowMoveLeft size={14} />}>Return to draft</Menu.Item>)
+      options.push(<Menu.Item key={1} onMouseDown={() => updateStatus(1)} leftSection={<IconArrowMoveLeft size={14} />}>Return to draft</Menu.Item>)
     }
     return options
   }

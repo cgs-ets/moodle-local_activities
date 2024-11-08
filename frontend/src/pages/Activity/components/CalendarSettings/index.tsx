@@ -1,5 +1,5 @@
 import { Text, Button, Switch, Card } from '@mantine/core';
-import { IconEdit } from "@tabler/icons-react";
+import { IconEdit, IconExternalLink, IconInfoCircle, IconInfoCircleFilled, IconInfoSmall, IconQuestionMark } from "@tabler/icons-react";
 import { Form, useFormStore } from "../../../../stores/formStore";
 import { useDisclosure } from "@mantine/hooks";
 import { CategoriesModal } from "../Modals/CategoriesModal";
@@ -39,7 +39,7 @@ export function CalendarSettings() {
             <Switch
               checked={formData.displaypublic}
               onChange={(event) => updateField('displaypublic', event.currentTarget.checked)}
-              label={<span>Display event on the <a href="https://calendar.cgs.act.edu.au/" target="_blank" className="underline">public calendar</a>?</span>}
+              label={<span>Display event on the <a href="https://calendar.cgs.act.edu.au/" target="_blank" className="underline">public calendar<IconExternalLink className="inline size-4 stroke-1" /></a></span>}
             />
           </div>
         </div>

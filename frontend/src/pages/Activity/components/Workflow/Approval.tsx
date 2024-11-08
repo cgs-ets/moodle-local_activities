@@ -149,20 +149,21 @@ export function Approval({
                       </div>
                   : <span>{approval.description}</span>
                 }
-                
               </div>
               <div className="flex items-center gap-2">
-                { approval.username && (approval.status == '1' || approval.skip == '1')
-                  ? <Avatar alt="Approver" title="Approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.username}><IconUser size={14} /></Avatar>
-                  : <Avatar.Group>
-                      {Object.keys(approval.approvers).slice(0,4).map((approverusername: string) => {
-                        return <Avatar size={24} key={approverusername} src={'/local/activities/avatar.php?username=' + approverusername}><IconUser size={14} /></Avatar>
-                      })}
-                      { Object.keys(approval.approvers).length > 4
-                        ?<Avatar size={24}>+{Object.keys(approval.approvers).length - 4}</Avatar>
-                        : null
-                      }
-                    </Avatar.Group>
+                {!approval.selectable || approval.username && (approval.status == '1' || approval.skip == '1') // Not a selectable step, or approved
+                  ? approval.username && (approval.status == '1' || approval.skip == '1') // approved
+                    ? <Avatar alt="Approver" title="Approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.username}><IconUser size={14} /></Avatar>
+                    : <Avatar.Group>
+                        {Object.keys(approval.approvers).slice(0,4).map((approverusername: string) => {
+                          return <Avatar size={24} key={approverusername} src={'/local/activities/avatar.php?username=' + approverusername}><IconUser size={14} /></Avatar>
+                        })}
+                        { Object.keys(approval.approvers).length > 4
+                          ?<Avatar size={24}>+{Object.keys(approval.approvers).length - 4}</Avatar>
+                          : null
+                        }
+                      </Avatar.Group>
+                  : null
                 }
                 { approval.status == '0' && approval.isapprover && approval.canskip && 
                   <ActionIcon onClick={() => skipApproval(approval.id, approval.skip == '1' ? 0 : 1)} variant="transparent" title={approval.skip == '1' ? "Enable Approval" : "Skip Approval"}>

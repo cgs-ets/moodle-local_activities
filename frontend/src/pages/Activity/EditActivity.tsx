@@ -16,6 +16,7 @@ import { Workflow } from "./components/Workflow";
 import { useWorkflowStore } from "../../stores/workflowStore";
 import { StudentList } from "./components/StudentList/StudentList";
 import { Conflicts } from "./components/Conflicts/Conflicts";
+import { CalendarStatus } from "./components/CalendarStatus/CalendarStatus";
 
 export function EditActivity() {
   let { id } = useParams();
@@ -65,9 +66,14 @@ export function EditActivity() {
         studentlist: JSON.parse(fetchResponse.data.studentlistjson || '[]'),
         planningstaff: JSON.parse(fetchResponse.data.planningstaffjson || '[]'),
         accompanyingstaff: JSON.parse(fetchResponse.data.accompanyingstaffjson || '[]'),
-        staffincharge: [JSON.parse(fetchResponse.data.staffinchargejson || null)].filter(item => item !== null)
+        staffincharge: [JSON.parse(fetchResponse.data.staffinchargejson || null)].filter(item => item !== null),
+        initialCampus: fetchResponse.data.campus,
+        initialActivitytype: fetchResponse.data.activitytype,
+        displaypublic: !!Number(fetchResponse.data.displaypublic),
+        pushpublic: !!Number(fetchResponse.data.pushpublic),
       }
       // Merge into default values
+      console.log("fetchResponse.data.displaypublic", fetchResponse.data.displaypublic)
       setFormData({...defaults, ...data})
       formLoaded()
       baselineHash()
@@ -99,7 +105,6 @@ export function EditActivity() {
         setApprovals(submitResponse.data.workflow)
         // Refetch student list.
         console.log("Triggering student/workflow reload.")
-        updateSavedTime()
       }
 
     }
@@ -166,6 +171,9 @@ export function EditActivity() {
         args: formData,
       }
     })
+    setFormData({initialActivitytype: formData.initialActivitytype} as Form)
+    setFormData({initialCampus: formData.campus} as Form)
+    updateSavedTime()
   }
 
 
@@ -202,6 +210,7 @@ export function EditActivity() {
                         <Status submitLoading={submitLoading} submitError={submitError} submitResponse={submitResponse} />
                         <Conflicts />
                         <Workflow activityid={Number(id || 0)} />
+                        <CalendarStatus activityid={Number(id || 0)} />
                       </Grid.Col>
                     </Grid>
                   </form>

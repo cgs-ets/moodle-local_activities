@@ -32,8 +32,20 @@ trait workflow_api {
      */
     static public function get_draft_workflow() {
         $campus = required_param('campus', PARAM_TEXT);
-        return workflow_lib::get_draft_workflow($campus);
+        $activitytype = required_param('activitytype', PARAM_TEXT);
+        return workflow_lib::get_draft_workflow($campus, $activitytype);
+    } 
+
+    /**
+     * Get workflow info for activity.
+     *
+     * @return array results.
+     */
+    static public function get_calendar_status() {
+        $id = required_param('id', PARAM_INT);
+        return workflow_lib::get_calendar_status($id);
     }  
+    
     
     /**
     * Tick or untick an approval row.

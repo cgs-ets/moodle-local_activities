@@ -7,7 +7,7 @@ class local_activities_config {
 	const WORKFLOW = array(
         // Senior RA
         'senior_ra' => array(
-	    	'name' => 'RA Approval',
+	    	'name' => 'SS RA Approval',
 	    	'invalidated_on_edit' => array (
 	    		'timestart',
 	    		'timeend',
@@ -22,7 +22,7 @@ class local_activities_config {
 	    ),
 		// SENIOR ADMIN
 	    'senior_admin' => array(
-	    	'name' => 'Admin Approval',
+	    	'name' => 'SS Admin Approval',
 	    	'invalidated_on_edit' => array (
 	    		'timestart',
 	    		'timeend',
@@ -56,14 +56,14 @@ class local_activities_config {
                 'teacher4' => array(
 		            'username' => 'teacher4',
 		            'contacts' => null,
-                    'silent' => true,
+                    //'silent' => true,
 		        ),
 		    ),
 		    'prerequisites' => null,
 	    ),
 		// SENIOR HOSS
 	    'senior_hoss' => array(
-	    	'name' => 'HoSS Approval',
+	    	'name' => 'SS HoSS Approval',
 	    	'invalidated_on_edit' => array (
 	    		'location',
 	    		'timestart',
@@ -88,9 +88,13 @@ class local_activities_config {
 			'selectable' => true, // The previous approver can select one of these approvers to notify.
 	    ),
 
+
+
+
+
         // PRIMARY RA
         'primary_ra' => array(
-            'name' => 'RA Approval',
+            'name' => 'PS RA Approval',
             'invalidated_on_edit' => array (
                 'location',
                 'timestart',
@@ -107,7 +111,7 @@ class local_activities_config {
         ),
 		// PRIMARY ADMIN
 	    'primary_admin' => array(
-	    	'name' => 'Admin Approval',
+	    	'name' => 'PS Admin Approval',
 	    	'invalidated_on_edit' => array (
 	    		'location',
 	    		'timestart',
@@ -127,7 +131,7 @@ class local_activities_config {
 	    ),
 		// PRIMARY HOPS
 	    'primary_hops' => array(
-	    	'name' => 'HoPS Approval',
+	    	'name' => 'PS HoPS Approval',
 	    	'invalidated_on_edit' => array (
 	    		'location',
 	    		'timestart',
@@ -147,9 +151,12 @@ class local_activities_config {
 	    ),
 
 
-        // WHOLE ADMIN
-	    'whole_admin' => array(
-	    	'name' => 'Admin Approval',
+
+
+
+        // WHOLE RA
+	    'whole_ra' => array(
+	    	'name' => 'WS Admin Approval',
 	    	'invalidated_on_edit' => array (
 	    		'location',
 	    		'timestart',
@@ -164,9 +171,33 @@ class local_activities_config {
 		    ),
 		    'prerequisites' => null,
 	    ),
+
+        // WHOLE ADMIN
+	    'whole_admin' => array(
+	    	'name' => 'WS Admin Approval',
+	    	'invalidated_on_edit' => array (
+	    		'location',
+	    		'timestart',
+	    		'timeend',
+	    		'riskassessment',
+	    	),
+	    	'approvers' => array(
+		        'admin' => array(
+		            'username' => 'admin',
+		            'contacts' => null,
+		        ),
+                'teacher4' => array(
+		            'username' => 'teacher4',
+		            'contacts' => null,
+                    'silent' => true,
+		        ),
+		    ),
+		    'prerequisites' => null,
+	    ),
+
 		// WHOLE FINAL
 	    'whole_final' => array(
-	    	'name' => 'Final Approval',
+	    	'name' => 'WS Final Approval',
 	    	'invalidated_on_edit' => array (
 	    		'location',
 	    		'timestart',

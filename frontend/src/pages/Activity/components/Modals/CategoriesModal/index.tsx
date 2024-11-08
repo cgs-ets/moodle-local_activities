@@ -45,6 +45,7 @@ export function CategoriesModal({opened, close, categories, handleChange}: {open
                 <Checkbox value="Primary School/Year 6" label="Year 6" />
                 <Checkbox value="Primary School/Website External" label="Website External" />
                 <Checkbox value="Primary School/Alumni Website" label="Alumni Website" />
+                <Checkbox value="Primary School/Music" label="Music" />
               </div>
 
               <div className="category-group flex flex-col gap-1">
@@ -66,6 +67,7 @@ export function CategoriesModal({opened, close, categories, handleChange}: {open
                 <Checkbox value="Senior School/Year 12" label="Year 12" />
                 <Checkbox value="Senior School/Website External" label="Website External" />
                 <Checkbox value="Senior School/Alumni Website" label="Alumni Website" />
+                <Checkbox value="Senior School/Music" label="Music" />
               </div>
 
               <div className="category-group flex flex-col gap-1">
@@ -81,6 +83,7 @@ export function CategoriesModal({opened, close, categories, handleChange}: {open
                 <Checkbox value="Whole School/Campus Management" label="Campus Management" />
                 <Checkbox value="Whole School/Website External" label="Website External" />
                 <Checkbox value="Whole School/Alumni Website" label="Alumni Website" />
+                <Checkbox value="Whole School/Music" label="Music" />
               </div>
             </div>
           </Checkbox.Group>

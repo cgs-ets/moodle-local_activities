@@ -22,30 +22,22 @@ export function Workflow({
   const campus = useFormStore((state) => state.campus)
   const activitytype = useFormStore((state) => state.activitytype)
   const status = useFormStore((state) => state.status)
+  const initialCampus = useFormStore((state) => state.initialCampus)
+  const initialActivitytype = useFormStore((state) => state.initialActivitytype)
 
-  const [initialCampus, setInitialCampus] = useState<string>(campus)
   const [draftApprovals, setDraftApprovals] = useState<any[]>([])
   const savedtime = useStateStore((state) => (state.savedtime))
 
   useEffect(() => {
       getWorkflow()
-      setInitialCampus(campus)
   }, [activityid]);
 
   useEffect(() => {
-    if (status == statuses.draft || status == statuses.saved || initialCampus != campus) {
-      getDraftWorkflow()
-    } else {
-      setDraftApprovals([])
-    }
-  }, [campus, activityid, status])
-
-  // Reset draft workflow if changes saved.
-  useEffect(() => {
-    console.log("resetting draft workflow...")
-    setInitialCampus(campus)
     setDraftApprovals([])
-  }, [savedtime]);
+    if (status == statuses.draft || status == statuses.saved || (initialCampus && initialCampus != campus)) {
+      getDraftWorkflow()
+    }
+  }, [campus, activityid, status, savedtime, initialCampus, activitytype])
   
   const getWorkflow = () => {
     console.log("getting workflow...")
@@ -72,6 +64,7 @@ export function Workflow({
 
 
   const getDraftWorkflow = () => {
+    console.log("Getting draft workflow")
     setFetchDraftData({
       response: null,
       error: false,
@@ -87,7 +80,7 @@ export function Workflow({
   }
   useEffect(() => {
     if (fetchDraftResponse && !fetchDraftError) {
-      if (status == statuses.draft || status == statuses.saved || initialCampus != campus) {
+      if (status == statuses.draft || status == statuses.saved || (initialCampus && initialCampus != campus)) {
         setDraftApprovals(fetchDraftResponse.data)
       }
     }
@@ -103,7 +96,7 @@ export function Workflow({
       </div>
       
       <div className="relative flex flex-col border-t text-sm">
-        <LoadingOverlay visible={fetchLoading} />
+        <LoadingOverlay visible={fetchLoading || fetchDraftLoading} />
         { draftApprovals.length
           ? <div className="z-10 absolute top-0 left-0 w-full h-full xbg-black/40 backdrop-blur-[2px]">
               <IconX stroke={0.3} className="w-full h-full text-gray-500" />

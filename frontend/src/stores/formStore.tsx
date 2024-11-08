@@ -12,7 +12,9 @@ export type Form = {
   timemodified?: number,
 
   activityname: string;
+  initialCampus: string;
   campus: string;
+  initialActivitytype: string;
   activitytype: string;
   location: string;
   timestart: number;
@@ -42,6 +44,7 @@ export type Form = {
   colourcategory: string;
   areasjson: string;
   displaypublic: boolean;
+  pushpublic: boolean,
   isactivity: string;
   isassessment: string;
   courseid: string;
@@ -61,7 +64,9 @@ const defaults: Form = {
   timecreated: dayjs().unix(),
   timemodified: dayjs().unix(),
   activityname: '',
+  initialCampus: '',
   campus: 'primary',
+  initialActivitytype: '',
   activitytype: 'excursion',
   location: '',
   timestart: dayjs().unix(),
@@ -91,6 +96,7 @@ const defaults: Form = {
   colourcategory: '',
   areasjson: '',
   displaypublic: false,
+  pushpublic: false,
   isactivity: '',
   isassessment: '',
   courseid: '',

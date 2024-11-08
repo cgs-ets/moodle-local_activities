@@ -726,11 +726,30 @@ class workflow_lib extends \local_activities\local_activities_config {
 
 
     public static function get_draft_workflow($campus) {
-        return static::get_approval_stubs(0, $campus == 'whole' ? 'senior' : $campus);
+        return static::get_approval_stubs(0, $campus); //$campus == 'whole' ? 'senior' : $campus);
     }
 
 
+    public static function get_calendar_status($activityid) {
+        global $DB;
+        
+        $sql = "SELECT *
+                  FROM mdl_activity_cal_sync
+                 WHERE activityid = ?
+              ORDER BY timesynced ASC";
+        $params = array($activityid);
 
+        $records = $DB->get_records_sql($sql, $params);
+
+        $syncs = array();
+        foreach ($records as $record) {
+            $syncs[] = $record;
+        }
+
+        return $syncs;
+
+
+    }
 
 
 

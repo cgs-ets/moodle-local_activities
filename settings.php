@@ -46,6 +46,14 @@ if ($hassiteconfig) {
     $visiblename = get_string('headerlogourl', 'local_activities');
     $setting = new admin_setting_configtext($name, $visiblename, '', null);
     $settings->add($setting);
+
+
+    // MS Graph API credentials
+    $settings->add(new admin_setting_configtext('local_activities/graphclientid', 'Graph API Client ID', '', ''));
+    $settings->add(new admin_setting_configtext('local_activities/graphclientsecret', 'Graph API Client Secret', '', ''));
+    $settings->add(new admin_setting_configtext('local_activities/graphtenantid', 'Graph API Tenant ID', '', ''));
+    $settings->add(new admin_setting_configtext('local_activities/planningcalupn', 'Planning Calendar User Principal Name', '', ''));
+    $settings->add(new admin_setting_configtext('local_activities/livecalupn', 'Live Calendar User Principal Name', '', ''));
     
 
 }
