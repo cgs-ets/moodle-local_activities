@@ -1,9 +1,9 @@
 import { Avatar, Badge, Card, Flex, Text } from "@mantine/core";
 import { Form, useFormStore } from "../../../../stores/formStore";
 import { StaffSelector } from "./components/StaffSelector";
-import { showExcursionFields } from "../../../../utils/utils";
 import { User } from "../../../../types/types";
 import { IconUser } from "@tabler/icons-react";
+import { isExcursion } from "../../../../utils/utils";
 
 
 export function StaffDetailsViewOnly() {
@@ -11,6 +11,7 @@ export function StaffDetailsViewOnly() {
   const accompanyingstaff = useFormStore((state) => state.accompanyingstaff) 
   const planningstaff = useFormStore((state) => state.planningstaff) 
   const staffincharge = useFormStore((state) => state.staffincharge) 
+  const activitytype = useFormStore((state) => state.activitytype) 
 
   const decorateStaff = (item: User) => ({
     value: { un: item.un, fn: item.fn, ln: item.ln }, // What we'll send to the server for saving.
@@ -55,7 +56,7 @@ export function StaffDetailsViewOnly() {
             <Text fz="sm" mb="5px" fw={500} c="#212529">Leader</Text>
             {leader}
           </div>
-          { showExcursionFields() &&
+          { isExcursion(activitytype) &&
             <>
               <div>
                 <Text fz="sm" mb="5px" fw={500} c="#212529">Planning</Text>

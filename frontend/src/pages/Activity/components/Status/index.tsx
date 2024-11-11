@@ -7,11 +7,19 @@ import { useAjax } from '../../../../hooks/useAjax';
 import { useParams } from 'react-router-dom';
 import { Form, useFormStore } from '../../../../stores/formStore';
 import { useStateStore } from '../../../../stores/stateStore';
-import { entryStatus, excursionStatus, showExcursionFields } from '../../../../utils/utils';
+import { entryStatus, excursionStatus, isExcursion } from '../../../../utils/utils';
 import { useWorkflowStore } from '../../../../stores/workflowStore';
 
 
-export function Status({submitLoading, submitError, submitResponse}: {submitLoading: boolean, submitError: boolean, submitResponse: any}) {
+export function Status({
+  submitLoading, 
+  submitError, 
+  submitResponse
+}: {
+  submitLoading: boolean, 
+  submitError: boolean, 
+  submitResponse: any
+}) {
   let { id } = useParams();
 
   const formData = useFormStore()
@@ -23,7 +31,6 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
   const hash = useStateStore((state) => (state.hash))
   const setFormData = useFormStore((state) => state.setState)
   const setApprovals = useWorkflowStore((state) => state.setApprovals)
-
 
   useEffect(() => {
     if (!hash) {
@@ -85,11 +92,11 @@ export function Status({submitLoading, submitError, submitResponse}: {submitLoad
   }
 
   const showReviewButton = () => {
-    return showExcursionFields() && !haschanges && status == statuses.saved
+    return isExcursion(activitytype) && !haschanges && status == statuses.saved
   }
 
   const statusText = () => {
-    return showExcursionFields()
+    return isExcursion(activitytype)
     ? excursionStatus()
     : entryStatus()
   }

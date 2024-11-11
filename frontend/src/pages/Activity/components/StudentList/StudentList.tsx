@@ -8,8 +8,8 @@ import { AddStudentsModal } from '../Modals/AddStudentsModal';
 import { useDisclosure } from '@mantine/hooks';
 import { useStateStore } from '../../../../stores/stateStore';
 import { User } from '../../../../types/types';
-import { showExcursionFields } from '../../../../utils/utils';
 import { Form, useFormStore } from '../../../../stores/formStore';
+import { isExcursion } from '../../../../utils/utils';
 
 
 export function StudentList() {
@@ -18,6 +18,7 @@ export function StudentList() {
   const studentlist = useFormStore((state) => state.studentlist) 
   const setState = useFormStore(state => state.setState)
   const haschanges = useStateStore((state) => (state.haschanges))
+  const activitytype = useFormStore((state) => (state.activitytype))
 
   const [isOpenAddStudentsModal, addStudentsModalHandlers] = useDisclosure(false)
 
@@ -41,7 +42,7 @@ export function StudentList() {
   const [rowSelection, setRowSelection] = useState({});
 
   return (
-    showExcursionFields() 
+    isExcursion(activitytype)
     ? <div>
         <Card withBorder radius="sm" mb="lg" className="p-0">
           <div className="px-4 py-3">

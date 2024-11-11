@@ -65,7 +65,12 @@ class activities_lib {
                 }
                 $originalactivity = new Activity($data->id);
                 $activity = new Activity($data->id);
-                $activity->set('status', max(static::ACTIVITY_STATUS_DRAFT, $activity->get('status')));
+                if ($data->activitytype == 'excursion' || $data->activitytype == 'incursion') {
+                    $activity->set('status', max(static::ACTIVITY_STATUS_DRAFT, $activity->get('status')));
+                } else {
+                    // If this is a calendar entry or assessment, there is no draft state, it's ether 0 (new), 2 (in review) or 3 (approved)
+                    $activity->set('status', max(static::ACTIVITY_STATUS_INREVIEW, $activity->get('status')));
+                }
             } else {
                 // Can this user create an activity? Must be a Moodle Admin or Planning staff.
                 if (!utils_lib::has_capability_create_activity()) {
@@ -161,11 +166,14 @@ class activities_lib {
             //static::generate_permissions($data->id);
 
             // If saving after already in review or approved, determine the approvers based on campus.
-            if ($originalactivity && ($data->status == static::ACTIVITY_STATUS_INREVIEW || $data->status == static::ACTIVITY_STATUS_APPROVED)) {
+            if ($originalactivity && 
+                ($data->status == static::ACTIVITY_STATUS_INREVIEW || $data->status == static::ACTIVITY_STATUS_APPROVED) &&
+                ($data->activitytype == 'excursion' || $data->activitytype == 'incursion')
+            ) {
                 $newstatusinfo = workflow_lib::generate_approvals($originalactivity, $activity);
-            } else if ($data->activitytype == 'calendar' || $data->activitytype == 'assessment') {
+            } /*else if ($data->activitytype == 'calendar' || $data->activitytype == 'assessment') {
                 $newstatusinfo->status = static::ACTIVITY_STATUS_DRAFT;
-            }
+            }*/
 
         } catch (\Exception $e) {
             // Log and rethrow. 
@@ -349,14 +357,20 @@ class activities_lib {
         $activity->set('status', $status);
         $activity->save();
 
+ 
         // If going to draft, remove any existing approvals.
-        if ($status == static::ACTIVITY_STATUS_DRAFT) {
+        if ($status <= static::ACTIVITY_STATUS_DRAFT) {
             $sql = "UPDATE mdl_activity_approvals
                     SET invalidated = 1
                     WHERE activityid = ?
                     AND invalidated = 0";
             $params = array($activityid);
             $DB->execute($sql, $params);
+
+            // clear out any syncs and reset public now.
+            $DB->delete_records('activity_cal_sync', array('activityid' => $activityid));
+            $activity->set('pushpublic', 0);
+            $activity->save();
         }
 
         // If sending for review, determine the approvers.

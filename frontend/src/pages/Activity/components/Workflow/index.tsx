@@ -29,7 +29,7 @@ export function Workflow({
   const savedtime = useStateStore((state) => (state.savedtime))
 
   useEffect(() => {
-      getWorkflow()
+    getWorkflow()
   }, [activityid]);
 
   useEffect(() => {
@@ -59,8 +59,6 @@ export function Workflow({
       setApprovals(fetchResponse.data)
     }
   }, [fetchResponse]);
-
-
 
 
   const getDraftWorkflow = () => {

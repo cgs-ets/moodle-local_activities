@@ -17,6 +17,7 @@
     $user = \local_activities\lib\utils_lib::user_stub($USER->username);
     $config->user = $user;
     $config->roles = \local_activities\lib\service_lib::get_user_roles($USER->username);
+    $config->calroles = \local_activities\lib\utils_lib::get_cal_roles($USER->username);
     $config->loginUrl = (new moodle_url('/login/index.php'))->out();
     $config->logoutUrl = (new moodle_url('/login/logout.php', ['sesskey' => $config->sesskey]))->out();
     

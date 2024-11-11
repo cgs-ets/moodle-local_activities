@@ -26,7 +26,11 @@ defined('MOODLE_INTERNAL') || die();
 
 //use \local_activities\libs\eventlib;
 require_once(__DIR__.'/../lib/graph.lib.php');
+require_once(__DIR__.'/../lib/activities.lib.php');
+require_once(__DIR__.'/../lib/activity.class.php');
 use \local_activities\lib\graph_lib;
+use \local_activities\lib\activities_lib;
+use \local_activities\lib\activity;
 
 /**
  * The main scheduled task for notifications.
@@ -73,11 +77,8 @@ class cron_sync_planning extends \core\task\scheduled_task {
             $error = false;
 
             // Is this entry/event approved?
-            $approved = !!$event->status;
-            if ($event->isactivity) {
-                $activity = new activity($event->activityid);
-                $approved = locallib::status_helper($activity->get('status'))->isapproved;
-            }
+            $activity = new activity($event->id);
+            $approved = activities_lib::status_helper($activity->get('status'))->isapproved;
 
             $destinationCalendars = array($config->planningcalupn);
 
@@ -112,7 +113,7 @@ class cron_sync_planning extends \core\task\scheduled_task {
                     // Colouring category.
                     $colourcat = explode('/', $event->colourcategory);
                     $colourcat = end($colourcat);
-                    //$categories = $this->sort_for_colouring_category($colourcat, $categories);
+                    $categories = $this->sort_for_colouring_category($colourcat, $categories);
                     // Update calendar event
                     $eventdata = new \stdClass();
                     $eventdata->subject = $event->activityname;
@@ -157,7 +158,7 @@ class cron_sync_planning extends \core\task\scheduled_task {
                     // Colouring category.
                     $colourcat = explode('/', $event->colourcategory);
                     $colourcat = end($colourcat);
-                    //$categories = $this->sort_for_colouring_category($colourcat, $categories);
+                    $categories = $this->sort_for_colouring_category($colourcat, $categories);
                     // Create calendar event
                     $eventdata = new \stdClass();
                     $eventdata->subject = $event->activityname;

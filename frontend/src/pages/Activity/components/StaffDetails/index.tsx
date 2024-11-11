@@ -1,7 +1,7 @@
 import { Card, Text } from "@mantine/core";
 import { Form, useFormStore } from "../../../../stores/formStore";
 import { StaffSelector } from "./components/StaffSelector";
-import { showExcursionFields } from "../../../../utils/utils";
+import { isExcursion } from "../../../../utils/utils";
 
 
 export function StaffDetails() {
@@ -9,6 +9,7 @@ export function StaffDetails() {
   const accompanyingstaff = useFormStore((state) => state.accompanyingstaff) 
   const planningstaff = useFormStore((state) => state.planningstaff) 
   const staffincharge = useFormStore((state) => state.staffincharge) 
+  const activitytype = useFormStore((state) => state.activitytype) 
 
   const setState = useFormStore(state => state.setState)
 
@@ -30,7 +31,7 @@ export function StaffDetails() {
       <div className="flex flex-col gap-6 p-4 border-t border-gray-300">
         <div className="flex flex-col gap-2">
           <StaffSelector staff={staffincharge} setStaff={setStaffInCharge} label="Leader" multiple={false} />
-          { showExcursionFields() &&
+          { isExcursion(activitytype) &&
             <>
               <StaffSelector staff={planningstaff} setStaff={setPlanning} label="Planning" multiple={true} />
               <StaffSelector staff={accompanyingstaff} setStaff={setAccompanying} label="Accompanying" multiple={true} />

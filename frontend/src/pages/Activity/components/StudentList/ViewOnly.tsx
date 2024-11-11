@@ -8,7 +8,6 @@ import { AddStudentsModal } from '../Modals/AddStudentsModal';
 import { useDisclosure } from '@mantine/hooks';
 import { useStateStore } from '../../../../stores/stateStore';
 import { User } from '../../../../types/types';
-import { showExcursionFields } from '../../../../utils/utils';
 import { Form, useFormStore } from '../../../../stores/formStore';
 
 

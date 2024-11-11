@@ -1,7 +1,7 @@
 import { Card, Text } from '@mantine/core';
 import { statuses } from '../../../../utils';
 import { useFormStore } from '../../../../stores/formStore';
-import { entryStatus, excursionStatus, showExcursionFields } from '../../../../utils/utils';
+import { entryStatus, excursionStatus, isExcursion } from '../../../../utils/utils';
 
 
 export function StatusViewOnly() {
@@ -11,7 +11,7 @@ export function StatusViewOnly() {
 
 
   const statusText = () => {
-    return showExcursionFields()
+    return isExcursion(activitytype)
     ? excursionStatus()
     : entryStatus()
   }

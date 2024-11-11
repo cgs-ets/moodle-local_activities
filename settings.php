@@ -47,6 +47,8 @@ if ($hassiteconfig) {
     $setting = new admin_setting_configtext($name, $visiblename, '', null);
     $settings->add($setting);
 
+    // Event reviewers
+    $settings->add(new admin_setting_configtext('local_activities/eventreviewers', 'Event reviewers', 'Comma-separated usernames', ''));
 
     // MS Graph API credentials
     $settings->add(new admin_setting_configtext('local_activities/graphclientid', 'Graph API Client ID', '', ''));

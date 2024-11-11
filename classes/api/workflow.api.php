@@ -32,8 +32,8 @@ trait workflow_api {
      */
     static public function get_draft_workflow() {
         $campus = required_param('campus', PARAM_TEXT);
-        $activitytype = required_param('activitytype', PARAM_TEXT);
-        return workflow_lib::get_draft_workflow($campus, $activitytype);
+        //$activitytype = required_param('activitytype', PARAM_TEXT);
+        return workflow_lib::get_draft_workflow($campus);
     } 
 
     /**
@@ -71,5 +71,20 @@ trait workflow_api {
         return workflow_lib::nominate_approver($activityid, $approvalid, $nominated);
     }
 
-
+    /**
+    * Tick or untick approval.
+    */
+    static public function approve_cal_entry($args) { 
+        ['activityid' => $activityid, 'approved' => $approved] = $args;
+        return workflow_lib::approve_cal_entry($activityid, $approved);
+    }
+ 
+        /**
+    * Tick or untick pushpublic.
+    */
+    static public function make_public_now($args) { 
+        ['activityid' => $activityid, 'pushpublic' => $pushpublic] = $args;
+        return workflow_lib::make_public_now($activityid, $pushpublic);
+    }
+    
 }

@@ -5,8 +5,10 @@ namespace local_activities\lib;
 defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__.'/activities.lib.php');
+require_once(__DIR__.'/activity.class.php');
 
 use \local_activities\lib\activities_lib;
+use \local_activities\lib\activity;
 
 /**
  * Activity lib
@@ -215,6 +217,59 @@ class workflow_lib extends \local_activities\local_activities_config {
         return false;
     }
 
+    public static function is_cal_reviewer() {
+        global $USER;
+
+        $config = get_config('local_activities');
+        if (!empty($config->eventreviewers)) {
+            $reviewers = array_map(function ($r) {return trim($r);}, explode(",", $config->eventreviewers));
+            if (in_array($USER->username, $reviewers)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /*
+    * Save approval
+    */
+    public static function approve_cal_entry($activityid, $approved) {
+        global $DB;
+
+        // Check if user is allowed to do this.
+        if (!static::is_cal_reviewer()) {
+            return null;
+        }
+        $status = $approved ? activities_lib::ACTIVITY_STATUS_APPROVED : activities_lib::ACTIVITY_STATUS_INREVIEW;
+
+        $activity = new activity($activityid);
+        $activity->set('status', $status);
+        $activity->save();
+
+        return $status;
+    }
+    
+    /*
+    * Make public
+    */
+    public static function make_public_now($activityid, $pushpublic) {
+        global $DB;
+
+        // Check if user is allowed to do this.
+        if (!static::is_cal_reviewer()) {
+            return null;
+        }
+        $pushpublic = $pushpublic ? 1 : 0;
+
+        $activity = new activity($activityid);
+        $activity->set('pushpublic', $pushpublic);
+        $activity->save();
+
+        return $pushpublic;
+    }
+
+
     /*
     * Save approval
     */
@@ -223,9 +278,11 @@ class workflow_lib extends \local_activities\local_activities_config {
 
         // Check if user is allowed to do this.
         $isapprover = static::is_approver_of_activity($activityid);
-        if ($isapprover) {
-            $userapprovertypes = static::get_approver_types($USER->username);
+        if (!$isapprover) {
+            return null;
         }
+
+        $userapprovertypes = static::get_approver_types($USER->username);
 
         // Update the approval status.
         list($insql, $inparams) = $DB->get_in_or_equal($userapprovertypes);
@@ -253,6 +310,9 @@ class workflow_lib extends \local_activities\local_activities_config {
 
         // Check if user is allowed to do this.
         $isapprover = static::is_approver_of_activity($activityid);
+        if (!$isapprover) {
+            return null;
+        }
 
         // Update the approval status.
         $sql = "UPDATE mdl_activity_approvals
@@ -277,7 +337,9 @@ class workflow_lib extends \local_activities\local_activities_config {
 
         // Check if user is allowed to do this.
         $isapprover = static::is_approver_of_activity($activityid);
-        
+        if (!$isapprover) {
+            return null;
+        }
         $activity = new static($activityid);
 
         // Update the approval.

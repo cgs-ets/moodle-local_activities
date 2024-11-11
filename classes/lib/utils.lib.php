@@ -5,8 +5,11 @@ namespace local_activities\lib;
 defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__.'/activities.lib.php');
+require_once(__DIR__.'/workflow.lib.php');
 
 use \local_activities\lib\activities_lib;
+use \local_activities\lib\workflow_lib;
+
 use \stdClass;
 
 class utils_lib {
@@ -281,6 +284,18 @@ class utils_lib {
             return true;
         }
         return false;
+    }
+
+
+    /**
+     * Get the user's campus roles.
+     *
+     * @return string
+     */
+    public static function get_cal_roles($username) {
+        return array(
+            workflow_lib::is_cal_reviewer() ? "cal_reviewer" : ''
+        );
     }
 
 }
