@@ -119,7 +119,7 @@ export function CalendarStatus({
               { displaypublic && (status ?? 0) != statuses.approved
               ? <div 
                   className={cn(
-                    "flex justify-between items-center gap-2 border-b px-4 h-10 border-l",
+                    "flex-1 flex justify-between items-center gap-2 border-b px-4 h-10 border-l",
                     pushpublic ? "bg-[#e9f8ed]" : ""
                   )}
                 >

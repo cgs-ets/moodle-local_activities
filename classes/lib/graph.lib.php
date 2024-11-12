@@ -46,7 +46,7 @@ class graph_lib {
         }
 
         $tokenClient = new Client();
-        $config = get_config('local_excursions');            
+        $config = get_config('local_activities');            
         $clientId = $config->graphclientid;
         $clientSecret = $config->graphclientsecret;
         $tenantId = $config->graphtenantid;

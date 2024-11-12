@@ -10,20 +10,21 @@ import { BasicDetails } from "./components/BasicDetails";
 import dayjs from "dayjs";
 import { useStateStore } from "../../stores/stateStore";
 import { defaults, Errors, Form, useFormStore, useFormValidationStore } from "../../stores/formStore";
-import { StaffDetails } from "./components/StaffDetails";
+import { StaffDetails } from "./components/StaffDetails/StaffDetails";
 import { CalendarSettings } from "./components/CalendarSettings";
 import { Workflow } from "./components/Workflow";
 import { useWorkflowStore } from "../../stores/workflowStore";
 import { StudentList } from "./components/StudentList/StudentList";
 import { Conflicts } from "./components/Conflicts/Conflicts";
 import { CalendarStatus } from "./components/CalendarStatus/CalendarStatus";
+import { Paperwork } from "./components/Paperwork/Paperwork";
 
 export function EditActivity() {
   let { id } = useParams();
 
   const setFormData = useFormStore((state) => state.setState)
   const setFormState = useStateStore((state) => state.setState)
-  const formLoaded = useStateStore((state) => (state.setFormLoaded))
+  //const formLoaded = useStateStore((state) => (state.setFormLoaded))
   const baselineHash = useStateStore((state) => (state.baselineHash))
   const clearHash = useStateStore((state) => (state.clearHash))
   const resetHash = useStateStore((state) => (state.resetHash))
@@ -71,12 +72,17 @@ export function EditActivity() {
         initialActivitytype: fetchResponse.data.activitytype,
         displaypublic: !!Number(fetchResponse.data.displaypublic),
         pushpublic: !!Number(fetchResponse.data.pushpublic),
+        // Move these into existing
+        existingriskassessment: fetchResponse.data.riskassessment,
+        existingattachments: fetchResponse.data.attachments,
+        attachments: "",
+        riskassessment: "",
       }
       // Merge into default values
-      console.log("fetchResponse.data.displaypublic", fetchResponse.data.displaypublic)
       setFormData({...defaults, ...data})
-      formLoaded()
+      //formLoaded()
       baselineHash()
+      console.log('fetchResponse.data.attachments', fetchResponse.data.attachments)
     }
   }, [fetchResponse]);
 
@@ -204,6 +210,7 @@ export function EditActivity() {
                           <CalendarSettings />
                           <StaffDetails />
                           <StudentList />
+                          <Paperwork />
                         </Box>
                       </Grid.Col>
                       <Grid.Col span={{ base: 12, lg: 3 }}>

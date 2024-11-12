@@ -32,6 +32,7 @@ export function Status({
   const setFormData = useFormStore((state) => state.setState)
   const setApprovals = useWorkflowStore((state) => state.setApprovals)
 
+  // Whenever something changes, update the hash.
   useEffect(() => {
     if (!hash) {
       baselineHash()

@@ -5,7 +5,7 @@ import { exportActivityHash } from '../utils/activityHash'
 type State = {
   oldhash: string,
   hash: string,
-  formloaded: boolean,
+  //formloaded: boolean,
   studentsloaded: boolean,
   haschanges: boolean,
   reloadstulist: boolean,
@@ -20,7 +20,7 @@ type StateStore = State & {
   clearHash: () =>  void,
   updateHash: () => void,
   resetHash: () => void,
-  setFormLoaded: () => void,
+  //setFormLoaded: () => void,
   setStudentsLoaded: () => void,
   updateSavedTime: () => void,
 }
@@ -28,7 +28,7 @@ type StateStore = State & {
 const formStateInit = {
   oldhash: '',
   hash: '',
-  formloaded: false,
+  //formloaded: false,
   studentsloaded: false,
   haschanges: false,
   reloadstulist: false,
@@ -58,8 +58,8 @@ const useStateStore = create<StateStore>((set, get) => ({
   updateHash: () => {
     console.log("Updating hash")
     const hash = exportActivityHash()
-    //console.log('hash', hash)
-    //console.log('oldhash', get().oldhash)
+    console.log('hash', hash)
+    console.log('oldhash', get().oldhash)
     set((state: State) => ({ 
       hash: hash, 
       haschanges: (hash !== state.oldhash) 
@@ -72,7 +72,7 @@ const useStateStore = create<StateStore>((set, get) => ({
       haschanges: (hash !== state.oldhash) ,
     }))
   },
-  setFormLoaded: () => set({formloaded: true}),
+  //setFormLoaded: () => set({formloaded: true}),
   setStudentsLoaded: () => set({studentsloaded: true}),
   updateSavedTime: () => set({savedtime: Date.now()}),
 }))

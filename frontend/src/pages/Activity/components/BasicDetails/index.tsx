@@ -1,9 +1,9 @@
 import { useEffect } from "react";
-import { TextInput, Text, SegmentedControl, Card } from '@mantine/core';
+import { TextInput, Text, SegmentedControl, Card, Anchor } from '@mantine/core';
 import { RichTextEditor, Link } from '@mantine/tiptap';
 import { useEditor } from '@tiptap/react';
 import { StarterKit } from '@tiptap/starter-kit';
-import { IconArrowNarrowRight } from "@tabler/icons-react";
+import { IconArrowNarrowRight, IconExternalLink } from "@tabler/icons-react";
 import { DateTimePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { Form, useFormStore, useFormValidationStore } from "../../../../stores/formStore";
@@ -67,17 +67,21 @@ export function BasicDetails() {
 
         <div>
           <Text fz="sm" mb="5px" fw={500} c="#212529">Type</Text>
-          <SegmentedControl
-            color="blue"
-            value={formData.activitytype}
-            onChange={(value: string | null) => updateField('activitytype', value ?? '')}
-            data={[
-              { value: 'excursion', label: 'Excursion' },
-              { value: 'incursion', label: 'Incursion' },
-              { value: 'calendar', label: 'Calendar entry' },
-              { value: 'assessment', label: 'Assessment' },
-            ]}
-          />
+          <div className="flex gap-4">
+            <SegmentedControl
+              color="blue"
+              value={formData.activitytype}
+              onChange={(value: string | null) => updateField('activitytype', value ?? '')}
+              data={[
+                { value: 'excursion', label: 'Excursion' },
+                { value: 'incursion', label: 'Incursion' },
+                { value: 'calendar', label: 'Calendar entry' },
+                //{ value: 'assessment', label: 'Assessment' },
+              ]}
+            />
+            <Anchor className="text-sm flex items-center gap-1 flex-nowrap" href={""}>Assessment <IconExternalLink className="size-4 stroke-1" /></Anchor>
+
+          </div>
           <div className="pt-2 pl-1 text-sm">
             {formData.activitytype == "excursion" &&
               <span>This activity is taking place off campus.</span>

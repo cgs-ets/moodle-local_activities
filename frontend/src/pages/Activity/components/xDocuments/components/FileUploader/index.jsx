@@ -10,6 +10,7 @@ export function FileUploader ({inputName, title, desc, maxFiles, maxSize}) {
   const openRef = useRef();
   
   const existingfiles = useDocumentsStore((state) => state['existing'+inputName])
+  
   const setState = useDocumentsStore(state => state.setState)
   const [fileData, setFileData] = useState([]);
   const [previews, setPreviews] = useState([]);

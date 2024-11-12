@@ -475,8 +475,8 @@ class workflow_lib extends \local_activities\local_activities_config {
         );
 
         $subject = "Activity status update: " . $exported->activityname;
-        $messageText = $output->render_from_template('local_excursions/email_status_text', $data);
-        $messageHtml = $output->render_from_template('local_excursions/email_status_html', $data);
+        $messageText = $output->render_from_template('local_activities/email_status_text', $data);
+        $messageHtml = $output->render_from_template('local_activities/email_status_html', $data);
         $result = service_lib::email_to_user($toUser, $fromUser, $subject, $messageText, $messageHtml, '', '', true); 
 
     }
@@ -492,8 +492,8 @@ class workflow_lib extends \local_activities\local_activities_config {
         $fromUser->bccaddress = array(); //$fromUser->bccaddress = array("lms.archive@cgs.act.edu.au"); 
 
         $subject = "Activity workflow update: " . $activity->activityname;
-        $messageText = $output->render_from_template('local_excursions/email_workflow_text', $activity);
-        $messageHtml = $output->render_from_template('local_excursions/email_workflow_html', $activity);
+        $messageText = $output->render_from_template('local_activities/email_workflow_text', $activity);
+        $messageHtml = $output->render_from_template('local_activities/email_workflow_html', $activity);
         $result = service_lib::email_to_user($toUser, $fromUser, $subject, $messageText, $messageHtml, '', '', true); 
 
     }
@@ -551,21 +551,21 @@ class workflow_lib extends \local_activities\local_activities_config {
         $activity = $activity->export();
 
         $subject = "Activity approval required [" . $step . "]: " . $activity->activityname;
-        $messageText = $output->render_from_template('local_excursions/email_approval_text', $activity);
-        $messageHtml = $output->render_from_template('local_excursions/email_approval_html', $activity);
+        $messageText = $output->render_from_template('local_activities/email_approval_text', $activity);
+        $messageHtml = $output->render_from_template('local_activities/email_approval_html', $activity);
 
 
         // Locate the ra and additional files in the Moodle file storage
         $attachments = array();
         $context = \context_system::instance();
         $fs = get_file_storage();
-        $files = $fs->get_area_files($context->id, 'local_excursions', 'ra', $activity->id, "filename", false);
+        $files = $fs->get_area_files($context->id, 'local_activities', 'ra', $activity->id, "filename", false);
         foreach ($files as $file) {
             // Copy attachment file to a temporary directory and get the file path.
             $filename = clean_filename($file->get_filename());
             $attachments[$filename] = $file->copy_content_to_temp();
         }
-        $files = $fs->get_area_files($context->id, 'local_excursions', 'attachments', $activity->id, "filename", false);
+        $files = $fs->get_area_files($context->id, 'local_activities', 'attachments', $activity->id, "filename", false);
         foreach ($files as $file) {
             $filename = clean_filename($file->get_filename());
             $attachments[$filename] = $file->copy_content_to_temp();
@@ -602,8 +602,8 @@ class workflow_lib extends \local_activities\local_activities_config {
 
         $subject = "Activity approved: " . $activity->activityname;
         $output = $PAGE->get_renderer('core');
-        $messageText = $output->render_from_template('local_excursions/email_approved_text', $data);
-        $messageHtml = $output->render_from_template('local_excursions/email_approved_html', $data);
+        $messageText = $output->render_from_template('local_activities/email_approved_text', $data);
+        $messageHtml = $output->render_from_template('local_activities/email_approved_html', $data);
         $result = service_lib::email_to_user($toUser, $fromUser, $subject, $messageText, $messageHtml, '', '', true); 
     }
 
@@ -687,8 +687,8 @@ class workflow_lib extends \local_activities\local_activities_config {
 
         $subject = "Activity information changed: " . $activity->activityname;
         $output = $PAGE->get_renderer('core');
-        $messageText = $output->render_from_template('local_excursions/email_datachanged_text', $activity);
-        $messageHtml = $output->render_from_template('local_excursions/email_datachanged_html', $activity);
+        $messageText = $output->render_from_template('local_activities/email_datachanged_text', $activity);
+        $messageHtml = $output->render_from_template('local_activities/email_datachanged_html', $activity);
         $result = service_lib::email_to_user($toUser, $fromUser, $subject, $messageText, $messageHtml, '', '', true); 
     }
 

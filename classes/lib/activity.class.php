@@ -99,6 +99,8 @@ class Activity {
         }
 
         $data = clone($this->data);
+        $data->riskassessment = $this->export_files('riskassessment');
+        $data->attachments = $this->export_files('attachments');
         $other = $this->get_other_values($usercontext);
         $merged = (object) array_merge((array) $data, (array) $other);
 
@@ -289,9 +291,11 @@ class Activity {
         $out = [];
         $fs = get_file_storage();
 	    $files = $fs->get_area_files(1, 'local_activities', $area, $id, "filename", false);
+        //var_export($files); exit;
         if ($files) {
             foreach ($files as $file) {
-                $displayname = array_pop(explode('__', $file->get_filename()));
+                $filenameParts = explode('__', $file->get_filename()); // Store result in a variable
+                $displayname = array_pop($filenameParts); // Now array_pop can safely operate on the variable
                 $path = file_encode_url($CFG->wwwroot.'/pluginfile.php', '/1/local_activities/'.$area.'/'.$id.'/'.$file->get_filename());
                 $out[] = [
                     'displayname' => $displayname,

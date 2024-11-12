@@ -16,3 +16,17 @@ export type Course = {
   idnumber: string,
   fullname: string,
 }
+
+export type FileData = {
+  index: number,
+  displayname: string,
+  file: File,
+  progress: number,
+  started: boolean,
+  completed: boolean,
+  removed: boolean,
+  serverfilename: string,
+  existing: boolean,
+  key: string,
+  fileid: string,
+}

@@ -2,6 +2,7 @@
 import dayjs from 'dayjs'
 import { create } from 'zustand'
 import { getConfig } from '../utils';
+import { FileData } from '../types/types';
 
 export type Form = {
   id?: number,
@@ -27,7 +28,9 @@ export type Form = {
   permissionslimit: string;
   permissionsdueby: number;
   riskassessment: string;
+  existingriskassessment: FileData[];
   attachments: string;
+  existingattachments: FileData[];
 
   studentlist: any[];
   studentlistjson: string;
@@ -54,6 +57,7 @@ export type Form = {
 type FormStore = Form & {
   setState: (newState: Form | null) => void,
   reset: () => void,
+  [key: string]: any; // Allow string keys with any type as values
 }
 
 const defaults: Form = {
@@ -79,7 +83,9 @@ const defaults: Form = {
   permissionslimit: '',
   permissionsdueby: dayjs().unix(),
   riskassessment: '',
+  existingriskassessment: [],
   attachments: '',
+  existingattachments: [],
 
   studentlist: [],
   studentlistjson: '',

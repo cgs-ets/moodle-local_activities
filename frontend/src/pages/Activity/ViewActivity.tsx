@@ -9,7 +9,7 @@ import { useAjax } from '../../hooks/useAjax';
 import dayjs from "dayjs";
 import { useStateStore } from "../../stores/stateStore";
 import { defaults, Errors, Form, useFormStore, useFormValidationStore } from "../../stores/formStore";
-import { StaffDetails } from "./components/StaffDetails";
+import { StaffDetails } from "./components/StaffDetails/StaffDetails";
 import { CalendarSettings } from "./components/CalendarSettings";
 import { Workflow } from "./components/Workflow";
 import { useWorkflowStore } from "../../stores/workflowStore";
@@ -26,7 +26,7 @@ export function ViewActivity() {
 
   const setFormData = useFormStore((state) => state.setState)
   const setFormState = useStateStore((state) => state.setState)
-  const formLoaded = useStateStore((state) => (state.setFormLoaded))
+  //const formLoaded = useStateStore((state) => (state.setFormLoaded))
   const baselineHash = useStateStore((state) => (state.baselineHash))
   const clearHash = useStateStore((state) => (state.clearHash))
   const validationRules = useFormValidationStore((state) => state.rules)
@@ -74,7 +74,7 @@ export function ViewActivity() {
       }
       // Merge into default values
       setFormData({...defaults, ...data})
-      formLoaded()
+      //formLoaded()
       baselineHash()
     }
   }, [fetchResponse]);

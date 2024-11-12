@@ -45,11 +45,11 @@ class activities_lib {
     public static function save_from_data($data) {
         global $USER, $DB;
 
-        //var_export($data); exit;
-
         $originalactivity = $activity = null;
         $newstatusinfo = (object) array('status' => -1, 'workflow' => []);
+
         try {
+
             // Check if data came through with some valid attributes
             if (!isset($data->id))  {
                 throw new \Exception("Submitted data is malformed.");
@@ -108,8 +108,8 @@ class activities_lib {
             $activity->set('permissionstype', $data->permissionstype);
             $activity->set('permissionslimit', $data->permissionslimit);
             $activity->set('permissionsdueby', $data->permissionsdueby);
-            $activity->set('riskassessment', $data->riskassessment);
-            $activity->set('attachments', $data->attachments);
+            //$activity->set('riskassessment', $data->riskassessment);
+            //$activity->set('attachments', $data->attachments);
             $activity->set('otherparticipants', $data->otherparticipants);
             $activity->set('colourcategory', $data->colourcategory);
             $activity->set('displaypublic', $data->displaypublic);
@@ -150,6 +150,17 @@ class activities_lib {
                 $activity->set('displaypublic', 0);
             }
 
+            $activity->save();
+
+            // Save RA.
+            static::process_files(explode(",", $data->riskassessment), 'riskassessment', $activity->get('id'));
+            $riskassessmentck = static::generate_files_changekey('riskassessment', $activity->get('id'));
+            $activity->set('riskassessment', $riskassessmentck);
+
+            // Save attachments.
+            static::process_files(explode(",", $data->attachments), 'attachments', $activity->get('id'));
+            $additionalfilesck = static::generate_files_changekey('attachments', $activity->get('id'));
+            $activity->set('attachments', $additionalfilesck);
             $activity->save();
 
             // Sync the staff lists.
@@ -1001,7 +1012,7 @@ class activities_lib {
                 $approval->status == 0 &&
                 $approval->skip == 0 ) {
 
-                $config = get_config('local_excursions');
+                $config = get_config('local_activities');
                 if ($config->checkabsencesql && $config->dbhost) {
                     $externalDB = \moodle_database::get_driver_instance($config->dbtype, 'native', true);
                     $externalDB->connect($config->dbhost, $config->dbuser, $config->dbpass, $config->dbname, '');
@@ -1039,7 +1050,7 @@ class activities_lib {
         // Some basic security - check if user is an approver in this activity.
         $isapprover = workflow_lib::is_approver_of_activity($activityid);
 
-        $config = get_config('local_excursions');
+        $config = get_config('local_activities');
         $externalDB = \moodle_database::get_driver_instance($config->dbtype, 'native', true);
         $externalDB->connect($config->dbhost, $config->dbuser, $config->dbpass, $config->dbname, '');
         $sql = $config->deleteabsencessql . ' :leavingdate, :returningdate, :comment, :studentscsv';
@@ -1148,7 +1159,7 @@ class activities_lib {
             'students' => $students,
         );
 
-        return $OUTPUT->render_from_template('local_excursions/activityform_studentlist_rows', $data);
+        return $OUTPUT->render_from_template('local_activities/activityform_studentlist_rows', $data);
     }
 
     /**
@@ -1255,7 +1266,7 @@ class activities_lib {
             $comments[] = $comment;
         }
 
-        return $OUTPUT->render_from_template('local_excursions/activityform_approvals_comments', array('comments' => $comments));
+        return $OUTPUT->render_from_template('local_activities/activityform_approvals_comments', array('comments' => $comments));
     }
 
     /*
@@ -1401,8 +1412,8 @@ class activities_lib {
 
         $subject = "Comment re: " . $activity->activityname;
         $output = $PAGE->get_renderer('core');
-        $messageText = $output->render_from_template('local_excursions/email_comment_text', $data);
-        $messageHtml = $output->render_from_template('local_excursions/email_comment_html', $data);
+        $messageText = $output->render_from_template('local_activities/email_comment_text', $data);
+        $messageHtml = $output->render_from_template('local_activities/email_comment_html', $data);
         $result = email_to_user($toUser, $USER, $subject, $messageText, $messageHtml, '', '', true);
     }
 
@@ -1432,7 +1443,7 @@ class activities_lib {
         $activityexporter = new activity_exporter($activity);
         $output = $PAGE->get_renderer('core');
         $activity = $activityexporter->export($output);
-        return $output->render_from_template('local_excursions/activityform_studentlist_messagehistory', $activity);
+        return $output->render_from_template('local_activities/activityform_studentlist_messagehistory', $activity);
     }
 
     public static function get_all_permissions($activityid) {
@@ -1587,8 +1598,8 @@ class activities_lib {
         $activity->studentname = fullname($toUser);
 
 
-        $messageText = $output->render_from_template('local_excursions/email_attending_text', $activity);
-        $messageHtml = $output->render_from_template('local_excursions/email_attending_html', $activity);
+        $messageText = $output->render_from_template('local_activities/email_attending_text', $activity);
+        $messageHtml = $output->render_from_template('local_activities/email_attending_html', $activity);
         $subject = "Activity: " . $activity->activityname;
 
         $result = service_lib::email_to_user($toUser, $fromUser, $subject, $messageText, $messageHtml, '', '', true);        
@@ -1710,6 +1721,133 @@ class activities_lib {
 
         return $permissionshelper;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    private static function generate_files_changekey($filearea, $activityid) {
+        $context = \context_system::instance();
+        $fs = get_file_storage();
+        $files = $fs->get_area_files($context->id, 'local_activities', $filearea, $activityid, "filename", false);
+        $changekey = '';
+        foreach ($files as $file) {
+            $changekey .= $file->get_contenthash();
+        }
+        return sha1($changekey);
+    }
+
+    private static function process_files($files, $filearea, $activityid) {
+        if (empty($files)) {
+            return [];
+        }
+        $add = array();
+        $delete = array();
+        foreach($files as $instruct) {
+            $instruct = explode("::", $instruct);
+            if (count($instruct) < 2) {
+                continue;
+            }
+            switch ($instruct[0]) {
+                case "NEW":
+                    $add[] = $instruct[1];
+                    break;
+                case "REMOVED":
+                    $delete[] = $instruct[1];
+                    break;
+            }
+        }
+
+        static::delete_files($delete);
+        static::store_files($add, $filearea, $activityid);
+    }
+
+    private static function delete_files($fileids) {
+        if (empty($fileids)) {
+            return [];
+        }
+
+        $fs = get_file_storage();
+        foreach($fileids as $fileid) {
+            $file = $fs->get_file_by_id($fileid);
+            if ($file) {
+                $file->delete();
+            }
+        }
+    }
+
+    private static function store_files($filenames, $filearea, $activityid) {
+        global $USER, $CFG, $DB;
+
+        if (empty($filenames)) {
+            return [];
+        }
+
+        $success = array();
+        $error = array();
+        $dataroot = str_replace('\\\\', '/', $CFG->dataroot);
+        $dataroot = str_replace('\\', '/', $dataroot);
+        $tempdir = $dataroot . '/temp/local_activities/';
+
+        
+        $fs = get_file_storage();
+        $fsfd = new \file_system_filedir();
+        //$fs = new \file_storage();
+
+        // Store temp files to a permanent file area.
+        foreach($filenames as $filename) {
+            if ( ! file_exists($tempdir . $filename)) {
+                $error[$filename] = 'File not found';
+                continue;
+            }
+            try {
+                // Start a new file record.
+                $newrecord = new \stdClass();
+                // Move the temp file into moodledata.
+                list($newrecord->contenthash, $newrecord->filesize, $newfile) = $fsfd->add_file_from_path($tempdir . $filename);
+                
+                // Remove the temp file.
+                unlink($tempdir . $filename);
+
+                // Clean filename.
+                $cleanfilename = preg_replace("/^(\d+)\.(\d+)\./", '', $filename);            
+
+                // Complete the record.
+                $newrecord->contextid = 1;
+                $newrecord->component = 'local_activities';
+                $newrecord->filearea  = $filearea;
+                $newrecord->itemid    = $activityid;
+                $newrecord->filepath  = '/';
+                $newrecord->filename  = $filename;
+                $newrecord->timecreated  = time();
+                $newrecord->timemodified = time();
+                $newrecord->userid      = $USER->id;
+                $newrecord->source      = $filename;
+                $newrecord->author      = fullname($USER);
+                $newrecord->license     = $CFG->sitedefaultlicense;
+                $newrecord->status      = 0;
+                $newrecord->sortorder   = 0;
+                $newrecord->mimetype    = $fs->get_file_system()->mimetype_from_hash($newrecord->contenthash, $newrecord->filename);
+                $newrecord->pathnamehash = $fs->get_pathname_hash($newrecord->contextid, $newrecord->component, $newrecord->filearea, $newrecord->itemid, $newrecord->filepath, $newrecord->filename);
+                $newrecord->id = $DB->insert_record('files', $newrecord);
+                $success[$filename] = $newrecord->id;
+            } catch (Exception $ex) {
+                $error[$filename] = $ex->getMessage();
+            }
+        }
+
+        return [$success, $error];
+    }
+
 
    
 

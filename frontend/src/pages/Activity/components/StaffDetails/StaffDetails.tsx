@@ -1,8 +1,7 @@
-import { Card, Text } from "@mantine/core";
+import { Card, Text, Textarea } from "@mantine/core";
 import { Form, useFormStore } from "../../../../stores/formStore";
-import { StaffSelector } from "./components/StaffSelector";
+import { StaffSelector } from "./components/StaffSelector/StaffSelector";
 import { isExcursion } from "../../../../utils/utils";
-
 
 export function StaffDetails() {
 
@@ -10,6 +9,7 @@ export function StaffDetails() {
   const planningstaff = useFormStore((state) => state.planningstaff) 
   const staffincharge = useFormStore((state) => state.staffincharge) 
   const activitytype = useFormStore((state) => state.activitytype) 
+  const otherparticipants = useFormStore((state) => state.otherparticipants) 
 
   const setState = useFormStore(state => state.setState)
 
@@ -35,6 +35,10 @@ export function StaffDetails() {
             <>
               <StaffSelector staff={planningstaff} setStaff={setPlanning} label="Planning" multiple={true} />
               <StaffSelector staff={accompanyingstaff} setStaff={setAccompanying} label="Accompanying" multiple={true} />
+              <div>
+                <Text fz="sm" mb="5px" fw={500} c="#212529">Non-school participants</Text>
+                <Textarea value={otherparticipants} onChange={(event) => setState({['otherparticipants']: event.currentTarget.value} as Form)}/>
+              </div>
             </>
           }
         </div>

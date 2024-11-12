@@ -1,6 +1,6 @@
 import { Avatar, Badge, Card, Flex, Text } from "@mantine/core";
 import { Form, useFormStore } from "../../../../stores/formStore";
-import { StaffSelector } from "./components/StaffSelector";
+import { StaffSelector } from "./components/StaffSelector/StaffSelector";
 import { User } from "../../../../types/types";
 import { IconUser } from "@tabler/icons-react";
 import { isExcursion } from "../../../../utils/utils";
@@ -65,6 +65,10 @@ export function StaffDetailsViewOnly() {
               <div>
                 <Text fz="sm" mb="5px" fw={500} c="#212529">Accompanying</Text>
                 {accompanying}
+              </div>
+              <div>
+                <Text fz="sm" mb="5px" fw={500} c="#212529">Non-school participants</Text>
+                
               </div>
             </>
           }
