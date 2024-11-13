@@ -18,13 +18,19 @@ import { StudentList } from "./components/StudentList/StudentList";
 import { Conflicts } from "./components/Conflicts/Conflicts";
 import { CalendarStatus } from "./components/CalendarStatus/CalendarStatus";
 import { Paperwork } from "./components/Paperwork/Paperwork";
+import { StudentList2 } from "./components/StudentList/StudentList2";
+import { permission } from "process";
+import { useDisclosure } from "@mantine/hooks";
+import { Permissions } from "./components/Permissions/Permissions";
+import { EmailModal } from "./components/EmailModal/EmailModal";
+import { isExcursion } from "../../utils/utils";
 
 export function EditActivity() {
   let { id } = useParams();
 
   const setFormData = useFormStore((state) => state.setState)
   const setFormState = useStateStore((state) => state.setState)
-  //const formLoaded = useStateStore((state) => (state.setFormLoaded))
+  const setFormLoaded = useStateStore((state) => (state.setFormLoaded))
   const baselineHash = useStateStore((state) => (state.baselineHash))
   const clearHash = useStateStore((state) => (state.clearHash))
   const resetHash = useStateStore((state) => (state.resetHash))
@@ -34,6 +40,8 @@ export function EditActivity() {
   const [fetchResponse, fetchError, fetchLoading, fetchAjax, setFetchData] = useAjax(); // destructure state and fetch function
   const setApprovals = useWorkflowStore((state) => state.setApprovals)
   const updateSavedTime = useStateStore((state) => (state.updateSavedTime))
+  const [isOpenEmailModal, emailModalHandlers] = useDisclosure(false);
+  const activitytype = useFormStore((state) => state.activitytype)
 
   useEffect(() => {
     document.title = 'Manage Activity'
@@ -64,7 +72,7 @@ export function EditActivity() {
         timemodified: Number(fetchResponse.data.timemodified) ? fetchResponse.data.timemodified : dayjs().unix(),
         timestart: Number(fetchResponse.data.timestart) ? fetchResponse.data.timestart : dayjs().unix(),
         timeend: Number(fetchResponse.data.timeend) ? fetchResponse.data.timeend : dayjs().unix(),
-        studentlist: JSON.parse(fetchResponse.data.studentlistjson || '[]'),
+        //studentlist: JSON.parse(fetchResponse.data.studentlistjson || '[]'),
         planningstaff: JSON.parse(fetchResponse.data.planningstaffjson || '[]'),
         accompanyingstaff: JSON.parse(fetchResponse.data.accompanyingstaffjson || '[]'),
         staffincharge: [JSON.parse(fetchResponse.data.staffinchargejson || null)].filter(item => item !== null),
@@ -72,6 +80,9 @@ export function EditActivity() {
         initialActivitytype: fetchResponse.data.activitytype,
         displaypublic: !!Number(fetchResponse.data.displaypublic),
         pushpublic: !!Number(fetchResponse.data.pushpublic),
+        // Convert to bool.
+        permissions: !!Number(fetchResponse.data.permissions),
+        permissionsinitial: !!Number(fetchResponse.data.permissions),
         // Move these into existing
         existingriskassessment: fetchResponse.data.riskassessment,
         existingattachments: fetchResponse.data.attachments,
@@ -80,9 +91,8 @@ export function EditActivity() {
       }
       // Merge into default values
       setFormData({...defaults, ...data})
-      //formLoaded()
-      baselineHash()
-      console.log('fetchResponse.data.attachments', fetchResponse.data.attachments)
+      setFormLoaded()
+      //baselineHash() // DO THIS IN STATUS AFTER FORM, FILES, STUDENTS LOADED.
     }
   }, [fetchResponse]);
 
@@ -110,7 +120,7 @@ export function EditActivity() {
         } as Form)
         setApprovals(submitResponse.data.workflow)
         // Refetch student list.
-        console.log("Triggering student/workflow reload.")
+        console.log("Triggering student.")
       }
 
     }
@@ -209,8 +219,13 @@ export function EditActivity() {
                           <BasicDetails />
                           <CalendarSettings />
                           <StaffDetails />
-                          <StudentList />
-                          <Paperwork />
+                          { isExcursion(activitytype) &&
+                            <>
+                              <Permissions openSendMessage={emailModalHandlers.open} />
+                              <StudentList2 />
+                              <Paperwork />
+                            </>
+                          }
                         </Box>
                       </Grid.Col>
                       <Grid.Col span={{ base: 12, lg: 3 }}>
@@ -221,6 +236,7 @@ export function EditActivity() {
                       </Grid.Col>
                     </Grid>
                   </form>
+                  <EmailModal opened={isOpenEmailModal} close={emailModalHandlers.close} />
             </Container>
           </>
         )}

@@ -1,0 +1,139 @@
+import { Card, Flex, Text, Checkbox, NumberInput, Grid, Button, Group, Alert, Paper, Center } from '@mantine/core';
+import { DateTimePicker } from '@mantine/dates';
+import { IconChevronDown, IconChevronUp, IconCopy, IconMail } from '@tabler/icons-react';
+import { useDisclosure } from '@mantine/hooks';
+import { useClipboard } from 'use-clipboard-copy';
+import { useCallback } from 'react';
+import { statuses } from '../../../../utils';
+import { Form, useFormStore } from '../../../../stores/formStore';
+import dayjs from 'dayjs';
+
+
+export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
+
+  const status = useFormStore((state) => state.status)
+  const permissions = useFormStore((state) => state.permissions)
+  const permissionslimit = useFormStore((state) => state.permissionslimit)
+  const permissionsdueby = useFormStore((state) => state.permissionsdueby)
+  const setState = useFormStore((state) => state.setState)
+
+  const [openedPermissionsURL, togglePermissionsURL] = useDisclosure(false);
+
+  const permissionsUrlClipboard = useClipboard({
+    copiedTimeout: 1000,
+  });
+
+  const handleCopyLink = useCallback(
+    (text: string) => {
+      if (text.length) {
+        permissionsUrlClipboard.copy(text)
+      }
+    },
+    [permissionsUrlClipboard.copy]
+  )
+
+  const updateField = (name: string, value: any) => {
+    setState({
+      [name]:value
+    } as Form)
+  }
+
+  const permissionsLabel = (
+    <>
+      <Text>Parent permissions required</Text> 
+      { status < statuses.approved && 
+        permissions &&
+        <Text mt={3} size="xs" color="dimmed">You will be able to request permissions and track responses once the activity details are approved</Text>
+      }
+    </>
+  )
+
+
+  return (
+    <>
+      <Card withBorder radius="sm" className="p-0">
+
+        <div className="px-4 py-3">
+          <Text fz="md">Permissions</Text>
+        </div>
+
+        <div className="p-4 border-t border-gray-300">
+          <Flex direction="column" gap="lg" >
+            <Checkbox
+              label={permissionsLabel}
+              checked={permissions}
+              onChange={(e) => updateField('permissions', e.target.checked)}
+            />
+          </Flex>
+        </div>
+
+        { 
+          permissions &&
+          <>
+            <div className="p-4 border-t border-gray-300 flex gap-4">
+              <NumberInput
+                label="Capacity"
+                description="0 means unlimited"
+                min={0}
+                value={permissionslimit}
+                onChange={(e) => updateField('permissionslimit', e)}
+                className='flex-1'
+              />
+    
+              <DateTimePicker
+                label="Acceptance cut-off"
+                description="Responses will not be accepted after this time"
+                valueFormat="DD MMM YYYY hh:mm A"
+                dropdownType="modal"
+                value={dayjs.unix(permissionsdueby).toDate()}
+                onChange={(e) => updateField('permissionsdueby', e)}
+                className='flex-1'
+              />
+            </div>
+
+            { permissions && status == statuses.approved && 
+              <>
+                <div className="p-4 border-t border-gray-300 flex justify-between">
+                  <Button size="compact-md" radius="xl" leftSection={<IconMail size={14} />} className="bg-tablr-blue" onClick={openSendMessage}>Send permission requests</Button>
+                  <Button size="compact-md" onClick={togglePermissionsURL.toggle} radius="xl" className="bg-tablr-blue-light" variant="subtle" rightSection={openedPermissionsURL ? <IconChevronUp size={14}/> : <IconChevronDown size={14}/> }>Send manually</Button>
+                </div>
+                { openedPermissionsURL &&
+                  <div className="p-4 border-t border-gray-300">
+                    <Text mb="xs" fw={500}>
+                      Direct parents to the following URL for permission registration: 
+                    </Text>
+                    <Paper 
+                      className="break-all cursor-pointer transition-all"
+                      p="sm"
+                      radius="sm"
+                      onMouseDown={() => {
+                        handleCopyLink("/local/activities/permissions/1505")
+                      }}
+                      bg={permissionsUrlClipboard.copied ? 'green.1' : 'blue.1'}
+                    >
+                      <Flex justify="space-between" align="center">
+                        <Text size="ms" pr="xs" ff="monospace">https://some.institution.edu/local/excursions/permissions/1505</Text>
+                        <Button 
+                          size="compact-md"
+                          variant="outline" 
+                          radius="xl" 
+                          leftSection={<IconCopy size={14} />} 
+                          className="bg-tablr-blue-light" 
+                          w={120}
+                        >{permissionsUrlClipboard.copied ? 'Copied!' : 'Copy URL'}</Button>
+                      </Flex>
+                    </Paper>
+                  </div>
+                }
+              </>
+            }
+          </>
+        }
+
+
+      </Card>
+
+
+    </>
+  );
+};

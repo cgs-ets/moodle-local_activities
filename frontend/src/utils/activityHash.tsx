@@ -16,7 +16,6 @@ const exportActivityHash = () => {
   const attachments = filterExisting(formData.attachments);
   const riskassessment = filterExisting(formData.riskassessment);
   const cleaned = {...rest, attachments, riskassessment}
-  console.log("cleaned", cleaned)
 
   return hash(JSON.parse(JSON.stringify(cleaned)))
 };

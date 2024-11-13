@@ -8,7 +8,7 @@ export type Form = {
   id?: number,
   idnumber?: string,
   creator?: string,
-  status?: number, // 0: Unsaved, 1: Saved draft, 2: Live
+  status: number, // 0: Unsaved, 1: Saved draft, 2: Live
   timecreated?: number,
   timemodified?: number,
 
@@ -23,10 +23,13 @@ export type Form = {
   description: string;
   transport: string;
   cost: string;
-  permissions: string;
+
+  permissions: boolean;
+  permissionsinitial: boolean,
   permissionstype: string;
   permissionslimit: string;
   permissionsdueby: number;
+
   riskassessment: string;
   existingriskassessment: FileData[];
   attachments: string;
@@ -78,10 +81,13 @@ const defaults: Form = {
   description: '',
   transport: '',
   cost: '',
-  permissions: '',
+
+  permissions: false,
+  permissionsinitial: false,
   permissionstype: '',
   permissionslimit: '',
   permissionsdueby: dayjs().unix(),
+
   riskassessment: '',
   existingriskassessment: [],
   attachments: '',

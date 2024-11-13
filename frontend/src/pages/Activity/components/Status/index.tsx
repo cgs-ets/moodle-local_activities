@@ -31,6 +31,18 @@ export function Status({
   const hash = useStateStore((state) => (state.hash))
   const setFormData = useFormStore((state) => state.setState)
   const setApprovals = useWorkflowStore((state) => state.setApprovals)
+  
+  const formloaded = useStateStore((state) => (state.formloaded))
+  const studentsloaded = useStateStore((state) => (state.studentsloaded))
+  
+  // When everything is loaded, set the baseline.
+  useEffect(() => {
+    if (formloaded && (!isExcursion(activitytype) || studentsloaded)) {
+      if (!hash) {
+        baselineHash()
+      }
+    }
+  }, [formloaded, studentsloaded, activitytype])
 
   // Whenever something changes, update the hash.
   useEffect(() => {
@@ -104,11 +116,11 @@ export function Status({
 
   const getExtraOptions = () => {
     let options = []
-    if ((activitytype == 'calendar' || activitytype == 'assessment') && (status ?? 0) >= statuses.saved) {
+    if ((activitytype == 'calendar' || activitytype == 'assessment') && status >= statuses.saved) {
       options.push(<Menu.Item key={0} onMouseDown={() => updateStatus(0)} leftSection={<IconArrowMoveLeft size={14} />}>Return to draft</Menu.Item>)
     }
 
-    if ((activitytype == 'excursion' || activitytype == 'incursion') && (status ?? 0) > statuses.saved) {
+    if ((activitytype == 'excursion' || activitytype == 'incursion') && status > statuses.saved) {
       options.push(<Menu.Item key={1} onMouseDown={() => updateStatus(1)} leftSection={<IconArrowMoveLeft size={14} />}>Return to draft</Menu.Item>)
     }
     return options
@@ -155,7 +167,7 @@ export function Status({
               : status == statuses.approved 
                 ? "Activity is approved! You may continue to make changes to information."
                 : "Get started by entering the details for this activity."
-          : (status ?? 0) > statuses.saved
+          : status > statuses.saved
             ? "All information is saved."
             : "Complete the form."
         }
@@ -171,7 +183,7 @@ export function Status({
             leftSection={<IconCloudUp className='size-4' />} 
             loading={submitLoading}>
               {activitytype == 'calendar' || activitytype == 'assessment' 
-              ? (status ?? 0) >= statuses.saved
+              ? status >= statuses.saved
                 ? "Update"
                 : "Submit"
               : haschanges ? "Save changes" : "Save" }

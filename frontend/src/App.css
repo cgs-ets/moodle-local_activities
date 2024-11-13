@@ -83,6 +83,10 @@ table thead th {
 .student-list-table th:first-of-type {
   width: 5%;
 }
+.student-list-table.showpermissions-true th:nth-of-type(2) {
+  width: 5%;
+}
+
 
 
 

@@ -5,8 +5,9 @@ import { exportActivityHash } from '../utils/activityHash'
 type State = {
   oldhash: string,
   hash: string,
-  //formloaded: boolean,
+  formloaded: boolean,
   studentsloaded: boolean,
+  filesloaded: boolean,
   haschanges: boolean,
   reloadstulist: boolean,
   savedtime: number,
@@ -20,16 +21,18 @@ type StateStore = State & {
   clearHash: () =>  void,
   updateHash: () => void,
   resetHash: () => void,
-  //setFormLoaded: () => void,
+  setFormLoaded: () => void,
   setStudentsLoaded: () => void,
+  setFilesLoaded: () => void,
   updateSavedTime: () => void,
 }
 
 const formStateInit = {
   oldhash: '',
   hash: '',
-  //formloaded: false,
+  formloaded: false,
   studentsloaded: false,
+  filesloaded: false,
   haschanges: false,
   reloadstulist: false,
   savedtime: 0,
@@ -72,8 +75,9 @@ const useStateStore = create<StateStore>((set, get) => ({
       haschanges: (hash !== state.oldhash) ,
     }))
   },
-  //setFormLoaded: () => set({formloaded: true}),
+  setFormLoaded: () => set({formloaded: true}),
   setStudentsLoaded: () => set({studentsloaded: true}),
+  setFilesLoaded: () => set({filesloaded: true}),
   updateSavedTime: () => set({savedtime: Date.now()}),
 }))
 

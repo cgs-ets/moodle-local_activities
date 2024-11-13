@@ -1,5 +1,5 @@
 import { ActionIcon, Anchor, Avatar, Button, Card, LoadingOverlay, Select, Switch, Text } from "@mantine/core"
-import { IconBell, IconBellOff, IconCalendar, IconCalendarEvent, IconCancel, IconExternalLink, IconPencil, IconPlus, IconUser, IconUserCancel, IconUserCheck, IconUserX, IconX } from "@tabler/icons-react"
+import { IconBell, IconBellOff, IconCalendar, IconCalendarEvent, IconCancel, IconExternalLink, IconLoader, IconLoader3, IconPencil, IconPlus, IconUser, IconUserCancel, IconUserCheck, IconUserX, IconX } from "@tabler/icons-react"
 import { cn, isCalEntry, isCalReviewer, isExcursion, isExporting } from "../../../../utils/utils"
 import { useEffect, useState } from "react";
 import { useAjax } from "../../../../hooks/useAjax";
@@ -26,16 +26,24 @@ export function CalendarStatus({
   const [approvedResponse, approvedError, approvedLoading, submitApprovedAjax, setApprovedData] = useAjax(); // destructure state and fetch function
   const [publicResponse, publicError, publicLoading, submitPublicAjax, setPublicData] = useAjax(); // destructure state and fetch function
 
-
   useEffect(() => {
+    // Define the interval function
+    const interval = setInterval(() => {
+      getCalendarSyncs();
+    }, 60000); // 60000 ms = 60 seconds
+  
+    // Run the function initially if activityid is present
     if (activityid) {
-      getCalendarSyncs()
+      getCalendarSyncs();
     }
-  }, [activityid]);
+  
+    // Cleanup function to clear the interval on unmount
+    return () => clearInterval(interval);
+  }, [activityid, status]);
 
 
   const getCalendarSyncs = () => {
-    console.log("getting calendar status...")
+    console.log("getting calendar syncs")
     setFetchData({
       response: null,
       error: false,
@@ -87,7 +95,7 @@ export function CalendarStatus({
   
   return (
     activitytype != 'assessment' && 
-    (status ?? 0) > statuses.saved &&
+    status > statuses.saved &&
     !haschanges
     ? <Card withBorder radius="sm" className="p-0 rounded-t-none -mt-[2px]">
         <div className="px-4 py-2 bg-gray-100">
@@ -103,20 +111,20 @@ export function CalendarStatus({
                 <div 
                   className={cn(
                     "flex-1 flex justify-between items-center gap-2 border-b px-4 h-10",
-                    (status ?? 0) == statuses.approved ? "bg-[#e9f8ed]" : ""
+                    status == statuses.approved ? "bg-[#e9f8ed]" : ""
                   )}
                 >
                   <LoadingOverlay visible={false} />
                   <div>Approved</div>
                   <Switch
-                    checked={(status ?? 0) == statuses.approved}
+                    checked={status == statuses.approved}
                     onChange={(event) => submitApproved(event.currentTarget.checked)}
                     disabled={isExcursion(activitytype)}
                   />
                 </div>
               }
 
-              { displaypublic && (status ?? 0) != statuses.approved
+              { displaypublic && status != statuses.approved
               ? <div 
                   className={cn(
                     "flex-1 flex justify-between items-center gap-2 border-b px-4 h-10 border-l",
@@ -147,7 +155,7 @@ export function CalendarStatus({
               )
             })}
             { !syncs.length
-              ? <div className="px-4 py-2">Calendar events not synced yet.</div>
+              ? <div className="px-4 py-2">Sync to Outlook pending <IconLoader className="animate-spin inline size-4" /></div>
               : null
             }
           </div>

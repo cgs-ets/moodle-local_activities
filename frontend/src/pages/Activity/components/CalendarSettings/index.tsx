@@ -46,9 +46,8 @@ export function CalendarSettings() {
                 <Text className='text-sm font-semibold mb-1'>Select the colouring category</Text>
                 <Select 
                   data={categories}
-                  clearable
                   value={colourcategory} 
-                  onChange={(value) => updateField('colourcategory', value)}
+                  onChange={(value) => value && updateField('colourcategory', value)}
                   className='w-full max-w-96'
                 />
               </div>

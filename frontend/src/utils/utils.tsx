@@ -25,7 +25,7 @@ export const entryStatus = () => {
   const status = useFormStore((state) => state.status) 
   console.log("status", status)
   return status == statuses.draft ? "Draft" :
-        (status ?? 0) >= statuses.saved ? "Saved" : "";
+         status >= statuses.saved ? "Saved" : "";
 }
 
 export function cn(...inputs: ClassValue[]) {

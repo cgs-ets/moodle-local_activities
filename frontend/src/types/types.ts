@@ -30,3 +30,17 @@ export type FileData = {
   key: string,
   fileid: string,
 }
+
+
+
+
+export type Parent =
+  User & {
+    response?: number,
+  }
+  
+export type Student =
+  User & {
+    permission?: number,
+    parents: Parent[],
+  }
