@@ -78,7 +78,8 @@ class cron_sync_planning extends \core\task\scheduled_task {
 
             // Is this entry/event approved?
             $activity = new activity($event->id);
-            $approved = activities_lib::status_helper($activity->get('status'))->isapproved;
+            $status = activities_lib::status_helper($activity->get('status'));
+            $approved = $status->isapproved;
 
             $destinationCalendars = array($config->planningcalupn);
 
@@ -91,8 +92,8 @@ class cron_sync_planning extends \core\task\scheduled_task {
 
             foreach($externalevents as $externalevent) {
                 $calIx = array_search($externalevent->calendar, $destinationCalendars);
-                if ($calIx === false || $event->deleted) {
-                    // The event was deleted, or entry not in a valid destination calendar, delete.
+                if ($calIx === false || $event->deleted || $status->isdraftorautosave) {
+                    // The event was deleted, or made draft, or entry not in a valid destination calendar, delete.
                     try {
                         $this->log("Deleting existing entry in calendar $externalevent->calendar", 2);
                         $result = graph_lib::deleteEvent($externalevent->calendar, $externalevent->externalid);
@@ -149,7 +150,7 @@ class cron_sync_planning extends \core\task\scheduled_task {
                 }
             }
 
-            if (!$event->deleted) {
+            if (!$event->deleted && !$status->isdraftorautosave) {
                 // Create entries in remaining calendars.
                 foreach($destinationCalendars as $destCal) {
                     $this->log("Creating new entry in calendar $destCal", 2);

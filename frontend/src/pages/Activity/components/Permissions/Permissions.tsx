@@ -54,7 +54,7 @@ export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
       <Card withBorder radius="sm" className="p-0">
 
         <div className="px-4 py-3">
-          <Text fz="md">Permissions</Text>
+          <span className="text-base">Permissions</span>
         </div>
 
         <div className="p-4 border-t border-gray-300">

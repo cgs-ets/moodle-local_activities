@@ -179,11 +179,14 @@ class utils_lib {
         $records = $DB->get_records_sql($sql, $params);
 
         $students = array();
-        foreach($records as $r) {
-            $student = new \stdClass();
-            $student->un = $r->username;
-            $student->fn = $r->firstname;
-            $student->ln = $r->lastname;
+
+        foreach($records as $rec) {
+            $student = static::user_stub($rec->username);
+            if (!$student) {
+                continue;
+            }
+            $student->permission = -1;
+            $student->parents = [];
             $students[] = $student;
         }
 

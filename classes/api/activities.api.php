@@ -51,10 +51,11 @@ trait activities_api {
      *
      * @return array
      */
-    static public function get_activity_students() {
+    static public function get_students() {
         $id = required_param('id', PARAM_INT);
+        $withpermissions = optional_param('withpermissions', false, PARAM_BOOL);
         $activity = new Activity($id);
-        $activity->load_studentsdata();
+        $activity->load_studentsdata($withpermissions);
         return json_decode($activity->get('studentsdata'));
     }
 

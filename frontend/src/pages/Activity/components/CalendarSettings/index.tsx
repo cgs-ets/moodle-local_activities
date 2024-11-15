@@ -29,7 +29,7 @@ export function CalendarSettings() {
   return (
     <Card withBorder radius="sm" className="p-0">
       <div className="px-4 py-3">
-        <Text fz="md">Calendar Settings</Text>
+        <span className="text-base">Calendar Settings</span>
       </div>
       <div className="flex flex-col gap-6 border-t border-gray-300">
         <div className="flex flex-col">

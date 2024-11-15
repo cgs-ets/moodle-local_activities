@@ -63,10 +63,12 @@ const useStateStore = create<StateStore>((set, get) => ({
     const hash = exportActivityHash()
     console.log('hash', hash)
     console.log('oldhash', get().oldhash)
-    set((state: State) => ({ 
-      hash: hash, 
-      haschanges: (hash !== state.oldhash) 
-    }))
+    set((state: State) => {
+      return { 
+        hash: hash, 
+        haschanges: (hash !== state.oldhash) 
+      }
+    })
   },
   resetHash: () => {
     const hash = exportActivityHash()

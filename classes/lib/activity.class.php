@@ -177,7 +177,7 @@ class Activity {
      *
      * @return void
      */
-    public function load_studentsdata() {
+    public function load_studentsdata($withpermissions = false) {
         global $DB;
 
         if (empty($this->get('id'))) {
@@ -192,16 +192,27 @@ class Activity {
 
         $students = array();
         foreach($records as $rec) {
-            $mdluser = \core_user::get_user_by_username($rec->username);
-            if (empty($mdluser)) {
+            $student = utils_lib::user_stub($rec->username);
+            if (!$student) {
                 continue;
             }
-            $student = new \stdClass();
-            $student->un = $mdluser->username;
-            $student->fn = $mdluser->firstname;
-            $student->ln = $mdluser->lastname;
-            $student->attributes = [];
+            $student->permission = -1;
+            $student->parents = [];
             $students[] = $student;
+        }
+        //var_export($students); exit;
+
+        // Get permissions.
+        if ($withpermissions) {
+            // Process students and attach permissions.
+            $permissions = $this->get_permissions();
+            foreach ($students as &$student) {
+                // Determine whether student is allowed based on permissions.
+                if (isset($permissions[$student->un])) {
+                    $student->permission = max(array_column($permissions[$student->un], "response"));
+                    $student->parents = $permissions[$student->un];
+                }
+            }
         }
 
         // Sort by last name.
@@ -210,6 +221,31 @@ class Activity {
         });
 
         $this->set('studentsdata', json_encode($students));
+    }
+
+    public function get_permissions() {
+        global $DB;
+
+        if (empty($this->get('id'))) {
+            return [];
+        }
+
+        $sql = "SELECT *
+                FROM {activity_permissions}
+                WHERE activityid = ?";
+        $params = array($this->get('id'));
+        $records = $DB->get_records_sql($sql, $params);
+
+        $permissions = array();
+        foreach ($records as $rec) {
+            if (!isset($permissions[$rec->studentusername])) {
+                $permissions[$rec->studentusername] = array();
+            }
+            $parent = utils_lib::user_stub($rec->parentusername);
+            $parent->response = $rec->response;
+            $permissions[$rec->studentusername][] = $parent;
+        }
+        return $permissions;
     }
 
     /**

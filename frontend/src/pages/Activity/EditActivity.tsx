@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
 import { PageHeader } from "./components/PageHeader";
-import { Status } from "./components/Status";
+import { Status } from "./components/Status/Status";
 import { useAjax } from '../../hooks/useAjax';
 import { BasicDetails } from "./components/BasicDetails";
 import dayjs from "dayjs";
@@ -14,16 +14,16 @@ import { StaffDetails } from "./components/StaffDetails/StaffDetails";
 import { CalendarSettings } from "./components/CalendarSettings";
 import { Workflow } from "./components/Workflow";
 import { useWorkflowStore } from "../../stores/workflowStore";
-import { StudentList } from "./components/StudentList/StudentList";
 import { Conflicts } from "./components/Conflicts/Conflicts";
 import { CalendarStatus } from "./components/CalendarStatus/CalendarStatus";
 import { Paperwork } from "./components/Paperwork/Paperwork";
-import { StudentList2 } from "./components/StudentList/StudentList2";
 import { permission } from "process";
 import { useDisclosure } from "@mantine/hooks";
 import { Permissions } from "./components/Permissions/Permissions";
 import { EmailModal } from "./components/EmailModal/EmailModal";
 import { isExcursion } from "../../utils/utils";
+import { Comments } from "./components/Comments/Comments";
+import { StudentList } from "./components/StudentList/StudentList";
 
 export function EditActivity() {
   let { id } = useParams();
@@ -92,7 +92,6 @@ export function EditActivity() {
       // Merge into default values
       setFormData({...defaults, ...data})
       setFormLoaded()
-      //baselineHash() // DO THIS IN STATUS AFTER FORM, FILES, STUDENTS LOADED.
     }
   }, [fetchResponse]);
 
@@ -222,7 +221,7 @@ export function EditActivity() {
                           { isExcursion(activitytype) &&
                             <>
                               <Permissions openSendMessage={emailModalHandlers.open} />
-                              <StudentList2 />
+                              <StudentList />
                               <Paperwork />
                             </>
                           }
@@ -233,6 +232,7 @@ export function EditActivity() {
                         <Conflicts />
                         <Workflow activityid={Number(id || 0)} />
                         <CalendarStatus activityid={Number(id || 0)} />
+                        <Comments />
                       </Grid.Col>
                     </Grid>
                   </form>

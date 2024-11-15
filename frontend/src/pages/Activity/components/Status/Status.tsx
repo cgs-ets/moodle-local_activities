@@ -46,9 +46,7 @@ export function Status({
 
   // Whenever something changes, update the hash.
   useEffect(() => {
-    if (!hash) {
-      baselineHash()
-    } else {
+    if (hash) {
       updateHash()
     }
   }, [formData])

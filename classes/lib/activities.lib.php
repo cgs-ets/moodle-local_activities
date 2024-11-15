@@ -378,8 +378,7 @@ class activities_lib {
             $params = array($activityid);
             $DB->execute($sql, $params);
 
-            // clear out any syncs and reset public now.
-            $DB->delete_records('activity_cal_sync', array('activityid' => $activityid));
+            // Reset public now.
             $activity->set('pushpublic', 0);
             $activity->save();
         }

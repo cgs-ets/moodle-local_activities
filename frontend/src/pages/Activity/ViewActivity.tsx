@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
 import { PageHeader } from "./components/PageHeader";
-import { Status } from "./components/Status";
+import { Status } from "./components/Status/Status";
 import { useAjax } from '../../hooks/useAjax';
 import dayjs from "dayjs";
 import { useStateStore } from "../../stores/stateStore";
@@ -16,7 +16,6 @@ import { useWorkflowStore } from "../../stores/workflowStore";
 import { BasicDetailsViewOnly } from "./components/BasicDetails/ViewOnly";
 import { IconPencil } from "@tabler/icons-react";
 import { StaffDetailsViewOnly } from "./components/StaffDetails/ViewOnly";
-import { StudentListViewOnly } from "./components/StudentList/ViewOnly";
 import { StatusViewOnly } from "./components/Status/ViewOnly";
 import { WorkflowViewOnly } from "./components/Workflow/ViewOnly";
 import { Conflicts } from "./components/Conflicts/Conflicts";
@@ -75,7 +74,6 @@ export function ViewActivity() {
       // Merge into default values
       setFormData({...defaults, ...data})
       //formLoaded()
-      baselineHash()
     }
   }, [fetchResponse]);
 
@@ -111,7 +109,7 @@ export function ViewActivity() {
                       <Box className="flex flex-col gap-4">
                         <BasicDetailsViewOnly />
                         <StaffDetailsViewOnly />
-                        { isExcursion() && <StudentListViewOnly /> }
+                        { isExcursion() && <div>student list</div> }
                       </Box>
                     </Grid.Col>
                     <Grid.Col span={{ base: 12, lg: 3 }}>

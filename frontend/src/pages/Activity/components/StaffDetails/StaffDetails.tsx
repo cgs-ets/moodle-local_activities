@@ -26,7 +26,7 @@ export function StaffDetails() {
   return (
     <Card withBorder radius="sm" className="p-0">
       <div className="px-4 py-3">
-        <Text fz="md">Staff</Text>
+        <span className="text-base">Staff</span>
       </div>
       <div className="flex flex-col gap-6 p-4 border-t border-gray-300">
         <div className="flex flex-col gap-2">

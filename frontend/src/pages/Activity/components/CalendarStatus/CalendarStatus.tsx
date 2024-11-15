@@ -97,12 +97,10 @@ export function CalendarStatus({
     activitytype != 'assessment' && 
     status > statuses.saved &&
     !haschanges
-    ? <Card withBorder radius="sm" className="p-0 rounded-t-none -mt-[2px]">
-        <div className="px-4 py-2 bg-gray-100">
-          <span className="text-sm">Calendar flow</span>
+    ? <Card withBorder className="p-0 mt-4">
+        <div className="px-4 py-3">
+          <span className="text-base">Calendar flow</span>
         </div>
-
-
         {isCalReviewer() &&
           <div className="relative border-t text-sm w-full">
             <LoadingOverlay visible={fetchLoading} />      

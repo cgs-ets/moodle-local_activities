@@ -305,9 +305,10 @@ export function FileUploader ({inputName, title, desc, maxFiles, maxSize}: Props
         openRef={openRef}
         activateOnClick={false}
         styles={{ inner: { pointerEvents: 'all' } }}
-        className="cursor-default border text-center bg-[#f4f6f8]"
+        className="cursor-default"
+        p={0}
       >
-        <div>
+        <div className="bg-[#f4f6f8] p-4">
           <Flex className="justify-center">
             <Dropzone.Accept>
               <IconUpload
@@ -324,17 +325,13 @@ export function FileUploader ({inputName, title, desc, maxFiles, maxSize}: Props
               />
             </Dropzone.Reject>
             <Dropzone.Idle>
-              <IconCloudUpload
-                size="2.2rem"
-                className="text-black"
-                stroke={1.5}
-              />
+              <div></div>
             </Dropzone.Idle>
           </Flex>
-          
-          <Text hidden size="md" w={500} my={10}>{title}</Text>
-          <Text c="dimmed" size="sm" mb={10} >{desc}</Text>
-          <Button size="compact-md" radius="xl" className="bg-tablr-blue" onClick={() => openRef.current?.()}>Select file{maxFiles > 1 ? 's' : ''}</Button>
+          <div className="flex gap-4 items-center">
+            <Button size="compact-md" radius="xl" className="bg-tablr-blue" onClick={() => openRef.current?.()}>Select file{maxFiles > 1 ? 's' : ''}</Button>
+            <Text hidden c="dimmed" >{desc}</Text>
+          </div>
           {error && <Text mt="xs" color="red" className="break-all">{error}</Text>}
         </div>
       </Dropzone>
