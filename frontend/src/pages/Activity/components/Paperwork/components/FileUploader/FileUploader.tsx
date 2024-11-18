@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { Group, Text, Badge, ActionIcon, Button, Progress, Flex } from '@mantine/core';
+import { Group, Text, Badge, ActionIcon, Button, Progress, Flex, Modal, Anchor } from '@mantine/core';
 import { Dropzone, IMAGE_MIME_TYPE, PDF_MIME_TYPE, MS_WORD_MIME_TYPE, MS_EXCEL_MIME_TYPE, MS_POWERPOINT_MIME_TYPE } from '@mantine/dropzone';
-import { IconUpload, IconX, IconCloudUpload  } from '@tabler/icons-react';
+import { IconUpload, IconX, IconCloudUpload, IconDownload  } from '@tabler/icons-react';
 import { Form, useFormStore } from "../../../../../../stores/formStore";
 import { FileData } from "../../../../../../types/types";
 import { getConfig } from "../../../../../../utils";
+import { useDisclosure } from "@mantine/hooks";
 
 type Props = {
   inputName: string,
@@ -23,6 +24,7 @@ export function FileUploader ({inputName, title, desc, maxFiles, maxSize}: Props
   const [fileData, setFileData] = useState<FileData[]>([]);
   const [previews, setPreviews] = useState<(false | JSX.Element)[]>([]);
   const [error, setError] = useState<string>('');
+  const [downloadFile, setDownloadFile] = useState<FileData|null>(null);
 
   // Add existing files to control.
   useEffect(() => {
@@ -43,13 +45,15 @@ export function FileUploader ({inputName, title, desc, maxFiles, maxSize}: Props
         index: currPosition + index,
         displayname: file.displayname,
         file: null,
+        progress: 0,
         started: true,
         completed: true,
         removed: false,
         serverfilename: file.serverfilename,
         existing: true,
         key: file.fileid,
-      };
+        path: file.path,
+      } as FileData;
     })
     // Append the dropped files to the fileData array.
     const allFileData = [...fileData, ...dressedExistingFiles]
@@ -88,6 +92,7 @@ export function FileUploader ({inputName, title, desc, maxFiles, maxSize}: Props
         serverfilename: '',
         existing: false,
         key: '',
+        path: '',
       } as FileData;
     })
 
@@ -124,7 +129,7 @@ export function FileUploader ({inputName, title, desc, maxFiles, maxSize}: Props
 
   const uploadFile = (file: FileData) => {
     const formData = new FormData();
-    formData.append('file', file.file)
+    formData.append('file', file.file!)
     const xhr = new XMLHttpRequest();
     xhr.upload.onprogress = e => {
       let f = {...file};
@@ -239,7 +244,7 @@ export function FileUploader ({inputName, title, desc, maxFiles, maxSize}: Props
         return false;
       }
       return (
-        <Badge color="teal" size="lg" pr={3} rightSection={removeButton(file.index)} key={file.index} className="shadow-sm">
+        <Badge onClick={() => setDownloadFile(file)} color="blue" size="lg" pr={3} rightSection={removeButton(file.index)} key={file.index} className="shadow-sm cursor-pointer">
           <Flex gap={0} justify="flex-start" align="flex-start" direction="column">
             <Text tt="none">{file.displayname}</Text>
           </Flex>
@@ -279,6 +284,7 @@ export function FileUploader ({inputName, title, desc, maxFiles, maxSize}: Props
     setState({ [inputName]: withoutEmpties.join(',') } as unknown as Form);
 
   }, [fileData]);
+
 
   return (
     <>
@@ -339,6 +345,26 @@ export function FileUploader ({inputName, title, desc, maxFiles, maxSize}: Props
       <Flex mt={previews.length > 0 ? 'sm' : 0} className="justify-start gap-4">
         {previews}
       </Flex>
+
+      <Modal 
+        opened={!!downloadFile} 
+        onClose={() => setDownloadFile(null)} 
+        withCloseButton={false}
+        size="lg"
+      >
+        <div className="text-xl font-semibold mb-5">Do you want to download this file?</div>
+
+        <div>
+          <Text tt="none">{downloadFile?.displayname}</Text>
+        </div>
+
+        <div className="flex gap-2 justify-end">
+          <a target="_blank" href={downloadFile?.path}>
+            <Button size="sm" className="bg-tablr-blue" leftSection={<IconDownload />}>Download</Button>
+          </a>
+          <Button size="sm" color="gray" onClick={() => setDownloadFile(null)}>Close</Button>
+        </div>
+      </Modal>
     </>
   );
 };

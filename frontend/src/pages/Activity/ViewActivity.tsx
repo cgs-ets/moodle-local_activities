@@ -86,7 +86,7 @@ export function ViewActivity() {
       <Header />
       <div className="page-wrapper" style={{minHeight: 'calc(100vh - 154px)'}}>
         { id && !fetchResponse ? (
-          <Center h={200} mx="auto"><Loader variant="dots" /></Center>
+          <Center h={200} mx="auto"><Loader type="dots" /></Center>
         ) : (
             id && fetchError
             ? <Container size="xl">

@@ -30,7 +30,7 @@ export function CalendarStatus({
     // Define the interval function
     const interval = setInterval(() => {
       getCalendarSyncs();
-    }, 60000); // 60000 ms = 60 seconds
+    }, 30000); // 60000 ms = 60 seconds
   
     // Run the function initially if activityid is present
     if (activityid) {
@@ -89,8 +89,10 @@ export function CalendarStatus({
         },
       }
     })
-    console.log("pushpublic", publicnow)
     setFormData({pushpublic: publicnow} as Form)
+    if (!publicnow) {
+      setSyncs([])
+    }
   }
   
   return (
@@ -143,7 +145,7 @@ export function CalendarStatus({
         }
 
 
-        { status == statuses.approved &&
+        { ((status == statuses.approved) || (pushpublic && status != statuses.approved)) &&
           <div className="relative flex flex-col text-sm">
             {syncs.map((sync: any, i) => {
               return(

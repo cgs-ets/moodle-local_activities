@@ -1200,7 +1200,7 @@ class activities_lib {
     public static function post_comment($activityid, $comment) {
         global $USER, $DB;
 
-        if (!static::record_exists($activityid)) {
+        if (!activity::exists($activityid)) {
             return 0;
         }
 
@@ -1212,7 +1212,7 @@ class activities_lib {
         $record->timecreated = time();
         $record->id = $DB->insert_record(static::TABLE_EXCURSIONS_COMMENTS, $record);
 
-        static::send_comment_emails($record);
+        //static::send_comment_emails($record);
 
         return $record->id;
     }
@@ -1237,7 +1237,7 @@ class activities_lib {
     public static function load_comments($activityid) {
         global $USER, $DB, $PAGE, $OUTPUT;
 
-        if (!static::record_exists($activityid)) {
+        if (!activity::exists($activityid)) {
             return 0;
         }
 
@@ -1257,15 +1257,15 @@ class activities_lib {
             $comment->timecreated = $record->timecreated;
             $comment->readabletime = date('g:ia, j M', $record->timecreated);
             $user = \core_user::get_user_by_username($record->username);
-            $userphoto = new \user_picture($user);
-            $userphoto->size = 2; // Size f2.
-            $comment->userphoto = $userphoto->get_url($PAGE)->out(false);
             $comment->userfullname = fullname($user);
             $comment->isauthor = ($comment->username == $USER->username);
             $comments[] = $comment;
         }
 
-        return $OUTPUT->render_from_template('local_activities/activityform_approvals_comments', array('comments' => $comments));
+
+      
+
+        return $comments;
     }
 
     /*

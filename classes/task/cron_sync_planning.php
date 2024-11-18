@@ -92,7 +92,7 @@ class cron_sync_planning extends \core\task\scheduled_task {
 
             foreach($externalevents as $externalevent) {
                 $calIx = array_search($externalevent->calendar, $destinationCalendars);
-                if ($calIx === false || $event->deleted || $status->isdraftorautosave) {
+                if ($calIx === false || $event->deleted || $status->isdraftorautosave || (!$status->isapproved && !$event->pushpublic) ) {
                     // The event was deleted, or made draft, or entry not in a valid destination calendar, delete.
                     try {
                         $this->log("Deleting existing entry in calendar $externalevent->calendar", 2);
@@ -150,7 +150,9 @@ class cron_sync_planning extends \core\task\scheduled_task {
                 }
             }
 
-            if (!$event->deleted && !$status->isdraftorautosave) {
+            if ($event->deleted || $status->isdraftorautosave || (!$status->isapproved && !$event->pushpublic)) {
+                // Event should not be added to any cal.
+            } else {
                 // Create entries in remaining calendars.
                 foreach($destinationCalendars as $destCal) {
                     $this->log("Creating new entry in calendar $destCal", 2);

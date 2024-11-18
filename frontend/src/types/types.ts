@@ -20,7 +20,7 @@ export type Course = {
 export type FileData = {
   index: number,
   displayname: string,
-  file: File,
+  file: File | null,
   progress: number,
   started: boolean,
   completed: boolean,
@@ -29,6 +29,7 @@ export type FileData = {
   existing: boolean,
   key: string,
   fileid: string,
+  path: string,
 }
 
 

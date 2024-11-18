@@ -79,4 +79,35 @@ trait activities_api {
     }
 
 
+    /**
+     * Get comments
+     *
+     * @return array results.
+     */
+    static public function get_comments() {
+        $id = required_param('id', PARAM_INT);
+        return activities_lib::load_comments($id);
+    }
+
+    /**
+     * Post a comment.
+     *
+     * @return array containing activityid and comment text.
+     */
+    static public function post_comment($args) { 
+        $data = (object) $args;
+        return activities_lib::post_comment($data->activityid, $data->comment);
+    }
+
+    /**
+     * Delete a comment.
+     *
+     * @return array containing comment id.
+     */
+    static public function delete_comment($args) { 
+        $data = (object) $args;
+        return activities_lib::delete_comment($data->commentid);
+    }
+
+
 }
