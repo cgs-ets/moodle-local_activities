@@ -59,7 +59,7 @@ export function WorkflowViewOnly({
                 cn(
                   "flex justify-between items-center gap-2 border-b px-4 h-10",
                   approval.status == "1" 
-                  ? "bg-[#e9f8ed]" 
+                  ? "bg-[#d4edda]" 
                   : approval.skip == '1' 
                     ? "bg-gray-200" 
                     : approval.status == "0" ? "bg-[#ffe8cc]" : ""

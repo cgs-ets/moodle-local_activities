@@ -118,8 +118,8 @@ export function StudentList() {
 
   return (
     isExcursion(activitytype)
-    ? <div>
-        <Card withBorder radius="sm" mb="lg" className="p-0">
+    ? <>
+        <Card withBorder radius="sm" className="p-0">
           <div className="px-4 py-3">
             <Group justify="space-between">
               <Text fz="md">Students</Text>
@@ -260,9 +260,7 @@ export function StudentList() {
           }
         </Card>
         <AddStudentsModal opened={isOpenAddStudentsModal} close={addStudentsModalHandlers.close} insert={insertStudents} />
-        
-
-      </div>
+      </>
     : null
   );
 };

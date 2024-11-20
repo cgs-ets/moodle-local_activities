@@ -51,7 +51,6 @@ export type Form = {
   areasjson: string;
   displaypublic: boolean;
   pushpublic: boolean,
-  isactivity: string;
   isassessment: string;
   courseid: string;
   assessmenturl: string;
@@ -109,7 +108,6 @@ const defaults: Form = {
   areasjson: '',
   displaypublic: false,
   pushpublic: false,
-  isactivity: '',
   isassessment: '',
   courseid: '',
   assessmenturl: ''

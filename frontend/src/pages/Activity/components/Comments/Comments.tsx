@@ -80,8 +80,8 @@ export function Comments() {
 
 
   return (
-    status == statuses.approved
-    ? <Card className='mt-4 mb-0' withBorder>
+    status > statuses.inreview
+    ? <Card withBorder  mb="lg">
         <Card.Section className='border-b' inheritPadding py="sm">
           <span className="text-base">Comments</span>
         </Card.Section>

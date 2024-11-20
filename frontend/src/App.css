@@ -92,8 +92,6 @@ table thead th {
 
 
 /* Calendar View */
-
-
 .full-calendar {
   width: 100%;
   min-width: 920px;
@@ -166,4 +164,24 @@ table thead th {
   .calendar-full-wrap .container .full-calendar {
     margin: 0;
   }
+}
+
+
+
+/* Preview email */
+.browser-window {
+  width: 100%;
+}
+.browser-window .top-bar {
+  background: linear-gradient(#e7e7e6, #e2e2e1);
+}
+.browser-window .content {
+  margin: 0;
+  width: 100%;
+  border-radius: 0 0 5px 5px;
+  background-color: #fafafa;
+  padding: 20px;
+}
+.browser-window .content a {
+  pointer-events: none;
 }

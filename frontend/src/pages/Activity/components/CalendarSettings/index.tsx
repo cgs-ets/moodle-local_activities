@@ -6,9 +6,9 @@ import { CategoriesModal } from "../Modals/CategoriesModal";
 
 export function CalendarSettings() {
 
-  const formData = useFormStore()
   const setState = useFormStore(state => state.setState)
   const categories = useFormStore(state => state.categories)
+  const displaypublic = useFormStore(state => state.displaypublic)
   const colourcategory = useFormStore(state => state.colourcategory)
   const [catsModalOpened, {open: openCatsModal, close: closeCatsModal}] = useDisclosure(false);
 
@@ -34,11 +34,11 @@ export function CalendarSettings() {
       <div className="flex flex-col gap-6 border-t border-gray-300">
         <div className="flex flex-col">
           <div className="p-4 relative">
-            { formData.categories.length
-              ? <div>{formData.categories.map(cat => (<div key={cat}>{cat.replace('/', ' > ')}</div>))}</div>
+            { categories.length
+              ? <div>{categories.map(cat => (<div key={cat}>{cat.replace('/', ' > ')}</div>))}</div>
               : <div>Categories</div>
             }
-            <Button onClick={openCatsModal} size="compact-md" className="rounded-full mt-2" variant="light" rightSection={<IconEdit className="size-5" />}>{formData.categories.length ? "Change" : "Select"}</Button>
+            <Button onClick={openCatsModal} size="compact-md" className="rounded-full mt-2" variant="light" rightSection={<IconEdit className="size-5" />}>{categories.length ? "Change" : "Select"}</Button>
           </div>
 
           {categories.length > 1 
@@ -56,7 +56,7 @@ export function CalendarSettings() {
           
           <div className="flex p-4 border-t">
             <Switch
-              checked={formData.displaypublic}
+              checked={displaypublic}
               onChange={(event) => updateField('displaypublic', event.currentTarget.checked)}
               label={<span>Display event on the <a href="https://calendar.cgs.act.edu.au/" target="_blank" className="underline">public calendar<IconExternalLink className="inline size-4 stroke-1" /></a></span>}
             />
@@ -64,7 +64,7 @@ export function CalendarSettings() {
 
 
         </div>
-        <CategoriesModal categories={formData.categories} opened={catsModalOpened} close={closeCatsModal} handleChange={handleCatsChange} />
+        <CategoriesModal categories={categories} opened={catsModalOpened} close={closeCatsModal} handleChange={handleCatsChange} />
       </div>
     </Card>
   );

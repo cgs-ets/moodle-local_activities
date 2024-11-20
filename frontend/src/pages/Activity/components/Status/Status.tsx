@@ -118,16 +118,16 @@ export function Status({
       options.push(<Menu.Item key={0} onMouseDown={() => updateStatus(0)} leftSection={<IconArrowMoveLeft size={14} />}>Return to draft</Menu.Item>)
     }
 
-    if ((activitytype == 'excursion' || activitytype == 'incursion') && status > statuses.saved) {
+    if (isExcursion(activitytype) && status > statuses.saved) {
       options.push(<Menu.Item key={1} onMouseDown={() => updateStatus(1)} leftSection={<IconArrowMoveLeft size={14} />}>Return to draft</Menu.Item>)
     }
     return options
   }
 
   return (
-    <Card withBorder radius="sm" p="md"  className="overflow-visible rounded-b-none"
+    <Card withBorder radius="sm" p="md" mb="lg" className="overflow-visible rounded-b-none"
       bg={
-        activitytype == 'excursion' || activitytype == 'incursion'
+        isExcursion(activitytype)
         ? status == statuses.inreview 
           ? "orange.1" 
           : (status == statuses.approved 
@@ -157,7 +157,7 @@ export function Status({
 
       { !submitLoading && !errMessage && !haschanges &&
         <Text c="dimmed" size="sm">
-        { activitytype == 'excursion' || activitytype == 'incursion'
+        { isExcursion(activitytype)
           ?  status == statuses.saved 
             ? "All information is saved."
             : status == statuses.inreview

@@ -1,6 +1,6 @@
 import { ActionIcon, Anchor, Avatar, Button, Card, LoadingOverlay, Select, Switch, Text } from "@mantine/core"
 import { IconBell, IconBellOff, IconCalendar, IconCalendarEvent, IconCancel, IconExternalLink, IconLoader, IconLoader3, IconPencil, IconPlus, IconUser, IconUserCancel, IconUserCheck, IconUserX, IconX } from "@tabler/icons-react"
-import { cn, isCalEntry, isCalReviewer, isExcursion, isExporting } from "../../../../utils/utils"
+import { cn, isCalEntry, isCalReviewer, isExcursion } from "../../../../utils/utils"
 import { useEffect, useState } from "react";
 import { useAjax } from "../../../../hooks/useAjax";
 import useFetch from "../../../../hooks/useFetch";
@@ -9,7 +9,7 @@ import { useWorkflowStore } from "../../../../stores/workflowStore";
 import { getConfig, statuses } from "../../../../utils";
 import { useStateStore } from "../../../../stores/stateStore";
 
-export function CalendarStatus({
+export function CalendarFlow({
   activityid,
 }: {
   activityid: number,
@@ -94,24 +94,51 @@ export function CalendarStatus({
       setSyncs([])
     }
   }
+
+
+
+  const showSyncs = () => {
+    return ((status == statuses.approved) || (isExcursion(activitytype) && displaypublic && pushpublic && status != statuses.approved))
+  }
+
+  const showApproveOpt = () => {
+    return isCalReviewer() && isCalEntry(activitytype)
+  }
+
+  const showPublicNowOpt = () => {
+    return isCalReviewer() && isExcursion(activitytype) && displaypublic && status != statuses.approved
+  }
+
+  const showSomething = () => {
+    return showApproveOpt() || showPublicNowOpt() || showSyncs()
+  }
+
+  const showCard = () => {
+    return (
+      activitytype != 'assessment' && 
+      status >= statuses.inreview &&
+      !haschanges &&
+      showSomething()
+    )
+  }
   
   return (
-    activitytype != 'assessment' && 
-    status > statuses.saved &&
-    !haschanges
-    ? <Card withBorder className="p-0 mt-4">
+    showCard()
+    ? <Card withBorder className="p-0 mt-4" mb="lg">
+
         <div className="px-4 py-3">
           <span className="text-base">Calendar flow</span>
         </div>
+ 
         {isCalReviewer() &&
-          <div className="relative border-t text-sm w-full">
-            <LoadingOverlay visible={fetchLoading} />      
+          <div className="relative border-t text-sm w-full">   
             <div className="flex">
-              {isCalEntry(activitytype) &&
+
+              {showApproveOpt() &&
                 <div 
                   className={cn(
                     "flex-1 flex justify-between items-center gap-2 border-b px-4 h-10",
-                    status == statuses.approved ? "bg-[#e9f8ed]" : ""
+                    status == statuses.approved ? "bg-[#d4edda]" : ""
                   )}
                 >
                   <LoadingOverlay visible={false} />
@@ -124,11 +151,11 @@ export function CalendarStatus({
                 </div>
               }
 
-              { displaypublic && status != statuses.approved
-              ? <div 
+              { showPublicNowOpt() &&
+                <div 
                   className={cn(
                     "flex-1 flex justify-between items-center gap-2 border-b px-4 h-10 border-l",
-                    pushpublic ? "bg-[#e9f8ed]" : ""
+                    pushpublic ? "xbg-[#d4edda]" : ""
                   )}
                 >
                   <LoadingOverlay visible={false} />
@@ -138,18 +165,17 @@ export function CalendarStatus({
                     onChange={(event) => submitPublicNow(event.currentTarget.checked)}
                   />
                 </div>
-                : null
               }
             </div>
           </div>
         }
 
 
-        { ((status == statuses.approved) || (pushpublic && status != statuses.approved)) &&
+        { showSyncs() &&
           <div className="relative flex flex-col text-sm">
             {syncs.map((sync: any, i) => {
               return(
-                <div key={i} className="flex justify-between items-center gap-2 border-b px-4 h-10 bg-[#e9f8ed]">
+                <div key={i} className="flex justify-between items-center gap-2 border-b px-4 h-10 xbg-[#d4edda]">
                   <Anchor className="text-sm flex items-center gap-1 flex-nowrap" href={sync.weblink}><IconCalendar className="size-4 stroke-1" /> {sync.calendar}</Anchor>
                 </div>
               )

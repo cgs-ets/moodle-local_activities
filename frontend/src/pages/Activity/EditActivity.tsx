@@ -15,7 +15,7 @@ import { CalendarSettings } from "./components/CalendarSettings";
 import { Workflow } from "./components/Workflow";
 import { useWorkflowStore } from "../../stores/workflowStore";
 import { Conflicts } from "./components/Conflicts/Conflicts";
-import { CalendarStatus } from "./components/CalendarStatus/CalendarStatus";
+import { CalendarFlow } from "./components/CalendarFlow/CalendarFlow";
 import { Paperwork } from "./components/Paperwork/Paperwork";
 import { permission } from "process";
 import { useDisclosure } from "@mantine/hooks";
@@ -24,6 +24,7 @@ import { EmailModal } from "./components/EmailModal/EmailModal";
 import { isExcursion } from "../../utils/utils";
 import { Comments } from "./components/Comments/Comments";
 import { StudentList } from "./components/StudentList/StudentList";
+import { NextSteps } from "./components/NextSteps/NextSteps";
 
 export function EditActivity() {
   let { id } = useParams();
@@ -213,7 +214,7 @@ export function EditActivity() {
                 <Container size="xl" my="md">
                   <form noValidate onSubmit={handleSubmit}>
                     <Grid grow>
-                      <Grid.Col span={{ base: 12, lg: 9 }}>
+                      <Grid.Col span={{ base: 12, lg: 8 }}>
                         <Box className="flex flex-col gap-4">
                           <BasicDetails />
                           <CalendarSettings />
@@ -227,11 +228,12 @@ export function EditActivity() {
                           }
                         </Box>
                       </Grid.Col>
-                      <Grid.Col span={{ base: 12, lg: 3 }}>
+                      <Grid.Col span={{ base: 12, lg: 4 }}>
                         <Status submitLoading={submitLoading} submitError={submitError} submitResponse={submitResponse} />
-                        <Conflicts />
                         <Workflow activityid={Number(id || 0)} />
-                        <CalendarStatus activityid={Number(id || 0)} />
+                        <Conflicts />
+                        <CalendarFlow activityid={Number(id || 0)} />
+                        <NextSteps />
                         <Comments />
                       </Grid.Col>
                     </Grid>

@@ -14,7 +14,17 @@ export function BasicDetailsViewOnly() {
       <div className="flex flex-col gap-4">
         <div>
           <Text fz="sm" mb="5px" fw={500} c="#212529">Type</Text>
-          <span>{formData.activitytype == 'excursion' ? 'Excursion' : formData.activitytype == 'incursion' ? 'Incursion' : formData.activitytype == 'calendar' ? 'Calendar entry' : 'Assessment'}</span>
+          <span>{
+            formData.activitytype == 'excursion' 
+            ? 'Excursion' 
+            : formData.activitytype == 'incursion' 
+              ? 'Incursion' 
+              : formData.activitytype == 'calendar' 
+                ? 'Calendar entry' 
+                : formData.activitytype == 'campus'
+                  ? 'Campus management'
+                  : 'Assessment'
+          }</span>
         </div>
 
         <div>

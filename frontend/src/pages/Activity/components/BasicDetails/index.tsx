@@ -76,6 +76,7 @@ export function BasicDetails() {
                 { value: 'excursion', label: 'Excursion' },
                 { value: 'incursion', label: 'Incursion' },
                 { value: 'calendar', label: 'Calendar entry' },
+                { value: 'campus', label: 'Campus management' },
                 //{ value: 'assessment', label: 'Assessment' },
               ]}
             />

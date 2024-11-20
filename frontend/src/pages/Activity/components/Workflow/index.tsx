@@ -1,6 +1,6 @@
 import { ActionIcon, Avatar, Button, Card, LoadingOverlay, Select, Switch, Text } from "@mantine/core"
 import { IconBell, IconBellOff, IconCancel, IconPencil, IconPlus, IconUser, IconUserCancel, IconUserCheck, IconUserX, IconX } from "@tabler/icons-react"
-import { cn } from "../../../../utils/utils"
+import { cn, isExcursion } from "../../../../utils/utils"
 import { useEffect, useState } from "react";
 import { useAjax } from "../../../../hooks/useAjax";
 import useFetch from "../../../../hooks/useFetch";
@@ -34,7 +34,7 @@ export function Workflow({
 
   useEffect(() => {
     setDraftApprovals([])
-    if (status == statuses.draft || status == statuses.saved || (initialCampus && initialCampus != campus)) {
+    if (expectNewWorkflow()) {
       getDraftWorkflow()
     }
   }, [campus, activityid, status, savedtime, initialCampus, activitytype])
@@ -60,6 +60,9 @@ export function Workflow({
     }
   }, [fetchResponse]);
 
+  const expectNewWorkflow = () => {
+    return status == statuses.draft || status == statuses.saved || (initialCampus && initialCampus != campus) || (initialActivitytype && initialActivitytype != activitytype)
+  }
 
   const getDraftWorkflow = () => {
     console.log("Getting draft workflow")
@@ -72,13 +75,14 @@ export function Workflow({
       query: {
         methodname: 'local_activities-get_draft_workflow',
         id: activityid,
+        activitytype: activitytype,
         campus: campus,
       }
     })
   }
   useEffect(() => {
     if (fetchDraftResponse && !fetchDraftError) {
-      if (status == statuses.draft || status == statuses.saved || (initialCampus && initialCampus != campus)) {
+      if (expectNewWorkflow() && JSON.stringify(approvals.map(a => a.type)) != JSON.stringify(fetchDraftResponse.data.map((a: any) => a.type)) ) {
         setDraftApprovals(fetchDraftResponse.data)
       }
     }
@@ -87,13 +91,13 @@ export function Workflow({
 
   
   return (
-    (activitytype == 'excursion' || activitytype == 'incursion') && (approvals.length || draftApprovals.length) ?
-    <Card withBorder radius="sm" className="p-0 rounded-t-none -mt-[1px]">
-      <div className="px-4 py-2 bg-gray-100">
-        <span className="text-sm">Workflow {status == statuses.draft || status == statuses.saved ? "(Not started)" : ""}</span>
+    isExcursion(activitytype) && (approvals.length || draftApprovals.length) ?
+    <Card withBorder radius="sm" className="p-0 rounded-t-none -mt-[1px]" mb="lg">
+      <div className="hidden px-4 py-2">
+        <span className="text-base">Workflow {status == statuses.draft || status == statuses.saved ? "(Not started)" : ""}</span>
       </div>
       
-      <div className="relative flex flex-col border-t text-sm">
+      <div className="relative flex flex-col xborder-t text-sm">
         <LoadingOverlay visible={fetchLoading || fetchDraftLoading} />
         { draftApprovals.length
           ? <div className="z-10 absolute top-0 left-0 w-full h-full xbg-black/40 backdrop-blur-[2px]">

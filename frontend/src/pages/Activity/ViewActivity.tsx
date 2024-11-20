@@ -19,6 +19,7 @@ import { StaffDetailsViewOnly } from "./components/StaffDetails/ViewOnly";
 import { StatusViewOnly } from "./components/Status/ViewOnly";
 import { WorkflowViewOnly } from "./components/Workflow/ViewOnly";
 import { Conflicts } from "./components/Conflicts/Conflicts";
+import { isExcursion } from "../../utils/utils";
 
 export function ViewActivity() {
   let { id } = useParams();
@@ -77,9 +78,6 @@ export function ViewActivity() {
     }
   }, [fetchResponse]);
 
-  const isExcursion = () => {
-    return (activitytype == 'excursion' || activitytype == 'incursion')
-  }
 
   return (
     <>
@@ -100,7 +98,7 @@ export function ViewActivity() {
                 </Container>
                 <Container size="xl" my="md">
                   <Grid grow>
-                    <Grid.Col span={{ base: 12, lg: isExcursion() ? 9 : 12 }} className="relative">
+                    <Grid.Col span={{ base: 12, lg: isExcursion(activitytype) ? 9 : 12 }} className="relative">
                       <div className="absolute -top-9 right-2">
                         <Link to={`/activity/${id}/edit`}>
                           <ActionIcon variant="subtle"><IconPencil /></ActionIcon>
@@ -109,11 +107,11 @@ export function ViewActivity() {
                       <Box className="flex flex-col gap-4">
                         <BasicDetailsViewOnly />
                         <StaffDetailsViewOnly />
-                        { isExcursion() && <div>student list</div> }
+                        { isExcursion(activitytype) && <div>student list</div> }
                       </Box>
                     </Grid.Col>
                     <Grid.Col span={{ base: 12, lg: 3 }}>
-                      { isExcursion() && 
+                      { isExcursion(activitytype) && 
                         <>
                           <StatusViewOnly />
                           <Conflicts />

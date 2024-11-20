@@ -6,9 +6,9 @@ export function Paperwork() {
 
   return (
     <>
-      <Card withBorder radius="sm" pb="xl" className='overflow-visible' mb="lg">
+      <Card withBorder radius="sm" pb="xl" className='overflow-visible'>
         <Card.Section withBorder inheritPadding py="sm">
-          <h3 className="text-base font-medium m-0">Paperwork</h3>
+          <h3 className="text-base m-0">Paperwork</h3>
         </Card.Section>
         <Card.Section inheritPadding py="sm">
           <Grid gutter="xl">

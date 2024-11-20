@@ -6,7 +6,11 @@ import { clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 
 export const isExcursion = (activitytype: string) => {
-  return (activitytype == 'excursion' || activitytype == 'incursion')
+  return (
+    activitytype == 'excursion' || 
+    activitytype == 'incursion' ||
+    activitytype == 'campus'
+  )
 };
 
 export const isCalEntry = (activitytype: string) => {
@@ -30,15 +34,6 @@ export const entryStatus = () => {
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
-}
-
-export const isExporting = (activitytype: string , status: number) => {
-  if (activitytype == 'excursion' || activitytype == 'incursion') {
-    
-  } else {
- 
-  }
-  return false
 }
 
 export const isCalReviewer = () => {
