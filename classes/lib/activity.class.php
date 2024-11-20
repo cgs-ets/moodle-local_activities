@@ -58,7 +58,6 @@ class Activity {
         'areasjson' => '',
         'displaypublic' => 0,
         'pushpublic' => 0,
-        'isactivity' => 0,
         'timesynclive' => 0,
         'timesyncplanning' => 0,
         'isassessment' => 0,

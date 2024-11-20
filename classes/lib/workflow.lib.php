@@ -20,7 +20,7 @@ class workflow_lib extends \local_activities\local_activities_config {
     const APPROVAL_STATUS_REJECTED = 2;
 
 
-    private static function get_approval_clone($name, $sequence, $activityid, $campus) {
+    private static function get_approval_clone($name, $sequence, $activityid) {
         // Approval stub.
         $approval = new \stdClass();
         $approval->activityid = $activityid;
@@ -37,46 +37,58 @@ class workflow_lib extends \local_activities\local_activities_config {
         return $approval;
     }
 
-    private static function get_approval_stubs($activityid, $campus) {
+    private static function get_approval_stubs($activityid, $activitytype, $campus) {
         
         $approvals = array();
 
-        // Workflow.
-        switch ($campus) {
-            case 'senior': {
-                // Senior School - 1st approver.
-                $approvals[] = static::get_approval_clone('senior_ra', 1, $activityid, $campus);
+        if ($activitytype == 'campus') {
+            // campusmng - 1st approver.
+            $approvals[] =  static::get_approval_clone('campusmng_ra', 1, $activityid);
 
-                // Senior School - 2nd approver.
-                $approvals[] = static::get_approval_clone('senior_admin', 2, $activityid, $campus);
+            // campusmng - 2nd approver.
+            $approvals[] =  static::get_approval_clone('campusmng_admin', 2, $activityid);
 
-                // Senior School - 3st approver.
-                $approvals[] = static::get_approval_clone('senior_hoss', 3, $activityid, $campus);
-                break;
-            }
-            case 'primary': {
-                // Primary School - 1st approver.
-                $approvals[] = static::get_approval_clone('primary_ra', 1, $activityid, $campus);
+            // campusmng - 3rd approver.
+            $approvals[] =  static::get_approval_clone('campusmng_final', 3, $activityid);
+        } else  {
+            switch ($campus) {
+                case 'senior': {
+                    // Senior School - 1st approver.
+                    $approvals[] = static::get_approval_clone('senior_ra', 1, $activityid);
 
-                // Primary School - 2nd approver.
-                $approvals[] = static::get_approval_clone('primary_admin', 2, $activityid, $campus);
+                    // Senior School - 2nd approver.
+                    $approvals[] = static::get_approval_clone('senior_admin', 2, $activityid);
 
-                // Primary School - 3rd approver.
-                $approvals[] = static::get_approval_clone('primary_hops', 3, $activityid, $campus);
-                break;
-            }
-            case 'whole': {    
-                // Whole School - 1st approver.
-                $approvals[] = static::get_approval_clone('whole_ra', 1, $activityid, $campus);
+                    // Senior School - 3st approver.
+                    $approvals[] = static::get_approval_clone('senior_hoss', 3, $activityid);
+                    break;
+                }
+                case 'primary': {
+                    // Primary School - 1st approver.
+                    $approvals[] = static::get_approval_clone('primary_ra', 1, $activityid);
 
-                // Whole School - 2nd approver.
-                $approvals[] = static::get_approval_clone('whole_admin', 2, $activityid, $campus);
+                    // Primary School - 2nd approver.
+                    $approvals[] = static::get_approval_clone('primary_admin', 2, $activityid);
 
-                // Whole School - 3rd approver.
-                $approvals[] = static::get_approval_clone('whole_final', 3, $activityid, $campus);
-                break;
+                    // Primary School - 3rd approver.
+                    $approvals[] = static::get_approval_clone('primary_hops', 3, $activityid);
+                    break;
+                }
+                case 'whole': {    
+                    // Whole School - 1st approver.
+                    $approvals[] = static::get_approval_clone('whole_ra', 1, $activityid);
+
+                    // Whole School - 2nd approver.
+                    $approvals[] = static::get_approval_clone('whole_admin', 2, $activityid);
+
+                    // Whole School - 3rd approver.
+                    $approvals[] = static::get_approval_clone('whole_final', 3, $activityid);
+                    break;
+                }
             }
         }
+
+    
         return $approvals;
     }
 
@@ -100,7 +112,7 @@ class workflow_lib extends \local_activities\local_activities_config {
             }
         }
 
-        $approvals = static::get_approval_stubs($newactivity->get('id'), $newactivity->get('campus'));
+        $approvals = static::get_approval_stubs($newactivity->get('id'), $newactivity->get('activitytype'), $newactivity->get('campus'));
         //echo "<pre>"; var_export($approvals); exit;
 
         // Invalidate approvals that should not be there.
@@ -787,8 +799,8 @@ class workflow_lib extends \local_activities\local_activities_config {
     }
 
 
-    public static function get_draft_workflow($campus) {
-        return static::get_approval_stubs(0, $campus); //$campus == 'whole' ? 'senior' : $campus);
+    public static function get_draft_workflow($activitytype, $campus) {
+        return static::get_approval_stubs(0, $activitytype, $campus); //$campus == 'whole' ? 'senior' : $campus);
     }
 
 

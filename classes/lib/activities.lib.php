@@ -36,6 +36,15 @@ class activities_lib {
     const TABLE_EXCURSIONS_PERMISSIONS = 'activity_permissions';
     const TABLE_EXCURSIONS_STAFF = 'activity_staff';
 
+    public static function is_excursion($activitytype) {
+        return (
+            $activitytype == 'excursion' || 
+            $activitytype == 'incursion' ||
+            $activitytype == 'campus'
+        );
+    }
+
+
     /**
      * Insert/update activity from submitted form data.
      *
@@ -65,7 +74,7 @@ class activities_lib {
                 }
                 $originalactivity = new Activity($data->id);
                 $activity = new Activity($data->id);
-                if ($data->activitytype == 'excursion' || $data->activitytype == 'incursion') {
+                if (static::is_excursion($data->activitytype)) {
                     $activity->set('status', max(static::ACTIVITY_STATUS_DRAFT, $activity->get('status')));
                 } else {
                     // If this is a calendar entry or assessment, there is no draft state, it's ether 0 (new), 2 (in review) or 3 (approved)
@@ -108,12 +117,9 @@ class activities_lib {
             $activity->set('permissionstype', $data->permissionstype);
             $activity->set('permissionslimit', $data->permissionslimit);
             $activity->set('permissionsdueby', $data->permissionsdueby);
-            //$activity->set('riskassessment', $data->riskassessment);
-            //$activity->set('attachments', $data->attachments);
             $activity->set('otherparticipants', $data->otherparticipants);
             $activity->set('colourcategory', $data->colourcategory);
             $activity->set('displaypublic', $data->displaypublic);
-            $activity->set('isactivity', $data->isactivity);
             $activity->set('isassessment', $data->isassessment);
             $activity->set('courseid', $data->courseid);
             $activity->set('assessmenturl', $data->assessmenturl);
@@ -179,7 +185,7 @@ class activities_lib {
             // If saving after already in review or approved, determine the approvers based on campus.
             if ($originalactivity && 
                 ($data->status == static::ACTIVITY_STATUS_INREVIEW || $data->status == static::ACTIVITY_STATUS_APPROVED) &&
-                ($data->activitytype == 'excursion' || $data->activitytype == 'incursion')
+                static::is_excursion($data->activitytype)
             ) {
                 $newstatusinfo = workflow_lib::generate_approvals($originalactivity, $activity);
             } /*else if ($data->activitytype == 'calendar' || $data->activitytype == 'assessment') {

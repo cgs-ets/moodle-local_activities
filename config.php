@@ -5,6 +5,7 @@ namespace local_activities;
 class local_activities_config {
 
 	const WORKFLOW = array(
+
         // Senior RA
         'senior_ra' => array(
 	    	'name' => 'SS RA Approval',
@@ -215,6 +216,64 @@ class local_activities_config {
 		    ),
 			'canskip' => true,
 	    ),
+
+
+
+
+        // CAMPUSMNG
+		'campusmng_ra' => array(
+	    	'name' => 'RA Approval',
+	    	'invalidated_on_edit' => array(),
+	    	'approvers' => array(
+		        'admin' => array(
+		            'username' => 'admin',
+		            'contacts' => null,
+		        ),
+		    ),
+		    'prerequisites' => null
+	    ),
+	    'campusmng_admin' => array(
+	    	'name' => 'Operations Approval',
+	    	'invalidated_on_edit' => array(
+	    		'location',
+	    		'timestart',
+	    		'timeend',
+	    		'riskassessment',
+	    	),
+	    	'approvers' => array(
+		        'admin' => array(
+		            'username' => 'admin',
+		            'contacts' => null,
+		        ),
+            ),
+		    'prerequisites' => null,
+	    ),
+	    'campusmng_final' => array(
+	    	'name' => 'Final Approval',
+	    	'invalidated_on_edit' => array (
+	    		'location',
+	    		'timestart',
+	    		'timeend',
+	    		'riskassessment',
+	    	),
+	    	'approvers' => array(
+	    		'admin' => array(
+		            'username' => 'admin',
+		            'contacts' => null,
+		        ),
+		    ),
+		    'prerequisites' => array(
+		    	'whole_admin',
+		    ),
+	    ),
+
+
+
+
+
+
+
+
 
 	);
 	

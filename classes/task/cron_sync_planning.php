@@ -82,6 +82,7 @@ class cron_sync_planning extends \core\task\scheduled_task {
             $approved = $status->isapproved;
 
             $destinationCalendars = array($config->planningcalupn);
+            $isExcursion = activities_lib::is_excursion($event->activitytype);
 
             // Get existing sync entries.
             $sql = "SELECT *
@@ -90,10 +91,33 @@ class cron_sync_planning extends \core\task\scheduled_task {
                 AND calendar = ?";
             $externalevents = $DB->get_records_sql($sql, [$event->id, $config->planningcalupn]);
 
+            $skipEvent = false;
+            if ($event->deleted) {
+                // Event is deleted.
+                $skipEvent = true;
+            }
+
+            if (!$status->isapproved) {
+                // Event is unapproved.
+                // Possible exception:
+                if ($isExcursion && $event->displaypublic && $event->pushpublic) {
+                    // Event may not be approved, but if it pushpublic then include it.
+                } else {
+                    $skipEvent = true;
+                }
+            }
+
             foreach($externalevents as $externalevent) {
                 $calIx = array_search($externalevent->calendar, $destinationCalendars);
-                if ($calIx === false || $event->deleted || $status->isdraftorautosave || (!$status->isapproved && !$event->pushpublic) ) {
-                    // The event was deleted, or made draft, or entry not in a valid destination calendar, delete.
+
+                $deleteExternal = false;
+                if ($calIx === false) {
+                    // existing event is not in the list of calendars it should belong in.
+                    $deleteExternal = true;
+                }
+
+                if ($skipEvent || $deleteExternal) {
+                    // The event should not be in this calendar.
                     try {
                         $this->log("Deleting existing entry in calendar $externalevent->calendar", 2);
                         $result = graph_lib::deleteEvent($externalevent->calendar, $externalevent->externalid);
@@ -150,7 +174,7 @@ class cron_sync_planning extends \core\task\scheduled_task {
                 }
             }
 
-            if ($event->deleted || $status->isdraftorautosave || (!$status->isapproved && !$event->pushpublic)) {
+            if ($skipEvent) {
                 // Event should not be added to any cal.
             } else {
                 // Create entries in remaining calendars.
