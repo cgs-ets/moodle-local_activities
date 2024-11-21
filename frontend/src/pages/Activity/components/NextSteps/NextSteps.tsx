@@ -1,5 +1,4 @@
-import { Card, Timeline, Text, Avatar, Group, ThemeIcon, Anchor, List } from '@mantine/core';
-import { IconUser, IconCheck, IconSun, IconVaccine, IconSend } from '@tabler/icons-react';
+import { Card, Timeline, Text, Anchor, List } from '@mantine/core';
 
 import { statuses } from '../../../../utils';
 import { useFormStore } from '../../../../stores/formStore';

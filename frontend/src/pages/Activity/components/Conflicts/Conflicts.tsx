@@ -53,7 +53,7 @@ export function Conflicts() {
             opened={conflictsOpened} 
             onClose={hideConflicts} 
             title="Conflicts" 
-            size="xl"
+            size="90%"
             styles={{
               header: {
                 borderBottom: '0.0625rem solid #dee2e6',

@@ -20,11 +20,12 @@ import { Paperwork } from "./components/Paperwork/Paperwork";
 import { permission } from "process";
 import { useDisclosure } from "@mantine/hooks";
 import { Permissions } from "./components/Permissions/Permissions";
-import { EmailModal } from "./components/EmailModal/EmailModal";
 import { isExcursion } from "../../utils/utils";
 import { Comments } from "./components/Comments/Comments";
 import { StudentList } from "./components/StudentList/StudentList";
 import { NextSteps } from "./components/NextSteps/NextSteps";
+import { EmailModal } from "./components/EmailModal/EmailModal";
+import { PermissionsEmailModal } from "./components/PermissionsEmailModal/PermissionsEmailModal";
 
 export function EditActivity() {
   let { id } = useParams();
@@ -238,7 +239,7 @@ export function EditActivity() {
                       </Grid.Col>
                     </Grid>
                   </form>
-                  <EmailModal opened={isOpenEmailModal} close={emailModalHandlers.close} />
+                  <PermissionsEmailModal opened={isOpenEmailModal} close={emailModalHandlers.close} />
             </Container>
           </>
         )}

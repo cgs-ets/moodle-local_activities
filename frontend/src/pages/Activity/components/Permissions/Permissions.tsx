@@ -4,19 +4,22 @@ import { IconChevronDown, IconChevronUp, IconCopy, IconMail } from '@tabler/icon
 import { useDisclosure } from '@mantine/hooks';
 import { useClipboard } from 'use-clipboard-copy';
 import { useCallback } from 'react';
-import { statuses } from '../../../../utils';
+import { getConfig, statuses } from '../../../../utils';
 import { Form, useFormStore } from '../../../../stores/formStore';
 import dayjs from 'dayjs';
 
 
 export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
 
+  const activityid = useFormStore((state) => state.id)
   const status = useFormStore((state) => state.status)
   const permissions = useFormStore((state) => state.permissions)
   const permissionslimit = useFormStore((state) => state.permissionslimit)
   const permissionsdueby = useFormStore((state) => state.permissionsdueby)
+  const studentlist = useFormStore((state) => state.studentlist)
   const setState = useFormStore((state) => state.setState)
-
+  const config = getConfig()
+  console.log(config)
   const [openedPermissionsURL, togglePermissionsURL] = useDisclosure(false);
 
   const permissionsUrlClipboard = useClipboard({
@@ -93,10 +96,17 @@ export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
 
             { permissions && status == statuses.approved && 
               <>
+                
                 <div className="p-4 border-t border-gray-300 flex justify-between">
-                  <Button size="compact-md" radius="xl" leftSection={<IconMail size={14} />} className="bg-tablr-blue" onClick={openSendMessage}>Send permission requests</Button>
-                  <Button size="compact-md" onClick={togglePermissionsURL.toggle} radius="xl" className="bg-tablr-blue-light" variant="subtle" rightSection={openedPermissionsURL ? <IconChevronUp size={14}/> : <IconChevronDown size={14}/> }>Send manually</Button>
+                  {studentlist.length
+                    ? <>
+                        <Button size="compact-md" radius="xl" leftSection={<IconMail size={14} />} className="bg-tablr-blue" onClick={openSendMessage}>Prepare permission requests</Button>
+                        <Button size="compact-md" onClick={togglePermissionsURL.toggle} radius="xl" className="bg-tablr-blue-light" variant="subtle" rightSection={openedPermissionsURL ? <IconChevronUp size={14}/> : <IconChevronDown size={14}/> }>Send manually</Button>
+                      </>
+                    : <div className='bg-yellow-100 px-1'>You must add students before you can finalise permission settings</div>
+                  }
                 </div>
+
                 { openedPermissionsURL &&
                   <div className="p-4 border-t border-gray-300">
                     <Text mb="xs" fw={500}>
@@ -112,7 +122,7 @@ export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
                       bg={permissionsUrlClipboard.copied ? 'green.1' : 'blue.1'}
                     >
                       <Flex justify="space-between" align="center">
-                        <Text size="ms" pr="xs" ff="monospace">https://some.institution.edu/local/excursions/permissions/1505</Text>
+                        <Text size="ms" pr="xs" ff="monospace">{config.wwwroot}/local/activities/{activityid}/permission</Text>
                         <Button 
                           size="compact-md"
                           variant="outline" 

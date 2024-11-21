@@ -110,4 +110,15 @@ trait activities_api {
     }
 
 
+    /**
+     * Send initial permissions email.
+     *
+     * @return array containing activityid and optional text.
+     */
+    static public function send_email($args) { 
+        $data = (object) $args;
+        return activities_lib::send_activity_email($data);
+    }
+    
+
 }

@@ -11,6 +11,8 @@ import { User } from '../../../../types/types';
 import { Form, useFormStore } from '../../../../stores/formStore';
 import { isExcursion } from '../../../../utils/utils';
 import { useAjax } from '../../../../hooks/useAjax';
+import { PermissionsEmailModal } from '../PermissionsEmailModal/PermissionsEmailModal';
+import { EmailModal } from '../EmailModal/EmailModal';
 
 
 export function StudentList() {
@@ -24,6 +26,7 @@ export function StudentList() {
   const activitytype = useFormStore((state) => (state.activitytype))
   const permissionsrequired = useFormStore((state) => (state.permissions))
   const [isOpenAddStudentsModal, addStudentsModalHandlers] = useDisclosure(false)
+  const [isOpenMessageModal, messageModalHandlers] = useDisclosure(false);
 
 
   const [fetchResponse, fetchError, fetchLoading, fetchAjax] = useAjax(); // destructure state and fetch function
@@ -140,7 +143,7 @@ export function StudentList() {
             : (
                 studentlist?.length == 0 
                   ? <div className="p-4 border-t border-gray-300">
-                      <Button onClick={addStudentsModalHandlers.open} variant="filled" radius="xl" leftSection={<IconPlus size={14} />} >Add students</Button>
+                      <Button onClick={addStudentsModalHandlers.open} size="compact-md" radius="xl" leftSection={<IconPlus size={14} />} >Add students</Button>
                     </div>
                   : <>
 
@@ -250,7 +253,7 @@ export function StudentList() {
                           </Flex>
                           { status == statuses.approved &&
                             <Tooltip.Floating disabled={!haschanges} label="You must save changes before you may send messages.">
-                              <Button variant="filled" color={haschanges ? "gray.4" : undefined} onClick={() => (haschanges ? null : null)} size="compact-sm" radius="xl" leftSection={<IconMail size={14} />}>Send a message</Button>
+                              <Button variant="filled" color={haschanges ? "gray.4" : undefined} onClick={() => (haschanges ? null : messageModalHandlers.open())} size="compact-sm" radius="xl" leftSection={<IconMail size={14} />}>Send a message</Button>
                             </Tooltip.Floating>
                           }
                         </Group>
@@ -260,6 +263,13 @@ export function StudentList() {
           }
         </Card>
         <AddStudentsModal opened={isOpenAddStudentsModal} close={addStudentsModalHandlers.close} insert={insertStudents} />
+        <EmailModal
+          students={
+            !!Object.keys(rowSelection).length 
+            ? studentlist.filter(s => Object.keys(rowSelection).includes(s.un))
+            : !!studentlist.length ? studentlist : []
+          } 
+          opened={isOpenMessageModal} close={messageModalHandlers.close} />
       </>
     : null
   );

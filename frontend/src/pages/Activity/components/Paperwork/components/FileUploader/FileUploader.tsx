@@ -314,7 +314,7 @@ export function FileUploader ({inputName, title, desc, maxFiles, maxSize}: Props
         className="cursor-default"
         p={0}
       >
-        <div className="bg-[#f4f6f8] p-4">
+        <div className="bg-[#f4f6f8] p-4" onClick={() => openRef.current?.()}>
           <Flex className="justify-center">
             <Dropzone.Accept>
               <IconUpload
@@ -335,8 +335,8 @@ export function FileUploader ({inputName, title, desc, maxFiles, maxSize}: Props
             </Dropzone.Idle>
           </Flex>
           <div className="flex gap-4 items-center">
-            <Button size="compact-md" radius="xl" className="bg-tablr-blue" onClick={() => openRef.current?.()}>Select file{maxFiles > 1 ? 's' : ''}</Button>
-            <Text hidden c="dimmed" >{desc}</Text>
+            <Button variant="light" size="compact-md" radius="xl" onClick={() => openRef.current?.()}>Select file{maxFiles > 1 ? 's' : ''}</Button>
+            <Text c="dimmed" >{desc}</Text>
           </div>
           {error && <Text mt="xs" color="red" className="break-all">{error}</Text>}
         </div>

@@ -13,10 +13,10 @@ export function Paperwork() {
         <Card.Section inheritPadding py="sm">
           <Grid gutter="xl">
             <Grid.Col span={12}>
-              <FileUploader inputName="riskassessment" title="Risk Assessment" desc="Drag file or click to select. The file must not exceed 10mb." maxFiles={1} maxSize={10} />
+              <FileUploader inputName="riskassessment" title="Risk Assessment" desc="or Drag file. The file must not exceed 10mb." maxFiles={1} maxSize={10} />
             </Grid.Col>
             <Grid.Col span={12}>
-              <FileUploader inputName="attachments" title="Attachments" desc="Drag files or click to select. Maximum 10 files. Each file should not exceed 10mb." maxFiles={10} maxSize={10} />
+              <FileUploader inputName="attachments" title="Attachments" desc="or Drag files. Maximum 10 files. Each file should not exceed 10mb." maxFiles={10} maxSize={10} />
             </Grid.Col>
           </Grid>
         </Card.Section>

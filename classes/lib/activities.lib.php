@@ -28,13 +28,13 @@ class activities_lib {
 
     /** Table to store this persistent model instances. */
     const TABLE = 'activities';
-    const TABLE_EXCURSIONS_STUDENTS  = 'activity_students';
-    const TABLE_EXCURSIONS_STUDENTS_TEMP  = 'activity_students_temp';
-    const TABLE_EXCURSIONS_APPROVALS  = 'activity_approvals';
-    const TABLE_EXCURSIONS_COMMENTS = 'activity_comments';
-    const TABLE_EXCURSIONS_PERMISSIONS_SEND = 'activity_permissions_send';
-    const TABLE_EXCURSIONS_PERMISSIONS = 'activity_permissions';
-    const TABLE_EXCURSIONS_STAFF = 'activity_staff';
+    const TABLE_ACTIVITY_STUDENTS  = 'activity_students';
+    const TABLE_ACTIVITY_STUDENTS_TEMP  = 'activity_students_temp';
+    const TABLE_ACTIVITY_APPROVALS  = 'activity_approvals';
+    const TABLE_ACTIVITY_COMMENTS = 'activity_comments';
+    const TABLE_ACTIVITY_EMAILS = 'activity_emails';
+    const TABLE_ACTIVITY_PERMISSIONS = 'activity_permissions';
+    const TABLE_ACTIVITY_STAFF = 'activity_staff';
 
     public static function is_excursion($activitytype) {
         return (
@@ -462,7 +462,7 @@ class activities_lib {
             $mentors = static::get_users_mentors($user->id);
             foreach ($mentors as $mentor) {
                 // Only insert this if it doesn't exist.
-                $exists = $DB->record_exists(activity::TABLE_EXCURSIONS_PERMISSIONS, array(
+                $exists = $DB->record_exists(activity::TABLE_ACTIVITY_PERMISSIONS, array(
                     'activityid' => $activityid,
                     'studentusername' => $student->username,
                     'parentusername' => $mentor,
@@ -478,7 +478,7 @@ class activities_lib {
                     $permission->queuesendid = 0;
                     $permission->response = 0;
                     $permission->timecreated = time();
-                    $DB->insert_record(activity::TABLE_EXCURSIONS_PERMISSIONS, $permission);
+                    $DB->insert_record(activity::TABLE_ACTIVITY_PERMISSIONS, $permission);
                 }
             }
         }
@@ -594,7 +594,7 @@ class activities_lib {
         $useractivityids = array_column($useractivities, 'id');
 
         $sql = "SELECT id, activityid
-                    FROM {" . static::TABLE_EXCURSIONS_PLANNING_STAFF. "} 
+                    FROM {" . static::TABLE_ACTIVITY_PLANNING_STAFF. "} 
                     WHERE username = ?";
         $planningstaff = $DB->get_records_sql($sql, array($username));
         $planningids = array_column($planningstaff, 'activityid');
@@ -647,7 +647,7 @@ class activities_lib {
         $activities = array();
 
         $sql = "SELECT id, activityid
-                  FROM {" . static::TABLE_EXCURSIONS_PERMISSIONS . "} 
+                  FROM {" . static::TABLE_ACTIVITY_PERMISSIONS . "} 
                  WHERE parentusername = ?";
         $ids = $DB->get_records_sql($sql, array($username));
 
@@ -662,7 +662,7 @@ class activities_lib {
         $activities = array();
 
         $sql = "SELECT id, activityid
-                  FROM {" . static::TABLE_EXCURSIONS_STUDENTS . "} 
+                  FROM {" . static::TABLE_ACTIVITY_STUDENTS . "} 
                  WHERE username = ?";
         $ids = $DB->get_records_sql($sql, array($username));
 
@@ -879,7 +879,7 @@ class activities_lib {
         $activities = array();
 
         $sql = "SELECT id, activityid
-                  FROM {" . static::TABLE_EXCURSIONS_STAFF. "} 
+                  FROM {" . static::TABLE_ACTIVITY_STAFF. "} 
                  WHERE username = ?";
         $staff = $DB->get_records_sql($sql, array($username));
         $accompanyingids = array_column($staff, 'activityid');
@@ -1122,7 +1122,7 @@ class activities_lib {
         // Remove the users that are no longer to be in the list.
         $deletefromlist = array_diff($existinglist, $data->users);
         foreach ($deletefromlist as $username) {
-            $DB->delete_records(static::TABLE_EXCURSIONS_STUDENTS_TEMP, array(
+            $DB->delete_records(static::TABLE_ACTIVITY_STUDENTS_TEMP, array(
                 'activityid' => $data->activityid,
                 'username' => $username,
             ));
@@ -1133,7 +1133,7 @@ class activities_lib {
             $record = new \stdClass();
             $record->activityid = $data->activityid;
             $record->username = $username;
-            $id = $DB->insert_record(static::TABLE_EXCURSIONS_STUDENTS_TEMP, $record);
+            $id = $DB->insert_record(static::TABLE_ACTIVITY_STUDENTS_TEMP, $record);
         }
 
         $students = array();
@@ -1176,7 +1176,7 @@ class activities_lib {
     public static function get_excursion_students($activityid) {
         global $DB;
         $sql = "SELECT *
-                  FROM {" . static::TABLE_EXCURSIONS_STUDENTS . "}
+                  FROM {" . static::TABLE_ACTIVITY_STUDENTS . "}
                  WHERE activityid = ?";
         $params = array($activityid);
         $students = $DB->get_records_sql($sql, $params);
@@ -1192,7 +1192,7 @@ class activities_lib {
     public static function get_excursion_students_temp($activityid) {
         global $DB;
         $sql = "SELECT *
-                  FROM {" . static::TABLE_EXCURSIONS_STUDENTS_TEMP . "}
+                  FROM {" . static::TABLE_ACTIVITY_STUDENTS_TEMP . "}
                  WHERE activityid = ?";
         $params = array($activityid);
         $students = $DB->get_records_sql($sql, $params);
@@ -1216,7 +1216,7 @@ class activities_lib {
         $record->activityid = $activityid;
         $record->comment = $comment;
         $record->timecreated = time();
-        $record->id = $DB->insert_record(static::TABLE_EXCURSIONS_COMMENTS, $record);
+        $record->id = $DB->insert_record(static::TABLE_ACTIVITY_COMMENTS, $record);
 
         //static::send_comment_emails($record);
 
@@ -1229,7 +1229,7 @@ class activities_lib {
     public static function delete_comment($commentid) {
         global $USER, $DB;
 
-        $DB->delete_records(static::TABLE_EXCURSIONS_COMMENTS, array(
+        $DB->delete_records(static::TABLE_ACTIVITY_COMMENTS, array(
             'id' => $commentid,
             'username' => $USER->username,
         ));
@@ -1248,7 +1248,7 @@ class activities_lib {
         }
 
         $sql = "SELECT *
-                  FROM {" . static::TABLE_EXCURSIONS_COMMENTS . "}
+                  FROM {" . static::TABLE_ACTIVITY_COMMENTS . "}
                  WHERE activityid = ?
               ORDER BY timecreated DESC";
         $params = array($activityid);
@@ -1286,37 +1286,43 @@ class activities_lib {
     /*
     * Send permissions
     */
-    public static function send_permissions($activityid, $limit, $dueby, $users, $extratext) {
+    public static function send_activity_email($data) {
         global $USER, $DB;
 
-        // Convert due by json array to timestamp.
-        $dueby = json_decode($dueby);
-        $duebystring = "{$dueby[2]}-{$dueby[1]}-{$dueby[0]} {$dueby[3]}:{$dueby[4]}"; // Format yyyy-m-d h:m.
-        $dueby = strtotime($duebystring);
-
-        if (empty($limit)) {
-            $limit = 0;
+        // Get the activity.
+        $activity = new static($data->activityid);
+        if (empty($activity)) {
+            throw new \Exception("Activity not found.");
+            exit;
         }
 
-        // Save due by and limit.
-        $activity = new static($activityid);
-        $activity->set('permissionstype', 'system');
-        if ($limit) {
-            $activity->set('permissionslimit', $limit);
+        $activity = $activity->export();
+
+        // Make sure this user is one of the activity planneres.
+        if (!$activity->usercanedit) {
+            throw new \Exception("Permission denied.");
+            exit;
         }
-        if ($dueby) {
-            $activity->set('permissionsdueby', $dueby);
-        }
-        $activity->save();
+
+        // Get the activity students.
+        $sql = "SELECT username
+                FROM {" . static::TABLE_ACTIVITY_STUDENTS . "}
+                WHERE activityid = ?";
+        $params = array($data->activityid);
+        $students = $DB->get_records_sql($sql, $params);
+        $studentsjson = json_encode($students);
 
         // Queue an email.
         $rec = new \stdClass();
-        $rec->activityid = $activityid;
+        $rec->activityid = $data->activityid;
         $rec->username = $USER->username;
-        $rec->studentsjson = $users;
-        $rec->extratext = $extratext;
+        $rec->studentsjson = $studentsjson;
+        $rec->audience = $data->audience;
+        $rec->extratext = $data->extratext;
+        $rec->includedetails = $data->includedetails ? 1 : 0;
+        $rec->includepermissions = $data->includepermissions ? 1 : 0;
         $rec->timecreated = time();
-        $DB->insert_record(static::TABLE_EXCURSIONS_PERMISSIONS_SEND, $rec);
+        $DB->insert_record(static::TABLE_ACTIVITY_EMAILS, $rec);
     }
 
 
@@ -1432,7 +1438,7 @@ class activities_lib {
         }
 
         $sql = "SELECT *
-                  FROM {" . static::TABLE_EXCURSIONS_PERMISSIONS_SEND . "}
+                  FROM {" . static::TABLE_ACTIVITY_PERMISSIONS_SEND . "}
                  WHERE activityid = ?
               ORDER BY timecreated DESC";
         $params = array($activityid);
@@ -1455,8 +1461,8 @@ class activities_lib {
         global $USER, $DB;
 
         $sql = "SELECT DISTINCT p.*
-                  FROM {" . static::TABLE_EXCURSIONS_PERMISSIONS . "} p
-            INNER JOIN {" . static::TABLE_EXCURSIONS_STUDENTS . "} s ON p.studentusername = s.username
+                  FROM {" . static::TABLE_ACTIVITY_PERMISSIONS . "} p
+            INNER JOIN {" . static::TABLE_ACTIVITY_STUDENTS . "} s ON p.studentusername = s.username
                  WHERE p.activityid = ?
               ORDER BY p.timecreated DESC";
         $params = array($activityid);
@@ -1476,8 +1482,8 @@ class activities_lib {
         $activity = new static($activityid);
         if ($activity->get('permissions')) {
             $sql = "SELECT DISTINCT p.studentusername
-                      FROM {" . static::TABLE_EXCURSIONS_PERMISSIONS . "} p
-                INNER JOIN {" . static::TABLE_EXCURSIONS_STUDENTS . "} s ON p.studentusername = s.username
+                      FROM {" . static::TABLE_ACTIVITY_PERMISSIONS . "} p
+                INNER JOIN {" . static::TABLE_ACTIVITY_STUDENTS . "} s ON p.studentusername = s.username
                      WHERE p.activityid = ?
                        AND p.response = 1
                        AND p.studentusername NOT IN ( 
@@ -1501,8 +1507,8 @@ class activities_lib {
         global $DB;
 
         $sql = "SELECT DISTINCT p.*
-                  FROM {" . static::TABLE_EXCURSIONS_PERMISSIONS . "} p
-            INNER JOIN {" . static::TABLE_EXCURSIONS_STUDENTS . "} s ON p.studentusername = s.username
+                  FROM {" . static::TABLE_ACTIVITY_PERMISSIONS . "} p
+            INNER JOIN {" . static::TABLE_ACTIVITY_STUDENTS . "} s ON p.studentusername = s.username
                  WHERE p.activityid = ?
                    AND p.parentusername = ?
               ORDER BY p.timecreated DESC";
@@ -1516,8 +1522,8 @@ class activities_lib {
         global $DB;
 
         $sql = "SELECT DISTINCT p.*
-                  FROM {" . static::TABLE_EXCURSIONS_PERMISSIONS . "} p
-            INNER JOIN {" . static::TABLE_EXCURSIONS_STUDENTS . "} s ON p.studentusername = s.username
+                  FROM {" . static::TABLE_ACTIVITY_PERMISSIONS . "} p
+            INNER JOIN {" . static::TABLE_ACTIVITY_STUDENTS . "} s ON p.studentusername = s.username
                  WHERE p.activityid = ?
                    AND p.studentusername = ?
               ORDER BY p.timecreated DESC";
@@ -1531,8 +1537,8 @@ class activities_lib {
         global $DB;
 
         $sql = "SELECT DISTINCT p.studentusername
-                  FROM {" . static::TABLE_EXCURSIONS_PERMISSIONS . "} p
-            INNER JOIN {" . static::TABLE_EXCURSIONS_STUDENTS . "} s 
+                  FROM {" . static::TABLE_ACTIVITY_PERMISSIONS . "} p
+            INNER JOIN {" . static::TABLE_ACTIVITY_STUDENTS . "} s 
                 ON p.studentusername = s.username 
                 AND p.activityid = s.activityid
                  WHERE p.activityid = ?
@@ -1549,7 +1555,7 @@ class activities_lib {
     public static function submit_permission($permissionid, $response) {
         global $DB, $USER;
 
-        $activityid = $DB->get_field(static::TABLE_EXCURSIONS_PERMISSIONS, 'activityid', array('id' => $permissionid));
+        $activityid = $DB->get_field(static::TABLE_ACTIVITY_PERMISSIONS, 'activityid', array('id' => $permissionid));
         $activity = new static($activityid);
         
         // Check if past permissions dueby or limit.
@@ -1560,7 +1566,7 @@ class activities_lib {
         }
 
         // Update the permission response.
-        $sql = "UPDATE {" . static::TABLE_EXCURSIONS_PERMISSIONS . "}
+        $sql = "UPDATE {" . static::TABLE_ACTIVITY_PERMISSIONS . "}
                    SET response = ?, timeresponded = ?
                  WHERE id = ?
                    AND parentusername = ?";
@@ -1584,7 +1590,7 @@ class activities_lib {
         global $DB, $PAGE;
 
         // Get the permission.
-        $permission = $DB->get_record(static::TABLE_EXCURSIONS_PERMISSIONS, array('id' => $permissionid));
+        $permission = $DB->get_record(static::TABLE_ACTIVITY_PERMISSIONS, array('id' => $permissionid));
 
         // Get the email users.
         $toUser = \core_user::get_user_by_username($permission->studentusername);
@@ -1615,7 +1621,7 @@ class activities_lib {
         global $DB;
         
         $sql = "SELECT *
-                  FROM {" . static::TABLE_EXCURSIONS_PLANNING_STAFF . "}
+                  FROM {" . static::TABLE_ACTIVITY_PLANNING_STAFF . "}
                  WHERE activityid = ?";
         $params = array($activityid);
         $records = $DB->get_records_sql($sql, $params);
@@ -1632,7 +1638,7 @@ class activities_lib {
         global $DB;
         
         $sql = "SELECT *
-                  FROM {" . static::TABLE_EXCURSIONS_STAFF . "}
+                  FROM {" . static::TABLE_ACTIVITY_STAFF . "}
                  WHERE activityid = ?";
         $params = array($activityid);
         $records = $DB->get_records_sql($sql, $params);
@@ -1663,7 +1669,7 @@ class activities_lib {
         if ($iscreator || $isapprover || $isstaffincharge) {
             // Delete corresponding event.
             $modified = time();
-            $sql = "UPDATE {" . static::TABLE_EXCURSIONS_EVENTS . "}
+            $sql = "UPDATE {" . static::TABLE_ACTIVITY_EVENTS . "}
                     SET deleted = 1, timemodified = " . $modified . "
                     WHERE activityid = ?
                     AND isactivity = 1";
