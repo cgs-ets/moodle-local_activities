@@ -9,7 +9,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { useStateStore } from '../../../../stores/stateStore';
 import { User } from '../../../../types/types';
 import { Form, useFormStore } from '../../../../stores/formStore';
-import { isExcursion } from '../../../../utils/utils';
+import { isActivity } from '../../../../utils/utils';
 import { useAjax } from '../../../../hooks/useAjax';
 import { PermissionsEmailModal } from '../PermissionsEmailModal/PermissionsEmailModal';
 import { EmailModal } from '../EmailModal/EmailModal';
@@ -120,7 +120,7 @@ export function StudentList() {
 
 
   return (
-    isExcursion(activitytype)
+    isActivity(activitytype)
     ? <>
         <Card withBorder radius="sm" className="p-0">
           <div className="px-4 py-3">

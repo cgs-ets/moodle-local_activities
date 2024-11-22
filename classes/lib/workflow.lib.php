@@ -41,15 +41,15 @@ class workflow_lib extends \local_activities\local_activities_config {
         
         $approvals = array();
 
-        if ($activitytype == 'campus') {
-            // campusmng - 1st approver.
-            $approvals[] =  static::get_approval_clone('campusmng_ra', 1, $activityid);
+        if ($activitytype == 'commercial') {
+            // commercial_ra - 1st approver.
+            $approvals[] =  static::get_approval_clone('commercial_ra', 1, $activityid);
 
-            // campusmng - 2nd approver.
-            $approvals[] =  static::get_approval_clone('campusmng_admin', 2, $activityid);
+            // commercial_admin - 2nd approver.
+            $approvals[] =  static::get_approval_clone('commercial_admin', 2, $activityid);
 
-            // campusmng - 3rd approver.
-            $approvals[] =  static::get_approval_clone('campusmng_final', 3, $activityid);
+            // commercial_final - 3rd approver.
+            $approvals[] =  static::get_approval_clone('commercial_final', 3, $activityid);
         } else  {
             switch ($campus) {
                 case 'senior': {
@@ -499,7 +499,7 @@ class workflow_lib extends \local_activities\local_activities_config {
         $activity = new Activity($activityid);
         $activity = $activity->export();
 
-        $toUser = \core_user::get_user_by_username($activity->username);
+        $toUser = \core_user::get_user_by_username($activity->creator);
         $fromUser = \core_user::get_noreply_user();
         $fromUser->bccaddress = array(); //$fromUser->bccaddress = array("lms.archive@cgs.act.edu.au"); 
 
@@ -673,9 +673,9 @@ class workflow_lib extends \local_activities\local_activities_config {
         }
 
         // Send to activity creator.
-        if ( ! in_array($activity->username, $recipients)) {
-            static::send_datachanged_email($activity, $activity->username);
-            $recipients[] = $activity->username;
+        if ( ! in_array($activity->creator, $recipients)) {
+            static::send_datachanged_email($activity, $activity->creator);
+            $recipients[] = $activity->creator;
         }
 
         // Send to staff in charge.

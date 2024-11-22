@@ -1,7 +1,7 @@
 import { Card, Text, Textarea } from "@mantine/core";
 import { Form, useFormStore } from "../../../../stores/formStore";
 import { StaffSelector } from "./components/StaffSelector/StaffSelector";
-import { isExcursion } from "../../../../utils/utils";
+import { isActivity } from "../../../../utils/utils";
 
 export function StaffDetails() {
 
@@ -31,7 +31,7 @@ export function StaffDetails() {
       <div className="flex flex-col gap-6 p-4 border-t border-gray-300">
         <div className="flex flex-col gap-2">
           <StaffSelector staff={staffincharge} setStaff={setStaffInCharge} label="Leader" multiple={false} />
-          { isExcursion(activitytype) &&
+          { isActivity(activitytype) &&
             <>
               <StaffSelector staff={planningstaff} setStaff={setPlanning} label="Planning" multiple={true} />
               <StaffSelector staff={accompanyingstaff} setStaff={setAccompanying} label="Accompanying" multiple={true} />

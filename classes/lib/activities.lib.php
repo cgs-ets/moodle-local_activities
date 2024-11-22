@@ -36,11 +36,11 @@ class activities_lib {
     const TABLE_ACTIVITY_PERMISSIONS = 'activity_permissions';
     const TABLE_ACTIVITY_STAFF = 'activity_staff';
 
-    public static function is_excursion($activitytype) {
+    public static function is_activity($activitytype) {
         return (
             $activitytype == 'excursion' || 
             $activitytype == 'incursion' ||
-            $activitytype == 'campus'
+            $activitytype == 'commercial'
         );
     }
 
@@ -74,7 +74,7 @@ class activities_lib {
                 }
                 $originalactivity = new Activity($data->id);
                 $activity = new Activity($data->id);
-                if (static::is_excursion($data->activitytype)) {
+                if (static::is_activity($data->activitytype)) {
                     $activity->set('status', max(static::ACTIVITY_STATUS_DRAFT, $activity->get('status')));
                 } else {
                     // If this is a calendar entry or assessment, there is no draft state, it's ether 0 (new), 2 (in review) or 3 (approved)
@@ -185,7 +185,7 @@ class activities_lib {
             // If saving after already in review or approved, determine the approvers based on campus.
             if ($originalactivity && 
                 ($data->status == static::ACTIVITY_STATUS_INREVIEW || $data->status == static::ACTIVITY_STATUS_APPROVED) &&
-                static::is_excursion($data->activitytype)
+                static::is_activity($data->activitytype)
             ) {
                 $newstatusinfo = workflow_lib::generate_approvals($originalactivity, $activity);
             } /*else if ($data->activitytype == 'calendar' || $data->activitytype == 'assessment') {
@@ -1218,7 +1218,7 @@ class activities_lib {
         $record->timecreated = time();
         $record->id = $DB->insert_record(static::TABLE_ACTIVITY_COMMENTS, $record);
 
-        //static::send_comment_emails($record);
+        static::send_comment_emails($record);
 
         return $record->id;
     }
@@ -1238,13 +1238,17 @@ class activities_lib {
     }
 
     /*
-    * Add a comment to an activity.
+    * Get comments for an activity.
     */
-    public static function load_comments($activityid) {
+    public static function get_comments($activityid) {
         global $USER, $DB, $PAGE, $OUTPUT;
 
         if (!activity::exists($activityid)) {
             return 0;
+        }
+        if (!utils_lib::has_capability_edit_activity($activityid)) {
+            throw new \Exception("Permission denied.");
+            exit;
         }
 
         $sql = "SELECT *
@@ -1268,9 +1272,6 @@ class activities_lib {
             $comments[] = $comment;
         }
 
-
-      
-
         return $comments;
     }
 
@@ -1286,11 +1287,11 @@ class activities_lib {
     /*
     * Send permissions
     */
-    public static function send_activity_email($data) {
-        global $USER, $DB;
+    public static function add_activity_email($data) {
+        global $USER, $DB, $CFG, $PAGE;
 
         // Get the activity.
-        $activity = new static($data->activityid);
+        $activity = new activity($data->activityid);
         if (empty($activity)) {
             throw new \Exception("Activity not found.");
             exit;
@@ -1317,12 +1318,49 @@ class activities_lib {
         $rec->activityid = $data->activityid;
         $rec->username = $USER->username;
         $rec->studentsjson = $studentsjson;
-        $rec->audience = $data->audience;
+        $rec->audiences = json_encode($data->audiences);
         $rec->extratext = $data->extratext;
-        $rec->includedetails = $data->includedetails ? 1 : 0;
-        $rec->includepermissions = $data->includepermissions ? 1 : 0;
+        $rec->includes = json_encode($data->includes);
         $rec->timecreated = time();
+
+        $emaildata = new \stdClass();
+        $emaildata->activity = $activity;
+        $emaildata->extratext = $data->extratext;
+        $emaildata->includepermissions = in_array('permissions', $data->includes);
+        $emaildata->includedetails = in_array('details', $data->includes);
+
+        $output = $PAGE->get_renderer('core');
+        $rec->rendered = $output->render_from_template('local_activities/email_history_html', $emaildata);
+
         $DB->insert_record(static::TABLE_ACTIVITY_EMAILS, $rec);
+    }
+
+
+    /*
+    * Get emails for an activity.
+    */
+    public static function get_emails($activityid) {
+        global $USER, $DB, $PAGE, $OUTPUT;
+
+        if (!activity::exists($activityid)) {
+            return 0;
+        }
+        if (!utils_lib::has_capability_edit_activity($activityid)) {
+            throw new \Exception("Permission denied.");
+            exit;
+        }
+
+        $sql = "SELECT *
+                  FROM {" . static::TABLE_ACTIVITY_EMAILS . "}
+                 WHERE activityid = ?
+              ORDER BY timecreated DESC";
+        $params = array($activityid);
+        $emails = $DB->get_records_sql($sql, $params);
+        foreach ($emails as $email) {
+            $email->sender = utils_lib::user_stub($email->username);
+        }
+
+        return array_values($emails);
     }
 
 
@@ -1335,7 +1373,7 @@ class activities_lib {
     * - Staff in charge
     */
     protected static function send_comment_emails($comment) {
-        global $PAGE;
+        global $USER;
 
         $activity = new Activity($comment->activityid);
         $activity = $activity->export();
@@ -1343,9 +1381,9 @@ class activities_lib {
         $recipients = array();
 
         // Send the comment to the next approver in line.
-        $approvals = static::get_unactioned_approvals($comment->activityid);
+        $approvals = workflow_lib::get_unactioned_approvals($comment->activityid);
         foreach ($approvals as $nextapproval) {
-            $approvers = static::WORKFLOW[$nextapproval->type]['approvers'];
+            $approvers = workflow_lib::WORKFLOW[$nextapproval->type]['approvers'];
             foreach($approvers as $approver) {
                 // Skip if approver does not want this notification.
                 if (isset($approver['notifications']) && !in_array('newcomment', $approver['notifications'])) {
@@ -1369,12 +1407,12 @@ class activities_lib {
         }
 
         // Send comment to approvers that have already actioned an approval for this activity.
-        $approvals = static::get_approvals($comment->activityid);
+        $approvals = workflow_lib::get_approvals($comment->activityid);
         foreach ($approvals as $approval) {
             if ( ! in_array($approval->username, $recipients)) {
 
                 // Skip if approver does not want this notification.
-                $config = static::WORKFLOW[$approval->type]['approvers'];
+                $config = workflow_lib::WORKFLOW[$approval->type]['approvers'];
                 if (isset($config[$approval->username]) && 
                     isset($config[$approval->username]['notifications']) && 
                     !in_array('newcomment', $config[$approval->username]['notifications'])) {
@@ -1387,9 +1425,9 @@ class activities_lib {
         }
 
         // Send comment to activity creator.
-        if ( ! in_array($activity->username, $recipients)) {
-            static::send_comment_email($activity, $comment, $activity->username);
-            $recipients[] = $activity->username;
+        if ( ! in_array($activity->creator, $recipients)) {
+            static::send_comment_email($activity, $comment, $activity->creator);
+            $recipients[] = $activity->creator;
         }
 
         // Send comment to the comment poster if they are not one of the above.
@@ -1423,9 +1461,9 @@ class activities_lib {
 
         $subject = "Comment re: " . $activity->activityname;
         $output = $PAGE->get_renderer('core');
-        $messageText = $output->render_from_template('local_activities/email_comment_text', $data);
         $messageHtml = $output->render_from_template('local_activities/email_comment_html', $data);
-        $result = email_to_user($toUser, $USER, $subject, $messageText, $messageHtml, '', '', true);
+        
+        $result = service_lib::email_to_user($toUser, $USER, $subject, '', $messageHtml, '', '', true);
     }
 
     

@@ -12,6 +12,9 @@ require_login();
 require_sesskey();
 if (isguestuser()) { exit; }
 
+$context = context_system::instance();
+$PAGE->set_context($context);
+
 $cache = optional_param('cache', 0, PARAM_INT);
 
 $url = new \moodle_url($FULLME);

@@ -5,11 +5,11 @@ import type { ClassValue } from "clsx"
 import { clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 
-export const isExcursion = (activitytype: string) => {
+export const isActivity = (activitytype: string) => {
   return (
     activitytype == 'excursion' || 
     activitytype == 'incursion' ||
-    activitytype == 'campus'
+    activitytype == 'commercial'
   )
 };
 

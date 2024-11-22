@@ -20,12 +20,13 @@ import { Paperwork } from "./components/Paperwork/Paperwork";
 import { permission } from "process";
 import { useDisclosure } from "@mantine/hooks";
 import { Permissions } from "./components/Permissions/Permissions";
-import { isExcursion } from "../../utils/utils";
+import { isActivity } from "../../utils/utils";
 import { Comments } from "./components/Comments/Comments";
 import { StudentList } from "./components/StudentList/StudentList";
 import { NextSteps } from "./components/NextSteps/NextSteps";
 import { EmailModal } from "./components/EmailModal/EmailModal";
 import { PermissionsEmailModal } from "./components/PermissionsEmailModal/PermissionsEmailModal";
+import { EmailHistory } from "./components/EmailHistory/EmailHistory";
 
 export function EditActivity() {
   let { id } = useParams();
@@ -220,7 +221,7 @@ export function EditActivity() {
                           <BasicDetails />
                           <CalendarSettings />
                           <StaffDetails />
-                          { isExcursion(activitytype) &&
+                          { isActivity(activitytype) &&
                             <>
                               <Permissions openSendMessage={emailModalHandlers.open} />
                               <StudentList />
@@ -235,6 +236,7 @@ export function EditActivity() {
                         <Conflicts />
                         <CalendarFlow activityid={Number(id || 0)} />
                         <NextSteps />
+                        <EmailHistory />
                         <Comments />
                       </Grid.Col>
                     </Grid>

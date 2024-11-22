@@ -301,4 +301,20 @@ class utils_lib {
         );
     }
 
+    
+    /*public static function renderTemplate($template, $data = []) {
+        global $CFG;
+        
+        // Extract data variables for use in the template
+        extract($data);
+        
+        // Start output buffering
+        ob_start();
+    
+        // Include the template file
+        include $template;
+    
+        // Get the buffered content
+        return ob_get_clean();
+    }*/
 }

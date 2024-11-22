@@ -6,6 +6,7 @@ import { useTimeout } from '@mantine/hooks';
 import { useAjax } from '../../../../hooks/useAjax';
 import { User } from '../../../../types/types';
 import { ActivitySummary } from '../../../../components/ActivitySummary/ActivitySummary';
+import { useFormStore } from '../../../../stores/formStore';
 
 type Props = {
   opened: boolean,
@@ -14,11 +15,11 @@ type Props = {
 }
 
 export function EmailModal({opened, close, students}: Props) {
+  const activityid = useFormStore((state) => (state.id))
   const [message, setMessage] = useState<string>('')
-  const [audience, setAudience] = useState<string[]>(['students', 'parents', 'staff'])
-  const [include, setInclude] = useState<string[]>([])
+  const [audiences, setAudiences] = useState<string[]>(['students', 'parents', 'staff'])
+  const [includes, setIncludes] = useState<string[]>(['details'])
   const [recipients, setRecipients] = useState<User[]>([])
-  const [errors, setErrors] = useState([])
   const [showSuccess, setShowSuccess] = useState(false)
   const [submitResponse, submitError, submitLoading, submitAjax, setSubmitData] = useAjax();
   const {start, clear} = useTimeout(() => onClose(), 3000);
@@ -36,18 +37,20 @@ export function EmailModal({opened, close, students}: Props) {
     }
   }, [students, opened])
 
-  const onSubmit = () => {
-    setErrors([])
-
+  const onSend = () => {
     submitAjax({
       method: "POST", 
       body: {
         methodname: 'local_activities-send_email',
         args: {
-
+          activityid: activityid,
+          extratext: message,
+          includes: includes,
+          audiences: audiences,
         },
       }
     })
+
   }
   useEffect(() => {
     if (!submitError && submitResponse) {
@@ -61,7 +64,7 @@ export function EmailModal({opened, close, students}: Props) {
       {(styles) => 
         <Flex mb="xl" direction="column" align="center" style={{ ...styles }}>
           <IconCheck size={45} color="green"/>
-          <Text fz="md">Success! Your message has been posted and notifications are being sent.</Text>
+          <Text fz="md">Success! Emails are being sent.</Text>
         </Flex> 
       }
     </Transition>
@@ -99,15 +102,15 @@ export function EmailModal({opened, close, students}: Props) {
   }
 
   useEffect(() => {
-    if (include.includes("permissions")) {
-      setAudience(['parents'])
+    if (includes.includes("permissions")) {
+      setAudiences(['parents'])
     }
-  }, [include])
+  }, [includes])
 
   const onClose = () => {
     setMessage('')
-    setAudience(['students', 'parents', 'staff'])
-    setInclude([])
+    setAudiences(['students', 'parents', 'staff'])
+    setIncludes(['details'])
     setSubmitData({
       response: null,
       error: false,
@@ -132,8 +135,8 @@ export function EmailModal({opened, close, students}: Props) {
       <Box mb="md">
         <Text fz="sm" mb={5} fw={500}>Presets</Text>
         <Checkbox.Group
-          value={include}
-          onChange={setInclude}
+          value={includes}
+          onChange={setIncludes}
         >
           <Flex mt="xs" gap="xs" direction="column">
             <Checkbox value="permissions" label="Include permissions" />
@@ -144,9 +147,9 @@ export function EmailModal({opened, close, students}: Props) {
 
       <div className='bg-gray-50 -mx-4 mb-4 border-y'>
         <div className='p-5 text-base flex flex-col gap-4'>
-          <div>Dear { include.includes('permissions') ? '[Parent]' : '[Name]' },</div>
+          <div>Dear { includes.includes('permissions') ? '[Parent]' : '[Name]' },</div>
 
-          { include.includes('permissions') &&
+          { includes.includes('permissions') &&
             <div>The following activity requires your permission for [Student] to attend.</div>
           }
 
@@ -156,44 +159,38 @@ export function EmailModal({opened, close, students}: Props) {
             autosize
             minRows={4}
             maxRows={10}
-            error={!!errors.length ? errors.join('') : null}
             value={message}
             onChange={(e) => setMessage(e.currentTarget.value)}
           />
 
-          { include.includes('details') &&
+          { includes.includes('details') &&
             <div className='rounded-sm bg-[#f0f4f6] p-4'>
               <ActivitySummary />
             </div>
           }
       
-          { include.includes('permissions') && <div>[Button for parent response]</div> }
+          { includes.includes('permissions') && <div>[Button for parent response]</div> }
         </div>
       </div>
 
 
       <Box mb="md">
         <Text fz="sm" mb={5} fw={500}>Recipients</Text>
-        {include.includes("permissions") && <Text fz="sm" mb={5} fs="italic">Permissions emails are sent to parents only.</Text>}
+        {includes.includes("permissions") && <Text fz="sm" mb={5} fs="italic">Permissions emails are sent to parents only.</Text>}
         <Checkbox.Group
-          value={audience}
-          onChange={setAudience}
+          value={audiences}
+          onChange={setAudiences}
         >
           <Flex mt="xs" gap="xs" direction="column">
-            <Checkbox value="students" label="Students" disabled={include.includes("permissions")} />
-            <Checkbox value="parents" label="Parents" disabled={include.includes("permissions")} />
-            <Checkbox value="staff" label="Activity staff" disabled={include.includes("permissions")} />
+            <Checkbox value="students" label="Students" disabled={includes.includes("permissions")} />
+            <Checkbox value="parents" label="Parents" disabled={includes.includes("permissions")} />
+            <Checkbox value="staff" label="Activity staff" disabled={includes.includes("permissions")} />
           </Flex>
         </Checkbox.Group>
       </Box>
-            
-      {!!errors.length ? 
-        <Text mb="lg" c="red" className='break-all'>Correct form errors and try again.</Text> 
-        : ''
-      }
 
       <Flex justify="end">
-        <Button leftSection={<IconSend size="1rem" />} onClick={onSubmit} loading={submitLoading} disabled={!!errors.length} type="submit" radius="xl" >Send</Button>
+        <Button leftSection={<IconSend size="1rem" />} onClick={onSend} loading={submitLoading} type="submit" radius="xl" >Send</Button>
       </Flex>
     </Box>
   )

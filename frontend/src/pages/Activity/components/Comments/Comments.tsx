@@ -103,7 +103,7 @@ export function Comments() {
           }
         </Card.Section>
         <Card.Section className='relative'>
-          <LoadingOverlay visible={submitLoading || fetchLoading} />
+          <LoadingOverlay visible={submitLoading || fetchLoading || deleteLoading} />
           {
             comments.map( ({id, username, userfullname, readabletime, comment, isauthor}, i, row) => {
               return (
@@ -121,11 +121,9 @@ export function Comments() {
                     {comment}
                   </Text>
                   {isauthor && (
-                    deleteLoading
-                    ? <Loader type="dots" size={23} className="absolute bottom-2 right-2" />
-                    : <ActionIcon onClick={() => handleDelete(id)} size="sm" variant="transparent" className="absolute bottom-2 right-2 text-red-400">
-                        <IconTrash size="1rem" />
-                      </ActionIcon>
+                    <ActionIcon onClick={() => handleDelete(id)} size="sm" variant="transparent" className="absolute bottom-2 right-2 text-red-400">
+                      <IconTrash size="1rem" />
+                    </ActionIcon>
                   )}
                 </div>
               )

@@ -3,7 +3,7 @@ import { Form, useFormStore } from "../../../../stores/formStore";
 import { StaffSelector } from "./components/StaffSelector/StaffSelector";
 import { User } from "../../../../types/types";
 import { IconUser } from "@tabler/icons-react";
-import { isExcursion } from "../../../../utils/utils";
+import { isActivity } from "../../../../utils/utils";
 
 
 export function StaffDetailsViewOnly() {
@@ -56,7 +56,7 @@ export function StaffDetailsViewOnly() {
             <Text fz="sm" mb="5px" fw={500} c="#212529">Leader</Text>
             {leader}
           </div>
-          { isExcursion(activitytype) &&
+          { isActivity(activitytype) &&
             <>
               <div>
                 <Text fz="sm" mb="5px" fw={500} c="#212529">Planning</Text>

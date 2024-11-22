@@ -10,13 +10,14 @@ import { Form, useFormStore, useFormValidationStore } from "../../../../stores/f
 import { useDisclosure } from "@mantine/hooks";
 import { CategoriesModal } from "../Modals/CategoriesModal";
 import { Conflicts } from "../Conflicts/Conflicts";
+import { isActivity } from "../../../../utils/utils";
 
 export function BasicDetails() {
 
   const formData = useFormStore()
   const description = useFormStore((state) => (state.description))
+  const activitytype = useFormStore((state) => (state.activitytype))
   const setState = useFormStore(state => state.setState)
-  const [catsModalOpened, {close: closeCatsModal}] = useDisclosure(false);
 
   const updateField = (name: string, value: any) => {
     setState({
@@ -76,7 +77,7 @@ export function BasicDetails() {
                 { value: 'excursion', label: 'Excursion' },
                 { value: 'incursion', label: 'Incursion' },
                 { value: 'calendar', label: 'Calendar entry' },
-                { value: 'campus', label: 'Campus management' },
+                { value: 'commercial', label: 'Commercial' },
                 //{ value: 'assessment', label: 'Assessment' },
               ]}
             />
@@ -92,6 +93,9 @@ export function BasicDetails() {
             }
             {formData.activitytype == "calendar" &&
               <span>Do not select this option if admin/budget approval, staffing list, student list, parent permissions, or risk assessment approval is required.</span>
+            }
+            {formData.activitytype == "commercial" &&
+              <span>An external party is hiring CGS venues.</span>
             }
             {formData.activitytype == "assessment" &&
               <span>This entry is for assessment planning.</span>
@@ -165,7 +169,6 @@ export function BasicDetails() {
             error={errors.Location}
             onChange={(e) => updateField('location', e.target.value)}
           />
-          <div className="mt-1 text-sm text-gray-500">You are responsible for booking arrangements. For internal bookings use SOBS.</div>
         </div>
 
         <div>
@@ -207,7 +210,27 @@ export function BasicDetails() {
           </RichTextEditor>
         </div>
 
-        <CategoriesModal categories={formData.categories} opened={catsModalOpened} close={closeCatsModal} handleChange={handleCatsChange} />
+        {(activitytype == 'excursion' || activitytype == 'incursion') &&
+          <>
+            <div>
+              <TextInput
+                placeholder="E.g. walking, bus, taxi, including authorised driver."
+                label="Transport"
+                value={formData.transport}
+                onChange={(e) => updateField('transport', e.target.value)}
+              />
+            </div>
+
+            <div>
+              <TextInput
+                label="Cost for student"
+                value={formData.cost}
+                onChange={(e) => updateField('cost', e.target.value)}
+              />
+            </div>
+          </>
+        }
+
 
       </div>
     </Card>

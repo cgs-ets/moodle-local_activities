@@ -1,7 +1,7 @@
 import { Card, Text } from '@mantine/core';
 import { statuses } from '../../../../utils';
 import { useFormStore } from '../../../../stores/formStore';
-import { entryStatus, excursionStatus, isExcursion } from '../../../../utils/utils';
+import { entryStatus, excursionStatus, isActivity } from '../../../../utils/utils';
 
 
 export function StatusViewOnly() {
@@ -11,7 +11,7 @@ export function StatusViewOnly() {
 
 
   const statusText = () => {
-    return isExcursion(activitytype)
+    return isActivity(activitytype)
     ? excursionStatus()
     : entryStatus()
   }
@@ -19,7 +19,7 @@ export function StatusViewOnly() {
   return (
     <Card withBorder radius="sm" p="md"  className="overflow-visible rounded-b-none"
       bg={
-        isExcursion(activitytype)
+        isActivity(activitytype)
         ? status == statuses.inreview 
           ? "orange.1" 
           : (status == statuses.approved 

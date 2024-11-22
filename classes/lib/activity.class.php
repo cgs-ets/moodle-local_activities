@@ -422,17 +422,14 @@ class Activity {
             $usercontext = $this->related['usercontext'];
         }
 
-        $manageurl = new \moodle_url('/local/excursions/activity.php', array(
-            'edit' => $this->data->id,
-        ));
+        $manageurl = new \moodle_url(`/local/activities/activity/{$this->data->id}/edit`);
 
-        $permissionsurl = new \moodle_url('/local/excursions/permissions.php', array(
-            'activityid' => $this->data->id,
-        ));
+        $permissionsurl = new \moodle_url(`/local/activities/activity/{$this->data->id}/permission`);
 
-        $summaryurl = new \moodle_url('/local/excursions/summary.php', array(
-            'id' => $this->data->id,
-        ));
+        $isactivity = false;
+        if ($this->data->activitytype == 'excursion' || $this->data->activitytype == 'incursion' || $this->data->activitytype == 'commercial') {
+            $isactivity = true;
+        }
 
         $ispast = false;
         if ($this->data->timeend && $this->data->timeend < time()) {
@@ -494,20 +491,32 @@ class Activity {
         $duration .= $hours ? $hours . 'h ' : '';
         $duration .= $minutes ? $minutes . 'm ' : '';
 
+        $startreadabletime = '';
+        if ($this->data->timestart > 0) {
+            $startreadabletime = date('j M Y, g:ia', $this->data->timestart);
+        }
+        $endreadabletime = '';
+        if ($this->data->timeend > 0) {
+            $endreadabletime = date('j M Y, g:ia', $this->data->timeend);
+        }
+
     	return [
             'manageurl' => $manageurl->out(false),
             'permissionsurl' => $permissionsurl->out(false),
-            'summaryurl' => $summaryurl->out(false),
             'statushelper' => $statushelper,
             'iscreator' => $iscreator,
             'isapprover' => $isapprover,
             'isplanner' => $isplanner,
             'isaccompanying' => $isaccompanying,
             'isstaffincharge' => $isstaffincharge,
+            'staffinchargedata' => utils_lib::user_stub($this->data->staffincharge),
             'usercanedit' => $usercanedit,
             'usercansendmail' => $usercansendmail,
             'ispast' => $ispast,
             'duration' => $duration,
+            'isactivity' => $isactivity,
+            'startreadabletime' => $startreadabletime,
+            'endreadabletime' => $endreadabletime,
 	    ];
     }
 

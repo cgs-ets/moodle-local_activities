@@ -185,3 +185,9 @@ table thead th {
 .browser-window .content a {
   pointer-events: none;
 }
+
+
+/* Preview email in history block */
+.rendered-email p {
+  margin-bottom: 10px;
+}

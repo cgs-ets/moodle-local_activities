@@ -4,6 +4,8 @@ import { useDisclosure } from "@mantine/hooks";
 import useFetch from "../../../../hooks/useFetch";
 import { useFormStore } from "../../../../stores/formStore";
 import { IconChevronDown, IconChevronRight, IconChevronUp } from "@tabler/icons-react";
+import { statuses } from "../../../../utils";
+import { cn } from "../../../../utils/utils";
 
 export function Conflicts() {
   
@@ -13,6 +15,7 @@ export function Conflicts() {
   const timestart = useFormStore((state) => (state.timestart))
   const timeend = useFormStore((state) => (state.timeend))
   const id = useFormStore((state) => (state.id))
+  const status = useFormStore((state) => state.status)
 
   const getConflicts = async () => {
     console.log("Checking for conflicts..")
@@ -44,7 +47,7 @@ export function Conflicts() {
           <span className="text-base">Conflicts</span>
         </div>
         <div className="flex border-t border-gray-300/70">
-          <Alert className="p-0 m-0 inline-block shadow-none rounded-none w-full bg-[#fff6cc]" variant="light">
+          <Alert className={cn("p-0 m-0 inline-block shadow-none rounded-none w-full", status == statuses.approved ? "bg-white" : "bg-[#fff6cc]")} variant="light">
             <Button c="black" onClick={() => conflictsOpened ? hideConflicts() : showConflicts()} variant="transparent" className="px-2 font-normal" rightSection={conflictsOpened ? <IconChevronDown className="size-5"/> : <IconChevronRight className="size-5"/>}>
               {conflicts.length} {conflicts.length > 1 ? "overlap" : "time overlaps" } found
             </Button>

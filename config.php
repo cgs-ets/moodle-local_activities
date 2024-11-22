@@ -221,7 +221,7 @@ class local_activities_config {
 
 
         // CAMPUSMNG
-		'campusmng_ra' => array(
+		'commercial_ra' => array(
 	    	'name' => 'RA Approval',
 	    	'invalidated_on_edit' => array(),
 	    	'approvers' => array(
@@ -232,7 +232,7 @@ class local_activities_config {
 		    ),
 		    'prerequisites' => null
 	    ),
-	    'campusmng_admin' => array(
+	    'commercial_admin' => array(
 	    	'name' => 'Operations Approval',
 	    	'invalidated_on_edit' => array(
 	    		'location',
@@ -248,7 +248,7 @@ class local_activities_config {
             ),
 		    'prerequisites' => null,
 	    ),
-	    'campusmng_final' => array(
+	    'commercial_final' => array(
 	    	'name' => 'Final Approval',
 	    	'invalidated_on_edit' => array (
 	    		'location',

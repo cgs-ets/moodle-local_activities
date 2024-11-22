@@ -21,8 +21,8 @@ export function BasicDetailsViewOnly() {
               ? 'Incursion' 
               : formData.activitytype == 'calendar' 
                 ? 'Calendar entry' 
-                : formData.activitytype == 'campus'
-                  ? 'Campus management'
+                : formData.activitytype == 'commercial'
+                  ? 'Commercial'
                   : 'Assessment'
           }</span>
         </div>

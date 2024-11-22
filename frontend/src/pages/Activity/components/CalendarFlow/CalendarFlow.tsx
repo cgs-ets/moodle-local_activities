@@ -1,6 +1,6 @@
 import { ActionIcon, Anchor, Avatar, Button, Card, LoadingOverlay, Select, Switch, Text } from "@mantine/core"
 import { IconBell, IconBellOff, IconCalendar, IconCalendarEvent, IconCancel, IconExternalLink, IconLoader, IconLoader3, IconPencil, IconPlus, IconUser, IconUserCancel, IconUserCheck, IconUserX, IconX } from "@tabler/icons-react"
-import { cn, isCalEntry, isCalReviewer, isExcursion } from "../../../../utils/utils"
+import { cn, isCalEntry, isCalReviewer, isActivity } from "../../../../utils/utils"
 import { useEffect, useState } from "react";
 import { useAjax } from "../../../../hooks/useAjax";
 import useFetch from "../../../../hooks/useFetch";
@@ -98,7 +98,7 @@ export function CalendarFlow({
 
 
   const showSyncs = () => {
-    return ((status == statuses.approved) || (isExcursion(activitytype) && displaypublic && pushpublic && status != statuses.approved))
+    return ((status == statuses.approved) || (isActivity(activitytype) && displaypublic && pushpublic && status != statuses.approved))
   }
 
   const showApproveOpt = () => {
@@ -106,7 +106,7 @@ export function CalendarFlow({
   }
 
   const showPublicNowOpt = () => {
-    return isCalReviewer() && isExcursion(activitytype) && displaypublic && status != statuses.approved
+    return isCalReviewer() && isActivity(activitytype) && displaypublic && status != statuses.approved
   }
 
   const showSomething = () => {
@@ -146,7 +146,7 @@ export function CalendarFlow({
                   <Switch
                     checked={status == statuses.approved}
                     onChange={(event) => submitApproved(event.currentTarget.checked)}
-                    disabled={isExcursion(activitytype)}
+                    disabled={isActivity(activitytype)}
                   />
                 </div>
               }

@@ -1,6 +1,6 @@
 import { ActionIcon, Avatar, Button, Card, LoadingOverlay, Select, Switch, Text } from "@mantine/core"
 import { IconBell, IconBellOff, IconCancel, IconPencil, IconPlus, IconUser, IconUserCancel, IconUserCheck, IconUserX, IconX } from "@tabler/icons-react"
-import { cn, isExcursion } from "../../../../utils/utils"
+import { cn, isActivity } from "../../../../utils/utils"
 import { useEffect, useState } from "react";
 import { useAjax } from "../../../../hooks/useAjax";
 import useFetch from "../../../../hooks/useFetch";
@@ -91,7 +91,7 @@ export function Workflow({
 
   
   return (
-    isExcursion(activitytype) && (approvals.length || draftApprovals.length) ?
+    isActivity(activitytype) && (approvals.length || draftApprovals.length) ?
     <Card withBorder radius="sm" className="p-0 rounded-t-none -mt-[1px]" mb="lg">
       <div className="hidden px-4 py-2">
         <span className="text-base">Workflow {status == statuses.draft || status == statuses.saved ? "(Not started)" : ""}</span>

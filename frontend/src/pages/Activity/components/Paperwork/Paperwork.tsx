@@ -1,4 +1,4 @@
-import { Card, Grid } from '@mantine/core';
+import { Anchor, Card, Grid, Text } from '@mantine/core';
 import { FileUploader } from './components/FileUploader/FileUploader';
 import '@mantine/dropzone/styles.css';
 
@@ -13,10 +13,13 @@ export function Paperwork() {
         <Card.Section inheritPadding py="sm">
           <Grid gutter="xl">
             <Grid.Col span={12}>
-              <FileUploader inputName="riskassessment" title="Risk Assessment" desc="or Drag file. The file must not exceed 10mb." maxFiles={1} maxSize={10} />
+              <Text className="font-semibold inline">Risk Assessment</Text>
+              <Anchor target='_blank' href="https://kb.cgs.act.edu.au/guides/risk-assessment-template/" className="text-sm inline ml-2">Template</Anchor>
+              <FileUploader inputName="riskassessment" desc="or Drag file. The file must not exceed 10mb." maxFiles={1} maxSize={10} />
             </Grid.Col>
             <Grid.Col span={12}>
-              <FileUploader inputName="attachments" title="Attachments" desc="or Drag files. Maximum 10 files. Each file should not exceed 10mb." maxFiles={10} maxSize={10} />
+              <Text className="font-semibold">Attachments</Text>
+              <FileUploader inputName="attachments" desc="or Drag files. Maximum 10 files. Each file should not exceed 10mb." maxFiles={10} maxSize={10} />
             </Grid.Col>
           </Grid>
         </Card.Section>

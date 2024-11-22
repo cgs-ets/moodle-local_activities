@@ -9,14 +9,13 @@ import { useDisclosure } from "@mantine/hooks";
 
 type Props = {
   inputName: string,
-  title: string,
   desc: string,
   maxFiles: number,
   maxSize: number,
 }
 
 
-export function FileUploader ({inputName, title, desc, maxFiles, maxSize}: Props) {
+export function FileUploader ({inputName, desc, maxFiles, maxSize}: Props) {
   const openRef = useRef<() => void>(null);
   
   const existingfiles = useFormStore((state) => state['existing'+inputName])
@@ -288,7 +287,6 @@ export function FileUploader ({inputName, title, desc, maxFiles, maxSize}: Props
 
   return (
     <>
-      <Text className="font-semibold">{title}</Text>
       <Dropzone
         accept={[IMAGE_MIME_TYPE, PDF_MIME_TYPE, MS_WORD_MIME_TYPE, MS_EXCEL_MIME_TYPE, MS_POWERPOINT_MIME_TYPE].flat()}
         onDrop={handleDrop}

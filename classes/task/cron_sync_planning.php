@@ -82,7 +82,7 @@ class cron_sync_planning extends \core\task\scheduled_task {
             $approved = $status->isapproved;
 
             $destinationCalendars = array($config->planningcalupn);
-            $isExcursion = activities_lib::is_excursion($event->activitytype);
+            $isActivity = activities_lib::is_activity($event->activitytype);
 
             // Get existing sync entries.
             $sql = "SELECT *
@@ -100,7 +100,7 @@ class cron_sync_planning extends \core\task\scheduled_task {
             if (!$status->isapproved) {
                 // Event is unapproved.
                 // Possible exception:
-                if ($isExcursion && $event->displaypublic && $event->pushpublic) {
+                if ($isActivity && $event->displaypublic && $event->pushpublic) {
                     // Event may not be approved, but if it pushpublic then include it.
                 } else {
                     $skipEvent = true;

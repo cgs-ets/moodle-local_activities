@@ -86,7 +86,7 @@ trait activities_api {
      */
     static public function get_comments() {
         $id = required_param('id', PARAM_INT);
-        return activities_lib::load_comments($id);
+        return activities_lib::get_comments($id);
     }
 
     /**
@@ -117,8 +117,17 @@ trait activities_api {
      */
     static public function send_email($args) { 
         $data = (object) $args;
-        return activities_lib::send_activity_email($data);
+        return activities_lib::add_activity_email($data);
     }
     
+    /**
+     * Get emails
+     *
+     * @return array results.
+     */
+    static public function get_emails() {
+        $id = required_param('id', PARAM_INT);
+        return activities_lib::get_emails($id);
+    }
 
 }

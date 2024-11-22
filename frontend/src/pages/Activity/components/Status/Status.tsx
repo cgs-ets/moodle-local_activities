@@ -7,7 +7,7 @@ import { useAjax } from '../../../../hooks/useAjax';
 import { useParams } from 'react-router-dom';
 import { Form, useFormStore } from '../../../../stores/formStore';
 import { useStateStore } from '../../../../stores/stateStore';
-import { entryStatus, excursionStatus, isExcursion } from '../../../../utils/utils';
+import { entryStatus, excursionStatus, isActivity } from '../../../../utils/utils';
 import { useWorkflowStore } from '../../../../stores/workflowStore';
 
 
@@ -37,7 +37,7 @@ export function Status({
   
   // When everything is loaded, set the baseline.
   useEffect(() => {
-    if (formloaded && (!isExcursion(activitytype) || studentsloaded)) {
+    if (formloaded && (!isActivity(activitytype) || studentsloaded)) {
       if (!hash) {
         baselineHash()
       }
@@ -103,11 +103,11 @@ export function Status({
   }
 
   const showReviewButton = () => {
-    return isExcursion(activitytype) && !haschanges && status == statuses.saved
+    return isActivity(activitytype) && !haschanges && status == statuses.saved
   }
 
   const statusText = () => {
-    return isExcursion(activitytype)
+    return isActivity(activitytype)
     ? excursionStatus()
     : entryStatus()
   }
@@ -118,7 +118,7 @@ export function Status({
       options.push(<Menu.Item key={0} onMouseDown={() => updateStatus(0)} leftSection={<IconArrowMoveLeft size={14} />}>Return to draft</Menu.Item>)
     }
 
-    if (isExcursion(activitytype) && status > statuses.saved) {
+    if (isActivity(activitytype) && status > statuses.saved) {
       options.push(<Menu.Item key={1} onMouseDown={() => updateStatus(1)} leftSection={<IconArrowMoveLeft size={14} />}>Return to draft</Menu.Item>)
     }
     return options
@@ -127,7 +127,7 @@ export function Status({
   return (
     <Card withBorder radius="sm" p="md" mb="lg" className="overflow-visible rounded-b-none"
       bg={
-        isExcursion(activitytype)
+        isActivity(activitytype)
         ? status == statuses.inreview 
           ? "orange.1" 
           : (status == statuses.approved 
@@ -157,7 +157,7 @@ export function Status({
 
       { !submitLoading && !errMessage && !haschanges &&
         <Text c="dimmed" size="sm">
-        { isExcursion(activitytype)
+        { isActivity(activitytype)
           ?  status == statuses.saved 
             ? "All information is saved."
             : status == statuses.inreview
