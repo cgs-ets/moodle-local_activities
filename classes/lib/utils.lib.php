@@ -317,4 +317,79 @@ class utils_lib {
         // Get the buffered content
         return ob_get_clean();
     }*/
+
+    public static function get_user_mentors($userid) {
+        global $DB;
+
+        $mentors = array();
+        $mentorssql = "SELECT u.username
+                         FROM {role_assignments} ra, {context} c, {user} u
+                        WHERE c.instanceid = :menteeid
+                          AND c.contextlevel = :contextlevel
+                          AND ra.contextid = c.id
+                          AND u.id = ra.userid";
+        $mentorsparams = array(
+            'menteeid' => $userid,
+            'contextlevel' => CONTEXT_USER
+        );
+        if ($mentors = $DB->get_records_sql($mentorssql, $mentorsparams)) {
+            $mentors = array_column($mentors, 'username');
+        }
+        return $mentors;
+    }
+
+    public static function get_user_mentees($userid) {
+        global $DB;
+
+        // Get mentees for user.
+        $mentees = array();
+        $menteessql = "SELECT u.username
+                         FROM {role_assignments} ra, {context} c, {user} u
+                        WHERE ra.userid = :mentorid
+                          AND ra.contextid = c.id
+                          AND c.instanceid = u.id
+                          AND c.contextlevel = :contextlevel";     
+        $menteesparams = array(
+            'mentorid' => $userid,
+            'contextlevel' => CONTEXT_USER
+        );
+        if ($mentees = $DB->get_records_sql($menteessql, $menteesparams)) {
+            $mentees = array_column($mentees, 'username');
+        }
+        return $mentees;
+    }
+
+
+    public static function get_users_mentors($userids) {
+        global $DB;
+
+        [$insql, $inparams] = $DB->get_in_or_equal($userids);
+
+        $mentors = array();
+        $mentorssql = "SELECT u.username
+                         FROM {role_assignments} ra, {context} c, {user} u
+                        WHERE c.instanceid $insql
+                          AND c.contextlevel = 30
+                          AND ra.contextid = c.id
+                          AND u.id = ra.userid";
+        if ($mentors = $DB->get_records_sql($mentorssql, $inparams)) {
+            $mentors = array_column($mentors, 'username');
+        }
+        return $mentors;
+    }
+
+    public static function get_userids($usernames) {
+        global $DB;
+
+        [$insql, $inparams] = $DB->get_in_or_equal($usernames);
+
+        $sql = "SELECT id
+                FROM {user}
+                WHERE username $insql";
+                
+        return array_values(array_column($DB->get_records_sql($sql, $inparams), 'id'));
+    }
+
+
+
 }

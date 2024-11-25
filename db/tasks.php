@@ -2,7 +2,7 @@
 defined('MOODLE_INTERNAL') || die();
 $tasks = array(
     array(
-        'classname' => 'local_activities\task\cron_sync_planning',
+        'classname' => 'local_activities\task\cron_sync_events',
         'blocking' => 0,
         'minute' => '*',
         'hour' => '*',

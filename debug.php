@@ -20,7 +20,9 @@ require_capability('moodle/site:config', $context, $USER->id);
 
 echo "<pre>"; 
 
-$cron = new \local_activities\task\cron_sync_planning();
+$cron = new \local_activities\task\cron_emails_user();
 $cron->execute();
+$cron = new \local_activities\task\cron_emails_sys();
+//$cron->execute();
 exit;
 

@@ -125,7 +125,7 @@
       </KEYS>
     </TABLE>
 
-    <TABLE NAME="activity_emails" COMMENT="A queue of emails to send.">
+    <TABLE NAME="activity_emails" COMMENT="A queue of user initiated emails.">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="activityid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
@@ -207,12 +207,13 @@
     </TABLE>
 
     
-    <TABLE NAME="activity_email_queue" COMMENT="A fully exported email to send">
+    <TABLE NAME="activity_sys_emails" COMMENT="A queue of fully exported sys emails">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="log" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="data" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timesent" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

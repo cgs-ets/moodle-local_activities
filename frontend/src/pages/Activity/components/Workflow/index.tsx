@@ -93,7 +93,9 @@ export function Workflow({
   return (
     isActivity(activitytype) && (approvals.length || draftApprovals.length) ?
     <Card withBorder radius="sm" className="p-0 rounded-t-none -mt-[1px]" mb="lg">
-      <div className="hidden px-4 py-2">
+      
+      
+      <div className="px-4 py-2">
         <span className="text-base">Workflow {status == statuses.draft || status == statuses.saved ? "(Not started)" : ""}</span>
       </div>
       

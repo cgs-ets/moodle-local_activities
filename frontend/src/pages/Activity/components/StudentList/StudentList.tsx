@@ -27,16 +27,13 @@ export function StudentList() {
   const permissionsrequired = useFormStore((state) => (state.permissions))
   const [isOpenAddStudentsModal, addStudentsModalHandlers] = useDisclosure(false)
   const [isOpenMessageModal, messageModalHandlers] = useDisclosure(false);
+  const savedtime = useStateStore((state) => (state.savedtime))
 
 
   const [fetchResponse, fetchError, fetchLoading, fetchAjax] = useAjax(); // destructure state and fetch function
   useEffect(() => {
     if (id) {
-      // Only load once. If the user changes permissions value, they will need to save to refresh.
-      if (fetchResponse && !fetchError) {
-        console.log("Save changes to refresh the student list")
-        return
-      }
+      console.log("get student list")
       // Fetch student list for this activity.
       fetchAjax({
         query: {
@@ -46,7 +43,7 @@ export function StudentList() {
         }
       })
     }
-  }, [id])
+  }, [id, savedtime])
 
   useEffect(() => { 
     if (fetchResponse && !fetchError) {
@@ -55,10 +52,6 @@ export function StudentList() {
       console.log("stulist", fetchResponse.data)
     }
   }, [fetchResponse]);
-
-
-
-
 
 
   const insertStudents = (students: User[]) => {

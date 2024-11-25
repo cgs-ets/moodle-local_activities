@@ -179,8 +179,8 @@ class activities_lib {
             }, $data->studentlist);
             static::sync_students_from_data($activity->get('id'), $studentusernames);
 
-            // Generate permissions based on student list.
-            //static::generate_permissions($data->id);
+            // Generate parent permissions based on student list.
+            static::generate_permissions($data->id);
 
             // If saving after already in review or approved, determine the approvers based on campus.
             if ($originalactivity && 
@@ -188,17 +188,13 @@ class activities_lib {
                 static::is_activity($data->activitytype)
             ) {
                 $newstatusinfo = workflow_lib::generate_approvals($originalactivity, $activity);
-            } /*else if ($data->activitytype == 'calendar' || $data->activitytype == 'assessment') {
-                $newstatusinfo->status = static::ACTIVITY_STATUS_DRAFT;
-            }*/
+            }
 
         } catch (\Exception $e) {
             // Log and rethrow. 
             // https://stackoverflow.com/questions/5551668/what-are-the-best-practices-for-catching-and-re-throwing-exceptions
             throw $e;
         }
-
-        //$newstatusinfo = workflow_lib::check_status($activity->get('id'), null, true);
 
         return array(
             'id' => $activity->get('id'),
@@ -307,6 +303,21 @@ class activities_lib {
             AND username $insql";
             $DB->execute($sql, $params);
         }
+    }
+
+    /**
+     * Get staff data for a given team.
+     *
+     * @param int $activityid
+     * @param string $usertype
+     * @param string $fields
+     * @return array
+     */
+    public static function get_all_staff($activityid, $usertype = "*", $fields = "*") {
+        global $DB;
+        $extras = static::get_staff($activityid, $usertype, $fields);
+        $activity = new Activity($activityid);
+        return array_merge([$activity->get('staffincharge')], array_column($extras, 'username'));
     }
 
     /**
@@ -452,17 +463,17 @@ class activities_lib {
         }
 
         // Generate permissions for saved students.
-        $students = static::get_excursion_students($activityid);
+        $students = static::get_activity_students($activityid);
         foreach ($students as $student) {
             // Find the student's mentors.
             $user = \core_user::get_user_by_username($student->username);
             if (empty($user)) {
                 continue;
             }
-            $mentors = static::get_users_mentors($user->id);
+            $mentors = utils_lib::get_user_mentors($user->id);
             foreach ($mentors as $mentor) {
                 // Only insert this if it doesn't exist.
-                $exists = $DB->record_exists(activity::TABLE_ACTIVITY_PERMISSIONS, array(
+                $exists = $DB->record_exists(activities_lib::TABLE_ACTIVITY_PERMISSIONS, array(
                     'activityid' => $activityid,
                     'studentusername' => $student->username,
                     'parentusername' => $mentor,
@@ -478,7 +489,7 @@ class activities_lib {
                     $permission->queuesendid = 0;
                     $permission->response = 0;
                     $permission->timecreated = time();
-                    $DB->insert_record(activity::TABLE_ACTIVITY_PERMISSIONS, $permission);
+                    $DB->insert_record(activities_lib::TABLE_ACTIVITY_PERMISSIONS, $permission);
                 }
             }
         }
@@ -1173,7 +1184,7 @@ class activities_lib {
     * @param int $postid.
     * @return array.
     */
-    public static function get_excursion_students($activityid) {
+    public static function get_activity_students($activityid) {
         global $DB;
         $sql = "SELECT *
                   FROM {" . static::TABLE_ACTIVITY_STUDENTS . "}
@@ -1306,11 +1317,8 @@ class activities_lib {
         }
 
         // Get the activity students.
-        $sql = "SELECT username
-                FROM {" . static::TABLE_ACTIVITY_STUDENTS . "}
-                WHERE activityid = ?";
-        $params = array($data->activityid);
-        $students = $DB->get_records_sql($sql, $params);
+        $students = static::get_activity_students($data->activityid);
+        $students = array_values(array_column($students, 'username'));
         $studentsjson = json_encode($students);
 
         // Queue an email.
@@ -1534,7 +1542,7 @@ class activities_lib {
             $attending = $DB->get_records_sql($sql, $params);
             $attending = array_values(array_column($attending, 'studentusername'));
         } else {
-            $attending = static::get_excursion_students($activityid);
+            $attending = static::get_activity_students($activityid);
             $attending = array_values(array_column($attending, 'username'));
         }
 
@@ -1655,39 +1663,7 @@ class activities_lib {
 
     }
 
-    public static function get_planning_staff($activityid) {
-        global $DB;
-        
-        $sql = "SELECT *
-                  FROM {" . static::TABLE_ACTIVITY_PLANNING_STAFF . "}
-                 WHERE activityid = ?";
-        $params = array($activityid);
-        $records = $DB->get_records_sql($sql, $params);
 
-        $staff = array();
-        foreach ($records as $record) {
-            $staff[] = (object) $record;
-        }
-
-        return $staff;
-    }
-
-    public static function get_accompanying_staff($activityid) {
-        global $DB;
-        
-        $sql = "SELECT *
-                  FROM {" . static::TABLE_ACTIVITY_STAFF . "}
-                 WHERE activityid = ?";
-        $params = array($activityid);
-        $records = $DB->get_records_sql($sql, $params);
-
-        $staff = array();
-        foreach ($records as $record) {
-            $staff[] = (object) $record;
-        }
-
-        return $staff;
-    }
 
     public static function soft_delete($id) {
         global $DB, $USER;

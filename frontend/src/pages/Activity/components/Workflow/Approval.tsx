@@ -112,74 +112,72 @@ export function Approval({
 
   
   return (
-
-          
-            <div 
-              key={approval.id} 
-              className={
-                cn(
-                  "flex justify-between items-center gap-2 border-b px-4 h-10",
-                  approval.status == "1" 
-                  ? "bg-[#d4edda]" 
-                  : approval.skip == '1' 
-                    ? "bg-gray-200" 
-                    : approval.status == "0" ? "bg-[#ffe8cc]" : ""
-                )
-              }
-            >
-              <LoadingOverlay visible={submitLoading} />
-              <div className="flex items-center gap-2">
-                { approval.status == '0' && approval.skip == '0' && approval.selectable
-                  ? approval.nominated
-                    ? <div className="flex gap-1 items-center">
-                        <Avatar alt="Nominated approver" title="Nominated approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.nominated} radius="xl"><IconUser size={14} /></Avatar> 
-                        {approval.description}
-                        <ActionIcon variant="transparent"><IconPencil onClick={() => unsetNominated(approval.id)} className="size-4" /></ActionIcon>
-                      </div>
-                    : <div className="flex gap-2 items-center">
-                        <Select
-                          size="xs"
-                          placeholder="Nominate approver"
-                          value={approval.tempnominated ? approval.tempnominated : approval.nominated}
-                          onChange={(value) => updateNominated(approval.id, value)}
-                          data={approval.approvers.map((a: any) => ({value: a.username, label: a.fullname}))}
-                          className="flex-1"
-                        />
-                        {approval.tempnominated && approval.tempnominated != approval.nominated ? <Button onClick={() => submitNominated(approval.id)} variant="light" size="compact-xs">Save</Button> : '' }
-                      </div>
-                  : <span>{approval.description}</span>
-                }
+    <div 
+      key={approval.id} 
+      className={
+        cn(
+          "flex justify-between items-center gap-2 border-b px-4 h-10",
+          approval.status == "1" 
+          ? "bg-[#d4edda]" 
+          : approval.skip == '1' 
+            ? "bg-gray-200" 
+            : approval.status == "0" ? "bg-[#ffe8cc]" : ""
+        )
+      }
+    >
+      <LoadingOverlay visible={submitLoading} />
+      <div className="flex items-center gap-2">
+        { approval.status == '0' && approval.skip == '0' && approval.selectable
+          ? approval.nominated
+            ? <div className="flex gap-1 items-center">
+                <Avatar alt="Nominated approver" title="Nominated approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.nominated} radius="xl"><IconUser size={14} /></Avatar> 
+                {approval.description}
+                <ActionIcon variant="transparent"><IconPencil onClick={() => unsetNominated(approval.id)} className="size-4" /></ActionIcon>
               </div>
-              <div className="flex items-center gap-2">
-                {!approval.selectable || approval.username && (approval.status == '1' || approval.skip == '1') // Not a selectable step, or approved
-                  ? approval.username && (approval.status == '1' || approval.skip == '1') // approved
-                    ? <Avatar alt="Approver" title="Approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.username}><IconUser size={14} /></Avatar>
-                    : <Avatar.Group>
-                        {Object.keys(approval.approvers).slice(0,4).map((approverusername: string) => {
-                          return <Avatar size={24} key={approverusername} src={'/local/activities/avatar.php?username=' + approverusername}><IconUser size={14} /></Avatar>
-                        })}
-                        { Object.keys(approval.approvers).length > 4
-                          ?<Avatar size={24}>+{Object.keys(approval.approvers).length - 4}</Avatar>
-                          : null
-                        }
-                      </Avatar.Group>
+            : <div className="flex gap-2 items-center">
+                <Select
+                  size="xs"
+                  placeholder="Nominate approver"
+                  value={approval.tempnominated ? approval.tempnominated : approval.nominated}
+                  onChange={(value) => updateNominated(approval.id, value)}
+                  data={approval.approvers.map((a: any) => ({value: a.username, label: a.fullname}))}
+                  className="flex-1"
+                />
+                {approval.tempnominated && approval.tempnominated != approval.nominated ? <Button onClick={() => submitNominated(approval.id)} variant="light" size="compact-xs">Save</Button> : '' }
+              </div>
+          : <span>{approval.description}</span>
+        }
+      </div>
+      <div className="flex items-center gap-2">
+        {!approval.selectable || approval.username && (approval.status == '1' || approval.skip == '1') // Not a selectable step, or approved
+          ? approval.username && (approval.status == '1' || approval.skip == '1') // approved
+            ? <Avatar alt="Approver" title="Approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.username}><IconUser size={14} /></Avatar>
+            : <Avatar.Group>
+                {Object.keys(approval.approvers).slice(0,4).map((approverusername: string) => {
+                  return <Avatar size={24} key={approverusername} src={'/local/activities/avatar.php?username=' + approverusername}><IconUser size={14} /></Avatar>
+                })}
+                { Object.keys(approval.approvers).length > 4
+                  ?<Avatar size={24}>+{Object.keys(approval.approvers).length - 4}</Avatar>
                   : null
                 }
-                { approval.status == '0' && approval.isapprover && approval.canskip && 
-                  <ActionIcon onClick={() => skipApproval(approval.id, approval.skip == '1' ? 0 : 1)} variant="transparent" title={approval.skip == '1' ? "Enable Approval" : "Skip Approval"}>
-                    { approval.skip == '1'
-                      ? <IconUserCheck className="size-5" />
-                      : <IconCancel className="size-5" /> 
-                    }
-                  </ActionIcon>
-                }
-                { approval.skip == '0' && approval.isapprover && approval.canapprove && 
-                  <Switch
-                    checked={approval.status == "1"}
-                    onChange={(event) => onApprove(approval.id, event.currentTarget.checked)}
-                  />
-                }
-              </div>
-            </div>
+              </Avatar.Group>
+          : null
+        }
+        { approval.status == '0' && approval.isapprover && approval.canskip && 
+          <ActionIcon onClick={() => skipApproval(approval.id, approval.skip == '1' ? 0 : 1)} variant="transparent" title={approval.skip == '1' ? "Enable Approval" : "Skip Approval"}>
+            { approval.skip == '1'
+              ? <IconUserCheck className="size-5" />
+              : <IconCancel className="size-5" /> 
+            }
+          </ActionIcon>
+        }
+        { approval.skip == '0' && approval.isapprover && approval.canapprove && 
+          <Switch
+            checked={approval.status == "1"}
+            onChange={(event) => onApprove(approval.id, event.currentTarget.checked)}
+          />
+        }
+      </div>
+    </div>
   )
 }

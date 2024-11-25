@@ -143,6 +143,37 @@ class service_lib {
     }
 
     /**
+     * ------------------------------------------------------
+     * Create a queue for emails to be sent via scheduled task.
+     * ------------------------------------------------------
+     *
+     * Send an email to a specified user
+     *
+     * @param stdClass $user A {@link $USER} object
+     * @param stdClass $from A {@link $USER} object
+     * @param string $subject plain text subject line of the email
+     * @param string $messagetext plain text version of the message
+     * @param string $messagehtml complete html version of the message (optional)
+     * @param string $attachments
+     */
+    public static function email_to_user($user, $from, $subject, $messagetext, $messagehtml = '', $attachments = []) {
+        global $DB;
+
+        $email = new \stdClass();
+        $email->log = "Email '$subject' for '$user->email'";
+        $email->data = json_encode([
+            $user,
+            $from, 
+            $subject, 
+            $messagetext, 
+            $messagehtml, 
+            $attachments
+        ]);
+        $email->timecreated = time();
+        $DB->insert_record('activity_sys_emails', $email);
+    }
+
+    /**
      * Modified from: https://github.com/moodle/moodle/blob/MOODLE_402_STABLE/lib/moodlelib.php#L5965
      */
     /**
@@ -162,7 +193,7 @@ class service_lib {
      * @param int $wordwrapwidth custom word wrap width, default 79
      * @return bool Returns true if mail was sent OK and false if there was an error.
      */
-    public static function email_to_user(
+    public static function real_email_to_user(
         $user, 
         $from, 
         $subject, 

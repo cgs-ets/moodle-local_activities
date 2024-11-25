@@ -49,7 +49,6 @@ export function ActivityBrowser({category, callback, showCheckbox = true}) {
   };
 
   const handleItemSelect = (value, type) => {
-    console.log("item clicked: " + value)
     if (type == 'category') {
       setSelectedItem(null)
       openCat(JSON.parse(value).id)

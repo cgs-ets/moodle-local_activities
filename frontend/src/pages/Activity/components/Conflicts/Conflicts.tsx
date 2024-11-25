@@ -48,7 +48,7 @@ export function Conflicts() {
         </div>
         <div className="flex border-t border-gray-300/70">
           <Alert className={cn("p-0 m-0 inline-block shadow-none rounded-none w-full", status == statuses.approved ? "bg-white" : "bg-[#fff6cc]")} variant="light">
-            <Button c="black" onClick={() => conflictsOpened ? hideConflicts() : showConflicts()} variant="transparent" className="px-2 font-normal" rightSection={conflictsOpened ? <IconChevronDown className="size-5"/> : <IconChevronRight className="size-5"/>}>
+            <Button c="black" onClick={() => conflictsOpened ? hideConflicts() : showConflicts()} variant="transparent" className="px-3 font-normal" rightSection={conflictsOpened ? <IconChevronDown className="size-5"/> : <IconChevronRight className="size-5"/>}>
               {conflicts.length} {conflicts.length > 1 ? "overlap" : "time overlaps" } found
             </Button>
           </Alert>

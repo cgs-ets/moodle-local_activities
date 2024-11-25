@@ -19,7 +19,6 @@ export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
   const studentlist = useFormStore((state) => state.studentlist)
   const setState = useFormStore((state) => state.setState)
   const config = getConfig()
-  console.log(config)
   const [openedPermissionsURL, togglePermissionsURL] = useDisclosure(false);
 
   const permissionsUrlClipboard = useClipboard({

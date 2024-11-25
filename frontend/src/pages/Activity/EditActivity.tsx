@@ -23,10 +23,10 @@ import { Permissions } from "./components/Permissions/Permissions";
 import { isActivity } from "../../utils/utils";
 import { Comments } from "./components/Comments/Comments";
 import { StudentList } from "./components/StudentList/StudentList";
-import { NextSteps } from "./components/NextSteps/NextSteps";
 import { EmailModal } from "./components/EmailModal/EmailModal";
 import { PermissionsEmailModal } from "./components/PermissionsEmailModal/PermissionsEmailModal";
 import { EmailHistory } from "./components/EmailHistory/EmailHistory";
+import { NextSteps } from "./components/NextSteps/NextSteps";
 
 export function EditActivity() {
   let { id } = useParams();
@@ -58,7 +58,6 @@ export function EditActivity() {
         }
       })
     } else {
-      console.log("clearing form state")
       setFormData(null)
       setFormState(null)
       clearHash()
@@ -121,10 +120,8 @@ export function EditActivity() {
           status: submitResponse.data.status,
         } as Form)
         setApprovals(submitResponse.data.workflow)
-        // Refetch student list.
-        console.log("Triggering student.")
+        updateSavedTime()
       }
-
     }
     if (submitError) {
       resetHash() // Revert to old hash as changes were not saved
@@ -191,7 +188,7 @@ export function EditActivity() {
     })
     setFormData({initialActivitytype: formData.initialActivitytype} as Form)
     setFormData({initialCampus: formData.campus} as Form)
-    updateSavedTime()
+
   }
 
 
@@ -233,9 +230,9 @@ export function EditActivity() {
                       <Grid.Col span={{ base: 12, lg: 4 }}>
                         <Status submitLoading={submitLoading} submitError={submitError} submitResponse={submitResponse} />
                         <Workflow activityid={Number(id || 0)} />
+                        <NextSteps />
                         <Conflicts />
                         <CalendarFlow activityid={Number(id || 0)} />
-                        <NextSteps />
                         <EmailHistory />
                         <Comments />
                       </Grid.Col>
