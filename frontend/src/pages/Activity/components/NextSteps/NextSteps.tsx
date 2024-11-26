@@ -20,9 +20,9 @@ export function NextSteps() {
         <h3 className="text-base m-0">Next steps</h3>
       </Card.Section>
 
+      <Card.Section className='p-4 bg-gray-50 border-b'>To help streamline your activity planning process at CGS, we’ve provided a list of essential components for you to consider for pre- and post-activity arrangements.</Card.Section>
+
       <Card.Section>
-
-
       <Accordion>
         {permissions &&
           <Accordion.Item value="permissions">
@@ -34,7 +34,7 @@ export function NextSteps() {
               Parent permissions
             </Accordion.Control>
             <Accordion.Panel>
-              <Text c="dimmed" size="sm">Prepare and send parent permission requests</Text>
+              <Text size="sm">Prepare and send parent permission requests using the permissions feature on the left side of this page.</Text>
             </Accordion.Panel>
           </Accordion.Item>
         }
@@ -48,10 +48,10 @@ export function NextSteps() {
             Venue Booking
           </Accordion.Control>
           <Accordion.Panel>
-            <Text c="dimmed" size="sm">
+            <Text size="sm">
               Have you secured a venue? Begin by confirming availability and booking through <Anchor target="_blank" href="https://sobs.com.au/ui/login.php?schoolid=728">SOBS Primary</Anchor> or <Anchor target="_blank" href="https://sobs.com.au/ui/login.php?schoolid=157">SOBS Senior</Anchor>, ensuring your reservation includes time for setup and pack-down. 
             </Text>
-            <Text c="dimmed" size="sm">
+            <Text size="sm">
               If you’re booking the Snow Concert Hall, please complete the information that’s required in SOBS. 
             </Text>
           </Accordion.Panel>
@@ -67,10 +67,10 @@ export function NextSteps() {
             Catering Requirements
           </Accordion.Control>
           <Accordion.Panel>
-            <Text c="dimmed" size="sm">
+            <Text size="sm">
               If your activity requires catering, please complete the <Anchor target="_blank" href="https://infiniti.canberragrammar.org.au/Infiniti/Produce/launch.aspx?id=db4a01bf-5152-46e3-b345-6a560946de3e&portal=1">Catering Request Form</Anchor>. 
             </Text>
-            <Text c="dimmed" size="sm">
+            <Text size="sm">
               If you’re booking the Snow Concert Hall, please complete the information that’s required in SOBS. 
             </Text>
           </Accordion.Panel>
@@ -89,10 +89,10 @@ export function NextSteps() {
             Logistical Support
           </Accordion.Control>
           <Accordion.Panel>
-            <Text c="dimmed" size="sm">
+            <Text size="sm">
               For any logistical support, such as event setup, or equipment needs, submit a request through the <Anchor target="_blank" href="https://support.cgs.act.edu.au/">Property and Facilities Support Desk link</Anchor>. As these requests are supported by different teams, can you please put in separate tickets for 
             </Text>
-            <List type="unordered" c="dimmed" size="sm">
+            <List type="unordered" size="sm">
               <List.Item>Cleaning (Please specify whether the event is intended for external participants, including parents. This information is essential to ensure our spaces are appropriately presented for any external visitors) </List.Item>
               <List.Item>Event setup and pack-down requirements, with times </List.Item>
               <List.Item>Equipment needed. </List.Item>
@@ -109,7 +109,7 @@ export function NextSteps() {
             IT Support
           </Accordion.Control>
           <Accordion.Panel>
-            <Text c="dimmed" size="sm">
+            <Text size="sm">
               For technical assistance, including audio-visual needs, doors or room access (SALTO), access control support, submit a ticket through the <Anchor target="_blank" href="https://support.cgs.act.edu.au/">Ed Tech Support Desk link</Anchor>. 
             </Text>
           </Accordion.Panel>
@@ -124,7 +124,7 @@ export function NextSteps() {
             Marketing, Design, and Communications
           </Accordion.Control>
           <Accordion.Panel>
-            <Text c="dimmed" size="sm">
+            <Text size="sm">
               For graphic design, communications (such as CGS Connect news and announcements), photography, or online RSVP/payment system (Humanitix), submit a ticket via the <Anchor target="_blank" href="https://support.cgs.act.edu.au/">Marketing, Graphic Design and Events Support Desk link</Anchor>. If you need event management support, select "Events" in the drop-down menu to notify the Events Manager and team. 
             </Text>
           </Accordion.Panel>
@@ -141,7 +141,7 @@ export function NextSteps() {
             Student Projects
           </Accordion.Control>
           <Accordion.Panel>
-            <Text c="dimmed" size="sm">
+            <Text size="sm">
               If this is a student-led project and you are the supervising staff member, direct students to raise requests via the <Anchor target="_blank" href="https://support.cgs.act.edu.au/">Student Projects Support Desk link </Anchor>. These steps will help ensure thorough preparation for your event, covering all aspects from venue to support services. 
             </Text>
           </Accordion.Panel>
@@ -157,7 +157,7 @@ export function NextSteps() {
             Ready
           </Accordion.Control>
           <Accordion.Panel>
-            <Text color="dimmed" size="sm">You're all set to go!</Text>
+            <Text size="sm">You're all set to go!</Text>
           </Accordion.Panel>
         </Accordion.Item>
 

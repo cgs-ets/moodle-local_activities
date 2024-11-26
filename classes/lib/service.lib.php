@@ -142,6 +142,21 @@ class service_lib {
         return $url;
     }
 
+    
+    public static function wrap_and_email_to_user($recipient, $fromUser, $subject, $body) {
+        global $CFG, $OUTPUT;
+        
+        $config = get_config('local_activities');
+        $data = new \stdClass();
+        $data->emaillogo = empty($config->emaillogo) ? false : $config->emaillogo;
+        $data->url = $CFG->wwwroot . '/local/activities/';
+        $data->toolname = $config->toolname;
+        $data->body = $body;
+        $messageHtml = $OUTPUT->render_from_template('local_activities/email_template', $data);
+        $result = static::email_to_user($recipient, $fromUser, $subject, '', $messageHtml, '', '', true);
+    }
+
+
     /**
      * ------------------------------------------------------
      * Create a queue for emails to be sent via scheduled task.

@@ -23,6 +23,6 @@ echo "<pre>";
 $cron = new \local_activities\task\cron_emails_user();
 $cron->execute();
 $cron = new \local_activities\task\cron_emails_sys();
-//$cron->execute();
+$cron->execute();
 exit;
 

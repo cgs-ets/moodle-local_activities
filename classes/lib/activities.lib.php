@@ -1320,7 +1320,10 @@ class activities_lib {
         $students = static::get_activity_students($data->activityid);
         $students = array_values(array_column($students, 'username'));
         $studentsjson = json_encode($students);
-
+        if (isset($data->scope) && $data->scope) {
+            $studentsjson = json_encode(array_column($data->scope, 'un'));
+        }
+        
         // Queue an email.
         $rec = new \stdClass();
         $rec->activityid = $data->activityid;

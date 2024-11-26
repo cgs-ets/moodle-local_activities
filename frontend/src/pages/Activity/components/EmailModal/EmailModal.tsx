@@ -1,21 +1,22 @@
 
 import { Avatar, Badge, Box, Button, Checkbox, CloseButton, Flex, Group, Modal, Paper, ScrollArea, Text, TextInput, Textarea, Transition } from '@mantine/core';
 import { useEffect, useState } from 'react';
-import { IconCheck, IconSend, IconUser } from '@tabler/icons-react';
+import { IconCheck, IconMailOpened, IconSend, IconUser } from '@tabler/icons-react';
 import { useTimeout } from '@mantine/hooks';
 import { useAjax } from '../../../../hooks/useAjax';
-import { User } from '../../../../types/types';
+import { Student, User } from '../../../../types/types';
 import { ActivitySummary } from '../../../../components/ActivitySummary/ActivitySummary';
 import { useFormStore } from '../../../../stores/formStore';
 
 type Props = {
   opened: boolean,
   close: () => void,
-  students: User[]
+  students: Student[]
 }
 
 export function EmailModal({opened, close, students}: Props) {
   const activityid = useFormStore((state) => (state.id))
+  const activityname = useFormStore((state) => (state.activityname))
   const [message, setMessage] = useState<string>('')
   const [audiences, setAudiences] = useState<string[]>(['students', 'parents', 'staff'])
   const [includes, setIncludes] = useState<string[]>(['details'])
@@ -33,7 +34,11 @@ export function EmailModal({opened, close, students}: Props) {
 
   useEffect(() => {
     if (students?.length) {
-      setRecipients(students)
+      const cleaned = students.map((student) => {
+        const {parents, permission, ...rest} = student;
+        return rest
+      })
+      setRecipients(cleaned)
     }
   }, [students, opened])
 
@@ -43,6 +48,7 @@ export function EmailModal({opened, close, students}: Props) {
       body: {
         methodname: 'local_activities-send_email',
         args: {
+          scope: recipients,
           activityid: activityid,
           extratext: message,
           includes: includes,
@@ -199,7 +205,12 @@ export function EmailModal({opened, close, students}: Props) {
     <Modal 
       opened={opened} 
       onClose={onClose} 
-      title="Send message" 
+      //title="Send message" 
+      title={
+        <div className='flex items-center gap-1'>
+          <IconMailOpened className="size-5 text-gray-700 stroke-1 mr-2" /> {activityname}
+        </div>
+      }
       size="xl" 
       styles={{
         header: {

@@ -77,10 +77,10 @@ class cron_emails_user extends \core\task\scheduled_task {
             json_encode($emailactionids),
         ), 2);
         list($in, $params) = $DB->get_in_or_equal($emailactionids);
-       // $DB->set_field_select(activities_lib::TABLE_ACTIVITY_EMAILS, 'status', 1, "id {$in}", $params);
+        // $DB->set_field_select(activities_lib::TABLE_ACTIVITY_EMAILS, 'status', 1, "id {$in}", $params);
 
-       $fromUser = \core_user::get_noreply_user();
-       $fromUser->bccaddress = array("lms.archive@cgs.act.edu.au"); 
+        $fromUser = \core_user::get_noreply_user();
+        $fromUser->bccaddress = array("lms.archive@cgs.act.edu.au"); 
 
         $this->log("Queueing relevant permissions for sending.", 2);
         foreach ($emails as $email) {
@@ -116,18 +116,17 @@ class cron_emails_user extends \core\task\scheduled_task {
                         if (empty($parent)) {
                             continue;
                         }
-                        $emaildata = new \stdClass();
-                        $emaildata->activity = $activity;
-                        $emaildata->recipientname = "$parent->firstname $parent->lastname";
-                        $emaildata->studentname = "$student->firstname $student->lastname";
-                        $emaildata->extratext = $email->extratext;
-                        $emaildata->includepermissions = in_array('permissions', $includes);
-                        $emaildata->includedetails = in_array('details', $includes);
-                        $messageHtml = $OUTPUT->render_from_template('local_activities/email', $emaildata);
-
-                        // Put it in sys queue to be sent.
+                    
+                        $data = new \stdClass();
+                        $data->activity = $activity;
+                        $data->recipientname = "$parent->firstname $parent->lastname";
+                        $data->studentname = "$student->firstname $student->lastname";
+                        $data->extratext = $email->extratext;
+                        $data->includepermissions = in_array('permissions', $includes);
+                        $data->includedetails = in_array('details', $includes);
+                        $body = $OUTPUT->render_from_template('local_activities/email_message', $data);
                         $subject = "Permissions required for: $activity->activityname";
-                        $result = service_lib::email_to_user($parent, $fromUser, $subject, '', $messageHtml, '', '', true);
+                        $result = service_lib::wrap_and_email_to_user($parent, $fromUser, $subject, $body);
                     }   
                 }
 
@@ -163,17 +162,16 @@ class cron_emails_user extends \core\task\scheduled_task {
                     if (empty($recipient)) {
                         continue;
                     }
-                    $emaildata = new \stdClass();
-                    $emaildata->activity = $activity;
-                    $emaildata->recipientname = "$recipient->firstname $recipient->lastname";
-                    $emaildata->extratext = $email->extratext;
-                    $emaildata->includepermissions = false;
-                    $emaildata->includedetails = in_array('details', $includes);
-                    $messageHtml = $OUTPUT->render_from_template('local_activities/email', $emaildata);
 
-                    // Put it in sys queue to be sent.
-                    $subject = "Message re: $activity->activityname";
-                    $result = service_lib::email_to_user($parent, $fromUser, $subject, '', $messageHtml, '', '', true);
+                    $data = new \stdClass();
+                    $data->activity = $activity;
+                    $data->recipientname = "$recipient->firstname $recipient->lastname";
+                    $data->extratext = $email->extratext;
+                    $data->includepermissions = false;
+                    $data->includedetails = in_array('details', $includes);
+                    $body = $OUTPUT->render_from_template('local_activities/email_message', $data);
+                    $subject = $activity->activityname;
+                    $result = service_lib::wrap_and_email_to_user($recipient, $fromUser, $subject, $body);
                 }
                 
             }

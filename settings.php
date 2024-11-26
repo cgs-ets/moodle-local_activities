@@ -22,6 +22,13 @@ if ($hassiteconfig) {
     $setting = new admin_setting_configtext($name, $visiblename, $description, null);
     $settings->add($setting);
 
+    // Email header image url.
+    $name = 'local_activities/emaillogo';
+    $visiblename = get_string('emaillogo', 'local_activities');
+    $description = get_string('emaillogo_desc', 'local_activities');
+    $setting = new admin_setting_configtext($name, $visiblename, $description, null);
+    $settings->add($setting);
+
     // Favicon.
     $name = 'local_activities/favicon';
     $visiblename = get_string('favicon', 'local_activities');

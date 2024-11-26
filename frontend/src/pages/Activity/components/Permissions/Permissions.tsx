@@ -99,7 +99,7 @@ export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
                 <div className="p-4 border-t border-gray-300 flex justify-between">
                   {studentlist.length
                     ? <>
-                        <Button size="compact-md" radius="xl" leftSection={<IconMail size={14} />} className="bg-tablr-blue" onClick={openSendMessage}>Prepare permission requests</Button>
+                        <Button size="compact-md" radius="xl" leftSection={<IconMail size={14} />} className="bg-tablr-blue" onClick={openSendMessage}>Send permission requests</Button>
                         <Button size="compact-md" onClick={togglePermissionsURL.toggle} radius="xl" className="bg-tablr-blue-light" variant="subtle" rightSection={openedPermissionsURL ? <IconChevronUp size={14}/> : <IconChevronDown size={14}/> }>Send manually</Button>
                       </>
                     : <div className='bg-yellow-100 px-1'>You must add students before you can finalise permission settings</div>
