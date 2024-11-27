@@ -1,7 +1,7 @@
 <?php
 
 /**
- * A scheduled task for notifications.
+ * A scheduled task for sending emails.
  *
  * @package   local_activities
  * @copyright 2024 Michael Vangelovski

@@ -535,7 +535,7 @@ class activities_lib {
     public static function search($text) {
         global $DB;
 
-        $sql = "SELECT * 
+        $sql = "SELECT id 
                     ,case
                         when status = 0 OR status = 1 then 1
                         else 0
@@ -557,7 +557,7 @@ class activities_lib {
         $records = $DB->get_records_sql($sql, $params);
         $activities = array();
         foreach ($records as $record) {
-            $activities[] = new static($record->id, $record);
+            $activities[] = new Activity($record->id);
         }
 
         return $activities;
@@ -917,7 +917,7 @@ class activities_lib {
         // - start within the next two weeks ($startlimit) OR
         // - currently running OR
         // - ended within the past 7 days ($endlimit)  OR
-        $sql = "SELECT *
+        $sql = "SELECT id
                   FROM {" . static::TABLE . "}
                  WHERE absencesprocessed = 0
                    AND (
@@ -929,7 +929,7 @@ class activities_lib {
         $records = $DB->get_records_sql($sql, null);
         $activities = array();
         foreach ($records as $record) {
-            $activities[] = new static($record->id, $record);
+            $activities[] = new Activity($record->id);
         }
         
         return $activities;
@@ -943,7 +943,7 @@ class activities_lib {
         // - be unprocessed since the last change.
         // - start within the next x days ($startlimit) OR
         // - currently running OR
-        $sql = "SELECT *
+        $sql = "SELECT id
                   FROM {" . static::TABLE . "}
                  WHERE classrollprocessed = 0
                    AND (
@@ -954,7 +954,7 @@ class activities_lib {
         $records = $DB->get_records_sql($sql, null);
         $activities = array();
         foreach ($records as $record) {
-            $activities[] = new static($record->id, $record);
+            $activities[] = new Activity($record->id);
         }
         
         return $activities;
@@ -964,7 +964,7 @@ class activities_lib {
         global $DB;
 
         $now = time();
-        $sql = "SELECT *
+        $sql = "SELECT id
                   FROM {" . static::TABLE . "}
                  WHERE remindersprocessed = 0
                    AND deleted = 0
@@ -972,8 +972,8 @@ class activities_lib {
                    AND status = " . static::ACTIVITY_STATUS_APPROVED;
         $records = $DB->get_records_sql($sql, null);
         $activities = array();
-        foreach ($records as $record) {
-            $activities[] = new static($record->id, $record);
+        foreach ($records as $record) {            
+            $activities[] = new Activity($record->id);
         }
         
         return $activities;
@@ -986,7 +986,7 @@ class activities_lib {
         // Activies must:
         // - be unapproved.
         // - starting in x days ($rangestart)
-        $sql = "SELECT *
+        $sql = "SELECT id
                   FROM {" . static::TABLE . "}
                  WHERE timestart >= {$rangestart} AND timestart <= {$rangeend}
                    AND (
@@ -997,7 +997,7 @@ class activities_lib {
         $records = $DB->get_records_sql($sql, null);
         $activities = array();
         foreach ($records as $record) {
-            $activities[] = new static($record->id, $record);
+            $activities[] = new Activity($record->id);
         }
         
         return $activities;
@@ -1080,103 +1080,8 @@ class activities_lib {
         return true;
 
     }
-
-    /*
-    * Save a draft of the activity, used by the auto-save service. At present, the only
-    * field auto-saved is the activity name.
-    */
-    public static function save_draft($formdata) {
-        // Some validation.
-        if (empty($formdata->id)) {
-            return;
-        }
-
-        // Save the activity name.
-        $activity = new static($formdata->id);
-        if ($formdata->activityname) {
-            $activity->set('activityname', $formdata->activityname);
-            $activity->save();
-        }
-
-        return $activity->get('id');
-    }
     
 
-    public static function regenerate_student_list($data) {
-        global $PAGE, $DB, $OUTPUT;
-
-        $activity = new static($data->activityid);
-
-        // Update the student list for the activity.
-        if (empty($activity)) {
-            return '';
-        }
-
-        $activityexporter = new activity_exporter($activity);
-        $output = $PAGE->get_renderer('core');
-        $activity = $activityexporter->export($output);
-
-        // Get current student list.
-        $existinglist = array_column(static::get_excursion_students_temp($data->activityid), 'username');
-
-        // Only add students that are not already in the list.
-        $newstudents = $data->users;
-        if ($existinglist) {
-            $newstudents = array();
-            foreach ($data->users as $username) {
-                if (!in_array($username, $existinglist)) {
-                    $newstudents[] = $username;
-                }
-            }
-        }
-
-        // Remove the users that are no longer to be in the list.
-        $deletefromlist = array_diff($existinglist, $data->users);
-        foreach ($deletefromlist as $username) {
-            $DB->delete_records(static::TABLE_ACTIVITY_STUDENTS_TEMP, array(
-                'activityid' => $data->activityid,
-                'username' => $username,
-            ));
-        }
-
-        // Insert the new usernames.
-        foreach ($newstudents as $username) {
-            $record = new \stdClass();
-            $record->activityid = $data->activityid;
-            $record->username = $username;
-            $id = $DB->insert_record(static::TABLE_ACTIVITY_STUDENTS_TEMP, $record);
-        }
-
-        $students = array();
-        // Get the students permissions.
-        foreach ($data->users as $username) {
-            $student = static::get_user_display_info($username);
-            $student->uptodate = static::get_studentdatacheck($username);
-            $student->sisconsent = static::get_excursionconsent($username);
-            $permissions = array_values(static::get_student_permissions($data->activityid, $username));
-            $student->permissions = array();
-            foreach ($permissions as $permission) {
-                $parent = static::get_user_display_info($permission->parentusername);
-                $parent->response = $permission->response;
-                $parent->noresponse = ($permission->response == 0);
-                $parent->responseisyes = ($permission->response == 1);
-                $parent->responseisno = ($permission->response == 2);
-                $student->permissions[] = $parent;
-            }
-            $students[] = $student;
-        }
-        usort($students, function($a, $b) {
-            return strcmp($a->fullnamereverse, $b->fullnamereverse);
-        });
-
-        // Generate and return the new students in html rows.
-        $data = array(
-            'activity' => $activity,
-            'students' => $students,
-        );
-
-        return $OUTPUT->render_from_template('local_activities/activityform_studentlist_rows', $data);
-    }
 
     /**
     * Gets all of the activity students.
@@ -1287,15 +1192,6 @@ class activities_lib {
     }
 
     /*
-    * Enable permissions
-    */
-    public static function enable_permissions($activityid, $checked) {
-        $activity = new static($activityid);
-        $activity->set('permissions', $checked);
-        $activity->save();
-    }
-
-    /*
     * Send permissions
     */
     public static function add_activity_email($data) {
@@ -1323,7 +1219,7 @@ class activities_lib {
         if (isset($data->scope) && $data->scope) {
             $studentsjson = json_encode(array_column($data->scope, 'un'));
         }
-        
+
         // Queue an email.
         $rec = new \stdClass();
         $rec->activityid = $data->activityid;

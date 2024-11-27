@@ -1,40 +1,20 @@
 <?php
-// This file is part of Moodle - http://moodle.org/
-//
-// Moodle is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Moodle is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * A scheduled task for creating classes for rollmarking.
  *
- * @package   local_excursions
- * @copyright 2022 Michael Vangelovski
+ * @package   local_activities
+ * @copyright 2024 Michael Vangelovski
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace local_excursions\task;
+namespace local_activities\task;
 defined('MOODLE_INTERNAL') || die();
 
-use local_excursions\persistents\activity;
-use local_excursions\external\activity_exporter;
-use local_excursions\locallib;
+require_once(__DIR__.'/../lib/activities.lib.php');
+require_once(__DIR__.'/../lib/activity.class.php');
+use \local_activities\lib\activities_lib;
+use \local_activities\lib\activity;
 
-/**
- * A scheduled task for creating classes for rollmarking.
- *
- * @package   local_excursions
- * @copyright 2022 Michael Vangelovski
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 class cron_create_classes extends \core\task\scheduled_task {
 
     // Use the logging trait to get some nice, juicy, logging.
@@ -46,7 +26,7 @@ class cron_create_classes extends \core\task\scheduled_task {
      * @return string
      */
     public function get_name() {
-        return get_string('cron_create_classes', 'local_excursions');
+        return get_string('cron_create_classes', 'local_activities');
     }
 
     /**
@@ -61,10 +41,10 @@ class cron_create_classes extends \core\task\scheduled_task {
         $readablenow= date('Y-m-d H:i:s', $now);
         $readableplusdays= date('Y-m-d H:i:s', $plusdays);
         $this->log_start("Fetching approved activities within the next week (between {$readablenow} and {$readableplusdays}).");
-        $activities = activity::get_for_roll_creation($now, $plusdays);
+        $activities = activities_lib::get_for_roll_creation($now, $plusdays);
         try {
 
-            $config = get_config('local_excursions');
+            $config = get_config('local_activities');
             $externalDB = \moodle_database::get_driver_instance($config->dbtype, 'native', true);
             $externalDB->connect($config->dbhost, $config->dbuser, $config->dbpass, $config->dbname, '');
 
@@ -73,7 +53,7 @@ class cron_create_classes extends \core\task\scheduled_task {
             $currentterminfo =  array_pop($currentterminfo);
 
             foreach ($activities as $activity) {
-                $attending = activity::get_all_attending($activity->get('id'));
+                $attending = activities_lib::get_all_attending($activity->get('id'));
                 if (empty($attending)) {
                     $this->log("Skipping class roll for activity because it has no students in it: " . $activity->get('id'));
                     continue;
@@ -202,7 +182,7 @@ class cron_create_classes extends \core\task\scheduled_task {
                     $params = array(
                         'fileyear' => $currentterminfo->fileyear,
                         'filesemester' => $currentterminfo->filesemester,
-                        'classcampus' => $activity->get('campus') == 'senior' ? 'SEN' : 'PRI',
+                        'classcampus' => $activity->get('campus') == 'primary' ? 'PRI' : 'SEN',
                         'classcode' => $classcode,
                         'studentscsv' => implode(',', $attending),
                     );

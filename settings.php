@@ -62,6 +62,43 @@ if ($hassiteconfig) {
     $settings->add(new admin_setting_configtext('local_activities/graphclientsecret', 'Graph API Client Secret', '', ''));
     $settings->add(new admin_setting_configtext('local_activities/graphtenantid', 'Graph API Tenant ID', '', ''));
     $settings->add(new admin_setting_configtext('local_activities/calendarupn', 'Calendar User Principal Name', '', ''));
+
+    // External DB connections
+    $settings->add(new admin_setting_heading(
+        'local_activities_exdbheader', 
+        get_string('settingsheaderdb', 'local_activities'), 
+        ''
+    ));
+	$options = array('', "mysqli", "oci", "pdo", "pgsql", "sqlite3", "sqlsrv");
+    $options = array_combine($options, $options);
+    $settings->add(new admin_setting_configselect(
+        'local_activities/dbtype', 
+        get_string('dbtype', 'local_activities'), 
+        get_string('dbtype_desc', 'local_activities'), 
+        '', 
+        $options
+    ));
+    $settings->add(new admin_setting_configtext('local_activities/dbhost', get_string('dbhost', 'local_activities'), get_string('dbhost_desc', 'local_activities'), 'localhost'));
+    $settings->add(new admin_setting_configtext('local_activities/dbuser', get_string('dbuser', 'local_activities'), '', ''));
+    $settings->add(new admin_setting_configpasswordunmask('local_activities/dbpass', get_string('dbpass', 'local_activities'), '', ''));
+    $settings->add(new admin_setting_configtext('local_activities/dbname', get_string('dbname', 'local_activities'), '', ''));
+
+    $settings->add(new admin_setting_configtext('local_activities/usertaglistssql', get_string('usertaglistssql', 'local_activities'), '', ''));
+    $settings->add(new admin_setting_configtext('local_activities/publictaglistssql', get_string('publictaglistssql', 'local_activities'), '', ''));
+    $settings->add(new admin_setting_configtext('local_activities/taglistuserssql', get_string('taglistuserssql', 'local_activities'), '', ''));
+    $settings->add(new admin_setting_configtext('local_activities/checkabsencesql', get_string('checkabsencesql', 'local_activities'), '', ''));
+    $settings->add(new admin_setting_configtext('local_activities/createabsencesql', get_string('createabsencesql', 'local_activities'), '', ''));
+    $settings->add(new admin_setting_configtext('local_activities/studentdatachecksql', get_string('studentdatachecksql', 'local_activities'), '', ''));
+    $settings->add(new admin_setting_configtext('local_activities/excursionconsentsql', get_string('excursionconsentsql', 'local_activities'), '', ''));
+    $settings->add(new admin_setting_configtext('local_activities/deleteabsencessql', get_string('deleteabsencessql', 'local_activities'), '', ''));
+
+    $settings->add(new admin_setting_configtext('local_activities/createclasssql', get_string('createclasssql', 'local_activities'), '', ''));
+    $settings->add(new admin_setting_configtext('local_activities/insertclassstaffsql', get_string('insertclassstaffsql', 'local_activities'), '', ''));
+    $settings->add(new admin_setting_configtext('local_activities/insertclassstudentsql', get_string('insertclassstudentsql', 'local_activities'), '', ''));
+    $settings->add(new admin_setting_configtext('local_activities/deleteclassstudentssql', get_string('deleteclassstudentssql', 'local_activities'), '', ''));
+
+    $settings->add(new admin_setting_configtext('local_activities/getterminfosql', get_string('getterminfosql', 'local_activities'), '', ''));
+
     
 
 }

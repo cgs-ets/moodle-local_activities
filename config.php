@@ -157,7 +157,7 @@ class local_activities_config {
 
         // WHOLE RA
 	    'whole_ra' => array(
-	    	'name' => 'WS Admin Approval',
+	    	'name' => 'WS RA Approval',
 	    	'invalidated_on_edit' => array (
 	    		'location',
 	    		'timestart',
@@ -223,7 +223,12 @@ class local_activities_config {
         // CAMPUSMNG
 		'commercial_ra' => array(
 	    	'name' => 'RA Approval',
-	    	'invalidated_on_edit' => array(),
+	    	'invalidated_on_edit' => array(
+	    		'location',
+	    		'timestart',
+	    		'timeend',
+	    		'riskassessment',
+	    	),
 	    	'approvers' => array(
 		        'admin' => array(
 		            'username' => 'admin',

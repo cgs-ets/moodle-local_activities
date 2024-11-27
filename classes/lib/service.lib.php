@@ -188,6 +188,20 @@ class service_lib {
         $DB->insert_record('activity_sys_emails', $email);
     }
 
+
+    public static function wrap_and_real_email_to_user($recipient, $fromUser, $subject, $body) {
+        global $CFG, $OUTPUT;
+        
+        $config = get_config('local_activities');
+        $data = new \stdClass();
+        $data->emaillogo = empty($config->emaillogo) ? false : $config->emaillogo;
+        $data->url = $CFG->wwwroot . '/local/activities/';
+        $data->toolname = $config->toolname;
+        $data->body = $body;
+        $messageHtml = $OUTPUT->render_from_template('local_activities/email_template', $data);
+        $result = static::real_email_to_user($recipient, $fromUser, $subject, '', $messageHtml, '', '', true);
+    }
+
     /**
      * Modified from: https://github.com/moodle/moodle/blob/MOODLE_402_STABLE/lib/moodlelib.php#L5965
      */
