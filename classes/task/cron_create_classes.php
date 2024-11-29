@@ -45,6 +45,9 @@ class cron_create_classes extends \core\task\scheduled_task {
         try {
 
             $config = get_config('local_activities');
+            if (empty($config->dbhost ?? '') || empty($config->dbuser ?? '') || empty($config->dbpass ?? '') || empty($config->dbname ?? '')) {
+                return;
+            }
             $externalDB = \moodle_database::get_driver_instance($config->dbtype, 'native', true);
             $externalDB->connect($config->dbhost, $config->dbuser, $config->dbpass, $config->dbname, '');
 

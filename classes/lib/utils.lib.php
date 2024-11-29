@@ -175,9 +175,7 @@ class utils_lib {
                    AND ra.userid = ue.userid
                    AND r.id = ra.roleid
                    AND r.shortname = 'student'";
-        $params = array($courseids);
-        $records = $DB->get_records_sql($sql, $params);
-
+        $records = $DB->get_records_sql($sql, $inparams);
         $students = array();
 
         foreach($records as $rec) {
@@ -246,8 +244,7 @@ class utils_lib {
                 AND ra.userid = m.userid
                 AND r.id = ra.roleid
                 AND r.shortname = 'student'";
-        $params = array($groupids);
-        $records = $DB->get_records_sql($sql, $params);
+        $records = $DB->get_records_sql($sql, $inparams);
 
         $students = array();
         foreach($records as $r) {

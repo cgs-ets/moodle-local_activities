@@ -90,7 +90,7 @@ trait utils_api {
      */
     static public function get_courses_students() {
         $ids = required_param('ids', PARAM_RAW);
-        return utils_lib::get_students_from_courses($ids);
+        return utils_lib::get_students_from_courses(explode(',', $ids));
     }
 
     /**
@@ -100,7 +100,7 @@ trait utils_api {
      */
     static public function get_group_students() {
         $ids = required_param('ids', PARAM_RAW);
-        return utils_lib::get_students_from_groups($ids);
+        return utils_lib::get_students_from_groups(explode(',', $ids));
     }
 
 }

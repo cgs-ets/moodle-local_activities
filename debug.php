@@ -20,8 +20,39 @@ require_capability('moodle/site:config', $context, $USER->id);
 
 echo "<pre>"; 
 
+$cron = new \local_activities\task\cron_create_absences();
+$cron->execute();
+
+echo "------------------------------------------------------------------------<br>";
+
+$cron = new \local_activities\task\cron_create_classes();
+$cron->execute();
+
+echo "------------------------------------------------------------------------<br>";
+
+$cron = new \local_activities\task\cron_emails_sys();
+$cron->execute();
+
+echo "------------------------------------------------------------------------<br>";
+
+$cron = new \local_activities\task\cron_emails_user();
+$cron->execute();
+
+echo "------------------------------------------------------------------------<br>";
+
+$cron = new \local_activities\task\cron_send_approval_reminders();
+$cron->execute();
+
+echo "------------------------------------------------------------------------<br>";
+
 $cron = new \local_activities\task\cron_send_attendance_reminders();
 $cron->execute();
+
+echo "------------------------------------------------------------------------<br>";
+
+$cron = new \local_activities\task\cron_sync_events();
+$cron->execute();
+
 
 
 exit;

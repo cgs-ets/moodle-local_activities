@@ -7,6 +7,7 @@ export const studentColumn = (showPermissions: boolean) => {
     accessorFn: (row: Student) => {
       let color = 'gray.2'
       if (showPermissions) {
+        color = 'orange.1'
         if (row.permission == 1) {
               color = 'apprgreen.2'
         } else if (row.permission == 2) {
@@ -35,7 +36,7 @@ export const parentColumn = {
       <Flex wrap="wrap" gap={4}>
         {
           row.parents.map((parent) => { 
-            let color = 'white'
+            let color = 'orange.1'
             if (parent.response == 1) {
               color = 'apprgreen.2'
             } else if (parent.response == 2) {

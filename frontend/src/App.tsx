@@ -8,6 +8,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import 'dayjs/locale/en-gb';
 import { EditActivity } from "./pages/Activity/EditActivity";
 import { ViewActivity } from "./pages/Activity/ViewActivity";
+import { Permission } from "./pages/Permission/Permission";
 
 
 
@@ -33,6 +34,10 @@ function App() {
           {
             path: ":id/edit", // Matches /activity/<number>/edit
             element: <EditActivity />,
+          },
+          {
+            path: ":id/permission", // Matches /activity/<number>/permission
+            element: <Permission />,
           },
         ],
       },

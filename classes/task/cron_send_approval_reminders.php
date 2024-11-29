@@ -49,7 +49,7 @@ class cron_send_approval_reminders extends \core\task\scheduled_task {
         $plus15days = strtotime('+15 day', $today);
         $readableplus14days= date('Y-m-d H:i:s', $plus14days);
         $readableplus15days= date('Y-m-d H:i:s', $plus15days);
-        $this->log_start("Fetching unapproved activities starting between {$readableplus14days} and {$readableplus15days}.");
+        $this->log("Fetching unapproved activities starting between {$readableplus14days} and {$readableplus15days}.", 2);
         $activities = activities_lib::get_for_approval_reminders($plus14days, $plus15days);
 
         foreach ($activities as $activity) {
@@ -93,12 +93,12 @@ class cron_send_approval_reminders extends \core\task\scheduled_task {
 
             // Send the reminders.
             foreach ($recipients as $username => $email) {
-                $this->log("Sending reminder for activity " . $data->id . " to " . $username);
+                $this->log("Sending reminder for activity " . $data->id . " to " . $username, 3);
                 $data->numdays = '14';
                 $this->send_reminder($data, $username, $email);
             }
             
-            $this->log("Finished sending 14 day reminders for activity " . $data->id);
+            $this->log_finish("Finished sending 14 day reminders for activity " . $data->id);
         }
 
         /********************
@@ -111,7 +111,7 @@ class cron_send_approval_reminders extends \core\task\scheduled_task {
         $plus8days = strtotime('+8 day', $today);
         $readableplus7days= date('Y-m-d H:i:s', $plus7days);
         $readableplus8days= date('Y-m-d H:i:s', $plus8days);
-        $this->log_start("Fetching unapproved activities starting between {$readableplus7days} and {$readableplus8days}.");
+        $this->log("Fetching unapproved activities starting between {$readableplus7days} and {$readableplus8days}.", 2);
         $activities = activities_lib::get_for_approval_reminders($plus7days, $plus8days);
 
         foreach ($activities as $activity) {
@@ -155,12 +155,12 @@ class cron_send_approval_reminders extends \core\task\scheduled_task {
 
             // Send the reminders.
             foreach ($recipients as $username => $email) {
-                $this->log("Sending reminder for activity " . $data->id . " to " . $username);
+                $this->log("Sending reminder for activity " . $data->id . " to " . $username, 3);
                 $data->numdays = '7';
                 $this->send_reminder($data, $username, $email);
             }
             
-            $this->log("Finished sending 7 day reminders for activity " . $data->id);
+            $this->log_finish("Finished sending 7 day reminders for activity " . $data->id);
         }
 
 

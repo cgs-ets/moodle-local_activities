@@ -369,15 +369,15 @@ class workflow_lib extends \local_activities\local_activities_config {
             $approver = static::WORKFLOW[$approval->type]['approvers'][$nominated];
             if ($approver['contacts']) {
                 foreach ($approver['contacts'] as $email) {
-                    //static::send_next_approval_email($activity, static::WORKFLOW[$approval->type]['name'], $nominated, $email, [$USER->email]);
+                    static::send_next_approval_email($activityid, static::WORKFLOW[$approval->type]['name'], $nominated, $email, [$USER->email]);
                 }
             } else {
-                //static::send_next_approval_email($activity, static::WORKFLOW[$approval->type]['name'], $nominated, null, [$USER->email]);
+                static::send_next_approval_email($activityid, static::WORKFLOW[$approval->type]['name'], $nominated, null, [$USER->email]);
             }
         }
 
         // Return updated status and workflow.
-        $newstatusinfo = static::check_status($activityid, null, true, [$USER->email]);
+        //$newstatusinfo = static::check_status($activityid, null, true, [$USER->email]);
 
         return $newstatusinfo;
     }
@@ -386,7 +386,7 @@ class workflow_lib extends \local_activities\local_activities_config {
     /*
     * Check status
     */
-    public static function check_status($activityid, $fieldschanged = null, $progressed = false, $bccemail = null) {
+    public static function check_status($activityid, $fieldschanged = null, $progressed = false, $bccemails = []) {
         global $DB, $PAGE, $OUTPUT;
 
         $activity = new Activity($activityid);
@@ -415,29 +415,29 @@ class workflow_lib extends \local_activities\local_activities_config {
         // Approver needs to be notified when:
         // When workflow has progressed, or moving in-review from another status.
         if ($newstatus->inreview && ($oldstatus->status != $newstatus->status || $progressed)) {
-            //static::notify_next_approver($activityid, $bccemail);
+            static::notify_next_approver($activityid, $bccemails);
         }
 
         // Creator needs to be notified whenever there is a status change.
         // Going from draft to in-review, approved back to in-review.
         if ($oldstatus->status != $newstatus->status && !$newstatus->isapproved) {
-            //static::send_activity_status_email($activityid, $oldstatus, $newstatus);
+            static::send_activity_status_email($activityid, $oldstatus, $newstatus);
         }
 
         // Send workflow progressed email.
         if ($oldstatus->inreview && $newstatus->inreview && $progressed) {
-            //static::send_workflow_email($activityid);
+            static::send_workflow_email($activityid);
         }
 
         // Send approved status email.
         if ($oldstatus->inreview && $newstatus->isapproved) {
-            //static::send_approved_emails($activityid);
+            static::send_approved_emails($activityid);
         }
 
         // If changes after already approved, send email to relevant staff.
         if ($fieldschanged) {
             if ($oldstatus->isapproved && $newstatus->isapproved) {
-                //static::send_datachanged_emails($activityid, $fieldschanged);
+                static::send_datachanged_emails($activityid, $fieldschanged);
             }
         }
 
@@ -471,7 +471,7 @@ class workflow_lib extends \local_activities\local_activities_config {
     }
 
     protected static function send_activity_status_email($activityid, $oldstatus, $newstatus) {
-        global $USER, $PAGE;
+        global $USER, $OUTPUT;
 
         $activity = new Activity($activityid);
         $exported = $activity->export();
@@ -487,14 +487,13 @@ class workflow_lib extends \local_activities\local_activities_config {
         );
 
         $subject = "Activity status update: " . $exported->activityname;
-        $messageText = $output->render_from_template('local_activities/email_status_text', $data);
-        $messageHtml = $output->render_from_template('local_activities/email_status_html', $data);
-        $result = service_lib::email_to_user($toUser, $fromUser, $subject, $messageText, $messageHtml, '', '', true); 
+        $messageHtml = $OUTPUT->render_from_template('local_activities/email_status_html', $data);
+        $result = service_lib::wrap_and_email_to_user($toUser, $fromUser, $subject, $messageHtml); 
 
     }
 
     protected static function send_workflow_email($activityid) {
-        global $USER, $PAGE;
+        global $USER, $OUTPUT;
 
         $activity = new Activity($activityid);
         $activity = $activity->export();
@@ -504,28 +503,39 @@ class workflow_lib extends \local_activities\local_activities_config {
         $fromUser->bccaddress = array(); //$fromUser->bccaddress = array("lms.archive@cgs.act.edu.au"); 
 
         $subject = "Activity workflow update: " . $activity->activityname;
-        $messageText = $output->render_from_template('local_activities/email_workflow_text', $activity);
-        $messageHtml = $output->render_from_template('local_activities/email_workflow_html', $activity);
-        $result = service_lib::email_to_user($toUser, $fromUser, $subject, $messageText, $messageHtml, '', '', true); 
+        $messageHtml = $OUTPUT->render_from_template('local_activities/email_workflow_html', ['activity' => $activity]);
+        $result = service_lib::wrap_and_email_to_user($toUser, $fromUser, $subject, $messageHtml); 
 
     }
 
+    public static function filter_approvals_with_prerequisites($approvals) {
+        foreach ($approvals as $i => $approval) {
+            // Exlude if waiting for a prerequisite.
+            $prerequisites = static::get_prerequisites($approval->activityid, $approval->type);
+            if ($prerequisites) {
+                unset($approvals[$i]);
+            }
+        }
+        return $approvals;
+    }
 
-    protected static function notify_next_approver($activityid, $bccemail = null) {
-        $activity = new static($activityid);
+    protected static function notify_next_approver($activityid, $bccemails = []) {
         // Get the next approval step.
         $approvals = static::get_unactioned_approvals($activityid);
         $approvals = static::filter_approvals_with_prerequisites($approvals); 
         foreach ($approvals as $nextapproval) {
-
-            if ($nextapproval->selectable && $nextapproval->nominated) {
-                $approver = static::WORKFLOW[$approval->type]['approvers'][$nextapproval->nominated];
-                if ($approver['contacts']) {
-                    foreach ($approver['contacts'] as $email) {
-                        static::send_next_approval_email($activity, static::WORKFLOW[$approval->type]['name'], $nextapproval->nominated, $email, $bccemail);
+            $isSelectable = isset(static::WORKFLOW[$nextapproval->type]['selectable']) && static::WORKFLOW[$nextapproval->type]['selectable'];
+            if ($isSelectable) {
+                if ($nextapproval->nominated) {
+                    // If an approver has already been nominated, send them the email, otherwise that will need to happen first.
+                    $approver = static::WORKFLOW[$nextapproval->type]['approvers'][$nextapproval->nominated];
+                    if ($approver['contacts']) {
+                        foreach ($approver['contacts'] as $email) {
+                            static::send_next_approval_email($activityid, static::WORKFLOW[$nextapproval->type]['name'], $nextapproval->nominated, $email, $bccemails);
+                        }
+                    } else {
+                        static::send_next_approval_email($activityid, static::WORKFLOW[$nextapproval->type]['name'], $nextapproval->nominated, null, $bccemails);
                     }
-                } else {
-                    static::send_next_approval_email($activity, static::WORKFLOW[$approval->type]['name'], $nextapproval->nominated, null, $bccemail);
                 }
             } else {
                 $approvers = static::WORKFLOW[$nextapproval->type]['approvers'];
@@ -536,10 +546,10 @@ class workflow_lib extends \local_activities\local_activities_config {
                     }
                     if ($approver['contacts']) {
                         foreach ($approver['contacts'] as $email) {
-                            static::send_next_approval_email($activity, static::WORKFLOW[$nextapproval->type]['name'], $approver['username'], $email, $bccemail);
+                            static::send_next_approval_email($activityid, static::WORKFLOW[$nextapproval->type]['name'], $approver['username'], $email, $bccemails);
                         }
                     } else {
-                        static::send_next_approval_email($activity, static::WORKFLOW[$nextapproval->type]['name'], $approver['username'], null, $bccemail);
+                        static::send_next_approval_email($activityid, static::WORKFLOW[$nextapproval->type]['name'], $approver['username'], null, $bccemails);
                     }
                 }
             }
@@ -547,24 +557,26 @@ class workflow_lib extends \local_activities\local_activities_config {
     }
 
 
-    protected static function send_next_approval_email($activityid, $step = '', $recipient = '', $email = null, $bccaddressextra = []) {
-        global $USER, $PAGE;
+    protected static function send_next_approval_email($activityid, $step = '', $recipient = '', $email = null, $bccemails = []) {
+        global $USER, $OUTPUT;
 
         $toUser = \core_user::get_user_by_username($recipient);
+        if (empty($toUser)) {
+            return;
+        }
         if ($email) {
             // Override the email address.
             $toUser->email = $email;
         }
         $fromUser = \core_user::get_noreply_user();
         $fromUser->bccaddress = array(); //$fromUser->bccaddress = array("lms.archive@cgs.act.edu.au"); 
-        $fromUser->bccaddress = array_merge($fromUser->bccaddress, $bccaddressextra);
+        $fromUser->bccaddress = array_merge($fromUser->bccaddress, $bccemails);
 
         $activity = new Activity($activityid);
         $activity = $activity->export();
 
         $subject = "Activity approval required [" . $step . "]: " . $activity->activityname;
-        $messageText = $output->render_from_template('local_activities/email_approval_text', $activity);
-        $messageHtml = $output->render_from_template('local_activities/email_approval_html', $activity);
+        $messageHtml = $OUTPUT->render_from_template('local_activities/email_approval_html', ['activity' => $activity]);
 
 
         // Locate the ra and additional files in the Moodle file storage
@@ -583,7 +595,7 @@ class workflow_lib extends \local_activities\local_activities_config {
             $attachments[$filename] = $file->copy_content_to_temp();
         }
 
-        $result = service_lib::email_to_user($toUser, $fromUser, $subject, $messageText, $messageHtml, $attachments, true);
+        $result = service_lib::wrap_and_email_to_user($toUser, $fromUser, $subject, $messageHtml, $attachments);
 
         // Remove an attachment file if any.
         if (!empty($attachments)) {
@@ -596,8 +608,73 @@ class workflow_lib extends \local_activities\local_activities_config {
 
     }
 
+
+
+
+    protected static function send_approved_emails($activityid) {
+        global $PAGE, $OUTPUT;
+
+        $activity = new Activity($activityid);
+
+        $recipients = array();
+
+        // Send to all approvers.
+        $approvals = static::get_approvals($activityid);
+        foreach ($approvals as $nextapproval) {
+            // Get the approvers for this approval step.
+            $approvers = workflow_lib::WORKFLOW[$nextapproval->type]['approvers'];
+            foreach($approvers as $approver) {
+                // Skip if approver does not want this notification.
+                if (isset($approver['notifications']) && !in_array('activityapproved', $approver['notifications'])) {
+                    continue;
+                }
+                // Skip if this step is selectable and approver is not the nominated one.
+                $isSelectable = isset(static::WORKFLOW[$nextapproval->type]['selectable']) && static::WORKFLOW[$nextapproval->type]['selectable'];
+                if ($isSelectable && $nextapproval->nominated !=$approver['username'] ) {
+                    continue;
+                }
+                $usercontext = \core_user::get_user_by_username($approver['username']);
+                $exported = $activity->export($usercontext);
+                if ($approver['contacts']) {
+                    foreach ($approver['contacts'] as $email) {
+                        // Export each time as user context is needed to determine creator etc.
+                        static::send_approved_email($exported, $approver['username'], $email);
+                        $recipients[] = $approver['username'];
+                    }
+                } else {
+                    if ( ! in_array($approver['username'], $recipients)) {
+                        static::send_approved_email($exported, $approver['username']);
+                        $recipients[] = $approver['username'];
+                    }
+                }
+            }
+        }
+
+        // Send to staff in charge, planning staff and accompanying staff.
+        $allstaff = activities_lib::get_all_staff($activityid);
+        foreach ($allstaff as $staffun) {
+            if ( ! in_array($staffun, $recipients)) {
+                $usercontext = \core_user::get_user_by_username($staffun);
+                $exported = $activity->export($usercontext);
+                static::send_approved_email($exported, $staffun);
+                $recipients[] = $staffun;
+            }
+        }
+
+       
+        // Send to activity creator.
+        if ( ! in_array($activity->get('creator'), $recipients)) {
+            $usercontext = \core_user::get_user_by_username($activity->get('creator'));
+            $exported = $activity->export($usercontext);
+            static::send_approved_email($exported, $exported->creator);
+            $recipients[] = $exported->creator;
+        }
+
+
+    }
+
     protected static function send_approved_email($activity, $recipient, $email = '') {
-        global $USER, $PAGE;
+        global $USER, $OUTPUT;
 
         $toUser = \core_user::get_user_by_username($recipient);
         if ($email) {
@@ -613,10 +690,8 @@ class workflow_lib extends \local_activities\local_activities_config {
         );
 
         $subject = "Activity approved: " . $activity->activityname;
-        $output = $PAGE->get_renderer('core');
-        $messageText = $output->render_from_template('local_activities/email_approved_text', $data);
-        $messageHtml = $output->render_from_template('local_activities/email_approved_html', $data);
-        $result = service_lib::email_to_user($toUser, $fromUser, $subject, $messageText, $messageHtml, '', '', true); 
+        $messageHtml = $OUTPUT->render_from_template('local_activities/email_approved_html', $data);
+        $result = service_lib::wrap_and_email_to_user($toUser, $fromUser, $subject, $messageHtml); 
     }
 
     protected static function send_datachanged_emails($activityid, $fieldschanged) {
@@ -686,7 +761,7 @@ class workflow_lib extends \local_activities\local_activities_config {
     }
 
     protected static function send_datachanged_email($activity, $recipient, $email = '') {
-        global $USER, $PAGE;
+        global $USER, $OUTPUT;
 
         $toUser = \core_user::get_user_by_username($recipient);
         if ($email) {
@@ -698,10 +773,8 @@ class workflow_lib extends \local_activities\local_activities_config {
         $fromUser->bccaddress = array(); //$fromUser->bccaddress = array("lms.archive@cgs.act.edu.au"); 
 
         $subject = "Activity information changed: " . $activity->activityname;
-        $output = $PAGE->get_renderer('core');
-        $messageText = $output->render_from_template('local_activities/email_datachanged_text', $activity);
-        $messageHtml = $output->render_from_template('local_activities/email_datachanged_html', $activity);
-        $result = service_lib::email_to_user($toUser, $fromUser, $subject, $messageText, $messageHtml, '', '', true); 
+        $messageHtml = $output->render_from_template('local_activities/email_datachanged_html', ['activity' => $activity]);
+        $result = service_lib::wrap_and_email_to_user($toUser, $fromUser, $subject, $messageHtml); 
     }
 
 

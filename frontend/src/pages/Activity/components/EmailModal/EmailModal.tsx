@@ -145,8 +145,8 @@ export function EmailModal({opened, close, students}: Props) {
           onChange={setIncludes}
         >
           <Flex mt="xs" gap="xs" direction="column">
-            <Checkbox value="permissions" label="Include permissions" />
             <Checkbox value="details" label="Include activity details" />
+            <Checkbox value="permissions" label="Include permission request link" />
           </Flex>
         </Checkbox.Group>
       </Box>

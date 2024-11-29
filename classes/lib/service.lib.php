@@ -143,9 +143,12 @@ class service_lib {
     }
 
     
-    public static function wrap_and_email_to_user($recipient, $fromUser, $subject, $body) {
+    public static function wrap_and_email_to_user($recipient, $fromUser, $subject, $body, $attachments = []) {
         global $CFG, $OUTPUT;
         
+        if (empty($recipient)) {
+            return;
+        }
         $config = get_config('local_activities');
         $data = new \stdClass();
         $data->emaillogo = empty($config->emaillogo) ? false : $config->emaillogo;
@@ -153,7 +156,7 @@ class service_lib {
         $data->toolname = $config->toolname;
         $data->body = $body;
         $messageHtml = $OUTPUT->render_from_template('local_activities/email_template', $data);
-        $result = static::email_to_user($recipient, $fromUser, $subject, '', $messageHtml, '', '', true);
+        $result = static::email_to_user($recipient, $fromUser, $subject, '', $messageHtml, $attachments);
     }
 
 
@@ -171,9 +174,12 @@ class service_lib {
      * @param string $messagehtml complete html version of the message (optional)
      * @param string $attachments
      */
-    public static function email_to_user($user, $from, $subject, $messagetext, $messagehtml = '', $attachments = []) {
+    public static function email_to_user($user, $from, $subject, $messagetext = '', $messagehtml = '', $attachments = []) {
         global $DB;
 
+        if (empty($user)) {
+            return;
+        }
         $email = new \stdClass();
         $email->log = "Email '$subject' for '$user->email'";
         $email->data = json_encode([
@@ -191,6 +197,10 @@ class service_lib {
 
     public static function wrap_and_real_email_to_user($recipient, $fromUser, $subject, $body) {
         global $CFG, $OUTPUT;
+        
+        if (empty($recipient)) {
+            return;
+        }
         
         $config = get_config('local_activities');
         $data = new \stdClass();

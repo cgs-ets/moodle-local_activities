@@ -870,7 +870,7 @@ class activities_lib {
                        AND invalidated = 0
                        AND skip = 0";
             $approvals = $DB->get_records_sql($sql, $inparams);
-            $approvals = static::filter_approvals_with_prerequisites($approvals);
+            $approvals = workflow_lib::filter_approvals_with_prerequisites($approvals);
             $orderby = '';
             if ($sortby == 'created') {
                 $orderby = 'timecreated DESC';
@@ -1003,16 +1003,7 @@ class activities_lib {
         return $activities;
     }
 
-    public static function filter_approvals_with_prerequisites($approvals) {
-        foreach ($approvals as $i => $approval) {
-            // Exlude if waiting for a prerequisite.
-            $prerequisites = static::get_prerequisites($approval->activityid, $approval->type);
-            if ($prerequisites) {
-                unset($approvals[$i]);
-            }
-        }
-        return $approvals;
-    }
+    
 
     public static function get_notices($activityid, $approvals) {
         global $DB;
@@ -1237,7 +1228,7 @@ class activities_lib {
         $emaildata->includedetails = in_array('details', $data->includes);
 
         $output = $PAGE->get_renderer('core');
-        $rec->rendered = $output->render_from_template('local_activities/email_history_html', $emaildata);
+        $rec->rendered = $output->render_from_template('local_activities/history_email_html', $emaildata);
 
         $DB->insert_record(static::TABLE_ACTIVITY_EMAILS, $rec);
     }
@@ -1531,6 +1522,7 @@ class activities_lib {
         return $response;
     }
 
+
     public static function send_attending_email($permissionid) {
         global $DB, $PAGE;
 
@@ -1554,11 +1546,10 @@ class activities_lib {
         $activity->studentname = fullname($toUser);
 
 
-        $messageText = $output->render_from_template('local_activities/email_attending_text', $activity);
         $messageHtml = $output->render_from_template('local_activities/email_attending_html', $activity);
         $subject = "Activity: " . $activity->activityname;
 
-        $result = service_lib::email_to_user($toUser, $fromUser, $subject, $messageText, $messageHtml, '', '', true);        
+        $result = service_lib::wrap_and_email_to_user($toUser, $fromUser, $subject, $messageHtml);        
 
     }
 
