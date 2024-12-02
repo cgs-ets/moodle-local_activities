@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Box, Container, Grid, Center, Text, Loader, Button, ActionIcon } from '@mantine/core';
+import { Box, Container, Grid, Center, Text, Loader, Button, ActionIcon, Card, Anchor, Group, Avatar } from '@mantine/core';
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
@@ -10,22 +10,15 @@ import { defaults, useFormStore, useFormValidationStore } from "../../stores/for
 import { IconPencil } from "@tabler/icons-react";
 import { isActivity } from "../../utils/utils";
 import { PageHeader } from "../Activity/components/PageHeader";
-import { ActivityDetails } from "./Components/ActivityDetails/ActivityDetails";
+import { ActivityDetails } from "./Components/ActivityDetails";
+import { StuPermission } from "./Components/StuPermission";
 
 export function Permission() {
   let { id } = useParams();
 
   const setFormData = useFormStore((state) => state.setState)
   const setFormState = useStateStore((state) => state.setState)
-  //const formLoaded = useStateStore((state) => (state.setFormLoaded))
-  const baselineHash = useStateStore((state) => (state.baselineHash))
-  const clearHash = useStateStore((state) => (state.clearHash))
-  const validationRules = useFormValidationStore((state) => state.rules)
-  const setFormErrors = useFormValidationStore((state) => state.setFormErrors)
-  const [submitResponse, submitError, submitLoading, submitAjax, setSubmitData] = useAjax(); // destructure state and fetch function
   const [fetchResponse, fetchError, fetchLoading, fetchAjax, setFetchData] = useAjax(); // destructure state and fetch function
-  const activitytype = useFormStore((state) => state.activitytype)
-  const navigate = useNavigate()
 
   useEffect(() => {
     document.title = 'Activity Permission'
@@ -34,31 +27,24 @@ export function Permission() {
       console.log("fetching activity..")
       fetchAjax({
         query: {
-          methodname: 'local_activities-get_activity',
+          methodname: 'local_activities-get_activity_with_permission',
           id: id,
         }
       })
     } else {
       setFormData(null)
       setFormState(null)
-      clearHash()
     }
   }, [id]);
 
   useEffect(() => {
     if (fetchResponse && !fetchError) {
-      document.title = fetchResponse.data.activityname + " - Permission"
+      document.title = fetchResponse.data.activity.activityname + " - Permission"
       const data = {
-        ...fetchResponse.data,
-        categories: JSON.parse(fetchResponse.data.categoriesjson || '[]'),
-        timecreated: Number(fetchResponse.data.timecreated) ? fetchResponse.data.timecreated : dayjs().unix(),
-        timemodified: Number(fetchResponse.data.timemodified) ? fetchResponse.data.timemodified : dayjs().unix(),
-        timestart: Number(fetchResponse.data.timestart) ? fetchResponse.data.timestart : dayjs().unix(),
-        timeend: Number(fetchResponse.data.timeend) ? fetchResponse.data.timeend : dayjs().unix(),
-        studentlist: JSON.parse(fetchResponse.data.studentlistjson || '[]'),
-        planningstaff: JSON.parse(fetchResponse.data.planningstaffjson || '[]'),
-        accompanyingstaff: JSON.parse(fetchResponse.data.accompanyingstaffjson || '[]'),
-        staffincharge: [JSON.parse(fetchResponse.data.staffinchargejson || null)].filter(item => item !== null)
+        ...fetchResponse.data.activity,
+        timestart: Number(fetchResponse.data.activity.timestart) ? fetchResponse.data.activity.timestart : dayjs().unix(),
+        timeend: Number(fetchResponse.data.activity.timeend) ? fetchResponse.data.activity.timeend : dayjs().unix(),
+        staffincharge: [JSON.parse(fetchResponse.data.activity.staffinchargejson || null)].filter(item => item !== null)
       }
       // Merge into default values
       setFormData({...defaults, ...data})
@@ -73,10 +59,10 @@ export function Permission() {
         { id && !fetchResponse ? (
           <Center h={200} mx="auto"><Loader type="dots" /></Center>
         ) : (
-            id && fetchError
+            id && ( fetchError || !fetchResponse.data.permissions.length)
             ? <Container size="xl">
                 <Center h={300}>
-                  <Text fw={600} fz="lg">Failed to load activity...</Text>
+                  <Text fw={600} fz="lg">Failed to load activity permission...</Text>
                 </Center>
               </Container>
             : <>
@@ -84,12 +70,39 @@ export function Permission() {
                   <PageHeader />
                 </Container>
                 <Container size="xl" my="md">
-                  <Box className="flex flex-col gap-4">
-                    <ActivityDetails />
-                    
-                  </Box>
-            </Container>
-          </>
+                  <Grid grow>
+                    <Grid.Col span={{ base: 12, lg: 8 }}>
+                      <Box className="flex flex-col gap-4">
+                        <ActivityDetails />
+                      </Box>
+                    </Grid.Col>
+
+                    <Grid.Col span={{ base: 12, lg: 4 }}>
+                      <Box className="flex flex-col gap-4">
+                        <Card withBorder className="p-0">
+                          <div className="px-4 py-3">
+                            <Text fz="md">Permissions</Text>
+                          </div>
+                          {fetchResponse.data.permissions.map((permission: any) => (
+                            <StuPermission key={permission.id} permissionid={permission.id} student={permission.student} init={Number(permission.response ?? 0)} />
+                          ))}
+                        </Card>
+
+
+                        <Card withBorder className="p-0">
+                          <div className="border-b px-4 py-3">
+                            <Text fz="md">Notice</Text>
+                          </div>
+                          <div className="px-4 py-3">
+                            <p>Up-to-date information plays a crucial role in the safe management of students and staff on excursions.</p>
+                            <p>Please review and update where appropriate, the schools’ records of your child’s current medical information and management plans, your emergency contact details, and any other important information, via the <Anchor fz="sm" href="https://infiniti.canberragrammar.org.au/Infiniti/Produce/launch.aspx?id=f95c8a98-8410-4a3e-ab46-0c907ddb9390&portal=1" target="_blank">Update Student & Family Details Form</Anchor></p>
+                          </div>
+                        </Card>
+                      </Box>
+                    </Grid.Col>
+                  </Grid>
+                </Container>
+              </>
         )}
       </div>
       <Footer />

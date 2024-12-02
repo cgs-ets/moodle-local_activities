@@ -1,5 +1,4 @@
 import { Card, Flex, Text, Checkbox, NumberInput, Grid, Button, Group, Alert, Paper, Center } from '@mantine/core';
-import { DateTimePicker } from '@mantine/dates';
 import { IconChevronDown, IconChevronUp, IconCopy, IconMail } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
 import { useClipboard } from 'use-clipboard-copy';
@@ -7,6 +6,7 @@ import { useCallback } from 'react';
 import { getConfig, statuses } from '../../../../utils';
 import { Form, useFormStore } from '../../../../stores/formStore';
 import dayjs from 'dayjs';
+import { DateTimePicker } from '@mui/x-date-pickers';
 
 
 export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
@@ -82,15 +82,16 @@ export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
                 className='flex-1'
               />
     
-              <DateTimePicker
-                label="Acceptance cut-off"
-                description="Responses will not be accepted after this time"
-                valueFormat="DD MMM YYYY hh:mm A"
-                dropdownType="modal"
-                value={dayjs.unix(permissionsdueby).toDate()}
-                onChange={(e) => updateField('permissionsdueby', e)}
-                className='flex-1'
-              />
+              <div className='flex-1'>
+                <Text className="normal-case font-semibold text-black text-sm mb-1">Acceptance cut-off</Text>
+                <Text className='text-xs text-gray-500 mb-1'>Responses will not be accepted after this time</Text>
+                <DateTimePicker 
+                  value={dayjs.unix(Number(permissionsdueby))}
+                  onChange={(newValue) => updateField('permissionsdueby', (newValue?.unix() ?? 0).toString())}
+                  views={['day', 'month', 'year', 'hours', 'minutes']}
+                />
+              </div>
+              
             </div>
 
             { permissions && status == statuses.approved && 

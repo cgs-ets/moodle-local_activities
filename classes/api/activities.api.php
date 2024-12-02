@@ -28,6 +28,17 @@ trait activities_api {
     }
 
     /**
+     * Get activity for parent permission page by id.
+     *
+     * @return array
+     */
+    static public function get_activity_with_permission() {
+        $id = required_param('id', PARAM_INT);
+        return activities_lib::get_activity_with_permission($id);
+    }
+    
+
+    /**
      * Create/edit activity data from posted form.
      *
      * @return array containing activityid and new status.
@@ -129,5 +140,14 @@ trait activities_api {
         $id = required_param('id', PARAM_INT);
         return activities_lib::get_emails($id);
     }
+
+
+    /**
+    * Submit parent permission.
+    */
+   static public function submit_permission($args) { 
+    ['permissionid' => $permissionid, 'response' => $response] = $args;
+    return activities_lib::submit_permission($permissionid, $response);
+}
 
 }

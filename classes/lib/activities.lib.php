@@ -363,6 +363,41 @@ class activities_lib {
     }
 
 
+    /**
+     * Get and decorate the data.
+     *
+     * @param int $id activity id
+     * @return array
+     */
+    public static function get_activity_with_permission($id) {
+        global $USER;
+
+        $activity = new Activity($id);
+        $activity = $activity->export();
+        $permissions = static::get_parent_permissions($id, $USER->username);
+
+        foreach ($permissions as &$permission) {
+            $permission->student = utils_lib::user_stub($permission->studentusername);
+        }
+        
+        return [
+            'activity' => [
+                'activityname' => $activity->activityname,
+                'timestart' => $activity->timestart,
+                'timeend' => $activity->timeend,
+                'location' => $activity->location,
+                'transport' => $activity->transport,
+                'cost' => $activity->cost,
+                'staffinchargejson' => $activity->staffinchargejson,
+                'description' => $activity->description,
+            ],
+            'permissions' => array_values($permissions),
+        ];
+    }
+
+    
+
+
      /**
      * Update status and trigger effects.
      *
@@ -1383,15 +1418,6 @@ class activities_lib {
         return $messagehistory;
     }
 
-    public static function get_messagehistory_html($activityid) {
-        global $PAGE;
-
-        $activity = new static($activityid);
-        $activityexporter = new activity_exporter($activity);
-        $output = $PAGE->get_renderer('core');
-        $activity = $activityexporter->export($output);
-        return $output->render_from_template('local_activities/activityform_studentlist_messagehistory', $activity);
-    }
 
     public static function get_all_permissions($activityid) {
         global $USER, $DB;
@@ -1492,7 +1518,7 @@ class activities_lib {
         global $DB, $USER;
 
         $activityid = $DB->get_field(static::TABLE_ACTIVITY_PERMISSIONS, 'activityid', array('id' => $permissionid));
-        $activity = new static($activityid);
+        $activity = new Activity($activityid);
         
         // Check if past permissions dueby or limit.
         $permissionshelper = static::permissions_helper($activity->get('id'));
@@ -1515,7 +1541,7 @@ class activities_lib {
         $activity->update();
 
         // If it is a yes, sent an email to the student to tell them their parent indicated that they will be attending.
-        if ($response == '1') {
+        if ($response === 1) {
             static::send_attending_email($permissionid);
         }
 
@@ -1524,21 +1550,25 @@ class activities_lib {
 
 
     public static function send_attending_email($permissionid) {
-        global $DB, $PAGE;
+        global $DB, $OUTPUT;
 
         // Get the permission.
         $permission = $DB->get_record(static::TABLE_ACTIVITY_PERMISSIONS, array('id' => $permissionid));
+        if (empty($permission)) {
+            return;
+        }
 
         // Get the email users.
         $toUser = \core_user::get_user_by_username($permission->studentusername);
         $fromUser = \core_user::get_noreply_user();
-        $fromUser->bccaddress = array(); //$fromUser->bccaddress = array("lms.archive@cgs.act.edu.au"); 
+        $fromUser->bccaddress = array();
 
         // Get the activity for the permission.
-        $activity = new activity($permission->activityid);
-        $activityexporter = new activity_exporter($activity);
-        $output = $PAGE->get_renderer('core');
-        $activity = $activityexporter->export($output);
+        $activity = new Activity($permission->activityid);
+        if (empty($activity)) {
+            return;
+        }
+        $activity = $activity->export();
 
         // Add additional data for template.
         $parentuser = \core_user::get_user_by_username($permission->parentusername);
@@ -1546,11 +1576,10 @@ class activities_lib {
         $activity->studentname = fullname($toUser);
 
 
-        $messageHtml = $output->render_from_template('local_activities/email_attending_html', $activity);
+        $messageHtml = $OUTPUT->render_from_template('local_activities/email_attending_html', $activity);
         $subject = "Activity: " . $activity->activityname;
 
         $result = service_lib::wrap_and_email_to_user($toUser, $fromUser, $subject, $messageHtml);        
-
     }
 
 
@@ -1609,13 +1638,10 @@ class activities_lib {
         global $DB;
 
         $activity = new Activity($activityid);
-        $type = $activity->get('permissionstype');
         $dueby = $activity->get('permissionsdueby');
         $limit = $activity->get('permissionslimit');
 
         $permissionshelper = new \stdClass();
-        $permissionshelper->ismanual = ($type != 'system');
-        $permissionshelper->issystem = ($type == 'system');
         $permissionshelper->ispastdueby = false;
         if ($dueby) {
             $permissionshelper->ispastdueby = (time() >= $dueby);
