@@ -8,7 +8,7 @@ import dayjs from "dayjs";
 import { useStateStore } from "../../stores/stateStore";
 import { defaults, useFormStore, useFormValidationStore } from "../../stores/formStore";
 import { IconPencil } from "@tabler/icons-react";
-import { isActivity } from "../../utils/utils";
+import { cn, isActivity } from "../../utils/utils";
 import { PageHeader } from "../Activity/components/PageHeader";
 import { ActivityDetails } from "./Components/ActivityDetails";
 import { StuPermission } from "./Components/StuPermission";
@@ -51,6 +51,9 @@ export function Permission() {
     }
   }, [fetchResponse]);
 
+  const expired = () => {
+    return fetchResponse.data.permissionshelper.activitystarted || fetchResponse.data.permissionshelper.ispastdueby || fetchResponse.data.permissionshelper.ispastlimit
+  }
 
   return (
     <>
@@ -83,8 +86,15 @@ export function Permission() {
                           <div className="px-4 py-3">
                             <Text fz="md">Permissions</Text>
                           </div>
+
+                          { expired()
+                            ? <div className="bg-red-100 px-4 py-3">Responses are no longer accepted for this activity.</div>
+                            : null
+                          }
                           {fetchResponse.data.permissions.map((permission: any) => (
-                            <StuPermission key={permission.id} permissionid={permission.id} student={permission.student} init={Number(permission.response ?? 0)} />
+                            <div className={cn(expired() ? "pointer-events-none" : null)}>
+                              <StuPermission key={permission.id} expired={expired()} permissionid={permission.id} student={permission.student} init={Number(permission.response ?? 0)} />
+                            </div>
                           ))}
                         </Card>
 

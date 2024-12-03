@@ -7,7 +7,7 @@ export const exportActivityHash = () => {
   const formData = useFormStore.getState()
 
   // Unset some props that should not interfere with the hash.
-  const { status, pushpublic, studentlistjson, ...rest } = formData; 
+  const { status, pushpublic, studentlistjson, initialCampus, initialActivitytype, ...rest } = formData; 
 
   // NOTE - when there are existing files these are loaded into the controls and the string goes from empty to filled.. 
   // Remove existing attachments and ra from the hash as these are added after the hash is initially baselined.
@@ -23,6 +23,8 @@ export const exportActivityHash = () => {
   // Put attachments, riskassessment back into object without the existing items. 
   // Put studentlist back in without permissions.
   const cleaned = {...rest, attachments, riskassessment, studentlist}
+
+  console.log("What I'm hashing", JSON.parse(JSON.stringify(cleaned)))
 
   return hash(JSON.parse(JSON.stringify(cleaned)))
 };

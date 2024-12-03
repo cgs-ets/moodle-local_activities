@@ -80,6 +80,7 @@ export function BasicDetails() {
                 { value: 'commercial', label: 'Commercial' },
                 //{ value: 'assessment', label: 'Assessment' },
               ]}
+              className="border"
             />
             <Anchor className="text-sm flex items-center gap-1 flex-nowrap" href={""}>Assessment <IconExternalLink className="size-4 stroke-1" /></Anchor>
 
@@ -114,6 +115,7 @@ export function BasicDetails() {
               { value: 'senior', label: 'Senior School' },
               { value: 'whole', label: 'Whole School' },
             ]}
+            className="border"
           />
         </div>
         

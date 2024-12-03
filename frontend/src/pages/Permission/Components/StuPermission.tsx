@@ -6,10 +6,12 @@ import { cn } from "../../../utils/utils";
 import { User } from "../../../types/types";
 
 export function StuPermission({
+  expired,
   student,
   init,
   permissionid,
 }: {
+  expired: boolean,
   student: User,
   init: number,
   permissionid: number,
@@ -48,7 +50,7 @@ export function StuPermission({
           ? "bg-[#d4edda]" 
           : response == 2
             ? "bg-red-200" 
-            : "bg-[#ffe8cc]",
+            : "bg-gray-100",
           submitLoading
           ? "opacity-40 pointer-events-none"
           : ""
@@ -68,6 +70,8 @@ export function StuPermission({
           <Switch
             checked={response == 1}
             onChange={(event) => onRespond(event.currentTarget.checked)}
+            readOnly={expired}
+            color={expired ? "dark" : "blue"}
           />
           <div>Yes</div>
         </div>

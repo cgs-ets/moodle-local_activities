@@ -387,6 +387,31 @@ class utils_lib {
         return array_values(array_column($DB->get_records_sql($sql, $inparams), 'id'));
     }
 
+    public static function require_staff() {
+        global $USER;
+        
+        profile_load_custom_fields($USER);
+        $campusroles = strtolower($USER->profile['CampusRoles']);
+        if (strpos($campusroles, 'staff') !== false) {
+            return true;
+        }
+
+        throw new \required_capability_exception(\context_system::instance(), 'local/activities:manage', 'nopermissions', '');
+        exit;
+    }
+
+
+    public static function is_user_staff() {
+        global $USER;
+        
+        profile_load_custom_fields($USER);
+        $campusroles = strtolower($USER->profile['CampusRoles']);
+        if (strpos($campusroles, 'staff') !== false) {
+            return true;
+        }
+
+        return false;
+    }
 
 
 }

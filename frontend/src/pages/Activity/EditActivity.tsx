@@ -27,6 +27,7 @@ import { EmailModal } from "./components/EmailModal/EmailModal";
 import { PermissionsEmailModal } from "./components/PermissionsEmailModal/PermissionsEmailModal";
 import { EmailHistory } from "./components/EmailHistory/EmailHistory";
 import { NextSteps } from "./components/NextSteps/NextSteps";
+import { getConfig } from "../../utils";
 
 export function EditActivity() {
   let { id } = useParams();
@@ -49,7 +50,7 @@ export function EditActivity() {
   useEffect(() => {
     document.title = 'Manage Activity'
     // Load existing activity.
-    if (id) {
+    if (id && getConfig().roles.includes("staff")) {
       console.log("fetching activity..")
       fetchAjax({
         query: {
@@ -191,6 +192,9 @@ export function EditActivity() {
 
   }
 
+  if (!getConfig().roles.includes("staff")) {
+    return ""
+  }
 
 
   return (

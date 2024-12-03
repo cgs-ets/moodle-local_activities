@@ -103,7 +103,11 @@ export function Workflow({
         <LoadingOverlay visible={fetchLoading || fetchDraftLoading} />
         { draftApprovals.length
           ? <div className="z-10 absolute top-0 left-0 w-full h-full xbg-black/40 backdrop-blur-[2px]">
-              <IconX stroke={0.3} className="w-full h-full text-gray-500" />
+              <div className="flex flex-col items-center justify-center w-full h-full text-gray-500">
+                <IconX stroke={0.5} className="size-10 text-black" />
+                <div className="text-black">Workflow change based on selections</div>
+              </div>
+              
             </div>
           : null
         }

@@ -203,7 +203,7 @@ export function FileUploader ({inputName, desc, maxFiles, maxSize}: Props) {
   }
 
   const removeButton = (index: number) => (
-    <ActionIcon size="xs" color="white" radius="xl" variant="transparent" onClick={() => { handleRemove(index) }}>
+    <ActionIcon color="dark" size="xs" radius="xl" variant="light" onClick={() => { handleRemove(index) }}>
       <IconX size="10rem" />
     </ActionIcon>
   );
@@ -243,8 +243,8 @@ export function FileUploader ({inputName, desc, maxFiles, maxSize}: Props) {
         return false;
       }
       return (
-        <Badge onClick={() => setDownloadFile(file)} color="blue" size="lg" pr={3} rightSection={removeButton(file.index)} key={file.index} className="shadow-sm cursor-pointer">
-          <Flex gap={0} justify="flex-start" align="flex-start" direction="column">
+        <Badge variant="transparent" color="blue" size="lg" pl={0} pr={3} rightSection={removeButton(file.index)} key={file.index} className="cursor-pointer">
+          <Flex onClick={() => setDownloadFile(file)}  gap={0} justify="flex-start" align="flex-start" direction="column" className="pl-2">
             <Text tt="none">{file.displayname}</Text>
           </Flex>
         </Badge>
@@ -309,10 +309,10 @@ export function FileUploader ({inputName, desc, maxFiles, maxSize}: Props) {
         openRef={openRef}
         activateOnClick={false}
         styles={{ inner: { pointerEvents: 'all' } }}
-        className="cursor-default"
+        className="cursor-default mt-1"
         p={0}
       >
-        <div className="bg-[#f4f6f8] p-4" onClick={() => openRef.current?.()}>
+        <div className="bg-[#f4f6f8] px-4 py-6" onClick={() => openRef.current?.()}>
           <Flex className="justify-center">
             <Dropzone.Accept>
               <IconUpload
@@ -340,7 +340,7 @@ export function FileUploader ({inputName, desc, maxFiles, maxSize}: Props) {
         </div>
       </Dropzone>
 
-      <Flex mt={previews.length > 0 ? 'sm' : 0} className="justify-start gap-4">
+      <Flex mt={previews.length > 0 ? 'sm' : 0} className="justify-start gap-2 flex-col">
         {previews}
       </Flex>
 
@@ -358,9 +358,9 @@ export function FileUploader ({inputName, desc, maxFiles, maxSize}: Props) {
 
         <div className="flex gap-2 justify-end">
           <a target="_blank" href={downloadFile?.path}>
-            <Button size="sm" className="bg-tablr-blue" leftSection={<IconDownload />}>Download</Button>
+            <Button radius="xl" size="sm" className="bg-tablr-blue" leftSection={<IconDownload />}>Download</Button>
           </a>
-          <Button size="sm" color="gray" onClick={() => setDownloadFile(null)}>Close</Button>
+          <Button radius="xl" size="sm" color="gray" onClick={() => setDownloadFile(null)}>Close</Button>
         </div>
       </Modal>
     </>

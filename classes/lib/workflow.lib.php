@@ -377,16 +377,15 @@ class workflow_lib extends \local_activities\local_activities_config {
         }
 
         // Return updated status and workflow.
-        //$newstatusinfo = static::check_status($activityid, null, true, [$USER->email]);
+        return static::check_status($activityid, null, false, [], false);
 
-        return $newstatusinfo;
     }
 
     
     /*
     * Check status
     */
-    public static function check_status($activityid, $fieldschanged = null, $progressed = false, $bccemails = []) {
+    public static function check_status($activityid, $fieldschanged = null, $progressed = false, $bccemails = [], $sendemails = true) {
         global $DB, $PAGE, $OUTPUT;
 
         $activity = new Activity($activityid);
@@ -411,33 +410,35 @@ class workflow_lib extends \local_activities\local_activities_config {
 
         $newstatus = activities_lib::status_helper($status);
 
-        // Send emails depending on status change.
-        // Approver needs to be notified when:
-        // When workflow has progressed, or moving in-review from another status.
-        if ($newstatus->inreview && ($oldstatus->status != $newstatus->status || $progressed)) {
-            static::notify_next_approver($activityid, $bccemails);
-        }
+        if ($sendemails) {
+            // Send emails depending on status change.
+            // Approver needs to be notified when:
+            // When workflow has progressed, or moving in-review from another status.
+            if ($newstatus->inreview && ($oldstatus->status != $newstatus->status || $progressed)) {
+                static::notify_next_approver($activityid, $bccemails);
+            }
 
-        // Creator needs to be notified whenever there is a status change.
-        // Going from draft to in-review, approved back to in-review.
-        if ($oldstatus->status != $newstatus->status && !$newstatus->isapproved) {
-            static::send_activity_status_email($activityid, $oldstatus, $newstatus);
-        }
+            // Creator needs to be notified whenever there is a status change.
+            // Going from draft to in-review, approved back to in-review.
+            if ($oldstatus->status != $newstatus->status && !$newstatus->isapproved) {
+                static::send_activity_status_email($activityid, $oldstatus, $newstatus);
+            }
 
-        // Send workflow progressed email.
-        if ($oldstatus->inreview && $newstatus->inreview && $progressed) {
-            static::send_workflow_email($activityid);
-        }
+            // Send workflow progressed email.
+            if ($oldstatus->inreview && $newstatus->inreview && $progressed) {
+                static::send_workflow_email($activityid);
+            }
 
-        // Send approved status email.
-        if ($oldstatus->inreview && $newstatus->isapproved) {
-            static::send_approved_emails($activityid);
-        }
+            // Send approved status email.
+            if ($oldstatus->inreview && $newstatus->isapproved) {
+                static::send_approved_emails($activityid);
+            }
 
-        // If changes after already approved, send email to relevant staff.
-        if ($fieldschanged) {
-            if ($oldstatus->isapproved && $newstatus->isapproved) {
-                static::send_datachanged_emails($activityid, $fieldschanged);
+            // If changes after already approved, send email to relevant staff.
+            if ($fieldschanged) {
+                if ($oldstatus->isapproved && $newstatus->isapproved) {
+                    static::send_datachanged_emails($activityid, $fieldschanged);
+                }
             }
         }
 
@@ -476,7 +477,7 @@ class workflow_lib extends \local_activities\local_activities_config {
         $activity = new Activity($activityid);
         $exported = $activity->export();
 
-        $toUser = \core_user::get_user_by_username($exported->username);
+        $toUser = \core_user::get_user_by_username($exported->creator);
         $fromUser = \core_user::get_noreply_user();
         $fromUser->bccaddress = array(); //array("lms.archive@cgs.act.edu.au"); 
 

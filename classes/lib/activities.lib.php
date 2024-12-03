@@ -353,11 +353,16 @@ class activities_lib {
 
     /**
      * Get and decorate the data.
-     *
+     * Only staff should be allowed to do this...
+     * 
      * @param int $id activity id
      * @return array
      */
     public static function get_activity($id) {
+        if (!utils_lib::is_user_staff()) {
+            throw new \Exception("Permission denied.");
+            exit;
+        }
         $activity = new Activity($id);
         return $activity->export();
     }
@@ -373,25 +378,26 @@ class activities_lib {
         global $USER;
 
         $activity = new Activity($id);
-        $activity = $activity->export();
+        $exported = $activity->export();
         $permissions = static::get_parent_permissions($id, $USER->username);
 
         foreach ($permissions as &$permission) {
             $permission->student = utils_lib::user_stub($permission->studentusername);
         }
-        
+
         return [
             'activity' => [
-                'activityname' => $activity->activityname,
-                'timestart' => $activity->timestart,
-                'timeend' => $activity->timeend,
-                'location' => $activity->location,
-                'transport' => $activity->transport,
-                'cost' => $activity->cost,
-                'staffinchargejson' => $activity->staffinchargejson,
-                'description' => $activity->description,
+                'activityname' => $exported->activityname,
+                'timestart' => $exported->timestart,
+                'timeend' => $exported->timeend,
+                'location' => $exported->location,
+                'transport' => $exported->transport,
+                'cost' => $exported->cost,
+                'staffinchargejson' => $exported->staffinchargejson,
+                'description' => $exported->description,
             ],
             'permissions' => array_values($permissions),
+            'permissionshelper' => static::permissions_helper($activity),
         ];
     }
 
@@ -1441,7 +1447,7 @@ class activities_lib {
 
         $attending = array();
 
-        $activity = new static($activityid);
+        $activity = new Activity($activityid);
         if ($activity->get('permissions')) {
             $sql = "SELECT DISTINCT p.studentusername
                       FROM {" . static::TABLE_ACTIVITY_PERMISSIONS . "} p
@@ -1521,8 +1527,7 @@ class activities_lib {
         $activity = new Activity($activityid);
         
         // Check if past permissions dueby or limit.
-        $permissionshelper = static::permissions_helper($activity->get('id'));
-
+        $permissionshelper = static::permissions_helper($activity);
         if ($permissionshelper->activitystarted || $permissionshelper->ispastdueby || $permissionshelper->ispastlimit) {
             return;
         }
@@ -1634,10 +1639,9 @@ class activities_lib {
         return $statushelper;
     }
 
-    public static function permissions_helper($activityid) {
+    public static function permissions_helper($activity) {
         global $DB;
 
-        $activity = new Activity($activityid);
         $dueby = $activity->get('permissionsdueby');
         $limit = $activity->get('permissionslimit');
 
@@ -1650,7 +1654,7 @@ class activities_lib {
         // Get number of approved permissions.
         $permissionshelper->ispastlimit = false;
         if ($limit > 0) {
-            $countyes = count(Activity::get_students_by_response($activityid, 1));
+            $countyes = count(static::get_students_by_response($activity->get('id'), 1));
             $permissionshelper->ispastlimit = ($countyes >= $limit);
         }
 
