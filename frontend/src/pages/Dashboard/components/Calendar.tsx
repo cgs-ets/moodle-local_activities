@@ -1,43 +1,39 @@
-import { ActionIcon, Button } from "@mantine/core";
+import { ActionIcon } from "@mantine/core";
 import { IconArrowNarrowLeft, IconArrowNarrowRight } from "@tabler/icons-react";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
-import { useAjax } from "../../../hooks/useAjax";
+import useFetch from "../../../hooks/useFetch";
+import { CalendarTease } from "./CalendarTease";
 
-type Props = {
-  month: number;
-  year: number;
-}
 
-export function Calendar({month, year}: Props) {
-  const [fetchResponse, fetchError, fetchLoading, fetchAjax, setFetchData] = useAjax(); // destructure state and fetch function
+export function Calendar() {
+  
+  const [month, setMonth] = useState<string>(dayjs().format("MM"))
+  const [year, setYear] = useState<string>(dayjs().format("YYYY"))
+  const getCalendarAPI = useFetch()
   const [calendar, setCalendar] = useState<any>({
     cells: []
   })
 
   useEffect(() => {
-    getCalendar()
-  }, []);
+    if (month && year) {
+      getCalendar()
+    }
+  }, [month, year]);
 
-  const getCalendar = () => {
-    fetchAjax({
+  const getCalendar = async () => {
+    const res = await getCalendarAPI.call({
       query: {
         methodname: 'local_activities-get_cal',
         type: 'full',
       }
     })
+    const result = splitCells(res.data.cells);
+    const adapted = {...res.data, cells: result}
+    setCalendar(adapted)
+    console.log(adapted)
   }
 
-
-
-  useEffect(() => {
-    if (fetchResponse && !fetchError) {
-      const result = splitCells(fetchResponse.data.cells);
-      const adapted = {...fetchResponse.data, cells: result}
-      setCalendar(adapted)
-      console.log(adapted)
-    }
-  }, [fetchResponse]);
 
   const splitCells = (cells: Record<string, any>) => {
     const keys = Object.keys(cells);
@@ -55,14 +51,11 @@ export function Calendar({month, year}: Props) {
   
     return splitCellsArray;
   };
-  
-  
-  
 
   return (
     <div>
       
-      <div className="h-[54px] w-full flex justify-between items-center mt-10">
+      <div className="h-[54px] w-full flex justify-between items-center">
         <ActionIcon onClick={getCalendar} variant="subtle" size="lg"><IconArrowNarrowLeft className="size-7" /></ActionIcon>
 
         <div className="text-xl">{dayjs(`${year}-${month}-15`).format("MMM YYYY")}</div>
@@ -81,12 +74,14 @@ export function Calendar({month, year}: Props) {
               <tr key={i}>
                 { week.map((cell: any) => {
                   return (
-                    cell.events.length 
+                    !!cell.events_count
                     ? <td key={cell.date} className={`eventful ${cell.type}`}>
                         <span className="day-num">{dayjs.unix(cell.date).format("D") }</span>
                         <ul>
-                          { cell.events.map((event: any) => (
-                            <span>tease-full-event</span>
+                          { Object.keys(cell.events).map((ts) => (
+                              <div>                            
+                                <CalendarTease celldate={cell.date} event={cell.events[ts]} />
+                              </div>
                           ))}
                         </ul>
                       </td>

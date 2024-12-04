@@ -7,7 +7,6 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import 'dayjs/locale/en-gb';
 import { EditActivity } from "./pages/Activity/EditActivity";
-import { ViewActivity } from "./pages/Activity/ViewActivity";
 import { Permission } from "./pages/Permission/Permission";
 
 
@@ -17,29 +16,16 @@ function App() {
   const router = createBrowserRouter(
     [
       {
-        path: "/",
+        index: true, // Matches /
         element: <Dashboard />
       },
       {
-        path: "activity",
-        children: [
-          {
-            index: true, // Matches /activity
-            element: <EditActivity />,
-          },
-          {
-            path: ":id", // Matches /activity/<number>
-            element: <ViewActivity />,
-          },
-          {
-            path: ":id/edit", // Matches /activity/<number>/edit
-            element: <EditActivity />,
-          },
-          {
-            path: ":id/permission", // Matches /activity/<number>/permission
-            element: <Permission />,
-          },
-        ],
+        path: ":id", // Matches /<number>
+        element: <EditActivity />,
+      },
+      {
+        path: ":id/permission", // Matches /<number>/permission
+        element: <Permission />,
       },
     ],
     {

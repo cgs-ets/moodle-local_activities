@@ -11,7 +11,6 @@ import { User } from '../../../../types/types';
 import { Form, useFormStore } from '../../../../stores/formStore';
 import { isActivity } from '../../../../utils/utils';
 import { useAjax } from '../../../../hooks/useAjax';
-import { PermissionsEmailModal } from '../PermissionsEmailModal/PermissionsEmailModal';
 import { EmailModal } from '../EmailModal/EmailModal';
 
 
@@ -28,6 +27,7 @@ export function StudentList() {
   const [isOpenAddStudentsModal, addStudentsModalHandlers] = useDisclosure(false)
   const [isOpenMessageModal, messageModalHandlers] = useDisclosure(false);
   const savedtime = useStateStore((state) => (state.savedtime))
+  const viewStateProps = useStateStore((state) => (state.viewStateProps))
 
 
   const [fetchResponse, fetchError, fetchLoading, fetchAjax] = useAjax(); // destructure state and fetch function
@@ -135,9 +135,11 @@ export function StudentList() {
             ? <div className="p-4 border-t border-gray-300"><Loader size="sm" /></div>
             : (
                 studentlist?.length == 0 
-                  ? <div className="p-4 border-t border-gray-300">
-                      <Button onClick={addStudentsModalHandlers.open} size="compact-md" radius="xl" leftSection={<IconPlus size={14} />} >Add students</Button>
-                    </div>
+                  ? viewStateProps.editable 
+                    ? <div className="p-4 border-t border-gray-300">
+                        <Button onClick={addStudentsModalHandlers.open} size="compact-md" radius="xl" leftSection={<IconPlus size={14} />} >Add students</Button>
+                      </div>
+                    : <div className="p-4 border-t border-gray-300 italic">No students</div>
                   : <>
 
 
@@ -234,23 +236,27 @@ export function StudentList() {
                         />
                       </div>
 
-                      <div className="p-4">
-                        <Group justify="space-between">
-                          <Flex gap="sm">
-                            <Button onClick={addStudentsModalHandlers.open} size="compact-sm" variant="light" radius="xl" leftSection={<IconPlus size={14} />} >Add students</Button>
-                            { Object.keys(rowSelection).length > 0 && 
-                              <>
-                                <Button onClick={removeStudents} variant="light" size="compact-sm" radius="xl" leftSection={<IconMinus size={14} />}>Remove</Button>
-                              </>
+                      { viewStateProps.editable &&
+                        <div className="p-4">
+                          <Group justify="space-between">
+                            <Flex gap="sm">
+                              <Button onClick={addStudentsModalHandlers.open} size="compact-sm" variant="light" radius="xl" leftSection={<IconPlus size={14} />} >Add students</Button>
+                              { Object.keys(rowSelection).length > 0 && 
+                                <>
+                                  <Button onClick={removeStudents} variant="light" size="compact-sm" radius="xl" leftSection={<IconMinus size={14} />}>Remove</Button>
+                                </>
+                              }
+                            </Flex>
+                            { status == statuses.approved &&
+                              <Tooltip.Floating disabled={!haschanges} label="You must save changes before you may send messages.">
+                                <Button variant="filled" color={haschanges ? "gray.4" : undefined} onClick={() => (haschanges ? null : messageModalHandlers.open())} size="compact-sm" radius="xl" leftSection={<IconMail size={14} />}>Send a message</Button>
+                              </Tooltip.Floating>
                             }
-                          </Flex>
-                          { status == statuses.approved &&
-                            <Tooltip.Floating disabled={!haschanges} label="You must save changes before you may send messages.">
-                              <Button variant="filled" color={haschanges ? "gray.4" : undefined} onClick={() => (haschanges ? null : messageModalHandlers.open())} size="compact-sm" radius="xl" leftSection={<IconMail size={14} />}>Send a message</Button>
-                            </Tooltip.Floating>
-                          }
-                        </Group>
-                      </div>
+                          </Group>
+                        </div>
+                      }
+                      
+
                     </>
             )
           }

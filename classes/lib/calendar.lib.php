@@ -5,10 +5,12 @@ namespace local_activities\lib;
 defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__.'/activity.class.php');
+require_once(__DIR__.'/activities.lib.php');
 require_once(__DIR__.'/utils.lib.php');
 require_once(__DIR__.'/service.lib.php');
 
 use \local_activities\lib\Activity;
+use \local_activities\lib\activities_lib;
 use \local_activities\lib\utils_lib;
 use \local_activities\lib\service_lib;
 use DateTime;
@@ -182,7 +184,8 @@ class calendar_lib {
 			foreach ( $week as $d ) {
 				$date = date('Y-m-d', $d);
 				$calendar_array['cells'][$date] = array('date'=>$d, 'events'=>array(), 'events_count'=>0); //set it up so we have the exact array of dates to be filled
-				if ($i < $offset_count) { //if it is PREVIOUS month
+                $calendar_array['cells'][$date]['type'] = '';
+                if ($i < $offset_count) { //if it is PREVIOUS month
 					$calendar_array['cells'][$date]['type'] = 'pre';
 				}
 				if (($i >= $offset_count) && ($i < ($num_weeks * 7) - $outset)) { // if it is THIS month
@@ -212,17 +215,18 @@ class calendar_lib {
 			),
 			'categories' => $categories
 		);
-		$events = []; // GET THE EVENTS HERE!!!!   = Events::get($events_args);
 
-		//var_dump($events);
+        //var_export($events_args); exit;
+		$events = activities_lib::get_for_staff_calendar(json_decode(json_encode($events_args, JSON_FORCE_OBJECT)));
+		//var_export($events); exit;
 			
 		$eventful_days= array();
 		$eventful_days_count = array();
 		if($events){
 			//Go through the events and slot them into the right d-m index
 			foreach($events as $event) {
-				$event_start_ts = strtotime($event->start_date);
-				$event_end_ts = strtotime($event->end_date);
+				$event_start_ts = $event->timestart;
+				$event_end_ts = $event->timeend;
 				$event_end_ts = $event_end_ts > $scope_datetime_end->format('U') ? $scope_datetime_end->format('U') : $event_end_ts;
 
 				while( $event_start_ts <= $event_end_ts ) { //we loop until the last day of our time-range, not the end date of the event, which could be in a year
@@ -232,7 +236,8 @@ class calendar_lib {
 						//now we know this is an event that'll be used, convert it to an object
 						if( empty($eventful_days[$event_eventful_date]) || !is_array($eventful_days[$event_eventful_date]) ) $eventful_days[$event_eventful_date] = array();
 						//add event to array with a corresponding timestamp for sorting of times including long and all-day events
-						$event_ts_marker = (int) strtotime($event_eventful_date.' '.$event->start_time);
+						$event_ts_marker = $event_start_ts;
+                        //$event_ts_marker = (int) strtotime($event_eventful_date.' '.$event->start_time);
 						while( !empty($eventful_days[$event_eventful_date][$event_ts_marker]) ){
 							$event_ts_marker++; //add a second
 						}

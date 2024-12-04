@@ -6,6 +6,7 @@ import { Form, useFormStore } from "../../../../../../stores/formStore";
 import { FileData } from "../../../../../../types/types";
 import { getConfig } from "../../../../../../utils";
 import { useDisclosure } from "@mantine/hooks";
+import { useStateStore } from "../../../../../../stores/stateStore";
 
 type Props = {
   inputName: string,
@@ -24,6 +25,7 @@ export function FileUploader ({inputName, desc, maxFiles, maxSize}: Props) {
   const [previews, setPreviews] = useState<(false | JSX.Element)[]>([]);
   const [error, setError] = useState<string>('');
   const [downloadFile, setDownloadFile] = useState<FileData|null>(null);
+  const viewStateProps = useStateStore((state) => (state.viewStateProps))
 
   // Add existing files to control.
   useEffect(() => {
@@ -287,58 +289,60 @@ export function FileUploader ({inputName, desc, maxFiles, maxSize}: Props) {
 
   return (
     <>
-      <Dropzone
-        accept={[IMAGE_MIME_TYPE, PDF_MIME_TYPE, MS_WORD_MIME_TYPE, MS_EXCEL_MIME_TYPE, MS_POWERPOINT_MIME_TYPE].flat()}
-        onDrop={handleDrop}
-        onReject={(files) => {
-          setError(
-            files.map(
-              file => file.errors.map(error => {
-                return error.message.includes('File type must be') ? 'File type must be image, pdf, word, excel, or powerpoint' : error.message
+      { viewStateProps.editable &&
+        <Dropzone
+          accept={[IMAGE_MIME_TYPE, PDF_MIME_TYPE, MS_WORD_MIME_TYPE, MS_EXCEL_MIME_TYPE, MS_POWERPOINT_MIME_TYPE].flat()}
+          onDrop={handleDrop}
+          onReject={(files) => {
+            setError(
+              files.map(
+                file => file.errors.map(error => {
+                  return error.message.includes('File type must be') ? 'File type must be image, pdf, word, excel, or powerpoint' : error.message
+                })
+                .join(". ")
+              )
+              .filter((item, i, allItems) => {
+                return i === allItems.indexOf(item);
               })
               .join(". ")
-            )
-            .filter((item, i, allItems) => {
-              return i === allItems.indexOf(item);
-            })
-            .join(". ")
-          );
-        }}
-        maxSize={maxSize * 1024 ** 2}
-        maxFiles={maxFiles}
-        openRef={openRef}
-        activateOnClick={false}
-        styles={{ inner: { pointerEvents: 'all' } }}
-        className="cursor-default mt-1"
-        p={0}
-      >
-        <div className="bg-[#f4f6f8] px-4 py-6" onClick={() => openRef.current?.()}>
-          <Flex className="justify-center">
-            <Dropzone.Accept>
-              <IconUpload
-                size="2.2rem"
-                stroke={1.5}
-                className="text-black"
-              />
-            </Dropzone.Accept>
-            <Dropzone.Reject>
-              <IconX
-                size="2.2rem"
-                stroke={1.5}
-                className="text-red-500"
-              />
-            </Dropzone.Reject>
-            <Dropzone.Idle>
-              <div></div>
-            </Dropzone.Idle>
-          </Flex>
-          <div className="flex gap-4 items-center">
-            <Button variant="light" size="compact-md" radius="xl" onClick={() => openRef.current?.()}>Select file{maxFiles > 1 ? 's' : ''}</Button>
-            <Text c="dimmed" >{desc}</Text>
+            );
+          }}
+          maxSize={maxSize * 1024 ** 2}
+          maxFiles={maxFiles}
+          openRef={openRef}
+          activateOnClick={false}
+          styles={{ inner: { pointerEvents: 'all' } }}
+          className="cursor-default mt-1"
+          p={0}
+        >
+          <div className="bg-[#f4f6f8] px-4 py-6" onClick={() => openRef.current?.()}>
+            <Flex className="justify-center">
+              <Dropzone.Accept>
+                <IconUpload
+                  size="2.2rem"
+                  stroke={1.5}
+                  className="text-black"
+                />
+              </Dropzone.Accept>
+              <Dropzone.Reject>
+                <IconX
+                  size="2.2rem"
+                  stroke={1.5}
+                  className="text-red-500"
+                />
+              </Dropzone.Reject>
+              <Dropzone.Idle>
+                <div></div>
+              </Dropzone.Idle>
+            </Flex>
+            <div className="flex gap-4 items-center">
+              <Button variant="light" size="compact-md" radius="xl" onClick={() => openRef.current?.()}>Select file{maxFiles > 1 ? 's' : ''}</Button>
+              <Text c="dimmed" >{desc}</Text>
+            </div>
+            {error && <Text mt="xs" color="red" className="break-all">{error}</Text>}
           </div>
-          {error && <Text mt="xs" color="red" className="break-all">{error}</Text>}
-        </div>
-      </Dropzone>
+        </Dropzone>
+      }
 
       <Flex mt={previews.length > 0 ? 'sm' : 0} className="justify-start gap-2 flex-col">
         {previews}

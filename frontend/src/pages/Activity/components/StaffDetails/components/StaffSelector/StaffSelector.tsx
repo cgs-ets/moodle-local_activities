@@ -3,6 +3,7 @@ import { Group, Avatar, Text, Loader, Badge, Flex, CloseButton, Combobox, useCom
 import { IconUser, IconUsers } from '@tabler/icons-react';
 import { fetchData } from "../../../../../../utils";
 import { DecordatedUser, User } from "../../../../../../types/types";
+import { useStateStore } from "../../../../../../stores/stateStore";
 
 type Props = {
   staff: User[],
@@ -16,6 +17,7 @@ export function StaffSelector({staff, setStaff, label, multiple}: Props) {
   const [search, setSearch] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [searchResults, setSearchResults] = useState<DecordatedUser[]>([]);
+  const viewStateProps = useStateStore((state) => (state.viewStateProps))
 
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
@@ -80,9 +82,11 @@ export function StaffSelector({staff, setStaff, label, multiple}: Props) {
   const values = staff.map((item, i) => {
     const user = decorateStaff(item)
     return (
-      <Badge key={user.username} variant='filled' p={0} color="gray.2" size="lg" radius="xl" leftSection={
-        <Avatar alt={user.label} size={24} mr={5} src={user.image} radius="xl"><IconUser size={14} /></Avatar>
-      }>
+      <Badge key={user.username} variant='filled' p={0} color="gray.2" size="lg" radius="xl" 
+        leftSection={
+          <Avatar alt={user.label} size={24} mr={5} src={user.image} radius="xl"><IconUser size={14} /></Avatar>
+        }
+      >
         <Flex gap={4}>
           <Text className="normal-case font-normal text-black text-sm">{user.label}</Text>
           <CloseButton
@@ -98,57 +102,79 @@ export function StaffSelector({staff, setStaff, label, multiple}: Props) {
   });
 
 
+  const dropdown = 
+    <Combobox 
+      store={combobox} 
+      onOptionSubmit={(optionValue: string) => {
+        handleValueSelect(JSON.parse(optionValue));
+        combobox.closeDropdown();
+      }}
+      withinPortal={false}
+    >
+      <Combobox.DropdownTarget>
+        <PillsInput 
+          pointer 
+          rightSection={isLoading ? <Loader size="xs" /> : ''}
+          leftSection={multiple ? <IconUsers size={18} /> : <IconUser size={18} />}
+        >
+          <Pill.Group>
+            {values}
+            <Combobox.EventsTarget>
+              <PillsInput.Field
+                onFocus={() => combobox.openDropdown()}
+                onClick={() => combobox.openDropdown()}
+                onBlur={() => combobox.closeDropdown()}
+                value={search}
+                placeholder="Search staff"
+                onChange={(event) => {
+                  loadStaff(event.currentTarget.value)
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === 'Backspace' && search.length === 0) {
+                    event.preventDefault();
+                    handleValueRemove(staff[staff.length - 1]);
+                  }
+                }}
+                className={(multiple || !staff.length) ? "" : "hidden"}
+              />
+            </Combobox.EventsTarget>
+          </Pill.Group>
+        </PillsInput>
+      </Combobox.DropdownTarget>
+
+      <Combobox.Dropdown hidden={!options.length}>
+        <Combobox.Options>
+          {options.length > 0 
+            ? options : 
+            <Combobox.Empty>Nothing found...</Combobox.Empty>
+          }
+        </Combobox.Options>
+      </Combobox.Dropdown>
+    </Combobox>
+
+  const readOnlyValues = staff.map((item, i) => {
+    const user = decorateStaff(item)
+    return (
+      <Badge key={user.username} variant='filled' pl={0} color="gray.2" size="lg" radius="xl" leftSection={
+        <Avatar alt={user.label} size={24} mr={5} src={user.image} radius="xl"><IconUser size={14} /></Avatar>
+      }>
+        <Flex gap={4}>
+          <Text className="normal-case font-normal text-black text-sm">{user.label}</Text>
+        </Flex>
+      </Badge>
+    )
+  });
+
+
   return (
     <div>
       <Text fz="sm" mb="5px" fw={500} c="#212529">{label}</Text>
-      <Combobox 
-        store={combobox} 
-        onOptionSubmit={(optionValue: string) => {
-          handleValueSelect(JSON.parse(optionValue));
-          combobox.closeDropdown();
-        }}
-        withinPortal={false}>
-        <Combobox.DropdownTarget>
-          <PillsInput 
-            pointer 
-            rightSection={isLoading ? <Loader size="xs" /> : ''}
-            leftSection={multiple ? <IconUsers size={18} /> : <IconUser size={18} />}
-          >
-            <Pill.Group>
-              {values}
-              <Combobox.EventsTarget>
-                <PillsInput.Field
-                  onFocus={() => combobox.openDropdown()}
-                  onClick={() => combobox.openDropdown()}
-                  onBlur={() => combobox.closeDropdown()}
-                  value={search}
-                  placeholder="Search staff"
-                  onChange={(event) => {
-                    loadStaff(event.currentTarget.value)
-                  }}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Backspace' && search.length === 0) {
-                      event.preventDefault();
-                      handleValueRemove(staff[staff.length - 1]);
-                    }
-                  }}
-                  className={(multiple || !staff.length) ? "" : "hidden"}
-                  
-                />
-              </Combobox.EventsTarget>
-            </Pill.Group>
-          </PillsInput>
-        </Combobox.DropdownTarget>
-
-        <Combobox.Dropdown hidden={!options.length}>
-          <Combobox.Options>
-            {options.length > 0 
-              ? options : 
-              <Combobox.Empty>Nothing found...</Combobox.Empty>
-            }
-          </Combobox.Options>
-        </Combobox.Dropdown>
-      </Combobox>
+      {viewStateProps.readOnly
+        ? readOnlyValues.length 
+          ? readOnlyValues
+          : <div className="ml-2 italic">No staff selected</div>
+        : dropdown
+      }
     </div>
   );
 };

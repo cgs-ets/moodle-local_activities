@@ -7,6 +7,7 @@ import { getConfig, statuses } from '../../../../utils';
 import { Form, useFormStore } from '../../../../stores/formStore';
 import dayjs from 'dayjs';
 import { DateTimePicker } from '@mui/x-date-pickers';
+import { useStateStore } from '../../../../stores/stateStore';
 
 
 export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
@@ -20,6 +21,8 @@ export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
   const setState = useFormStore((state) => state.setState)
   const config = getConfig()
   const [openedPermissionsURL, togglePermissionsURL] = useDisclosure(false);
+  const viewStateProps = useStateStore((state) => (state.viewStateProps))
+
 
   const permissionsUrlClipboard = useClipboard({
     copiedTimeout: 1000,
@@ -65,6 +68,7 @@ export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
               label={permissionsLabel}
               checked={permissions}
               onChange={(e) => updateField('permissions', e.target.checked)}
+              {...viewStateProps}
             />
           </Flex>
         </div>
@@ -80,6 +84,7 @@ export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
                 value={permissionslimit}
                 onChange={(e) => updateField('permissionslimit', e)}
                 className='flex-1'
+                {...viewStateProps}
               />
     
               <div className='flex-1'>
@@ -89,12 +94,13 @@ export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
                   value={dayjs.unix(Number(permissionsdueby))}
                   onChange={(newValue) => updateField('permissionsdueby', (newValue?.unix() ?? 0).toString())}
                   views={['day', 'month', 'year', 'hours', 'minutes']}
+                  {...viewStateProps}
                 />
               </div>
               
             </div>
 
-            { permissions && status == statuses.approved && 
+            { permissions && status == statuses.approved && viewStateProps.editable &&
               <>
                 
                 <div className="p-4 border-t border-gray-300 flex justify-between">

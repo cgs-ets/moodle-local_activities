@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { TextInput, Text, SegmentedControl, Card, Anchor } from '@mantine/core';
+import { TextInput, Text, SegmentedControl, Card, Anchor, Alert } from '@mantine/core';
 import { RichTextEditor, Link } from '@mantine/tiptap';
 import { useEditor } from '@tiptap/react';
 import { StarterKit } from '@tiptap/starter-kit';
@@ -11,6 +11,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { CategoriesModal } from "../Modals/CategoriesModal";
 import { Conflicts } from "../Conflicts/Conflicts";
 import { isActivity } from "../../../../utils/utils";
+import { useStateStore } from "../../../../stores/stateStore";
 
 export function BasicDetails() {
 
@@ -18,6 +19,7 @@ export function BasicDetails() {
   const description = useFormStore((state) => (state.description))
   const activitytype = useFormStore((state) => (state.activitytype))
   const setState = useFormStore(state => state.setState)
+  const viewStateProps = useStateStore((state) => (state.viewStateProps))
 
   const updateField = (name: string, value: any) => {
     setState({
@@ -34,6 +36,7 @@ export function BasicDetails() {
     onBlur({ editor }) {
       updateField('description', editor.getHTML())
     },
+    ...viewStateProps
   });
 
   // Need to programatically set content after fetch changes state.
@@ -45,12 +48,6 @@ export function BasicDetails() {
 
   const errors = useFormValidationStore((state) => state.formErrors)
 
-  const handleCatsChange = (cats: string[]) => {
-    const sorted = cats.sort()
-    updateField('categories', sorted)
-  }
-
-  
 
   return (
     <Card withBorder className="overflow-visible rounded p-4 flex flex-col gap-6">
@@ -64,6 +61,7 @@ export function BasicDetails() {
           value={formData.activityname}
           error={errors.activityname}
           onChange={(e) => updateField('activityname', e.target.value)}
+          {...viewStateProps}
         />
 
         <div>
@@ -81,6 +79,7 @@ export function BasicDetails() {
                 //{ value: 'assessment', label: 'Assessment' },
               ]}
               className="border"
+              {...viewStateProps}
             />
             <Anchor className="text-sm flex items-center gap-1 flex-nowrap" href={""}>Assessment <IconExternalLink className="size-4 stroke-1" /></Anchor>
 
@@ -116,6 +115,7 @@ export function BasicDetails() {
               { value: 'whole', label: 'Whole School' },
             ]}
             className="border"
+            {...viewStateProps}
           />
         </div>
         
@@ -134,6 +134,7 @@ export function BasicDetails() {
                     error: !!errors.timestart,
                   },
                 }}
+                {...viewStateProps}
               />
             </div>
             <div>
@@ -151,6 +152,7 @@ export function BasicDetails() {
                     error: !!errors.timestart,
                   },
                 }}
+                {...viewStateProps}
               />
             </div>
           </div>
@@ -170,6 +172,7 @@ export function BasicDetails() {
             value={formData.location}
             error={errors.Location}
             onChange={(e) => updateField('location', e.target.value)}
+            {...viewStateProps}
           />
         </div>
 
@@ -179,34 +182,37 @@ export function BasicDetails() {
           <RichTextEditor 
             editor={editor}
             >
-            <RichTextEditor.Toolbar sticky>
-              <RichTextEditor.ControlsGroup>
-                <RichTextEditor.Bold />
-                <RichTextEditor.Italic />
-                <RichTextEditor.Strikethrough />
-                <RichTextEditor.ClearFormatting />
-                <RichTextEditor.Code />
-              </RichTextEditor.ControlsGroup>
-
-              <RichTextEditor.ControlsGroup>
-                <RichTextEditor.H1 />
-                <RichTextEditor.H2 />
-                <RichTextEditor.H3 />
-                <RichTextEditor.H4 />
-              </RichTextEditor.ControlsGroup>
-
-              <RichTextEditor.ControlsGroup>
-                <RichTextEditor.Blockquote />
-                <RichTextEditor.Hr />
-                <RichTextEditor.BulletList />
-                <RichTextEditor.OrderedList />
-              </RichTextEditor.ControlsGroup>
-
-              <RichTextEditor.ControlsGroup>
-                <RichTextEditor.Link />
-                <RichTextEditor.Unlink />
-              </RichTextEditor.ControlsGroup>
-            </RichTextEditor.Toolbar>
+              {viewStateProps.editable &&
+                <RichTextEditor.Toolbar sticky>
+                  <RichTextEditor.ControlsGroup>
+                    <RichTextEditor.Bold />
+                    <RichTextEditor.Italic />
+                    <RichTextEditor.Strikethrough />
+                    <RichTextEditor.ClearFormatting />
+                    <RichTextEditor.Code />
+                  </RichTextEditor.ControlsGroup>
+    
+                  <RichTextEditor.ControlsGroup>
+                    <RichTextEditor.H1 />
+                    <RichTextEditor.H2 />
+                    <RichTextEditor.H3 />
+                    <RichTextEditor.H4 />
+                  </RichTextEditor.ControlsGroup>
+    
+                  <RichTextEditor.ControlsGroup>
+                    <RichTextEditor.Blockquote />
+                    <RichTextEditor.Hr />
+                    <RichTextEditor.BulletList />
+                    <RichTextEditor.OrderedList />
+                  </RichTextEditor.ControlsGroup>
+    
+                  <RichTextEditor.ControlsGroup>
+                    <RichTextEditor.Link />
+                    <RichTextEditor.Unlink />
+                  </RichTextEditor.ControlsGroup>
+                </RichTextEditor.Toolbar>
+              }
+           
 
             <RichTextEditor.Content />
           </RichTextEditor>
@@ -220,6 +226,7 @@ export function BasicDetails() {
                 label="Transport"
                 value={formData.transport}
                 onChange={(e) => updateField('transport', e.target.value)}
+                {...viewStateProps}
               />
             </div>
 
@@ -228,6 +235,7 @@ export function BasicDetails() {
                 label="Cost for student"
                 value={formData.cost}
                 onChange={(e) => updateField('cost', e.target.value)}
+                {...viewStateProps}
               />
             </div>
           </>

@@ -46,6 +46,58 @@ class activities_lib {
 
 
     /**
+     * Get and decorate the data.
+     * Only staff should be allowed to do this...
+     * 
+     * @param int $id activity id
+     * @return array
+     */
+    public static function get_activity($id) {        
+        if (!utils_lib::is_user_staff()) {
+            throw new \Exception("Permission denied.");
+            exit;
+        }
+        $activity = new Activity($id);
+        return $activity->export();
+    }
+
+
+    /**
+     * Get and decorate the data.
+     *
+     * @param int $id activity id
+     * @return array
+     */
+    public static function get_activity_with_permission($id) {
+        global $USER;
+
+        $activity = new Activity($id);
+        $exported = $activity->export();
+        $permissions = static::get_parent_permissions($id, $USER->username);
+
+        foreach ($permissions as &$permission) {
+            $permission->student = utils_lib::user_stub($permission->studentusername);
+        }
+
+        return [
+            'activity' => [
+                'activityname' => $exported->activityname,
+                'timestart' => $exported->timestart,
+                'timeend' => $exported->timeend,
+                'location' => $exported->location,
+                'transport' => $exported->transport,
+                'cost' => $exported->cost,
+                'staffinchargejson' => $exported->staffinchargejson,
+                'description' => $exported->description,
+            ],
+            'permissions' => array_values($permissions),
+            'permissionshelper' => static::permissions_helper($activity),
+        ];
+    }
+
+
+
+    /**
      * Insert/update activity from submitted form data.
      *
      * @param array $data
@@ -351,56 +403,7 @@ class activities_lib {
 
 
 
-    /**
-     * Get and decorate the data.
-     * Only staff should be allowed to do this...
-     * 
-     * @param int $id activity id
-     * @return array
-     */
-    public static function get_activity($id) {
-        if (!utils_lib::is_user_staff()) {
-            throw new \Exception("Permission denied.");
-            exit;
-        }
-        $activity = new Activity($id);
-        return $activity->export();
-    }
-
-
-    /**
-     * Get and decorate the data.
-     *
-     * @param int $id activity id
-     * @return array
-     */
-    public static function get_activity_with_permission($id) {
-        global $USER;
-
-        $activity = new Activity($id);
-        $exported = $activity->export();
-        $permissions = static::get_parent_permissions($id, $USER->username);
-
-        foreach ($permissions as &$permission) {
-            $permission->student = utils_lib::user_stub($permission->studentusername);
-        }
-
-        return [
-            'activity' => [
-                'activityname' => $exported->activityname,
-                'timestart' => $exported->timestart,
-                'timeend' => $exported->timeend,
-                'location' => $exported->location,
-                'transport' => $exported->transport,
-                'cost' => $exported->cost,
-                'staffinchargejson' => $exported->staffinchargejson,
-                'description' => $exported->description,
-            ],
-            'permissions' => array_values($permissions),
-            'permissionshelper' => static::permissions_helper($activity),
-        ];
-    }
-
+    
     
 
 
@@ -603,6 +606,45 @@ class activities_lib {
 
         return $activities;
     }
+
+
+    /**
+     * Staff can see all events. When they view an event, the editability is based on who they are and their involvement.
+     *
+     * @param array $args
+     * @return array
+     */
+    public static function get_for_staff_calendar($args) {
+        global $DB;
+
+        utils_lib::require_staff();
+
+        $start = strtotime($args->scope->start . " 00:00:00");
+        $end = strtotime($args->scope->end . " 00:00:00");
+        $end += 86400; //add a day
+
+        $sql = "SELECT id 
+                FROM mdl_activities
+                WHERE deleted = 0
+                AND status >= " . static::ACTIVITY_STATUS_INREVIEW . "
+                AND (
+                    (timestart >= ? AND timestart <= ?) OR 
+                    (timeend >= ? AND timeend <= ?) OR
+                    (timestart < ? AND timeend > ?)
+                )
+                ORDER BY timestart ASC";
+        $records = $DB->get_records_sql($sql, [$start, $end, $start, $end, $start, $end]);
+        $activities = array();
+        foreach ($records as $record) {
+            $activity = new Activity($record->id);
+            $activities[] = $activity->export();
+        }
+
+        return $activities;
+    }
+
+
+
 
     public static function get_for_user($username) {
         global $DB;

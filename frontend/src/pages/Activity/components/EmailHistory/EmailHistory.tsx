@@ -39,7 +39,7 @@ export function EmailHistory() {
     }
   }, [fetchResponse]);
 
-  if (status < statuses.approved) {
+  if (status < statuses.approved || !emails.length) {
     return null
   }
 

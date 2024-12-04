@@ -13,13 +13,11 @@ export function PageHeader() {
         <Container size="xl" my="md" p={0}>
             <Breadcrumbs fz="sm" mb="sm">
               <Link to="/">
-                <Text color="blue">Dashboard</Text>
+                <Text c="blue">Dashboard</Text>
               </Link>
-              <Link to={location.pathname}>
-                <Text color="gray.6">Activity</Text>
-              </Link>
+              <Text c="gray.6">Activity</Text>
             </Breadcrumbs>
-            <h2 className="page-title">{name ? name : ( status == statuses.draft ? 'New activity' : 'Edit activity') }</h2>
+            <h2 className="page-title">{name ? name : ( status == statuses.draft ? 'New activity' : 'Edit activity') } </h2>
         </Container>
       </div>
     </>

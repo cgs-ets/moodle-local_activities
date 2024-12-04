@@ -8,22 +8,18 @@ import { Calendar } from "./components/Calendar";
 
 export function Dashboard() {
 
-  const [month, setMonth] = useState<string>(dayjs().format("MM"))
-  const [year, setYear] = useState<string>(dayjs().format("YYYY"))
 
   useEffect(() => {
     document.title = 'Activities Dashboard';
     console.log(getConfig().roles)
   }, []);
 
-
   return (
     <>
       <Header />
       <div className="page-wrapper">
-        <Container size="xl" mb="xl">
-          <Calendar month={Number(month)} year={Number(year)} />
-
+        <Container size="xl" mb="xl" className="pt-10">
+          <Calendar />
         </Container>
       </div>
       <Footer />

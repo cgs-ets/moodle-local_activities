@@ -22,6 +22,10 @@ body {
   }
 }
 
+/*.readonly input {
+  background-color: rgb(243 244 246);
+}*/
+
 body {
   background-color: #f1f5f9 !important;
   margin: 0;
@@ -134,19 +138,16 @@ table thead th {
 }
 .full-calendar .te-start-time {
   border-bottom: 1px solid #fff;
-  font-family: "Montserrat";
   font-size: 12px;
   padding-bottom: 2px;
   color: #59a5d7;
 }
 .full-calendar .te-title {
   color: #404040;
-  font-family: Raleway;
   font-size: 12px;
   font-weight: 400;
 }
 .full-calendar .te-link {
-  display: block;
   width: 100%;
 }
 .full-calendar .te-link:hover .te-start-time {

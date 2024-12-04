@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { useAjax } from "../../../../hooks/useAjax";
 import { Form, useFormStore } from "../../../../stores/formStore";
 import { useWorkflowStore } from "../../../../stores/workflowStore";
+import { useStateStore } from "../../../../stores/stateStore";
 
 export function Approval({
   approval,
@@ -17,6 +18,7 @@ export function Approval({
   const [submitResponse, submitError, submitLoading, submitAjax, setSubmitData] = useAjax(); // destructure state and fetch function
   const approvals = useWorkflowStore((state) => state.approvals)
   const setApprovals = useWorkflowStore((state) => state.setApprovals)
+  const viewStateProps = useStateStore((state) => (state.viewStateProps))
 
   
   const saveApproval = (id: string, checked: boolean) => {
@@ -44,6 +46,9 @@ export function Approval({
   }, [submitResponse]);
 
   const onApprove = (id: string, checked: boolean) => {
+    if (viewStateProps.readOnly) {
+      return
+    }
     const newApprovals = approvals.map((approval: { id: string }) => 
       approval.id === id
         ? { ...approval, status: checked ? "1" : "0" } 

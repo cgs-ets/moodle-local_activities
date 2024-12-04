@@ -14,7 +14,8 @@ export function CalendarFlow({
 }: {
   activityid: number,
 }) {
-  const [fetchResponse, fetchError, fetchLoading, fetchAjax, setFetchData] = useAjax(); // destructure state and fetch function
+  //const [fetchResponse, fetchError, fetchLoading, fetchAjax, setFetchData] = useAjax(); // destructure state and fetch function
+  const api = useFetch()
   const status = useFormStore((state) => state.status)
   const pushpublic = useFormStore((state) => state.pushpublic)
   const displaypublic = useFormStore((state) => state.displaypublic)
@@ -25,6 +26,7 @@ export function CalendarFlow({
   const setFormData = useFormStore((state) => state.setState)
   const [approvedResponse, approvedError, approvedLoading, submitApprovedAjax, setApprovedData] = useAjax(); // destructure state and fetch function
   const [publicResponse, publicError, publicLoading, submitPublicAjax, setPublicData] = useAjax(); // destructure state and fetch function
+  const viewStateProps = useStateStore((state) => (state.viewStateProps))
 
   useEffect(() => {
     // Define the interval function
@@ -41,27 +43,18 @@ export function CalendarFlow({
     return () => clearInterval(interval);
   }, [activityid, status]);
 
-
-  const getCalendarSyncs = () => {
-    console.log("getting calendar syncs")
-    setFetchData({
-      response: null,
-      error: false,
-      loading: false,
-    })
-    fetchAjax({
+  const getCalendarSyncs = async () => {
+    console.log("getting calendar syncs") 
+    const fetchResponse = await api.call({
       query: {
         methodname: 'local_activities-get_calendar_status',
         id: activityid,
       }
     })
-  }
-  useEffect(() => {
-    if (fetchResponse && !fetchError) {
+    if (!fetchResponse.error) {
       setSyncs(fetchResponse.data || [])
     }
-  }, [fetchResponse]);
-
+  }
 
   const submitApproved = (approved: boolean) => {
     console.log("approved", approved)
@@ -130,7 +123,7 @@ export function CalendarFlow({
           <span className="text-base">Calendar flow</span>
         </div>
  
-        {isCalReviewer() &&
+        {isCalReviewer() && 
           <div className="relative border-t text-sm w-full">   
             <div className="flex">
 

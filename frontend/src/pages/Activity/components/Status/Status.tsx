@@ -1,4 +1,4 @@
-import { Card, Group, Button, Text, Menu, Loader, Transition, Box,  } from '@mantine/core';
+import { Card, Group, Button, Text, Menu, Loader, Transition, Box, Alert,  } from '@mantine/core';
 import { IconDots, IconCloudUp, IconCheckbox, IconArrowMoveLeft, IconCheck } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import { useTimeout } from '@mantine/hooks';
@@ -34,7 +34,8 @@ export function Status({
   
   const formloaded = useStateStore((state) => (state.formloaded))
   const studentsloaded = useStateStore((state) => (state.studentsloaded))
-  
+  const viewStateProps = useStateStore((state) => (state.viewStateProps))
+
   // When everything is loaded, set the baseline.
   useEffect(() => {
     if (formloaded && (!isActivity(activitytype) || studentsloaded)) {
@@ -137,6 +138,7 @@ export function Status({
         : ""
       }
     >
+
       <div className="page-pretitle">Status</div>      
       <Text size="md" fw={500}>{ statusText() }</Text>
 
@@ -172,35 +174,38 @@ export function Status({
         </Text>
       }
 
-      <Group justify="space-between" mt="xs">
-        <Group gap="xs">
-          <Button 
-            type="submit" 
-            size="compact-md" 
-            radius="xl" 
-            leftSection={<IconCloudUp className='size-4' />} 
-            loading={submitLoading}>
-              {activitytype == 'calendar' || activitytype == 'assessment' 
-              ? status >= statuses.saved
-                ? "Update"
-                : "Submit"
-              : haschanges ? "Save changes" : "Save" }
-          </Button>
-          { showReviewButton() && <Button color="apprgreen" onClick={handleSendReview} size="compact-md" radius="xl" leftSection={<IconCheckbox size={14} />} loading={pubLoading}>Start review</Button> }
-        </Group>
+      { viewStateProps.editable &&
 
-        { getExtraOptions().length 
-          ? <Menu shadow="lg" position="bottom">
-              <Menu.Target>
-                <Button size="compact-md" variant="subtle" radius="xl"><IconDots size="1rem" /></Button>
-              </Menu.Target>
-              <Menu.Dropdown> 
-                {getExtraOptions()}
-              </Menu.Dropdown>
-            </Menu>
-          : null
-        }
-      </Group>
+        <Group justify="space-between" mt="xs">
+          <Group gap="xs">
+            <Button 
+              type="submit" 
+              size="compact-md" 
+              radius="xl" 
+              leftSection={<IconCloudUp className='size-4' />} 
+              loading={submitLoading}>
+                {activitytype == 'calendar' || activitytype == 'assessment' 
+                ? status >= statuses.saved
+                  ? "Update"
+                  : "Submit"
+                : haschanges ? "Save changes" : "Save" }
+            </Button>
+            { showReviewButton() && <Button color="apprgreen" onClick={handleSendReview} size="compact-md" radius="xl" leftSection={<IconCheckbox size={14} />} loading={pubLoading}>Start review</Button> }
+          </Group>
+
+          { getExtraOptions().length 
+            ? <Menu shadow="lg" position="bottom">
+                <Menu.Target>
+                  <Button size="compact-md" variant="subtle" radius="xl"><IconDots size="1rem" /></Button>
+                </Menu.Target>
+                <Menu.Dropdown> 
+                  {getExtraOptions()}
+                </Menu.Dropdown>
+              </Menu>
+            : null
+          }
+        </Group>
+      }
     </Card>
   )
 

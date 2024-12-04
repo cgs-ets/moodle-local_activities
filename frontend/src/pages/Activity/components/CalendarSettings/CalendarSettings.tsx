@@ -3,6 +3,7 @@ import { IconEdit, IconExternalLink, IconInfoCircle, IconInfoCircleFilled, IconI
 import { Form, useFormStore } from "../../../../stores/formStore";
 import { useDisclosure } from "@mantine/hooks";
 import { CategoriesModal } from "../Modals/CategoriesModal";
+import { useStateStore } from '../../../../stores/stateStore';
 
 export function CalendarSettings() {
 
@@ -11,8 +12,12 @@ export function CalendarSettings() {
   const displaypublic = useFormStore(state => state.displaypublic)
   const colourcategory = useFormStore(state => state.colourcategory)
   const [catsModalOpened, {open: openCatsModal, close: closeCatsModal}] = useDisclosure(false);
+  const viewStateProps = useStateStore((state) => (state.viewStateProps))
 
   const updateField = (name: string, value: any) => {
+    if (viewStateProps.readOnly) {
+      return
+    }
     setState({
       [name]: value
     } as Form)
@@ -38,7 +43,9 @@ export function CalendarSettings() {
               ? <div>{categories.map(cat => (<div key={cat}>{cat.replace('/', ' > ')}</div>))}</div>
               : <div>Categories</div>
             }
-            <Button onClick={openCatsModal} size="compact-md" className="rounded-full mt-2" variant="light" rightSection={<IconEdit className="size-5" />}>{categories.length ? "Change" : "Select"}</Button>
+            { viewStateProps.editable &&
+              <Button onClick={openCatsModal} size="compact-md" className="rounded-full mt-2" variant="light" rightSection={<IconEdit className="size-5" />}>{categories.length ? "Change" : "Select"}</Button>
+            }
           </div>
 
           {categories.length > 1 

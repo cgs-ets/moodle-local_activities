@@ -5,16 +5,18 @@ import { useFormStore } from '../../../../stores/formStore';
 import { isActivity } from '../../../../utils/utils';
 import { Accordion } from '@mantine/core';
 import { IconAd2, IconAward, IconBuilding, IconBuildingPavilion, IconChecklist, IconCircle, IconCircleDashedCheck, IconCloudComputing, IconMeat, IconToolsKitchen2, IconTruckLoading } from '@tabler/icons-react';
+import { useStateStore } from '../../../../stores/stateStore';
 
 
 export function NextSteps() {
   const status = useFormStore((state) => state.status)
   const activitytype = useFormStore((state) => state.activitytype)
   const permissions = useFormStore((state) => state.permissions)
+  const viewStateProps = useStateStore((state) => (state.viewStateProps))
 
 
   return (
-    status == statuses.approved && isActivity(activitytype) &&
+    status == statuses.approved && isActivity(activitytype) && viewStateProps.editable &&
     <Card withBorder radius="sm" mb="lg">
       <Card.Section withBorder inheritPadding py="sm">
         <h3 className="text-base m-0">Next steps</h3>

@@ -4,15 +4,19 @@ import { useFormStore } from '../../../../stores/formStore';
 import { statuses } from '../../../../utils';
 import { useAjax } from '../../../../hooks/useAjax';
 import { useEffect, useState } from 'react';
+import { useStateStore } from '../../../../stores/stateStore';
+import useFetch from '../../../../hooks/useFetch';
 
 export function Comments() {
   const status = useFormStore((state) => state.status)
   const [comment, setComment] = useState<string>('')
+  const [loading, setLoading] = useState<boolean>(false)
   const [comments, setComments] = useState<any[]>([])
-  const [fetchResponse, fetchError, fetchLoading, fetchAjax, setFetchedData] = useAjax(); // destructure state and fetch function
+  const api = useFetch()
   const [submitResponse, submitError, submitLoading, submitAjax, setSubmitData] = useAjax(); // destructure state and fetch function
   const [deleteResponse, deleteError, deleteLoading, deleteAjax, setDeleteData] = useAjax(); // destructure state and fetch function
   const activityid = useFormStore((state) => state.id)
+  const viewStateProps = useStateStore((state) => (state.viewStateProps))
 
   useEffect(() => {
     if (activityid) {
@@ -20,21 +24,20 @@ export function Comments() {
     }
   }, [activityid]);
 
-  const getComments = () => {
+  const getComments = async () => {
     console.log("getting comments")
-    fetchAjax({
+    setLoading(true)
+    const fetchResponse = await api.call({
       query: {
         methodname: 'local_activities-get_comments',
         id: activityid,
       }
     })
-  }
-  useEffect(() => {
-    if (fetchResponse && !fetchError) {
-      setComments(fetchResponse.data)
+    setLoading(false)
+    if (!fetchResponse.error) {
+      setComments(fetchResponse.data || [])
     }
-  }, [fetchResponse]);
-
+  }
 
   const handleSubmit = () => {
     if (!comment.length) {
@@ -80,30 +83,37 @@ export function Comments() {
 
 
   return (
-    status > statuses.inreview
+    status >= statuses.inreview
     ? <Card withBorder  mb="lg">
-        <Card.Section className='border-b' inheritPadding py="sm">
+        <Card.Section inheritPadding py="sm">
           <span className="text-base">Comments</span>
         </Card.Section>
-        <Card.Section withBorder px="md" pos="relative">
-          <Textarea
-            value={comment}
-            onChange={(e) => setComment(e.currentTarget.value)}
-            placeholder="Add a comment"
-            variant="unstyled"
-            autosize
-            minRows={2}
-            className="overflow-hidden py-1"
-          />
-          {submitLoading
-            ? <Loader type="dots" size={23} className="absolute bottom-2 right-2" />
-            : <ActionIcon onClick={handleSubmit} radius="xl" size="md" variant="filled" className="absolute bottom-2 right-2">
-                <IconSend size="1rem" />
-              </ActionIcon>
+        <Card.Section withBorder  pos="relative">
+
+          {viewStateProps.editable &&
+            <>
+              <Textarea
+                value={comment}
+                onChange={(e) => setComment(e.currentTarget.value)}
+                placeholder="Add a comment"
+                variant="unstyled"
+                autosize
+                minRows={2}
+                className="overflow-hidden py-1 border-t px-4"
+              />
+              {submitLoading
+                ? <Loader type="dots" size={23} className="absolute bottom-2 right-2" />
+                : <ActionIcon onClick={handleSubmit} radius="xl" size="md" variant="filled" className="absolute bottom-2 right-2">
+                    <IconSend size="1rem" />
+                  </ActionIcon>
+              }
+            </>
           }
+          
+          
         </Card.Section>
         <Card.Section className='relative'>
-          <LoadingOverlay visible={submitLoading || fetchLoading || deleteLoading} />
+          <LoadingOverlay visible={loading || submitLoading || deleteLoading} />
           {
             comments.map( ({id, username, userfullname, readabletime, comment, isauthor}, i, row) => {
               return (

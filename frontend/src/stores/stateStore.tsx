@@ -11,6 +11,7 @@ type State = {
   haschanges: boolean,
   reloadstulist: boolean,
   savedtime: number,
+  viewStateProps: any,
 }
 
 type StateStore = State & {
@@ -25,6 +26,7 @@ type StateStore = State & {
   setStudentsLoaded: () => void,
   setFilesLoaded: () => void,
   updateSavedTime: () => void,
+  updateViewStateProps: (props: any) => void,
 }
 
 const formStateInit = {
@@ -36,6 +38,10 @@ const formStateInit = {
   haschanges: false,
   reloadstulist: false,
   savedtime: 0,
+  viewStateProps: {
+    readOnly: true,
+    editable: false,
+  },
 }
 const useStateStore = create<StateStore>((set, get) => ({
   ...formStateInit,
@@ -59,10 +65,7 @@ const useStateStore = create<StateStore>((set, get) => ({
     })
   },
   updateHash: () => {
-    console.log("Updating hash")
     const hash = exportActivityHash()
-    console.log('hash', hash)
-    console.log('oldhash', get().oldhash)
     set((state: State) => {
       return { 
         hash: hash, 
@@ -81,6 +84,7 @@ const useStateStore = create<StateStore>((set, get) => ({
   setStudentsLoaded: () => set({studentsloaded: true}),
   setFilesLoaded: () => set({filesloaded: true}),
   updateSavedTime: () => set({savedtime: Date.now()}),
+  updateViewStateProps: (props: any) => set({viewStateProps: props}),
 }))
 
 
