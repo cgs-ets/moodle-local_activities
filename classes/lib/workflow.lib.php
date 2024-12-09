@@ -442,9 +442,26 @@ class workflow_lib extends \local_activities\local_activities_config {
             }
         }
 
+        $workflow = static::get_workflow($activityid);
+
+        if ($activity->get('status') == activities_lib::ACTIVITY_STATUS_INREVIEW) {
+            // Determine current step name. Find the first unapproved step.
+            $stepname = '';
+            foreach ($workflow as $approval) {
+                if ($approval->status == 0) {
+                    $stepname = $approval->description;
+                    break;
+                }
+            }
+            // Now is a great time to save current step name, displayed on event modal.
+            $activity->set('stepname', $stepname);
+            $activity->save();
+        }
+        
+
         return (object) array(
             'status' => $status,
-            'workflow' => static::get_workflow($activityid),
+            'workflow' => $workflow,
         );
 
     }
@@ -809,7 +826,6 @@ class workflow_lib extends \local_activities\local_activities_config {
     public static function get_workflow($activityid) {
         // Get approvals.
         $userapprovertypes = static::get_approver_types();
-        $iswaitingforyou = false;
         $approvals = static::get_approvals($activityid);
         $i = 0;
         foreach ($approvals as $approval) {
@@ -833,7 +849,7 @@ class workflow_lib extends \local_activities\local_activities_config {
                     if (empty($prerequisites)) {
                         $approval->canapprove = true;
                         if ($approval->status == 0) {
-                            $iswaitingforyou = true;
+                            $approval->iswaitingforyou = true;
                         }
                     }
                 }
@@ -858,14 +874,6 @@ class workflow_lib extends \local_activities\local_activities_config {
                         }
                     }
                 }
-            }
-        }
-
-        // Determine current step name. Find the first unapproved step.
-        foreach ($approvals as $approval) {
-            if ($approval->status == 0) {
-                $stepname = $approval->description;
-                break;
             }
         }
 

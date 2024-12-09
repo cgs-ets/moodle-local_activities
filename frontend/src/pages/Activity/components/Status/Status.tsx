@@ -39,9 +39,9 @@ export function Status({
   // When everything is loaded, set the baseline.
   useEffect(() => {
     if (formloaded && (!isActivity(activitytype) || studentsloaded)) {
-      if (!hash) {
+      //if (!hash) {
         baselineHash()
-      }
+      //}
     }
   }, [formloaded, studentsloaded, activitytype])
 

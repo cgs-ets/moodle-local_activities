@@ -68,7 +68,7 @@ export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
               label={permissionsLabel}
               checked={permissions}
               onChange={(e) => updateField('permissions', e.target.checked)}
-              {...viewStateProps}
+              readOnly={viewStateProps.readOnly}
             />
           </Flex>
         </div>
@@ -84,7 +84,7 @@ export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
                 value={permissionslimit}
                 onChange={(e) => updateField('permissionslimit', e)}
                 className='flex-1'
-                {...viewStateProps}
+                readOnly={viewStateProps.readOnly}
               />
     
               <div className='flex-1'>
@@ -94,7 +94,7 @@ export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
                   value={dayjs.unix(Number(permissionsdueby))}
                   onChange={(newValue) => updateField('permissionsdueby', (newValue?.unix() ?? 0).toString())}
                   views={['day', 'month', 'year', 'hours', 'minutes']}
-                  {...viewStateProps}
+                  readOnly={viewStateProps.readOnly}
                 />
               </div>
               

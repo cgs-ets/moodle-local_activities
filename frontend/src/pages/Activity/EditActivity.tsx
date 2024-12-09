@@ -8,7 +8,7 @@ import { Status } from "./components/Status/Status";
 import { useAjax } from '../../hooks/useAjax';
 import { BasicDetails } from "./components/BasicDetails/BasicDetails";
 import dayjs from "dayjs";
-import { useStateStore } from "../../stores/stateStore";
+import { useStateStore, ViewStateProps } from "../../stores/stateStore";
 import { defaults, Errors, Form, useFormStore, useFormValidationStore } from "../../stores/formStore";
 import { StaffDetails } from "./components/StaffDetails/StaffDetails";
 import { CalendarSettings } from "./components/CalendarSettings/CalendarSettings";
@@ -50,20 +50,32 @@ export function EditActivity() {
   const updateViewStateProps = useStateStore((state) => (state.updateViewStateProps))
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
 
+
+  
+  const resetForm = useFormStore((state) => (state.reset))
+  const resetState = useStateStore((state) => (state.reset))
+  const resetWF = useWorkflowStore((state) => (state.reset))
+
+
+
   useEffect(() => {
     document.title = 'Manage Activity'
-    // Load existing activity.
+
     if (id && getConfig().roles.includes("staff")) {
       getActivity()
-    } else {
-      setFormData(null)
-      setFormState(null)
-      clearHash()
     }
+
+    return () => {
+      // Clear everything when leaving an activity.
+      resetForm()
+      resetState()
+      resetWF()
+    };
   }, [id]);
 
 
   const getActivity = async () => {
+
     const fetchResponse = await api.call({
       query: {
         methodname: 'local_activities-get_activity',
@@ -79,13 +91,13 @@ export function EditActivity() {
       updateViewStateProps({
         readOnly: false,
         editable: true,
-      })
+      } as ViewStateProps)
     } else {
       // Do not allow editing.
       updateViewStateProps({
         readOnly: true,
         editable: false,
-      })
+      } as ViewStateProps)
     }
     document.title = fetchResponse.data.activityname
     const data = {

@@ -2,6 +2,11 @@
 import { create } from 'zustand'
 import { exportActivityHash } from '../utils/activityHash'
 
+export type ViewStateProps = {
+  readOnly: boolean;
+  editable: boolean;
+}
+
 type State = {
   oldhash: string,
   hash: string,
@@ -11,8 +16,10 @@ type State = {
   haschanges: boolean,
   reloadstulist: boolean,
   savedtime: number,
-  viewStateProps: any,
+  viewStateProps: ViewStateProps,
 }
+
+
 
 type StateStore = State & {
   setState: (newState: State | null) => void,
@@ -26,7 +33,7 @@ type StateStore = State & {
   setStudentsLoaded: () => void,
   setFilesLoaded: () => void,
   updateSavedTime: () => void,
-  updateViewStateProps: (props: any) => void,
+  updateViewStateProps: (props: ViewStateProps) => void,
 }
 
 const formStateInit = {
@@ -41,7 +48,7 @@ const formStateInit = {
   viewStateProps: {
     readOnly: true,
     editable: false,
-  },
+  } as ViewStateProps,
 }
 const useStateStore = create<StateStore>((set, get) => ({
   ...formStateInit,
@@ -84,7 +91,7 @@ const useStateStore = create<StateStore>((set, get) => ({
   setStudentsLoaded: () => set({studentsloaded: true}),
   setFilesLoaded: () => set({filesloaded: true}),
   updateSavedTime: () => set({savedtime: Date.now()}),
-  updateViewStateProps: (props: any) => set({viewStateProps: props}),
+  updateViewStateProps: (vals: ViewStateProps) => set({viewStateProps: vals}),
 }))
 
 

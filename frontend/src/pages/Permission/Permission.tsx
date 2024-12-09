@@ -10,12 +10,13 @@ import { defaults, useFormStore, useFormValidationStore } from "../../stores/for
 import { IconPencil } from "@tabler/icons-react";
 import { cn, isActivity } from "../../utils/utils";
 import { PageHeader } from "../Activity/components/PageHeader";
-import { ActivityDetails } from "./Components/ActivityDetails";
 import { StuPermission } from "./Components/StuPermission";
+import { ActivityDetails } from "../../components/ActivityDetails/ActivityDetails";
 
 export function Permission() {
   let { id } = useParams();
 
+  const formData = useFormStore()
   const setFormData = useFormStore((state) => state.setState)
   const setFormState = useStateStore((state) => state.setState)
   const [fetchResponse, fetchError, fetchLoading, fetchAjax, setFetchData] = useAjax(); // destructure state and fetch function
@@ -44,7 +45,6 @@ export function Permission() {
         ...fetchResponse.data.activity,
         timestart: Number(fetchResponse.data.activity.timestart) ? fetchResponse.data.activity.timestart : dayjs().unix(),
         timeend: Number(fetchResponse.data.activity.timeend) ? fetchResponse.data.activity.timeend : dayjs().unix(),
-        staffincharge: [JSON.parse(fetchResponse.data.activity.staffinchargejson || null)].filter(item => item !== null)
       }
       // Merge into default values
       setFormData({...defaults, ...data})
@@ -76,7 +76,7 @@ export function Permission() {
                   <Grid grow>
                     <Grid.Col span={{ base: 12, lg: 8 }}>
                       <Box className="flex flex-col gap-4">
-                        <ActivityDetails />
+                        <ActivityDetails activity={formData}  />
                       </Box>
                     </Grid.Col>
 

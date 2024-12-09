@@ -24,7 +24,7 @@ export const exportActivityHash = () => {
   // Put studentlist back in without permissions.
   const cleaned = {...rest, attachments, riskassessment, studentlist}
 
-  //console.log("What I'm hashing", JSON.parse(JSON.stringify(cleaned)))
+  console.log("What I'm hashing", JSON.parse(JSON.stringify(cleaned)))
 
   return hash(JSON.parse(JSON.stringify(cleaned)))
 };

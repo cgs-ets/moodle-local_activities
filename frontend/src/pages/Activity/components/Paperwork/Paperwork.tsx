@@ -18,7 +18,7 @@ export function Paperwork() {
         </Card.Section>
         <Card.Section>
 
-          {viewStateProps.editable &&
+          { viewStateProps.editable &&
             <div className='border-b p-4'>
               <Text className="font-semibold inline">Medical report</Text>
               <div className='text-base'>

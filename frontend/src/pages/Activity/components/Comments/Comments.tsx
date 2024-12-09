@@ -90,7 +90,7 @@ export function Comments() {
         </Card.Section>
         <Card.Section withBorder  pos="relative">
 
-          {viewStateProps.editable &&
+          { viewStateProps.editable &&
             <>
               <Textarea
                 value={comment}

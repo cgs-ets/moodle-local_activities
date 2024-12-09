@@ -61,7 +61,7 @@ export function BasicDetails() {
           value={formData.activityname}
           error={errors.activityname}
           onChange={(e) => updateField('activityname', e.target.value)}
-          {...viewStateProps}
+          readOnly={viewStateProps.readOnly}
         />
 
         <div>
@@ -79,7 +79,7 @@ export function BasicDetails() {
                 //{ value: 'assessment', label: 'Assessment' },
               ]}
               className="border"
-              {...viewStateProps}
+              readOnly={viewStateProps.readOnly}
             />
             <Anchor className="text-sm flex items-center gap-1 flex-nowrap" href={""}>Assessment <IconExternalLink className="size-4 stroke-1" /></Anchor>
 
@@ -115,7 +115,7 @@ export function BasicDetails() {
               { value: 'whole', label: 'Whole School' },
             ]}
             className="border"
-            {...viewStateProps}
+            readOnly={viewStateProps.readOnly}
           />
         </div>
         
@@ -134,7 +134,7 @@ export function BasicDetails() {
                     error: !!errors.timestart,
                   },
                 }}
-                {...viewStateProps}
+                readOnly={viewStateProps.readOnly}
               />
             </div>
             <div>
@@ -152,7 +152,7 @@ export function BasicDetails() {
                     error: !!errors.timestart,
                   },
                 }}
-                {...viewStateProps}
+                readOnly={viewStateProps.readOnly}
               />
             </div>
           </div>
@@ -172,7 +172,7 @@ export function BasicDetails() {
             value={formData.location}
             error={errors.Location}
             onChange={(e) => updateField('location', e.target.value)}
-            {...viewStateProps}
+            readOnly={viewStateProps.readOnly}
           />
         </div>
 
@@ -226,7 +226,7 @@ export function BasicDetails() {
                 label="Transport"
                 value={formData.transport}
                 onChange={(e) => updateField('transport', e.target.value)}
-                {...viewStateProps}
+                readOnly={viewStateProps.readOnly}
               />
             </div>
 
@@ -235,7 +235,7 @@ export function BasicDetails() {
                 label="Cost for student"
                 value={formData.cost}
                 onChange={(e) => updateField('cost', e.target.value)}
-                {...viewStateProps}
+                readOnly={viewStateProps.readOnly}
               />
             </div>
           </>

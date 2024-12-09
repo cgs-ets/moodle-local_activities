@@ -181,7 +181,9 @@ class activities_lib {
             $activity->set('absencesprocessed', 0);
             $activity->set('classrollprocessed', 0);
 
-            //$staffincharge = json_decode($data->staffinchargejson);
+            // Set stepname to empty, we'll fifure that out when generating approvals.
+            $activity->set('stepname', '');
+
             // Default staff in charge.
             if (empty($data->staffincharge)) {
                 $activity->set('staffincharge', $USER->username);

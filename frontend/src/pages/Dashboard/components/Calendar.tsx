@@ -4,6 +4,8 @@ import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import useFetch from "../../../hooks/useFetch";
 import { CalendarTease } from "./CalendarTease";
+import { EventModal } from "./EventModal";
+import { Form } from "../../../stores/formStore";
 
 
 export function Calendar() {
@@ -14,6 +16,8 @@ export function Calendar() {
   const [calendar, setCalendar] = useState<any>({
     cells: []
   })
+
+  const [selectedEvent, setSelectedEvent] = useState<Form|null>(null)
 
   useEffect(() => {
     if (month && year) {
@@ -78,11 +82,14 @@ export function Calendar() {
                     ? <td key={cell.date} className={`eventful ${cell.type}`}>
                         <span className="day-num">{dayjs.unix(cell.date).format("D") }</span>
                         <ul>
-                          { Object.keys(cell.events).map((ts) => (
-                              <div>                            
-                                <CalendarTease celldate={cell.date} event={cell.events[ts]} />
+                          { Object.keys(cell.events).map((ts) => {
+                            const event = cell.events[ts]
+                            return (
+                              <div key={event.id}>                            
+                                <CalendarTease celldate={cell.date} event={event} setSelectedEvent={setSelectedEvent}/>
                               </div>
-                          ))}
+                            )})
+                          }
                         </ul>
                       </td>
                     : <td key={cell.date} className={`eventless ${cell.type}`}>
@@ -95,8 +102,8 @@ export function Calendar() {
         </tbody>
       </table>
 
+      <EventModal activity={selectedEvent} close={() => setSelectedEvent(null)} />
 
     </div>
-    
   )
 }

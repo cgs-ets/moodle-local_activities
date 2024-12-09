@@ -39,7 +39,7 @@ export function StaffDetails() {
               <StaffSelector staff={accompanyingstaff} setStaff={setAccompanying} label="Accompanying" multiple={true} />
               <div>
                 <Text fz="sm" mb="5px" fw={500} c="#212529">Non-school participants</Text>
-                <Textarea {...viewStateProps} value={otherparticipants} onChange={(event) => setState({['otherparticipants']: event.currentTarget.value} as Form)}/>
+                <Textarea readOnly={viewStateProps.readOnly} value={otherparticipants} onChange={(event) => setState({['otherparticipants']: event.currentTarget.value} as Form)}/>
               </div>
             </>
           }
