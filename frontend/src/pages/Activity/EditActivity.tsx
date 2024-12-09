@@ -34,10 +34,8 @@ export function EditActivity() {
   const [error, setError] = useState<string>("")
   const setFormData = useFormStore((state) => state.setState)
   const activityid = useFormStore((state) => state.id)
-  const setFormState = useStateStore((state) => state.setState)
   const setFormLoaded = useStateStore((state) => (state.setFormLoaded))
   const baselineHash = useStateStore((state) => (state.baselineHash))
-  const clearHash = useStateStore((state) => (state.clearHash))
   const resetHash = useStateStore((state) => (state.resetHash))
   const validationRules = useFormValidationStore((state) => state.rules)
   const setFormErrors = useFormValidationStore((state) => state.setFormErrors)
@@ -51,11 +49,9 @@ export function EditActivity() {
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
 
 
-  
   const resetForm = useFormStore((state) => (state.reset))
   const resetState = useStateStore((state) => (state.reset))
   const resetWF = useWorkflowStore((state) => (state.reset))
-
 
 
   useEffect(() => {
@@ -63,6 +59,14 @@ export function EditActivity() {
 
     if (id && getConfig().roles.includes("staff")) {
       getActivity()
+    }
+
+    if (!id && getConfig().roles.includes("staff")) {
+      // New. Allow editing.
+      updateViewStateProps({
+        readOnly: false,
+        editable: true,
+      } as ViewStateProps)
     }
 
     return () => {
@@ -247,7 +251,7 @@ export function EditActivity() {
           </Container> : null
         }
 
-        { !error && activityid ?
+        { (!error && activityid) || !id ?
           <>
             <Container size="xl">
               <PageHeader />

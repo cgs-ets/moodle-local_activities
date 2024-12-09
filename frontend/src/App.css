@@ -137,9 +137,9 @@ table thead th {
   color: #343434;
 }
 .full-calendar .te-start-time {
-  border-bottom: 1px solid #fff;
+  /*border-bottom: 1px solid #fff;
+  padding-bottom: 2px;*/
   font-size: 12px;
-  padding-bottom: 2px;
   color: #59a5d7;
 }
 .full-calendar .te-title {
@@ -151,8 +151,8 @@ table thead th {
   width: 100%;
 }
 .full-calendar .te-link:hover .te-start-time {
-  border-bottom: 1px solid;
-  color: #59a5d7;
+  /*border-bottom: 1px solid;
+  color: #59a5d7;*/
 }
 @media only screen and (max-width: 991px) {
   .calendar-full-wrap .container {

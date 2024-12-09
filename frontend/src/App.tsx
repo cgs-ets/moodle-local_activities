@@ -20,6 +20,10 @@ function App() {
         element: <Dashboard />
       },
       {
+        path: "new", // Matches /new
+        element: <EditActivity />,
+      },
+      {
         path: ":id", // Matches /<number>
         element: <EditActivity />,
       },

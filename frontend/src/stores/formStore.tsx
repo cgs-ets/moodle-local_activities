@@ -54,6 +54,8 @@ export type Form = {
   isassessment: string;
   courseid: string;
   assessmenturl: string;
+
+  stepname: string;
 };
 
 type FormStore = Form & {
@@ -110,7 +112,9 @@ const defaults: Form = {
   pushpublic: false,
   isassessment: '',
   courseid: '',
-  assessmenturl: ''
+  assessmenturl: '',
+  
+  stepname: '',
 };
 
 const useFormStore = create<FormStore>((set) => ({

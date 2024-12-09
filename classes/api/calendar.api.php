@@ -20,8 +20,12 @@ trait calendar_api {
      */
     static public function get_cal() {
         $type = required_param('type', PARAM_RAW);
+        $month = optional_param('month', '', PARAM_ALPHANUMEXT);
+        $year = optional_param('year', '', PARAM_ALPHANUMEXT);
         return calendar_lib::get([
             'type' => $type,
+            'month' => $month,
+            'year' => $year,
         ]);
     }
 
