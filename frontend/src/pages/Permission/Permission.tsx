@@ -1,17 +1,16 @@
-import { useEffect, useState } from "react";
-import { Box, Container, Grid, Center, Text, Loader, Button, ActionIcon, Card, Anchor, Group, Avatar } from '@mantine/core';
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useEffect } from "react";
+import { Box, Container, Grid, Center, Text, Loader, Card, Anchor } from '@mantine/core';
+import { useParams } from "react-router-dom";
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
 import { useAjax } from '../../hooks/useAjax';
 import dayjs from "dayjs";
 import { useStateStore } from "../../stores/stateStore";
-import { defaults, useFormStore, useFormValidationStore } from "../../stores/formStore";
-import { IconPencil } from "@tabler/icons-react";
-import { cn, isActivity } from "../../utils/utils";
+import { defaults, useFormStore } from "../../stores/formStore";
+import { cn } from "../../utils/utils";
 import { PageHeader } from "../Activity/components/PageHeader";
 import { StuPermission } from "./Components/StuPermission";
-import { ActivityDetails } from "../../components/ActivityDetails/ActivityDetails";
+import { ActivityDetails } from "./Components/ActivityDetails";
 
 export function Permission() {
   let { id } = useParams();

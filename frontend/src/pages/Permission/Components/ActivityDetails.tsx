@@ -1,6 +1,6 @@
 import { Text, Card, Group, Avatar } from '@mantine/core';
 import dayjs from "dayjs";
-import { Form } from '../../stores/formStore';
+import { Form } from '../../../stores/formStore';
 
 export function ActivityDetails({activity}: {activity: Form}) {
 

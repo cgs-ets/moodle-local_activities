@@ -422,9 +422,9 @@ class Activity {
             $usercontext = $this->related['usercontext'];
         }
 
-        $manageurl = new \moodle_url("/local/activities/activity/{$this->data->id}/edit");
+        $manageurl = new \moodle_url("/local/activities/{$this->data->id}/edit");
 
-        $permissionsurl = new \moodle_url("/local/activities/activity/{$this->data->id}/permission");
+        $permissionsurl = new \moodle_url("/local/activities/{$this->data->id}/permission");
 
         $isactivity = false;
         if ($this->data->activitytype == 'excursion' || $this->data->activitytype == 'incursion' || $this->data->activitytype == 'commercial') {

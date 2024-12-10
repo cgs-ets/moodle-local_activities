@@ -8,7 +8,6 @@ import { DateTimePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { Form, useFormStore, useFormValidationStore } from "../../../../stores/formStore";
 import { useDisclosure } from "@mantine/hooks";
-import { CategoriesModal } from "../Modals/CategoriesModal";
 import { Conflicts } from "../Conflicts/Conflicts";
 import { isActivity } from "../../../../utils/utils";
 import { useStateStore } from "../../../../stores/stateStore";

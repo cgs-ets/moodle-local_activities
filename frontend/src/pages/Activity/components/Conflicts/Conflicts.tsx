@@ -83,7 +83,7 @@ export function Conflicts() {
                     </Table.Tr>
                     {conflicts.map((conflict: any) => (
                       <Table.Tr key={conflict.activityid}>
-                        <Table.Td><Anchor target="_blank" href={`/local/activities/activity/${conflict.activityid}`}>{conflict.activityname}</Anchor></Table.Td>
+                        <Table.Td><Anchor target="_blank" href={`/local/activities/${conflict.activityid}`}>{conflict.activityname}</Anchor></Table.Td>
                         <Table.Td>{conflict.timestart} <span className="text-xs">{conflict.datestart}</span></Table.Td>
                         <Table.Td>{conflict.timeend} <span className="text-xs">{conflict.dateend}</span></Table.Td>
                         <Table.Td>{conflict.location}</Table.Td>

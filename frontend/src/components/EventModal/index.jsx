@@ -92,7 +92,7 @@ export function EventModal({opened, eventData, showOptions, close, viewRole, onC
                         return (
                           showEditOptions || viewRole == "activitystaff" || getConfig().roles.includes('manager')
                           ? <>
-                              <Link to={"/activity/" + activity.activityid}>
+                              <Link to={"/" + activity.activityid}>
                                 <Badge key={i} variant='filled' color="gray.2" size="lg">
                                   <Text tt="none" fw={400} c="#000" td={activity.cancelled == '1' ? 'line-through' : ''}>{activity.activityname}</Text>
                                 </Badge>

@@ -1,10 +1,10 @@
 
-import { Badge, Button, Card, Flex, Group, Menu, Modal, Text } from '@mantine/core';
-import { IconCalculator, IconCalendarCode, IconCalendarEvent, IconChevronDown, IconCircleOff, IconSettings, IconTrash, IconUserCheck } from '@tabler/icons-react';
+import { Badge, Button, Flex, Modal, Text } from '@mantine/core';
+import { IconSettings } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 import { Form } from '../../../stores/formStore';
-import { ActivityDetails } from '../../../components/ActivityDetails/ActivityDetails';
 import { statuses } from '../../../utils';
+import { ActivityDetails } from './ActivityDetails';
 
 type Props = {
   activity: Form|null;
@@ -16,9 +16,6 @@ export function EventModal({activity, close}: Props) {
   if (!activity) {
     return null
   }
-
-  const aux = {...activity, activityname: ""}
-  console.log(aux)
 
   return (
     <Modal.Root 
@@ -44,7 +41,7 @@ export function EventModal({activity, close}: Props) {
               <Modal.CloseButton mt={-15} />
             </Modal.Header>
             <Modal.Body p={0}>
-              <ActivityDetails activity={aux} />
+              <ActivityDetails activity={activity} />
               <Flex className='mt-3 gap-2 justify-between p-3 pt-0'>
                 <div></div>
                 <Link to={"/" + activity.id}><Button radius="lg" size="compact-md" variant="filled" leftSection={<IconSettings className='size-4' />}>Open</Button></Link> 

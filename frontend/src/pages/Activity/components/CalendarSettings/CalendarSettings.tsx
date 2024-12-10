@@ -1,8 +1,8 @@
 import { Text, Button, Switch, Card, Select } from '@mantine/core';
-import { IconEdit, IconExternalLink, IconInfoCircle, IconInfoCircleFilled, IconInfoSmall, IconQuestionMark } from "@tabler/icons-react";
+import { IconCategoryFilled, IconEdit, IconExternalLink, IconInfoCircle, IconInfoCircleFilled, IconInfoSmall, IconQuestionMark } from "@tabler/icons-react";
 import { Form, useFormStore } from "../../../../stores/formStore";
 import { useDisclosure } from "@mantine/hooks";
-import { CategoriesModal } from "../Modals/CategoriesModal";
+import { CategoriesModal } from "../Modals/CategoriesModal/CategoriesModal";
 import { useStateStore } from '../../../../stores/stateStore';
 
 export function CalendarSettings() {
@@ -44,7 +44,7 @@ export function CalendarSettings() {
               : <div>Categories</div>
             }
             { viewStateProps.editable &&
-              <Button onClick={openCatsModal} size="compact-md" className="rounded-full mt-2" variant="light" rightSection={<IconEdit className="size-5" />}>{categories.length ? "Change" : "Select"}</Button>
+              <Button onClick={openCatsModal} size="compact-md" className="rounded-full mt-2" variant="light" rightSection={<IconCategoryFilled className="size-5" />}>{categories.length ? "Change" : "Select"}</Button>
             }
           </div>
 

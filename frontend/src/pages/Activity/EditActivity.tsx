@@ -151,7 +151,7 @@ export function EditActivity() {
 
       // Successful save.
       if (!id) {
-        navigate('/activity/' + submitResponse.data.id + '/edit', {replace: true})
+        navigate('/' + submitResponse.data.id + '/edit', {replace: true})
       } else {
         setFormData({
           status: submitResponse.data.status,
