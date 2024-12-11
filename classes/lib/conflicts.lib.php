@@ -97,7 +97,7 @@ class conflicts_lib {
                 $html .= "<table><tr> <th>Title</th> <th>Date</th> <th>Location</th> <th>Areas</th> <th>Owner</th> </tr>";
                 $actionshtml = '';
                 if ($withActions) {
-                    $editurl = new \moodle_url("/local/activities/activity/$activityContext->id");
+                    $editurl = new \moodle_url("/local/activities/$activityContext->id");
                     $actionshtml .= '<td><div class="actions">';
                     $actionshtml .= '<a class="btn btn-secondary" target="_blank" href="' . $editurl->out(false) . '">Edit</a><br><br>';
                     $actionshtml .= "</div></td>";
@@ -118,7 +118,7 @@ class conflicts_lib {
                 $html .= "<td>$conflict->areas</td>";
                 $html .= "<td>$conflict->owner</td>";
                 if ($withActions) {
-                    $editurl = new \moodle_url("/local/activities/activity/$activityContext->id");
+                    $editurl = new \moodle_url("/local/activities/$activityContext->id");
                     $html .= '<td><div class="actions">';
                     $html .= '<a class="btn btn-secondary" target="_blank" href="' . $editurl->out(false) . '">Edit</a><br><br>';
                     $html .= '<div>

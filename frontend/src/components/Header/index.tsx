@@ -35,7 +35,7 @@ export function Header() {
           </Group>
           <div className="flex items-center gap-4">
             { getConfig().roles.includes('staff') 
-              ? <Button component={Link} to="/activity" size="compact-md" radius="lg" color="blue" leftSection={<IconCalendarPlus size={14} />}>Create new</Button> : null
+              ? <Button component={Link} to="/new" size="compact-md" radius="lg" color="blue" leftSection={<IconCalendarPlus size={14} />}>Create new</Button> : null
             }
             <Menu position="bottom-end" width={200} shadow="md">
               <Menu.Target>
