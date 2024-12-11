@@ -10,14 +10,14 @@ type Props = {
   setStaff: (value: any[]) => void,
   label: string,
   multiple: boolean,
+  readOnly: boolean,
 }
 
-export function StaffSelector({staff, setStaff, label, multiple}: Props) {
+export function StaffSelector({staff, setStaff, label, multiple, readOnly}: Props) {
 
   const [search, setSearch] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [searchResults, setSearchResults] = useState<DecordatedUser[]>([]);
-  const viewStateProps = useStateStore((state) => (state.viewStateProps))
 
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
@@ -169,7 +169,7 @@ export function StaffSelector({staff, setStaff, label, multiple}: Props) {
   return (
     <div>
       <Text fz="sm" mb="5px" fw={500} c="#212529">{label}</Text>
-      {viewStateProps.readOnly
+      {readOnly
         ? readOnlyValues.length 
           ? readOnlyValues
           : <div className="ml-2 italic">No staff selected</div>

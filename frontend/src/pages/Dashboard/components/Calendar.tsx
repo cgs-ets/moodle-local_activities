@@ -9,6 +9,7 @@ import { Form } from "../../../stores/formStore";
 import { useSearchParams } from "react-router-dom";
 import { FilterModal } from "./FilterModal";
 import { useDisclosure } from "@mantine/hooks";
+import { User } from "../../../types/types";
 
 type MoYear = {
   month: string,
@@ -18,14 +19,18 @@ type MoYear = {
 interface Filters {
   categories: string[];
   types: string[];
+  status: string[];
+  staff: string[];
 }
 
 export function Calendar() {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const defaultFilter = {
+    status: [],
     categories: [],
-    types: []
+    types: [],
+    staff: [],
   }
   const [filters, setFilters] = useState<Filters>(defaultFilter)
   const [filterOpened, {close: closeFilter, open: openFilter}] = useDisclosure(false)
@@ -124,7 +129,11 @@ export function Calendar() {
     const filteredCells = calendar.cells.map((week: any) =>
       week.map((day: any) => {
         if (!day.events) return day;
-  
+
+        
+        const filterStaff = filters.staff.map((u: string) => JSON.parse(u).un)
+
+
         const filteredEvents: Record<string, Form> = {};
   
         for (const [eventId, event] of Object.entries(day.events as Form[])) {
@@ -133,11 +142,22 @@ export function Calendar() {
           const matchesCategory =
             filters.categories.length === 0 || 
             filters.categories.some((cat) => eventCategories.includes(cat));
+
           const matchesType =
             filters.types.length === 0 || 
             filters.types.includes(event.activitytype);
-  
-          if (matchesCategory && matchesType) {
+
+          const matchesStatus =
+            filters.status.length === 0 || 
+            filters.status.includes(event.status.toString());
+
+          const eventStaff = [event.staffincharge, ...JSON.parse(event.planningstaffjson).map((u: User) => u.un), ...JSON.parse(event.accompanyingstaffjson).map((u: User) => u.un)]
+          const uniqueEventStaff = [...new Set(eventStaff.filter(item => item.trim() !== ""))];
+          const matchesStaff =
+            filterStaff.length === 0 || 
+            filterStaff.some((staff) => uniqueEventStaff.includes(staff));
+
+          if (matchesCategory && matchesType && matchesStatus && matchesStaff) {
             filteredEvents[eventId] = event;
           }
         }
@@ -151,7 +171,7 @@ export function Calendar() {
 
 
   const hasFilters = () => {
-    return filters.categories.length || filters.types.length
+    return filters.categories.length || filters.types.length || filters.status.length
   }
 
 

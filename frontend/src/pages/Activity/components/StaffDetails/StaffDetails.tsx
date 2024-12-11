@@ -32,11 +32,11 @@ export function StaffDetails() {
       </div>
       <div className="flex flex-col gap-6 p-4 border-t border-gray-300">
         <div className="flex flex-col gap-4">
-          <StaffSelector staff={staffincharge} setStaff={setStaffInCharge} label="Leader" multiple={false} />
+          <StaffSelector staff={staffincharge} setStaff={setStaffInCharge} label="Leader" multiple={false} readOnly={viewStateProps.readOnly} />
           { isActivity(activitytype) &&
             <>
-              <StaffSelector staff={planningstaff} setStaff={setPlanning} label="Planning" multiple={true} />
-              <StaffSelector staff={accompanyingstaff} setStaff={setAccompanying} label="Accompanying" multiple={true} />
+              <StaffSelector staff={planningstaff} setStaff={setPlanning} label="Planning" multiple={true} readOnly={viewStateProps.readOnly} />
+              <StaffSelector staff={accompanyingstaff} setStaff={setAccompanying} label="Accompanying" multiple={true} readOnly={viewStateProps.readOnly} />
               <div>
                 <Text fz="sm" mb="5px" fw={500} c="#212529">Non-school participants</Text>
                 <Textarea readOnly={viewStateProps.readOnly} value={otherparticipants} onChange={(event) => setState({['otherparticipants']: event.currentTarget.value} as Form)}/>

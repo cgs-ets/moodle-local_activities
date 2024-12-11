@@ -81,6 +81,7 @@ class activities_lib {
 
         return [
             'activity' => [
+                'id' => $exported->id,
                 'activityname' => $exported->activityname,
                 'timestart' => $exported->timestart,
                 'timeend' => $exported->timeend,

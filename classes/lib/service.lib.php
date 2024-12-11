@@ -4,9 +4,16 @@ namespace local_activities\lib;
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once(__DIR__.'/utils.lib.php');
+use \local_activities\lib\utils_lib;
 use \stdClass;
 
 class service_lib {
+
+    const PARENT_FUNCTIONS  = [
+        'get_activity_with_permission',
+        'submit_permission',
+    ];
 
     /*
     * returnJsonHttpResponse
@@ -55,6 +62,11 @@ class service_lib {
     
         try {
             $function = static::service_function_info($function);
+
+            // White list parent functions. For all other purposes, this is staff system.
+            if (!in_array($function->methodname, static::PARENT_FUNCTIONS)) {
+                utils_lib::require_staff();
+            }
     
             require_once($function->classpath);
             $result = call_user_func($function->nameclass .'::'.$function->methodname, $args);

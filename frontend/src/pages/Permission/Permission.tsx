@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Box, Container, Grid, Center, Text, Loader, Card, Anchor } from '@mantine/core';
 import { useParams } from "react-router-dom";
 import { Header } from "../../components/Header";
@@ -11,108 +11,134 @@ import { cn } from "../../utils/utils";
 import { PageHeader } from "../Activity/components/PageHeader";
 import { StuPermission } from "./Components/StuPermission";
 import { ActivityDetails } from "./Components/ActivityDetails";
+import useFetch from "../../hooks/useFetch";
+
+interface PermissionsHelper {
+  activitystarted: boolean;
+  ispastdueby: boolean;
+  ispastlimit: boolean;
+}
 
 export function Permission() {
   let { id } = useParams();
 
   const formData = useFormStore()
+  const activityid = useFormStore((state) => state.id)
   const setFormData = useFormStore((state) => state.setState)
-  const setFormState = useStateStore((state) => state.setState)
-  const [fetchResponse, fetchError, fetchLoading, fetchAjax, setFetchData] = useAjax(); // destructure state and fetch function
+  const [permissions, setPermissions] = useState([])
+  const [permissionshelper, setPermissionsHelper] = useState<PermissionsHelper|null>(null)
+  const api = useFetch()
 
   useEffect(() => {
     document.title = 'Activity Permission'
-    // Load existing activity.
     if (id) {
-      console.log("fetching activity..")
-      fetchAjax({
-        query: {
-          methodname: 'local_activities-get_activity_with_permission',
-          id: id,
-        }
-      })
-    } else {
-      setFormData(null)
-      setFormState(null)
+      getActivity()
     }
   }, [id]);
 
-  useEffect(() => {
-    if (fetchResponse && !fetchError) {
+
+  const getActivity = async () => {
+
+    const fetchResponse = await api.call({
+      query: {
+        methodname: 'local_activities-get_activity_with_permission',
+        id: id,
+      }
+    })
+
+    console.log(fetchResponse)
+
+    if (fetchResponse && !fetchResponse.error) {
       document.title = fetchResponse.data.activity.activityname + " - Permission"
+
+      setPermissions(fetchResponse.data.permissions)
+      setPermissionsHelper(fetchResponse.data.permissionshelper)
+
       const data = {
         ...fetchResponse.data.activity,
         timestart: Number(fetchResponse.data.activity.timestart) ? fetchResponse.data.activity.timestart : dayjs().unix(),
         timeend: Number(fetchResponse.data.activity.timeend) ? fetchResponse.data.activity.timeend : dayjs().unix(),
       }
-      // Merge into default values
       setFormData({...defaults, ...data})
     }
-  }, [fetchResponse]);
+  }
 
   const expired = () => {
-    return fetchResponse.data.permissionshelper.activitystarted || fetchResponse.data.permissionshelper.ispastdueby || fetchResponse.data.permissionshelper.ispastlimit
+    return permissionshelper?.activitystarted || permissionshelper?.ispastdueby || permissionshelper?.ispastlimit
   }
 
   return (
     <>
       <Header />
       <div className="page-wrapper" style={{minHeight: 'calc(100vh - 154px)'}}>
-        { id && !fetchResponse ? (
-          <Center h={200} mx="auto"><Loader type="dots" /></Center>
-        ) : (
-            id && ( fetchError || !fetchResponse.data.permissions.length)
-            ? <Container size="xl">
-                <Center h={300}>
-                  <Text fw={600} fz="lg">Failed to load activity permission...</Text>
-                </Center>
+        { !activityid 
+          ? <Center h={200} mx="auto"><Loader type="dots" /></Center> : null
+        }
+
+        { activityid && !permissions.length ?
+          <Container size="xl">
+            <Center h={300}>
+              <Text fw={600} fz="lg">Failed to load activity...</Text>
+            </Center>
+          </Container> : null
+        }
+
+        { activityid && permissions.length
+          ? <>
+              <Container size="xl">
+                <PageHeader />
               </Container>
-            : <>
-                <Container size="xl">
-                  <PageHeader />
-                </Container>
-                <Container size="xl" my="md">
-                  <Grid grow>
-                    <Grid.Col span={{ base: 12, lg: 8 }}>
-                      <Box className="flex flex-col gap-4">
-                        <ActivityDetails activity={formData}  />
-                      </Box>
-                    </Grid.Col>
+              <Container size="xl" my="md">
+                <Grid grow>
+                  <Grid.Col span={{ base: 12, lg: 8 }}>
+                    <Box className="flex flex-col gap-4">
+                      <ActivityDetails activity={formData}  />
+                    </Box>
+                  </Grid.Col>
 
-                    <Grid.Col span={{ base: 12, lg: 4 }}>
-                      <Box className="flex flex-col gap-4">
-                        <Card withBorder className="p-0">
-                          <div className="px-4 py-3">
-                            <Text fz="md">Permissions</Text>
+                  <Grid.Col span={{ base: 12, lg: 4 }}>
+                    <Box className="flex flex-col gap-4">
+                      <Card withBorder className="p-0">
+                        <div className="px-4 py-3">
+                          <Text fz="md">Permissions</Text>
+                        </div>
+
+                        { expired()
+                          ? <>
+                              { permissionshelper?.activitystarted 
+                                ? <div className="bg-red-100 px-4 py-3">Activity has already started. Responses are no longer accepted for this activity.</div>
+                                : permissionshelper?.ispastdueby
+                                  ? <div className="bg-red-100 px-4 py-3">Responses (due {dayjs.unix(Number(formData.permissionsdueby)).format("DD MMM YY h:mma")}) are no longer accepted for this activity. </div> 
+                                  : permissionshelper?.ispastlimit
+                                    ? <div className="bg-red-100 px-4 py-3">The maximum number of allocations have been accepted for this activity.</div> 
+                                    : <div className="bg-red-100 px-4 py-3">Responses are no longer accepted for this activity.</div> 
+                              }
+                            </>
+                          : null
+                        }
+                        { permissions.map((permission: any) => (
+                          <div className={cn(expired() ? "pointer-events-none" : null)}>
+                            <StuPermission key={permission.id} expired={expired() || false} permissionid={permission.id} student={permission.student} init={Number(permission.response ?? 0)} />
                           </div>
-
-                          { expired()
-                            ? <div className="bg-red-100 px-4 py-3">Responses are no longer accepted for this activity.</div>
-                            : null
-                          }
-                          {fetchResponse.data.permissions.map((permission: any) => (
-                            <div className={cn(expired() ? "pointer-events-none" : null)}>
-                              <StuPermission key={permission.id} expired={expired()} permissionid={permission.id} student={permission.student} init={Number(permission.response ?? 0)} />
-                            </div>
-                          ))}
-                        </Card>
+                        ))}
+                      </Card>
 
 
-                        <Card withBorder className="p-0">
-                          <div className="border-b px-4 py-3">
-                            <Text fz="md">Notice</Text>
-                          </div>
-                          <div className="px-4 py-3">
-                            <p>Up-to-date information plays a crucial role in the safe management of students and staff on excursions.</p>
-                            <p>Please review and update where appropriate, the schools’ records of your child’s current medical information and management plans, your emergency contact details, and any other important information, via the <Anchor fz="sm" href="https://infiniti.canberragrammar.org.au/Infiniti/Produce/launch.aspx?id=f95c8a98-8410-4a3e-ab46-0c907ddb9390&portal=1" target="_blank">Update Student & Family Details Form</Anchor></p>
-                          </div>
-                        </Card>
-                      </Box>
-                    </Grid.Col>
-                  </Grid>
-                </Container>
-              </>
-        )}
+                      <Card withBorder className="p-0">
+                        <div className="border-b px-4 py-3">
+                          <Text fz="md">Notice</Text>
+                        </div>
+                        <div className="px-4 py-3">
+                          <p>Up-to-date information plays a crucial role in the safe management of students and staff on excursions.</p>
+                          <p>Please review and update where appropriate, the schools’ records of your child’s current medical information and management plans, your emergency contact details, and any other important information, via the <Anchor fz="sm" href="https://infiniti.canberragrammar.org.au/Infiniti/Produce/launch.aspx?id=f95c8a98-8410-4a3e-ab46-0c907ddb9390&portal=1" target="_blank">Update Student & Family Details Form</Anchor></p>
+                        </div>
+                      </Card>
+                    </Box>
+                  </Grid.Col>
+                </Grid>
+              </Container>
+            </> : null
+        }
       </div>
       <Footer />
     </>

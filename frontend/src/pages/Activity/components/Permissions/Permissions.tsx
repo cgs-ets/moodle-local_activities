@@ -123,7 +123,7 @@ export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
                       p="sm"
                       radius="sm"
                       onMouseDown={() => {
-                        handleCopyLink("/local/activities/permissions/1505")
+                        handleCopyLink(`${config.wwwroot}/local/activities/${activityid}/permission`)
                       }}
                       bg={permissionsUrlClipboard.copied ? 'green.1' : 'blue.1'}
                     >
