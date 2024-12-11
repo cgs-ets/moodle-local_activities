@@ -422,7 +422,7 @@ class Activity {
             $usercontext = $this->related['usercontext'];
         }
 
-        $manageurl = new \moodle_url("/local/activities/{$this->data->id}/edit");
+        $manageurl = new \moodle_url("/local/activities/{$this->data->id}");
 
         $permissionsurl = new \moodle_url("/local/activities/{$this->data->id}/permission");
 
