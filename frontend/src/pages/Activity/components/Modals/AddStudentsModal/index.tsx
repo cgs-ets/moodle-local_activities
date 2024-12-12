@@ -1,5 +1,5 @@
 
-import { Box, Button, Flex, Modal, Tabs } from '@mantine/core';
+import { Box, Button, Flex, Modal, ScrollArea, Tabs } from '@mantine/core';
 import { useState } from 'react';
 import { IconSchool, IconUser, IconUsers, IconUsersPlus } from '@tabler/icons-react';
 import { User } from '../../../../../types/types';
@@ -56,7 +56,8 @@ export function AddStudentsModal({opened, close, insert}: Props) {
       size="xl"
       styles={{
         content: {
-          overflowY: 'visible',
+          //overflowY: 'visible',
+          overflow: 'hidden',
         },
         header: {
           borderBottom: '0.0625rem solid #dee2e6',

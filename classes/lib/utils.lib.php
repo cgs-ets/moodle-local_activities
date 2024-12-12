@@ -47,11 +47,11 @@ class utils_lib {
 		AND d.fieldid = f.id
 		AND f.shortname = 'CampusRoles'
 		AND d.data LIKE '%:Staff%'
-        AND ( u.firstname LIKE ?
-        OR u.lastname LIKE ?
-        OR u.username LIKE ? )";
+        AND ( LOWER(u.firstname) LIKE ?
+        OR LOWER(u.lastname) LIKE ?
+        OR LOWER(u.username) LIKE ? )";
 
-        $likesearch = "%" . $query . "%";
+        $likesearch = "%" . strtolower($query) . "%";
         $data = $DB->get_records_sql($sql, [$likesearch, $likesearch, $likesearch]);
 
         $staff = [];
@@ -76,11 +76,11 @@ class utils_lib {
 		AND d.fieldid = f.id
 		AND f.shortname = 'CampusRoles'
 		AND d.data LIKE '%:Student%'
-        AND ( u.firstname LIKE ?
-        OR u.lastname LIKE ?
-        OR u.username LIKE ? )";
+        AND ( LOWER(u.firstname) LIKE ?
+        OR LOWER(u.lastname) LIKE ?
+        OR LOWER(u.username) LIKE ? )";
 
-        $likesearch = "%" . $query . "%";
+        $likesearch = "%" . strtolower($query) . "%";
         $data = $DB->get_records_sql($sql, [$likesearch, $likesearch, $likesearch]);
 
         $staff = [];

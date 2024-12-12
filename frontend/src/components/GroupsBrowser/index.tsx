@@ -36,7 +36,7 @@ export function GroupsBrowser({selectedIds, setSelectedIds}: Props) {
   };
 
   return (
-    <Box pos="relative" mih={50}>
+    <Box className="overflow-auto max-h-56">
       <LoadingOverlay loaderProps={{size:"sm"}} visible={isLoading} overlayProps={{blur: 2}} />
       <div className="flex flex-col">
         {groupList.map((item, i) => (

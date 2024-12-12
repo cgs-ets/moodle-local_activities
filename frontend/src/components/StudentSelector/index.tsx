@@ -26,12 +26,6 @@ export function StudentSelector({students, setStudents}: Props) {
     image: '/local/activities/avatar.php?username=' + item.un
   })
 
-  /*useEffect(() => {
-    const initialData = students.map((item) => decorateUser(item));
-    setSearchResults(initialData)
-  }, [students])*/
-
-
   const searchStudents = async (query: string) => {
     setSearch(query)
     combobox.updateSelectedOptionIndex();
@@ -98,8 +92,6 @@ export function StudentSelector({students, setStudents}: Props) {
   });
 
 
-
-
   return (
     <Fragment>
       <Combobox 
@@ -108,7 +100,8 @@ export function StudentSelector({students, setStudents}: Props) {
           handleValueSelect(JSON.parse(optionValue));
           combobox.closeDropdown();
         }}
-        withinPortal={false}>
+        withinPortal={true}
+      >
         <Combobox.DropdownTarget>
           <PillsInput 
             pointer 
@@ -139,10 +132,21 @@ export function StudentSelector({students, setStudents}: Props) {
           </PillsInput>
         </Combobox.DropdownTarget>
 
-        <Combobox.Dropdown hidden={!options.length}>
-          <Combobox.Options>
+        <Combobox.Dropdown 
+          hidden={!options.length}
+        >
+          <Combobox.Options
+            mah={200}
+            style={{ overflowY: 'auto' }}
+          >
             {options.length > 0 
-              ? options : 
+              ? <>
+                  {options}
+                  {options}
+                  {options}
+                  {options}
+                  {options}
+                </> : 
               <Combobox.Empty>Nothing found...</Combobox.Empty>
             }
           </Combobox.Options>
