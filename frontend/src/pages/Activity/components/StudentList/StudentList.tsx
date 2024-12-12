@@ -1,5 +1,5 @@
 import { Card, Flex, Group, Text, Button, Tooltip, Chip, Loader } from '@mantine/core';
-import { IconPlus, IconMinus, IconMail, IconChecks } from '@tabler/icons-react';
+import { IconPlus, IconMinus, IconMail, IconChecks, IconReport } from '@tabler/icons-react';
 import { useEffect, useMemo, useState } from 'react';
 import { MantineReactTable } from 'mantine-react-table';
 import { statuses } from '../../../../utils';
@@ -12,6 +12,7 @@ import { Form, useFormStore } from '../../../../stores/formStore';
 import { isActivity } from '../../../../utils/utils';
 import { useAjax } from '../../../../hooks/useAjax';
 import { EmailModal } from '../EmailModal/EmailModal';
+import { StuListReports } from './StuListReports';
 
 
 export function StudentList() {
@@ -26,6 +27,7 @@ export function StudentList() {
   const permissionsrequired = useFormStore((state) => (state.permissions))
   const [isOpenAddStudentsModal, addStudentsModalHandlers] = useDisclosure(false)
   const [isOpenMessageModal, messageModalHandlers] = useDisclosure(false);
+  const [isOpenReports, {close: closeReports, open: openReports}] = useDisclosure(false);
   const savedtime = useStateStore((state) => (state.savedtime))
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
 
@@ -247,11 +249,15 @@ export function StudentList() {
                                 </>
                               }
                             </Flex>
-                            { status == statuses.approved &&
-                              <Tooltip.Floating disabled={!haschanges} label="You must save changes before you may send messages.">
-                                <Button variant="filled" color={haschanges ? "gray.4" : undefined} onClick={() => (haschanges ? null : messageModalHandlers.open())} size="compact-sm" radius="xl" leftSection={<IconMail size={14} />}>Send a message</Button>
-                              </Tooltip.Floating>
-                            }
+                            <Flex gap="sm">
+                              <Button variant="light" onClick={openReports} size="compact-sm" radius="xl" leftSection={<IconReport size={14} />}>Reports</Button>
+                              { status == statuses.approved &&
+                                <Tooltip.Floating disabled={!haschanges} label="You must save changes before you may send messages.">
+                                  <Button variant="filled" color={haschanges ? "gray.4" : undefined} onClick={() => (haschanges ? null : messageModalHandlers.open())} size="compact-sm" radius="xl" leftSection={<IconMail size={14} />}>Send a message</Button>
+                                </Tooltip.Floating>
+                              }
+                            </Flex>
+                            
                           </Group>
                         </div>
                       }
@@ -268,7 +274,10 @@ export function StudentList() {
             ? studentlist.filter(s => Object.keys(rowSelection).includes(s.un))
             : !!studentlist.length ? studentlist : []
           } 
-          opened={isOpenMessageModal} close={messageModalHandlers.close} />
+          opened={isOpenMessageModal} close={messageModalHandlers.close} 
+        />
+        <StuListReports opened={isOpenReports} close={closeReports} />
+
       </>
     : null
   );

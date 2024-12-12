@@ -35,7 +35,7 @@ export const parentColumn = {
     return (
       <Flex wrap="wrap" gap={4}>
         {
-          row.parents.map((parent) => { 
+          row.parents?.map((parent) => { 
             let color = 'orange.1'
             if (parent.response == 1) {
               color = 'apprgreen.2'
