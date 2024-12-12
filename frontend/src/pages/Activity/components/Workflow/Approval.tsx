@@ -156,15 +156,17 @@ export function Approval({
         {!approval.selectable || approval.username && (approval.status == '1' || approval.skip == '1') // Not a selectable step, or approved
           ? approval.username && (approval.status == '1' || approval.skip == '1') // approved
             ? <Avatar alt="Approver" title="Approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.username}><IconUser size={14} /></Avatar>
-            : <Avatar.Group>
-                {Object.keys(approval.approvers).slice(0,4).map((approverusername: string) => {
-                  return <Avatar size={24} key={approverusername} src={'/local/activities/avatar.php?username=' + approverusername}><IconUser size={14} /></Avatar>
-                })}
-                { Object.keys(approval.approvers).length > 4
-                  ?<Avatar size={24}>+{Object.keys(approval.approvers).length - 4}</Avatar>
-                  : null
-                }
-              </Avatar.Group>
+            : !!approval.approvers
+                ? <Avatar.Group>
+                    {Object.keys(approval.approvers).slice(0,4).map((approverusername: string) => {
+                      return <Avatar size={24} key={approverusername} src={'/local/activities/avatar.php?username=' + approverusername}><IconUser size={14} /></Avatar>
+                    })}
+                    { Object.keys(approval.approvers).length > 4
+                      ?<Avatar size={24}>+{Object.keys(approval.approvers).length - 4}</Avatar>
+                      : null
+                    }
+                  </Avatar.Group>
+                : null
           : null
         }
         { approval.status == '0' && approval.isapprover && approval.canskip && 

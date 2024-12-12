@@ -52,7 +52,6 @@ class conflicts_lib {
                 'activityid' => $activity->id,
                 'activityname' => $activity->activityname,
                 'location' => $activity->location,
-                'nonnegotiable' => $activity->nonnegotiable,
                 'activitytype' => $activity->activitytype,
                 'timestart' => date('g:ia', $activity->timestart),
                 'datestart' => date('j M Y', $activity->timestart),

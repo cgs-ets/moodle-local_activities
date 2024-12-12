@@ -54,7 +54,6 @@ export function BasicDetails() {
       <div className="flex flex-col gap-6">
           
         <TextInput
-          withAsterisk
           placeholder="Eg. The Great Book Swap"
           label="Activity name"
           value={formData.activityname}
@@ -165,7 +164,6 @@ export function BasicDetails() {
 
         <div>
           <TextInput
-            withAsterisk
             placeholder="Snow Concert Hall"
             label="Location"
             value={formData.location}
