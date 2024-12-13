@@ -7,7 +7,7 @@ import { useAjax } from '../../../../hooks/useAjax';
 import { useParams } from 'react-router-dom';
 import { Form, useFormStore } from '../../../../stores/formStore';
 import { useStateStore } from '../../../../stores/stateStore';
-import { entryStatus, excursionStatus, isActivity } from '../../../../utils/utils';
+import { entryStatus, excursionStatus, isActivity, isCalEntry } from '../../../../utils/utils';
 import { useWorkflowStore } from '../../../../stores/workflowStore';
 
 
@@ -38,12 +38,10 @@ export function Status({
 
   // When everything is loaded, set the baseline.
   useEffect(() => {
-    if (formloaded && (!isActivity(activitytype) || studentsloaded)) {
-      //if (!hash) {
-        baselineHash()
-      //}
+    if (formloaded && (isCalEntry(activitytype) || studentsloaded)) {
+      baselineHash()
     }
-  }, [formloaded, studentsloaded, activitytype])
+  }, [formloaded, studentsloaded])
 
   // Whenever something changes, update the hash.
   useEffect(() => {
