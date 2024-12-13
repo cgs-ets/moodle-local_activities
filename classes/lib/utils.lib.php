@@ -53,9 +53,11 @@ class utils_lib {
 
         $likesearch = "%" . strtolower($query) . "%";
         $data = $DB->get_records_sql($sql, [$likesearch, $likesearch, $likesearch]);
+        
+        $first10Elements = array_slice($data, 0, 10);
 
         $staff = [];
-        foreach ($data as $row) {
+        foreach ($first10Elements as $row) {
             $staff[] = static::user_stub($row->username);
         }
         return $staff;
@@ -83,8 +85,10 @@ class utils_lib {
         $likesearch = "%" . strtolower($query) . "%";
         $data = $DB->get_records_sql($sql, [$likesearch, $likesearch, $likesearch]);
 
+        $first10Elements = array_slice($data, 0, 10);
+
         $staff = [];
-        foreach ($data as $row) {
+        foreach ($first10Elements as $row) {
             $staff[] = static::user_stub($row->username);
         }
         return $staff;
