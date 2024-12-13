@@ -1,5 +1,5 @@
-import { LoadingOverlay, Checkbox, Group, Text, UnstyledButton, Box } from "@mantine/core";
-import { useEffect, useState } from "react";
+import { LoadingOverlay, Checkbox, Group, Text, UnstyledButton, Box, TextInput } from "@mantine/core";
+import { useEffect, useMemo, useState } from "react";
 import { fetchData } from "../../utils";
 import { Course } from "../../types/types";
 
@@ -11,6 +11,7 @@ type Props = {
 export function CourseBrowser({selectedIds, setSelectedIds}: Props) {
   const [courseList, setCourseList] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [filter, setFilter] = useState("");
 
   useEffect(() => {
     loadCourses()
@@ -35,11 +36,36 @@ export function CourseBrowser({selectedIds, setSelectedIds}: Props) {
     }
   };
 
+  const filtered = useMemo(() => {
+    if (!courseList || !filter) return courseList;
+
+    // Convert the filter to lowercase for case-insensitive comparison
+    const lowerCaseFilter = filter.toLowerCase();
+
+    // Filter the courseList based on whether the fullname contains the filter value
+    return courseList.filter(course => 
+        course.fullname.toLowerCase().includes(lowerCaseFilter)
+    );
+  }, [filter, courseList]);
+
+
+  
+  console.log("courseList", courseList)
+
+
   return (
     <Box className="overflow-auto max-h-56">
       <LoadingOverlay loaderProps={{size:"sm"}} visible={isLoading} overlayProps={{blur: 2}} />
+      {!!courseList.length && 
+        <TextInput 
+          placeholder="Filter"
+          className="mb-2"
+          value={filter}
+          onChange={(e) => setFilter(e.currentTarget.value)}
+        /> 
+      }
       <div className="flex flex-col">
-        {courseList.map((item, i) => (
+        {filtered.map((item, i) => (
           <UnstyledButton 
             key={i} 
             className="py-1 text-sm"

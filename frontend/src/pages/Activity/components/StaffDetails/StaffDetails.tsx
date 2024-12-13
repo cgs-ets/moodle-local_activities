@@ -26,7 +26,7 @@ export function StaffDetails() {
   }
 
   return (
-    <Card withBorder radius="sm" className="p-0">
+    <Card withBorder radius="sm" className="p-0 overflow-visible">
       <div className="px-4 py-3">
         <span className="text-base">Staff</span>
       </div>
