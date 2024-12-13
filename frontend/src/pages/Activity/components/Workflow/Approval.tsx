@@ -136,7 +136,7 @@ export function Approval({
         { approval.status == '0' && approval.skip == '0' && approval.selectable
           ? approval.nominated
             ? <div className="flex gap-1 items-center">
-                <Avatar onClick={open} alt="Nominated approver" title="Nominated approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.nominated} radius="xl"><IconUser size={14} /></Avatar> 
+                <Avatar onClick={open} className="cursor-pointer" alt="Nominated approver" title="Nominated approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.nominated} radius="xl"><IconUser size={14} /></Avatar> 
                 {approval.description}
                 <ActionIcon variant="transparent"><IconPencil onClick={() => unsetNominated(approval.id)} className="size-4" /></ActionIcon>
               </div>
@@ -157,7 +157,7 @@ export function Approval({
       <div className="flex items-center gap-2">
         {!approval.selectable || approval.username && (approval.status == '1' || approval.skip == '1') // Not a selectable step, or approved
           ? approval.username && (approval.status == '1' || approval.skip == '1') // approved
-            ? <Avatar onClick={open} alt="Approver" title="Approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.username}><IconUser size={14} /></Avatar>
+            ? <Avatar onClick={open} className="cursor-pointer" alt="Approver" title="Approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.username}><IconUser size={14} /></Avatar>
             : !!approval.approvers
                 ? <Avatar.Group onClick={open} className="cursor-pointer">
                     {Object.keys(approval.approvers).slice(0,4).map((approverusername: string) => {
