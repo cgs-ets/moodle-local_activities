@@ -170,7 +170,7 @@ export function CalendarFlow({
             {syncs.map((sync: any, i) => {
               return(
                 <div key={i} className="flex justify-between items-center gap-2 border-b px-4 h-10 xbg-[#d4edda]">
-                  <Anchor className="text-sm flex items-center gap-1 flex-nowrap" href={sync.weblink}><IconCalendar className="size-4 stroke-1" /> {sync.calendar}</Anchor>
+                  <Anchor target="_blank" className="text-sm flex items-center gap-1 flex-nowrap" href={sync.weblink}><IconCalendar className="size-4 stroke-1" /> {sync.calendar}</Anchor>
                 </div>
               )
             })}
