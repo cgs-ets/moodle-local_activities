@@ -91,7 +91,8 @@ export function CalendarFlow({
 
 
   const showSyncs = () => {
-    return ((status == statuses.approved) || (isActivity(activitytype) && displaypublic && pushpublic && status != statuses.approved))
+    //return ((status == statuses.approved) || (isActivity(activitytype) && displaypublic && pushpublic && status != statuses.approved))
+    return status >= statuses.inreview // in review items are in the calendar as tentative...
   }
 
   const showApproveOpt = () => {
