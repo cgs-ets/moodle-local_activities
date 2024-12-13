@@ -3,6 +3,7 @@ import { Group, Avatar, Text, Loader, Badge, Flex, CloseButton, useCombobox, Com
 import { IconUser, IconUsers } from '@tabler/icons-react';
 import { DecordatedUser, User } from "../../types/types";
 import { fetchData } from "../../utils";
+import { useDebouncedCallback } from "@mantine/hooks";
 
 type Props = {
   students: User[],
@@ -28,12 +29,16 @@ export function StudentSelector({students, setStudents}: Props) {
 
   const searchStudents = async (query: string) => {
     setSearch(query)
-    combobox.updateSelectedOptionIndex();
-    combobox.openDropdown();
-    if (!query.length) {
+    if (query.length < 3) {
       setSearchResults([])
       return;
     }
+    combobox.updateSelectedOptionIndex();
+    combobox.openDropdown();
+    debouncedSearch(query)
+  };
+
+  const debouncedSearch = useDebouncedCallback(async (query: string) => {
     setIsLoading(true);
     const response = await fetchData({
       query: {
@@ -44,7 +49,7 @@ export function StudentSelector({students, setStudents}: Props) {
     const data = response.data.map(decorateUser);
     setSearchResults(data)
     setIsLoading(false)
-  };
+  }, 500);
 
 
   const handleValueSelect = (val: User) => {
@@ -141,10 +146,6 @@ export function StudentSelector({students, setStudents}: Props) {
           >
             {options.length > 0 
               ? <>
-                  {options}
-                  {options}
-                  {options}
-                  {options}
                   {options}
                 </> : 
               <Combobox.Empty>Nothing found...</Combobox.Empty>
