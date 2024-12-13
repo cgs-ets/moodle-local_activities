@@ -853,24 +853,35 @@ class workflow_lib extends \local_activities\local_activities_config {
                         }
                     }
                 }
-                $approval->selectable = false;
+
+                // Get step approvers but remove any silent approvers.
+                $approvers = static::WORKFLOW[$approval->type]['approvers'];
                 $approval->approvers = array_filter(
-                    static::WORKFLOW[$approval->type]['approvers'], 
+                    $approvers, 
                     function($item) { return !isset($item['silent']) || !$item['silent']; }
                 );
+                // Pull in the approvers name.
+                foreach ($approval->approvers as &$approver) {
+                    $user = \core_user::get_user_by_username($approver['username']);
+                    $approver['fullname'] = fullname($user);
+                }
+
+                // Can this user select someone in this step?
+                $approval->selectable = false;
                 if (isset(static::WORKFLOW[$approval->type]['selectable']) && static::WORKFLOW[$approval->type]['selectable']) {
-                    // Can this user select someone in this step?
                     if (empty($prerequisites)) {
                         $approval->selectable = true;
-                        $approval->approvers = [];
-                        $approvers = static::WORKFLOW[$approval->type]['approvers'];
-                        foreach ($approvers as $un => $approver) {
-                            $user = \core_user::get_user_by_username($un);
-                            $approval->approvers[] = array(
-                                'username' => $user->username,
-                                'fullname' => fullname($user),
-                                'isselected' => ($user->username == $approval->nominated)
-                            );
+                        //$approval->approvers = [];
+                        //$approvers = static::WORKFLOW[$approval->type]['approvers'];
+                        foreach ($approval->approvers as &$approver) {
+                            $approver['isselected'] = ($approver['username'] == $approval->nominated);
+
+                            //$user = \core_user::get_user_by_username($un);
+                            //$approval->approvers[] = array(
+                                //'username' => $user->username,
+                                //'fullname' => fullname($user),
+                                //'isselected' => ($user->username == $approval->nominated)
+                            //);
                         }
                     }
                 }

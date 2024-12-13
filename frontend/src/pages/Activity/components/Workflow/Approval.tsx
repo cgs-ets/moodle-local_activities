@@ -1,4 +1,4 @@
-import { ActionIcon, Avatar, Button, LoadingOverlay, Select, Switch } from "@mantine/core"
+import { ActionIcon, Avatar, Button, LoadingOverlay, Modal, Select, Switch, Text } from "@mantine/core"
 import { IconCancel, IconPencil, IconUser, IconUserCheck } from "@tabler/icons-react"
 import { cn } from "../../../../utils/utils"
 import { useEffect } from "react";
@@ -6,6 +6,7 @@ import { useAjax } from "../../../../hooks/useAjax";
 import { Form, useFormStore } from "../../../../stores/formStore";
 import { useWorkflowStore } from "../../../../stores/workflowStore";
 import { useStateStore } from "../../../../stores/stateStore";
+import { useDisclosure } from "@mantine/hooks";
 
 export function Approval({
   approval,
@@ -19,6 +20,7 @@ export function Approval({
   const approvals = useWorkflowStore((state) => state.approvals)
   const setApprovals = useWorkflowStore((state) => state.setApprovals)
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
+  const [opened, {open, close}] = useDisclosure(false)
 
   
   const saveApproval = (id: string, checked: boolean) => {
@@ -134,7 +136,7 @@ export function Approval({
         { approval.status == '0' && approval.skip == '0' && approval.selectable
           ? approval.nominated
             ? <div className="flex gap-1 items-center">
-                <Avatar alt="Nominated approver" title="Nominated approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.nominated} radius="xl"><IconUser size={14} /></Avatar> 
+                <Avatar onClick={open} alt="Nominated approver" title="Nominated approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.nominated} radius="xl"><IconUser size={14} /></Avatar> 
                 {approval.description}
                 <ActionIcon variant="transparent"><IconPencil onClick={() => unsetNominated(approval.id)} className="size-4" /></ActionIcon>
               </div>
@@ -144,7 +146,7 @@ export function Approval({
                   placeholder="Nominate approver"
                   value={approval.tempnominated ? approval.tempnominated : approval.nominated}
                   onChange={(value) => updateNominated(approval.id, value)}
-                  data={approval.approvers.map((a: any) => ({value: a.username, label: a.fullname}))}
+                  data={Object.keys(approval.approvers).map((a: any) => ({value: approval.approvers[a].username, label: approval.approvers[a].fullname}))}
                   className="flex-1"
                 />
                 {approval.tempnominated && approval.tempnominated != approval.nominated ? <Button onClick={() => submitNominated(approval.id)} variant="light" size="compact-xs">Save</Button> : '' }
@@ -155,9 +157,9 @@ export function Approval({
       <div className="flex items-center gap-2">
         {!approval.selectable || approval.username && (approval.status == '1' || approval.skip == '1') // Not a selectable step, or approved
           ? approval.username && (approval.status == '1' || approval.skip == '1') // approved
-            ? <Avatar alt="Approver" title="Approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.username}><IconUser size={14} /></Avatar>
+            ? <Avatar onClick={open} alt="Approver" title="Approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.username}><IconUser size={14} /></Avatar>
             : !!approval.approvers
-                ? <Avatar.Group>
+                ? <Avatar.Group onClick={open} className="cursor-pointer">
                     {Object.keys(approval.approvers).slice(0,4).map((approverusername: string) => {
                       return <Avatar size={24} key={approverusername} src={'/local/activities/avatar.php?username=' + approverusername}><IconUser size={14} /></Avatar>
                     })}
@@ -184,6 +186,34 @@ export function Approval({
           />
         }
       </div>
+      <Modal
+        opened={opened} 
+        onClose={close} 
+        title={`${approval.description} approvers`}
+        size="md"
+        styles={{
+          header: {
+            borderBottom: '0.0625rem solid #dee2e6',
+          },
+          title: {
+            fontWeight: 600,
+          },
+          body: {
+            padding: 0
+          }
+        }}
+        >
+         <div className="flex flex-col">
+          {Object.keys(approval.approvers).slice(0,4).map((approverusername: string) => {
+            return (
+              <div className="flex gap-2 border-b px-4 py-2">
+                <Avatar size={24} key={approverusername} src={'/local/activities/avatar.php?username=' + approverusername}><IconUser size={14} /></Avatar>
+                <Text>{approval.approvers[approverusername].fullname}</Text>
+              </div>
+            )
+          })}
+         </div>
+      </Modal>
     </div>
   )
 }
