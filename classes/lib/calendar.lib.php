@@ -169,7 +169,6 @@ class calendar_lib {
 			$weekdays[]= $last_day;
 		}
 	   
-
 		$calendar_array['pagination'] = array( 'previous'=>$previous, 'next'=>$next);
 		$calendar_array['row_headers'] = $weekdays;
 		
@@ -222,7 +221,7 @@ class calendar_lib {
 			
 		$eventful_days= array();
 		$eventful_days_count = array();
-		if($events){
+		if($events) {
 			//Go through the events and slot them into the right d-m index
 			foreach($events as $event) {
 				$event_start_ts = $event->timestart;
@@ -269,7 +268,7 @@ class calendar_lib {
 		$events_array['days']['upcoming'] = array();
 
 		//default args
-		$year_now = $year = current_time('Y');
+        $year_now = $year = date('Y');
 		$mode = 'daily';
 		$long_events = true;
 		$type = 'list';
@@ -300,13 +299,13 @@ class calendar_lib {
 
 		// Default term
 		$term_now = $term = 1;
-		if ( current_time('Y-m-d') > $term_map[2]['start'] ) {
+		if ( date($year . '-m-d') > $term_map[2]['start'] ) {
 			$term_now = $term = 2;
 		}
-		if ( current_time('Y-m-d') > $term_map[3]['start'] ) {
+		if ( date($year . '-m-d') > $term_map[3]['start'] ) {
 			$term_now = $term = 3;
 		}
-		if ( current_time('Y-m-d') > $term_map[4]['start'] ) {
+		if ( date($year . '-m-d') > $term_map[4]['start'] ) {
 			$term_now = $term = 4;
 		}
 
@@ -350,10 +349,10 @@ class calendar_lib {
 			$year_next = $year + 1; 
 		}
 
-		$previous_url = esc_url_raw(add_query_arg( array('type'=>$type, 'tm'=>$term_last, 'yr'=>$year_last) ));
-		$next_url = esc_url_raw(add_query_arg( array('type'=>$type, 'tm'=>$term_next, 'yr'=>$year_next) ));
-		$events_array['links'] = array( 'previous_url'=>$previous_url, 'next_url'=>$next_url);
+        $previous = array('type'=>$args['type'], 'tm'=>$term_last, 'yr'=>$year_last);
+		$next = array('type'=>$args['type'], 'tm'=>$term_next, 'yr'=>$year_next);
 
+		$events_array['pagination'] = array( 'previous' => $previous, 'next' => $next);
 		$events_array['type'] = $type;
 		$events_array['term'] = $term;
 		$events_array['term_last'] = $term_last;
@@ -362,6 +361,10 @@ class calendar_lib {
 		$events_array['year_last'] = $year_last;
 		$events_array['year_next'] = $year_next;
 		$events_array['curr_period'] = $year_now . $term_now;
+        $events_array['days'] = array(
+            'current' => array(),
+            'upcoming' => array(),
+        );
 
 		// If look ahead period set overwrite scope.
 		if (isset($args['lookahead']) && $args['lookahead']) {
@@ -377,83 +380,32 @@ class calendar_lib {
 			),
 			'categories' => $categories
 		);
-		$events = Events::get($events_args);
+        
+        //$events = Events::get($events_args);
+        //var_export($events_args); exit;
+		$events = activities_lib::get_for_staff_calendar(json_decode(json_encode($events_args, JSON_FORCE_OBJECT)));
 
 		if (empty($events)) {
-			return array();
+			return $events_array;
 		}
 
-
-
 		switch ( $mode ){
-			case 'yearly': // NOT FULLY IMPLEMENTED
-				//go through the events and put them into a monthly array
-				$events_dates = array();
-				foreach($events as $event){ 
-					$year = date('Y',$event->start_datetime);
-					$events_dates[$year][] = $event;
-					//if long events requested, add event to other dates too
-					if( $long_events && $event->end_date != $event->start_date ) {
-						$next_year = $year + 1;
-						$year_end = date('Y', $event->end_datetime);
-						while( $next_year <= $year_end ){
-							$events_dates[$next_year][] = $event;
-							$next_year = $next_year + 1;
-						}
-					}
-				}
-				break;
-			case 'monthly': // NOT FULLY IMPLEMENTED
-				//go through the events and put them into a monthly array
-				$events_dates = array();
-				foreach($events as $event){
-					$events_dates[date('Y-m-'.'01', $event->start_datetime)][] = $event;
-					//if long events requested, add event to other dates too
-					if( $long_events && $event->end_date != $event->start_date ) {
-						$next_month = strtotime("+1 Month", $event->start_datetime);
-						while( $next_month <= $event->end_datetime ){
-							$events_dates[date('Y-m-'.'01',$next_month)][] = $event;
-							$next_month = strtotime("+1 Month", $next_month);
-						}
-					}
-				}
-				break;
-			case 'weekly': // NOT FULLY IMPLEMENTED
-				$events_dates = array();
-				foreach($events as $event){
-		   			$start_of_week = get_option('start_of_week');
-					$day_of_week = date('w',$event->start_datetime);
-					$offset = $day_of_week - $start_of_week;
-					if($offset<0){ $offset += 7; }
-					$offset = $offset * 60*60*24; //days in seconds
-					$start_day = strtotime($event->start_date);
-					$events_dates[$start_day - $offset][] = $event;
-					//if long events requested, add event to other dates too
-					if( $long_events && $event->end_date != $event->start_date ) {
-						$next_week = $start_day - $offset + (86400 * 7);
-						while( $next_week <= $event->end_datetime ){
-							$events_dates[$next_week][] = $event;
-							$next_week = $next_week + (86400 * 7);
-						}
-					}
-				}
-				break;
 			default: //daily
 				//go through the events and put them into a daily array
 				$events_dates = array();
 				foreach($events as $event){
-					$event_start_date = strtotime($event->start_date);
+					$event_start_date = $event->timestart;
 					$event_eventful_date = date('Y-m-d', $event_start_date);
 
 					$in_scope = strtotime($event_eventful_date) >= strtotime($scope_datetime_start->format('Y-m-d'));
 					
-					$past = strtotime($event->end_datetime) < current_time('timestamp') ? true : false;
+					$past = $event->timeend < time() ? true : false;
 					if ($past) { 
 						continue; 
 					}
 
 
-					$currently_on = (!$past) && (strtotime($event->start_datetime) < current_time('timestamp')) ? true : false;
+					$currently_on = (!$past) && ($event->timestart < time()) ? true : false;
 					if( $currently_on ) {
 						$events_dates['current'][$event_eventful_date][] = $event;
 					} else {
@@ -463,10 +415,9 @@ class calendar_lib {
 					}
 
 					//if long events requested, add event to other dates too
-					if( (!$currently_on) && $long_events && $event->end_date != $event->start_date ) {
+					if( (!$currently_on) && $long_events && date('Y-m-d', $event->timeend) != date('Y-m-d', $event->timestart) ) {
 						$tomorrow = $event_start_date + 86400;
-						$event_end_datetime = strtotime($event->end_datetime);
-						while( $tomorrow <= $event_end_datetime && $tomorrow <= strtotime($scope_datetime_end->format('Y-m-d h:i:s')) ){
+						while( $tomorrow <= $event->timeend && $tomorrow <= strtotime($scope_datetime_end->format('Y-m-d h:i:s')) ){
 							$event_eventful_date = date('Y-m-d', $tomorrow);
 							$in_scope = strtotime($event_eventful_date) >= strtotime($scope_datetime_start->format('Y-m-d'));
 							if ($in_scope) {
@@ -481,10 +432,12 @@ class calendar_lib {
 
 		foreach($events_dates as $period_key => $days) {
 			foreach($events_dates[$period_key] as $day_key => $events) {
+				$events_array['days'][$period_key][$day_key]['date_key'] = $day_key;
 				$events_array['days'][$period_key][$day_key]['date'] = strtotime($day_key);
 				$events_array['days'][$period_key][$day_key]['events_count'] = count($events);
 				$events_array['days'][$period_key][$day_key]['events'] = $events;
 			}
+            $events_array['days'][$period_key] = array_values($events_array['days'][$period_key]);
 		}
 
 		return $events_array;

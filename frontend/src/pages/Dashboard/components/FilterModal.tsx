@@ -1,7 +1,7 @@
 import { Button, Card, Checkbox, Modal, Text } from '@mantine/core';
 import { CategoriesModal } from '../../Activity/components/Modals/CategoriesModal/CategoriesModal';
 import { useDisclosure } from '@mantine/hooks';
-import {  IconCategoryFilled, IconFilterX } from '@tabler/icons-react';
+import {  IconCategoryFilled, IconFilterX, IconX } from '@tabler/icons-react';
 import { StaffSelector } from '../../Activity/components/StaffDetails/components/StaffSelector/StaffSelector';
 import { User } from '../../../types/types';
 
@@ -58,7 +58,7 @@ export function FilterModal({opened, filters, setFilters, close}: Props) {
                         <Checkbox value="3" label="Approved" />
                       </div>
                     </Checkbox.Group>
-                    { !!filters.status?.length && <Button onClick={() => handleFilterChange('status', [])} size="compact-md" className="rounded-full mt-3" variant="light" leftSection={<IconFilterX className="size-5" />}>Clear</Button>}
+                    { !!filters.status?.length && <Button onClick={() => handleFilterChange('status', [])} size="compact-md" className="rounded-full mt-3" variant="light" leftSection={<IconX className="size-5" />}>Clear</Button>}
                   </div>
                 </Card.Section>
 
@@ -77,7 +77,7 @@ export function FilterModal({opened, filters, setFilters, close}: Props) {
                         <Checkbox value="commercial" label="Commercial" />
                       </div>
                     </Checkbox.Group>
-                    { !!filters.types?.length && <Button onClick={() => handleFilterChange('types', [])} size="compact-md" className="rounded-full mt-3" variant="light" leftSection={<IconFilterX className="size-5" />}>Clear</Button>}
+                    { !!filters.types?.length && <Button onClick={() => handleFilterChange('types', [])} size="compact-md" className="rounded-full mt-3" variant="light" leftSection={<IconX className="size-5" />}>Clear</Button>}
                   </div>
                 </Card.Section>
 
@@ -101,7 +101,7 @@ export function FilterModal({opened, filters, setFilters, close}: Props) {
                     }
                     <div className="flex gap-2">
                       <Button onClick={openCatsModal} size="compact-md" className="rounded-full" variant="light" rightSection={<IconCategoryFilled className="size-5" />}>{filters.categories?.length ? "Change" : "Select"}</Button>
-                      { !!filters.categories?.length && <Button onClick={() => handleFilterChange('categories', [])} size="compact-md" className="rounded-full" variant="light" leftSection={<IconFilterX className="size-5" />}>Clear</Button>}
+                      { !!filters.categories?.length && <Button onClick={() => handleFilterChange('categories', [])} size="compact-md" className="rounded-full" variant="light" leftSection={<IconX className="size-5" />}>Clear</Button>}
                     </div>
                   </div>
                 
@@ -116,7 +116,7 @@ export function FilterModal({opened, filters, setFilters, close}: Props) {
 
                   <div className='flex-1'>
                     <StaffSelector staff={filters.staff.map((a: string) => JSON.parse(a))} setStaff={handleStaffChange} label="" multiple={true} readOnly={false} />
-                    { !!filters.staff?.length && <Button onClick={() => handleFilterChange('staff', [])} size="compact-md" className="rounded-full mt-3" variant="light" leftSection={<IconFilterX className="size-5" />}>Clear</Button>}
+                    { !!filters.staff?.length && <Button onClick={() => handleFilterChange('staff', [])} size="compact-md" className="rounded-full mt-3" variant="light" leftSection={<IconX className="size-5" />}>Clear</Button>}
                   </div>
 
                 </Card.Section>

@@ -13,7 +13,7 @@ export function PageHeader() {
         <Container size="xl" my="md" p={0}>
             <Breadcrumbs fz="sm" mb="sm">
               <Link to="/">
-                <Text c="blue">Dashboard</Text>
+                <Text c="blue">Calendar</Text>
               </Link>
               <Text c="gray.6">Activity</Text>
             </Breadcrumbs>

@@ -109,8 +109,8 @@ export function CalendarFlow({
 
   const showCard = () => {
     return (
-      activitytype != 'assessment' && 
-      status >= statuses.inreview &&
+      // Activity has been submitted for review OR it is an entry which is automatically in for review.
+      (status >= statuses.inreview || (status >= statuses.saved && isCalEntry(activitytype))) &&
       !haschanges &&
       showSomething()
     )

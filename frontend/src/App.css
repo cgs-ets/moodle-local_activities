@@ -137,8 +137,6 @@ table thead th {
   color: #343434;
 }
 .full-calendar .te-start-time {
-  /*border-bottom: 1px solid #fff;
-  padding-bottom: 2px;*/
   font-size: 12px;
   color: #59a5d7;
 }
@@ -149,10 +147,6 @@ table thead th {
 }
 .full-calendar .te-link {
   width: 100%;
-}
-.full-calendar .te-link:hover .te-start-time {
-  /*border-bottom: 1px solid;
-  color: #59a5d7;*/
 }
 @media only screen and (max-width: 991px) {
   .calendar-full-wrap .container {
@@ -166,6 +160,89 @@ table thead th {
     margin: 0;
   }
 }
+
+
+
+
+
+/* List View */
+.list-calendar .ev-calendar-item div .hover-line {
+  height: 0;
+  width: 1px;
+  background-color: #59a5d7;
+  -webkit-transition: all 0.3s linear;
+  -moz-transition: all 0.3s linear;
+  -o-transition: all 0.3s linear;
+  -ms-transition: all 0.3s linear;
+  transition: all 0.3s linear;
+  display: block;
+  position: absolute;
+}
+.list-calendar .ev-calendar-item div:hover .hover-line {
+  height: 100%;
+}
+.list-calendar .ev-calendar-item .te-start-time {
+  display: block;
+  float: left;
+  margin: 0 18px 0px 18px;
+  color: #59a5d7;
+  font-size: 18px;
+  min-width: 65px;
+  position: relative;
+}
+.list-calendar .ev-calendar-item .te-deets {
+  float: left;
+  padding: 0 18px;
+  width: 100%;
+  margin-left: 0;
+}
+.list-calendar .ev-calendar-item .te-title {
+  color: #383838;
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 20px;
+}
+.list-calendar .ev-calendar-item .te-end-time {
+  color: #8b8b8b;
+  font-size: 15px;
+}
+.list-calendar .ev-calendar-item .te-options {
+  display: none;
+  position: absolute;
+  bottom: 25px;
+  right: 20px;
+}
+.list-calendar .ev-calendar-item .te-options .te-option {
+  float: left;
+  margin-left: 8px;
+}
+.list-calendar .ev-calendar-item .te-options .te-option img {
+  display: block;
+  max-height: 23px;
+  max-width: 27px;
+}
+@media only screen and (min-width: 768px) {
+  .list-calendar .ev-calendar-item ul li a {
+    padding-bottom: 0;
+  }
+  .list-calendar .ev-calendar-item ul li:hover .te-options {
+    display: block;
+  }
+  .list-calendar .ev-calendar-item .te-start-time {
+    position: absolute;
+  }
+  .list-calendar .ev-calendar-item .te-deets {
+    margin-left: 101px;
+    padding: 0;
+    width: auto;
+    padding-right: 85px;
+  }
+}
+
+
+
+
+
 
 
 

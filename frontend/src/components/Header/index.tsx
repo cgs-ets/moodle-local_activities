@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import { Container, Avatar, Menu, UnstyledButton, Group, Text, Box, Button } from '@mantine/core';
-import { IconCalendarPlus, IconHome2, IconLogout, IconPlus } from '@tabler/icons-react';
+import { Container, Avatar, Menu, UnstyledButton, Group, Text, Box, Button, Anchor } from '@mantine/core';
+import { IconCalendarPlus, IconExternalLink, IconHome2, IconLogout, IconPlus } from '@tabler/icons-react';
 import { useInterval } from "@mantine/hooks";
 import { useEffect } from "react";
 import { fetchData, getConfig } from "../../utils";
@@ -30,12 +30,13 @@ export function Header() {
         <Group h={54} justify="space-between">
           <Group gap="md">
             <Link to="/" style={{ textDecoration: 'none' }}>
-              <Text className="text-lg" c={getConfig().headerfg}>{getConfig().toolname}</Text>
+              <Text className="text-lg font-semibold" c={getConfig().headerfg}>{getConfig().toolname}</Text>
             </Link>
           </Group>
           <div className="flex items-center gap-4">
+            <Anchor className="text-white hover:no-underline mr-4 text-sm" href="/">CGS Connect</Anchor>
             { getConfig().roles.includes('staff') 
-              ? <Button component={Link} to="/new" size="compact-md" radius="lg" color="blue" leftSection={<IconCalendarPlus size={14} />}>Create new</Button> : null
+              ? <Button component={Link} to="/new" size="compact-md" radius="lg" color="blue" leftSection={<IconPlus size={20} />}>Create new</Button> : null
             }
             <Menu position="bottom-end" width={200} shadow="md">
               <Menu.Target>

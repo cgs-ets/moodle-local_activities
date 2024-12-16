@@ -1,0 +1,295 @@
+import { ActionIcon, Button, Card, Select, Text } from "@mantine/core";
+import { IconAdjustments, IconArrowNarrowLeft, IconArrowNarrowRight, IconCalendarDue, IconX } from "@tabler/icons-react";
+import dayjs from "dayjs";
+import { useEffect, useMemo, useState } from "react";
+import useFetch from "../../../hooks/useFetch";
+import { EventModal } from "./EventModal";
+import { Form } from "../../../stores/formStore";
+import { useSearchParams } from "react-router-dom";
+import { FilterModal } from "./FilterModal";
+import { useDisclosure } from "@mantine/hooks";
+import { useFilterStore } from "../../../stores/filterStore";
+import { ListTease } from "./ListTease";
+import { User } from "../../../types/types";
+
+type TermYear = {
+  term: string,
+  year: string,
+}
+
+export function List() {
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const filters = useFilterStore((state) => state)
+  const setFilters = useFilterStore((state) => (state.setState))
+  const reset = useFilterStore((state) => (state.reset))
+
+  const [filterOpened, {close: closeFilter, open: openFilter}] = useDisclosure(false)
+
+  const currterm = dayjs().format("MM-DD") > '09-28' ? 4 
+    : dayjs().format("MM-DD") > '06-29' ? 3
+    : dayjs().format("MM-DD") > '04-13' ? 2
+    : 1
+
+  const [date, setDate] = useState<TermYear>({
+    term: searchParams.get('term') || currterm.toString(),
+    year: searchParams.get('year') || dayjs().format("YYYY"),
+  })
+  
+  const getCalendarAPI = useFetch()
+
+  const [list, setList] = useState<any>({
+    days: {
+      current: [],
+      upcoming: [],
+    }
+  })
+
+  const [selectedEvent, setSelectedEvent] = useState<Form|null>(null)
+
+  // If search params change, update the date.
+  useEffect(() => {
+    if (searchParams.get('term') && searchParams.get('year')) {
+      setDate({term: searchParams.get('term')!, year: searchParams.get('year')!})
+    }
+  }, [searchParams]);
+
+  // If the date changes, get calendar.
+  useEffect(() => {
+    if (date && date.term && date.year) {
+      getList(date)
+    }
+  }, [date]);
+
+  const getList = async (date: TermYear) => {
+    const res = await getCalendarAPI.call({
+      query: {
+        methodname: 'local_activities-get_cal',
+        type: 'list',
+        term: date.term,
+        year: date.year,
+      }
+    })
+    console.log(res.data)
+    setList(res.data)
+  }
+
+
+  const handleNav = (direction: number) => {
+    if (direction > 0) {
+      setSearchParams(params => {
+        params.set("term", list.pagination.next.tm);
+        params.set("year", list.pagination.next.yr);
+        return params;
+      });
+    } else {
+      setSearchParams(params => {
+        params.set("term", list.pagination.previous.tm);
+        params.set("year", list.pagination.previous.yr);
+        return params;
+      });
+    }
+  }
+
+  const handleTermSelect = (term: string | null) => {
+    setSearchParams(params => {
+      params.set("term", term || '1');
+      return params;
+    });
+  }
+
+  const handleYearSelect = (year: string | null) => {
+    setSearchParams(params => {
+      params.set("year", year || dayjs().format("YYYY"));
+      return params;
+    });
+  }
+
+  const goToToday = () => {
+    setSearchParams(params => {
+      params.set("year", dayjs().format("YYYY"));
+      params.set("term", currterm.toString());
+      return params;
+    });
+  }
+
+  const filterEvents = (days: any[]) => {
+    const filterStaff = filters.staff.map((u: string) => JSON.parse(u).un)
+    return days.map((day: any) => {
+      const filteredEvents = day.events.filter((event: any) => {
+        const eventCategories = JSON.parse(event.categoriesjson || '[]') as string[];
+  
+        const matchesCategory =
+          filters.categories.length === 0 ||
+          filters.categories.some((cat) => eventCategories.includes(cat));
+  
+        const matchesType =
+          filters.types.length === 0 || 
+          filters.types.includes(event.activitytype);
+  
+        const matchesStatus =
+          filters.status.length === 0 || 
+          filters.status.includes(event.status.toString());
+  
+        const eventStaff = [event.staffincharge, ...JSON.parse(event.planningstaffjson).map((u: User) => u.un), ...JSON.parse(event.accompanyingstaffjson).map((u: User) => u.un)]
+        const uniqueEventStaff = [...new Set(eventStaff.filter(item => item.trim() !== ""))];
+        const matchesStaff =
+          filterStaff.length === 0 || 
+          filterStaff.some((staff) => uniqueEventStaff.includes(staff));
+  
+        return matchesCategory && matchesType && matchesStatus && matchesStaff;
+      });
+      return { ...day, events: filteredEvents, events_count: filteredEvents.length };
+    })
+  }
+
+  const filteredList = useMemo(() => {
+    if (!list || !filters) return list;
+
+    const filteredCurrent = filterEvents(list.days.current)
+
+    const filteredUpcoming = filterEvents(list.days.upcoming)
+  
+    return {
+      ...list,
+      days: {
+        ...list.days,
+        current: filteredCurrent,
+        upcoming: filteredUpcoming,
+      },
+    };
+  }, [filters, list]);
+
+
+
+
+  const hasFilters = () => {
+    return filters.categories.length || filters.types.length || filters.status.length || filters.staff.length
+  }
+
+
+  return (
+    <div>
+
+      <div className="py-3 w-full flex justify-between items-center">
+        <ActionIcon onClick={() => handleNav(-1)} variant="subtle" size="lg"><IconArrowNarrowLeft className="size-7" /></ActionIcon>
+
+        <div className="text-xl font-semibold flex gap-2 items-center">
+          <Select
+            placeholder="Term"
+            data={[
+              { value: '1', label: 'Term 1' },
+              { value: '2', label: 'Term 2' },
+              { value: '3', label: 'Term 3' },
+              { value: '4', label: 'Term 4' },
+            ]}
+            value={date.term} 
+            onChange={handleTermSelect} 
+            className="w-36"
+            size="md"
+          />
+
+          <Select
+            placeholder="Year"
+            data={Array
+              .from({ length: 11 }, (_, i) => parseInt(dayjs().format("YYYY"), 10) - 5 + i)
+              .map(year => year.toString())  
+            }
+            value={date.year} onChange={handleYearSelect} 
+            className="w-28"
+            size="md"
+          />
+
+
+          <div className="ml-2 flex items-center gap-2 ">
+          <Button onClick={goToToday} variant="light" aria-label="Filters" className="h-8" size="compact-md">Today</Button>
+            { hasFilters() 
+              ? <div className="flex">
+                  <Button color="orange" onClick={() => openFilter()} variant="light" aria-label="Filters" size="compact-md" leftSection={<IconAdjustments size={20} />} className="h-8 rounded-r-none">Filters on</Button>
+                  <ActionIcon color="orange" onClick={reset} variant="light" aria-label="Clear"  size="compact-md" ml={2} className="rounded-l-none pl-1 pr-1">
+                    <IconX stroke={1.5} size={18} />
+                  </ActionIcon>
+                </div>
+              : <ActionIcon onClick={() => openFilter()} variant="light" aria-label="Filters" className="size-8"  >
+                  <IconAdjustments stroke={1.5} />
+                </ActionIcon>
+            } 
+          </div>
+
+
+
+        </div>
+
+        <ActionIcon onClick={() => handleNav(1)} variant="subtle" size="lg"><IconArrowNarrowRight className="size-7" /></ActionIcon>
+
+      </div>
+
+      { !filteredList.days.current.length && !filteredList.days.upcoming.length &&
+        <div className="py-6">
+          <span className="text-base italic">No events in selected period. {hasFilters() ? "Try removing filters." : ""}</span>
+        </div>
+      }
+
+
+      <Card className="ev-calendar list-calendar" p={0}>
+
+        { !!filteredList.days.current.length &&
+          <div className="px-4 py-3">
+            <span className="font-semibold text-gray-500 text-sm uppercase tracking-wider">Currently on</span>
+          </div>
+        }
+
+        { filteredList.days?.current.map((day: any, i: number) => (
+          !!day.events.length &&
+          <div key={day.date_key} className="ev-calendar-item ev-calendar-item-current">
+            { day.date_key == dayjs().format("YYYY-MM-DD")
+              ? <Text className="font-semibold text-lg px-4 py-2 border-t">Started today</Text>
+              : <Text className="font-semibold text-lg px-4 py-2 border-t">Started on {dayjs.unix(Number(day.date)).format("D MMM")}</Text>
+            }
+            <div>
+              {day.events.map((event: any) => (
+                <div key={event.id}>
+                  <ListTease celldate={day.date} event={event} setSelectedEvent={setSelectedEvent}/>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </Card>
+
+      <Card className="ev-calendar list-calendar mt-4" p={0}>
+        { !!filteredList.days.upcoming.length &&
+          <div className="px-4 py-3">
+            <span className="font-semibold text-gray-500 text-sm uppercase tracking-wider">Upcoming</span>
+          </div>
+        }
+
+        { filteredList.days.upcoming.map((day: any, i: number) => (
+          !!day.events.length &&
+          <div key={day.date_key} className="ev-calendar-item ev-calendar-item-current">
+            { day.date_key == dayjs().format("YYYY-MM-DD")
+              ? <Text className="font-semibold text-lg px-4 py-2 border-t">Today</Text>
+              : <Text className="font-semibold text-lg px-4 py-2 border-t">{dayjs.unix(Number(day.date)).format("ddd, D MMM YYYY")}</Text>
+            }
+            <ul>
+              {day.events.map((event: any) => (
+                <div key={event.id}>
+                  <ListTease celldate={day.date} event={event} setSelectedEvent={setSelectedEvent}/>
+                </div>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </Card>
+
+
+
+      <EventModal activity={selectedEvent} close={() => setSelectedEvent(null)} />
+
+      <FilterModal opened={filterOpened} filters={filters} setFilters={setFilters} close={() => closeFilter()} />
+
+
+    </div>
+  )
+}

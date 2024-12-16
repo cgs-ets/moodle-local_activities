@@ -1,5 +1,5 @@
 import { ActionIcon, Button, Select } from "@mantine/core";
-import { IconAdjustments, IconArrowNarrowLeft, IconArrowNarrowRight, IconX } from "@tabler/icons-react";
+import { IconAdjustments, IconArrowNarrowLeft, IconArrowNarrowRight, IconCalendarDue, IconX } from "@tabler/icons-react";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
 import useFetch from "../../../hooks/useFetch";
@@ -10,29 +10,21 @@ import { useSearchParams } from "react-router-dom";
 import { FilterModal } from "./FilterModal";
 import { useDisclosure } from "@mantine/hooks";
 import { User } from "../../../types/types";
+import { useFilterStore } from "../../../stores/filterStore";
 
 type MoYear = {
   month: string,
   year: string,
 }
 
-interface Filters {
-  categories: string[];
-  types: string[];
-  status: string[];
-  staff: string[];
-}
-
 export function Calendar() {
 
   const [searchParams, setSearchParams] = useSearchParams();
-  const defaultFilter = {
-    status: [],
-    categories: [],
-    types: [],
-    staff: [],
-  }
-  const [filters, setFilters] = useState<Filters>(defaultFilter)
+
+  const filters = useFilterStore((state) => state)
+  const setFilters = useFilterStore((state) => (state.setState))
+  const reset = useFilterStore((state) => (state.reset))
+
   const [filterOpened, {close: closeFilter, open: openFilter}] = useDisclosure(false)
 
   const [date, setDate] = useState<MoYear>({
@@ -123,16 +115,21 @@ export function Calendar() {
     });
   }
 
+  const goToToday = () => {
+    setSearchParams(params => {
+      params.set("year", dayjs().format("YYYY"));
+      params.set("month", dayjs().format("MM"));
+      return params;
+    });
+  }
+
   const filteredCalendar = useMemo(() => {
     if (!calendar || !filters) return calendar;
+    const filterStaff = filters.staff.map((u: string) => JSON.parse(u).un)
   
     const filteredCells = calendar.cells.map((week: any) =>
       week.map((day: any) => {
         if (!day.events) return day;
-
-        
-        const filterStaff = filters.staff.map((u: string) => JSON.parse(u).un)
-
 
         const filteredEvents: Record<string, Form> = {};
   
@@ -171,14 +168,14 @@ export function Calendar() {
 
 
   const hasFilters = () => {
-    return filters.categories.length || filters.types.length || filters.status.length
+    return filters.categories.length || filters.types.length || filters.status.length || filters.staff.length
   }
 
 
   return (
     <div>
       
-      <div className="h-[54px] w-full flex justify-between items-center">
+      <div className="py-3 w-full flex justify-between items-center">
         <ActionIcon onClick={() => handleNav(-1)} variant="subtle" size="lg"><IconArrowNarrowLeft className="size-7" /></ActionIcon>
 
         <div className="text-xl font-semibold flex gap-2 items-center">
@@ -214,15 +211,16 @@ export function Calendar() {
             size="md"
           />
 
-          <div className="ml-2">
+          <div className="ml-2 flex items-center gap-2 ">
+            <Button onClick={goToToday} variant="light" aria-label="Filters" className="h-8" size="compact-md">Today</Button>
             { hasFilters() 
               ? <div className="flex">
-                  <Button onClick={() => openFilter()} variant="light" aria-label="Filters"  size="compact-md" radius="lg" leftSection={<IconAdjustments size={20} />} className="rounded-r-none">Filters on</Button>
-                  <ActionIcon onClick={() => setFilters(defaultFilter)} variant="light" aria-label="Clear"  size="compact-md" ml={2} className="rounded-l-none rounded-r-full pr-1">
+                  <Button color="orange" onClick={() => openFilter()} variant="light" aria-label="Filters" size="compact-md" leftSection={<IconAdjustments size={20} />} className="h-8 rounded-r-none">Filters on</Button>
+                  <ActionIcon color="orange" onClick={reset} variant="light" aria-label="Clear"  size="compact-md" ml={2} className="rounded-l-none pl-1 pr-1">
                     <IconX stroke={1.5} size={18} />
                   </ActionIcon>
                 </div>
-              : <ActionIcon onClick={() => openFilter()} variant="light" aria-label="Filters" size="lg" >
+              : <ActionIcon onClick={() => openFilter()} variant="light" aria-label="Filters" className="size-8"  >
                   <IconAdjustments stroke={1.5} />
                 </ActionIcon>
             } 
