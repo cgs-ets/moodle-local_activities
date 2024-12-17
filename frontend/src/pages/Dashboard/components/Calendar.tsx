@@ -1,5 +1,5 @@
-import { ActionIcon, Button, Select } from "@mantine/core";
-import { IconAdjustments, IconArrowNarrowLeft, IconArrowNarrowRight, IconCalendarDue, IconX } from "@tabler/icons-react";
+import { ActionIcon, Button, Card, LoadingOverlay, Select } from "@mantine/core";
+import { IconAdjustments, IconArrowNarrowLeft, IconArrowNarrowRight, IconCalendarDue, IconCalendarWeek, IconListDetails, IconX } from "@tabler/icons-react";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
 import useFetch from "../../../hooks/useFetch";
@@ -11,19 +11,24 @@ import { FilterModal } from "./FilterModal";
 import { useDisclosure } from "@mantine/hooks";
 import { User } from "../../../types/types";
 import { useFilterStore } from "../../../stores/filterStore";
+import { getTermFromMonth } from "../../../utils/utils";
 
 type MoYear = {
   month: string,
   year: string,
 }
 
-export function Calendar() {
+type Props = {
+  setCaltype: (caltype: string) => void,
+}
 
+export function Calendar({setCaltype}: Props) {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const filters = useFilterStore((state) => state)
   const setFilters = useFilterStore((state) => (state.setState))
   const reset = useFilterStore((state) => (state.reset))
+  const [loading, {open: startLoading, close: stopLoading}] = useDisclosure(true)
 
   const [filterOpened, {close: closeFilter, open: openFilter}] = useDisclosure(false)
 
@@ -42,8 +47,11 @@ export function Calendar() {
 
   // If search params change, update the date.
   useEffect(() => {
-    if (searchParams.get('month') && searchParams.get('year')) {
-      setDate({month: searchParams.get('month')!, year: searchParams.get('year')!})
+    if (searchParams.get('month')) {
+      setDate( (date) => ({...date, month: searchParams.get('month')!}))
+    }
+    if (searchParams.get('year')) {
+      setDate( (date) => ({...date, year: searchParams.get('year')!}))
     }
   }, [searchParams]);
 
@@ -55,6 +63,7 @@ export function Calendar() {
   }, [date]);
 
   const getCalendar = async (date: MoYear) => {
+    startLoading()
     const res = await getCalendarAPI.call({
       query: {
         methodname: 'local_activities-get_cal',
@@ -66,6 +75,7 @@ export function Calendar() {
     const result = splitCells(res.data.cells);
     const adapted = {...res.data, cells: result}
     setCalendar(adapted)
+    stopLoading()
   }
 
   const splitCells = (cells: Record<string, any>) => {
@@ -88,14 +98,16 @@ export function Calendar() {
   const handleNav = (direction: number) => {
     if (direction > 0) {
       setSearchParams(params => {
-        params.set("month", calendar.pagination.next.mo);
         params.set("year", calendar.pagination.next.yr);
+        params.set("month", calendar.pagination.next.mo);
+        params.set("term", getTermFromMonth(calendar.pagination.next.mo, calendar.pagination.next.yr).toString());
         return params;
       });
     } else {
       setSearchParams(params => {
-        params.set("month", calendar.pagination.previous.mo);
         params.set("year", calendar.pagination.previous.yr);
+        params.set("month", calendar.pagination.previous.mo);
+        params.set("term", getTermFromMonth(calendar.pagination.previous.mo, calendar.pagination.previous.yr).toString());
         return params;
       });
     }
@@ -103,14 +115,20 @@ export function Calendar() {
 
   const handleMonthSelect = (month: string | null) => {
     setSearchParams(params => {
-      params.set("month", month || dayjs().format("MM"));
+      const m = month || dayjs().format("MM")
+      params.set("year", date.year);
+      params.set("month", m);
+      params.set("term", getTermFromMonth(m, date.year).toString());
       return params;
     });
   }
 
   const handleYearSelect = (year: string | null) => {
     setSearchParams(params => {
-      params.set("year", year || dayjs().format("YYYY"));
+      const y = year || dayjs().format("YYYY")
+      params.set("year", y);
+      params.set("month", date.month);
+      params.set("term", getTermFromMonth(date.month, y).toString());
       return params;
     });
   }
@@ -119,6 +137,7 @@ export function Calendar() {
     setSearchParams(params => {
       params.set("year", dayjs().format("YYYY"));
       params.set("month", dayjs().format("MM"));
+      params.set("term", getTermFromMonth(dayjs().format("MM"), dayjs().format("YYYY")).toString());
       return params;
     });
   }
@@ -174,104 +193,120 @@ export function Calendar() {
 
   return (
     <div>
-      
-      <div className="py-3 w-full flex justify-between items-center">
-        <ActionIcon onClick={() => handleNav(-1)} variant="subtle" size="lg"><IconArrowNarrowLeft className="size-7" /></ActionIcon>
 
-        <div className="text-xl font-semibold flex gap-2 items-center">
-          <Select
-            placeholder="Month"
-            data={[
-              { value: '1', label: 'January' },
-              { value: '2', label: 'February' },
-              { value: '3', label: 'March' },
-              { value: '4', label: 'April' },
-              { value: '5', label: 'May' },
-              { value: '6', label: 'June' },
-              { value: '7', label: 'July' },
-              { value: '8', label: 'August' },
-              { value: '9', label: 'September' },
-              { value: '10', label: 'October' },
-              { value: '11', label: 'November' },
-              { value: '12', label: 'December' },
-            ]}
-            value={date.month} onChange={handleMonthSelect} 
-            className="w-36"
-            size="md"
-          />
-
-          <Select
-            placeholder="Year"
-            data={Array
-              .from({ length: 11 }, (_, i) => parseInt(dayjs().format("YYYY"), 10) - 5 + i)
-              .map(year => year.toString())  
-            }
-            value={date.year} onChange={handleYearSelect} 
-            className="w-28"
-            size="md"
-          />
-
-          <div className="ml-2 flex items-center gap-2 ">
-            <Button onClick={goToToday} variant="light" aria-label="Filters" className="h-8" size="compact-md">Today</Button>
-            { hasFilters() 
-              ? <div className="flex">
-                  <Button color="orange" onClick={() => openFilter()} variant="light" aria-label="Filters" size="compact-md" leftSection={<IconAdjustments size={20} />} className="h-8 rounded-r-none">Filters on</Button>
-                  <ActionIcon color="orange" onClick={reset} variant="light" aria-label="Clear"  size="compact-md" ml={2} className="rounded-l-none pl-1 pr-1">
-                    <IconX stroke={1.5} size={18} />
-                  </ActionIcon>
-                </div>
-              : <ActionIcon onClick={() => openFilter()} variant="light" aria-label="Filters" className="size-8"  >
-                  <IconAdjustments stroke={1.5} />
-                </ActionIcon>
-            } 
-          </div>
+      <div>
+        <div className="p-3 w-full flex justify-between items-center">
+          <ActionIcon onClick={() => handleNav(-1)} variant="subtle" size="lg"><IconArrowNarrowLeft className="size-7" /></ActionIcon>
           
+          <div className="text-xl font-semibold flex gap-2 items-center">
 
+            <div className="mr-2 flex items-center gap-2">
+              <ActionIcon onClick={() => setCaltype('calendar')} variant="light" className="size-8"  >
+                <IconCalendarWeek stroke={1.5} />
+              </ActionIcon>
+              <ActionIcon onClick={() => setCaltype('list')} variant="light" className="size-8"  >
+                <IconListDetails stroke={1.5} />
+              </ActionIcon>
+            </div>
 
+            <Select
+              placeholder="Month"
+              data={[
+                { value: '1', label: 'January' },
+                { value: '2', label: 'February' },
+                { value: '3', label: 'March' },
+                { value: '4', label: 'April' },
+                { value: '5', label: 'May' },
+                { value: '6', label: 'June' },
+                { value: '7', label: 'July' },
+                { value: '8', label: 'August' },
+                { value: '9', label: 'September' },
+                { value: '10', label: 'October' },
+                { value: '11', label: 'November' },
+                { value: '12', label: 'December' },
+              ]}
+              value={date.month} onChange={handleMonthSelect} 
+              className="w-36"
+              size="md"
+            />
+
+            <Select
+              placeholder="Year"
+              data={Array
+                .from({ length: 11 }, (_, i) => parseInt(dayjs().format("YYYY"), 10) - 5 + i)
+                .map(year => year.toString())  
+              }
+              value={date.year} 
+              onChange={handleYearSelect} 
+              className="w-28"
+              size="md"
+            />
+
+            <div className="ml-2 flex items-center gap-2 ">
+              <Button onClick={goToToday} variant="light" aria-label="Filters" className="h-8" size="compact-md">Today</Button>
+              { hasFilters() 
+                ? <div className="flex">
+                    <Button color="orange" onClick={() => openFilter()} variant="light" aria-label="Filters" size="compact-md" leftSection={<IconAdjustments size={20} />} className="h-8 rounded-r-none">Filters on</Button>
+                    <ActionIcon color="orange" onClick={reset} variant="light" aria-label="Clear"  size="compact-md" ml={2} className="rounded-l-none pl-1 pr-1">
+                      <IconX stroke={1.5} size={18} />
+                    </ActionIcon>
+                  </div>
+                : <ActionIcon onClick={() => openFilter()} variant="light" aria-label="Filters" className="size-8"  >
+                    <IconAdjustments stroke={1.5} />
+                  </ActionIcon>
+              } 
+            </div>
+          </div>
+          <ActionIcon onClick={() => handleNav(1)} variant="subtle" size="lg"><IconArrowNarrowRight className="size-7" /></ActionIcon>
         </div>
-
-        <ActionIcon onClick={() => handleNav(1)} variant="subtle" size="lg"><IconArrowNarrowRight className="size-7" /></ActionIcon>
       </div>
 
-      <table className="ev-calendar full-calendar">
-        <thead>
-          <tr className="days-names">
-            {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map((weekday) => <td key={weekday}>{weekday}</td>)}
-          </tr>
-        </thead>
-        <tbody>
-            { filteredCalendar.cells.map((week: any, i: number) => (
-              <tr key={i}>
-                { week.map((cell: any) => {
-                  return (
-                    !!Object.entries(cell.events).length
-                    ? <td key={cell.date} className={`eventful ${cell.type}`}>
-                        <span className="day-num">{dayjs.unix(cell.date).format("D") }</span>
-                        <ul>
-                          { Object.keys(cell.events).map((ts) => {
-                            const event = cell.events[ts]
-                            return (
-                              <div key={event.id}>                            
-                                <CalendarTease celldate={cell.date} event={event} setSelectedEvent={setSelectedEvent}/>
-                              </div>
-                            )})
-                          }
-                        </ul>
-                      </td>
-                    : <td key={cell.date} className={`eventless ${cell.type}`}>
-                        <span className="day-num">{dayjs.unix(cell.date).format("D") }</span>
-                      </td>
-                  )
-                })}
+      <div>
+        
+        <div className="relative">
+          <LoadingOverlay visible={loading}  />
+          <table className="ev-calendar full-calendar">
+            <thead>
+              <tr className="days-names">
+                {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map((weekday) => <td key={weekday}>{weekday}</td>)}
               </tr>
-            ))}
-        </tbody>
-      </table>
+            </thead>
+            <tbody>
+                { filteredCalendar.cells.map((week: any, i: number) => (
+                  <tr key={i}>
+                    { week.map((cell: any) => {
+                      return (
+                        !!Object.entries(cell.events).length
+                        ? <td key={cell.date} className={`eventful ${cell.type}`}>
+                            <span className="day-num">{dayjs.unix(cell.date).format("D") }</span>
+                            <ul>
+                              { Object.keys(cell.events).map((ts) => {
+                                const event = cell.events[ts]
+                                return (
+                                  <div key={event.id}>                            
+                                    <CalendarTease celldate={cell.date} event={event} setSelectedEvent={setSelectedEvent}/>
+                                  </div>
+                                )})
+                              }
+                            </ul>
+                          </td>
+                        : <td key={cell.date} className={`eventless ${cell.type}`}>
+                            <span className="day-num">{dayjs.unix(cell.date).format("D") }</span>
+                          </td>
+                      )
+                    })}
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+        
+        <EventModal activity={selectedEvent} close={() => setSelectedEvent(null)} />
 
-      <EventModal activity={selectedEvent} close={() => setSelectedEvent(null)} />
+        <FilterModal opened={filterOpened} filters={filters} setFilters={setFilters} close={() => closeFilter()} />
 
-      <FilterModal opened={filterOpened} filters={filters} setFilters={setFilters} close={() => closeFilter()} />
-
+      </div>
     </div>
+
   )
 }

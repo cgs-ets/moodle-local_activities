@@ -11,7 +11,7 @@ type Props = {
 }
 export function ListTease({celldate, event, setSelectedEvent}: Props) {
   return (
-    <div className="relative border-t">
+    <div className="relative border-t bg-gray-50">
       <span className="hover-line"></span>
       <Anchor onClick={() => setSelectedEvent(event)} className="te-link no-underline hover:no-underline flex gap-1 items-start py-3" title={event.activityname}>
         { dayjs.unix(celldate).format("YYYYMMDD") != dayjs.unix(event.timestart).format("YYYYMMDD")

@@ -1,5 +1,5 @@
-import { ActionIcon, Button, Card, Select, Text } from "@mantine/core";
-import { IconAdjustments, IconArrowNarrowLeft, IconArrowNarrowRight, IconCalendarDue, IconX } from "@tabler/icons-react";
+import { ActionIcon, Button, Card, Loader, LoadingOverlay, Select, Text } from "@mantine/core";
+import { IconAdjustments, IconArrowNarrowLeft, IconArrowNarrowRight, IconCalendarDue, IconCalendarWeek, IconListDetails, IconX } from "@tabler/icons-react";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
 import useFetch from "../../../hooks/useFetch";
@@ -11,19 +11,26 @@ import { useDisclosure } from "@mantine/hooks";
 import { useFilterStore } from "../../../stores/filterStore";
 import { ListTease } from "./ListTease";
 import { User } from "../../../types/types";
+import { getMonthFromTerm, getTermFromMonth } from "../../../utils/utils";
 
 type TermYear = {
   term: string,
   year: string,
 }
 
-export function List() {
+
+type Props = {
+  setCaltype: (caltype: string) => void,
+}
+
+export function List({setCaltype}: Props) {
 
   const [searchParams, setSearchParams] = useSearchParams();
 
   const filters = useFilterStore((state) => state)
   const setFilters = useFilterStore((state) => (state.setState))
   const reset = useFilterStore((state) => (state.reset))
+  const [loading, {open: startLoading, close: stopLoading}] = useDisclosure(true)
 
   const [filterOpened, {close: closeFilter, open: openFilter}] = useDisclosure(false)
 
@@ -31,10 +38,18 @@ export function List() {
     : dayjs().format("MM-DD") > '06-29' ? 3
     : dayjs().format("MM-DD") > '04-13' ? 2
     : 1
+  
+  const initYear = searchParams.get('year') || dayjs().format("YYYY");
+  // If coming from calendar view, a certain month may have been in view. Get term based on that.
+  const initTerm = searchParams.get('term') 
+    ? searchParams.get('term') 
+    : searchParams.get('month')
+      ? getTermFromMonth(searchParams.get('month')!, initYear).toString()
+      : currterm.toString()
 
   const [date, setDate] = useState<TermYear>({
-    term: searchParams.get('term') || currterm.toString(),
-    year: searchParams.get('year') || dayjs().format("YYYY"),
+    term: initTerm!,
+    year: initYear,
   })
   
   const getCalendarAPI = useFetch()
@@ -63,6 +78,7 @@ export function List() {
   }, [date]);
 
   const getList = async (date: TermYear) => {
+    startLoading()
     const res = await getCalendarAPI.call({
       query: {
         methodname: 'local_activities-get_cal',
@@ -71,8 +87,8 @@ export function List() {
         year: date.year,
       }
     })
-    console.log(res.data)
     setList(res.data)
+    stopLoading()
   }
 
 
@@ -81,12 +97,14 @@ export function List() {
       setSearchParams(params => {
         params.set("term", list.pagination.next.tm);
         params.set("year", list.pagination.next.yr);
+        params.set("month", getMonthFromTerm(list.pagination.next.tm).toString());
         return params;
       });
     } else {
       setSearchParams(params => {
         params.set("term", list.pagination.previous.tm);
         params.set("year", list.pagination.previous.yr);
+        params.set("month", getMonthFromTerm(list.pagination.next.tm).toString());
         return params;
       });
     }
@@ -94,7 +112,9 @@ export function List() {
 
   const handleTermSelect = (term: string | null) => {
     setSearchParams(params => {
+      params.set("year", date.year);
       params.set("term", term || '1');
+      params.set("month", getMonthFromTerm(term || '1').toString());
       return params;
     });
   }
@@ -102,6 +122,8 @@ export function List() {
   const handleYearSelect = (year: string | null) => {
     setSearchParams(params => {
       params.set("year", year || dayjs().format("YYYY"));
+      params.set("term", date.term);
+      params.set("month", getMonthFromTerm(date.term).toString());
       return params;
     });
   }
@@ -110,6 +132,8 @@ export function List() {
     setSearchParams(params => {
       params.set("year", dayjs().format("YYYY"));
       params.set("term", currterm.toString());
+      params.set("month", getMonthFromTerm(currterm.toString()).toString());
+      params.delete("month");
       return params;
     });
   }
@@ -162,127 +186,140 @@ export function List() {
   }, [filters, list]);
 
 
-
-
   const hasFilters = () => {
     return filters.categories.length || filters.types.length || filters.status.length || filters.staff.length
   }
 
-
   return (
     <div>
 
-      <div className="py-3 w-full flex justify-between items-center">
-        <ActionIcon onClick={() => handleNav(-1)} variant="subtle" size="lg"><IconArrowNarrowLeft className="size-7" /></ActionIcon>
+   
+        <div className="p-3 w-full flex justify-between items-center">
+          <ActionIcon onClick={() => handleNav(-1)} variant="subtle" size="lg"><IconArrowNarrowLeft className="size-7" /></ActionIcon>
 
-        <div className="text-xl font-semibold flex gap-2 items-center">
-          <Select
-            placeholder="Term"
-            data={[
-              { value: '1', label: 'Term 1' },
-              { value: '2', label: 'Term 2' },
-              { value: '3', label: 'Term 3' },
-              { value: '4', label: 'Term 4' },
-            ]}
-            value={date.term} 
-            onChange={handleTermSelect} 
-            className="w-36"
-            size="md"
-          />
-
-          <Select
-            placeholder="Year"
-            data={Array
-              .from({ length: 11 }, (_, i) => parseInt(dayjs().format("YYYY"), 10) - 5 + i)
-              .map(year => year.toString())  
-            }
-            value={date.year} onChange={handleYearSelect} 
-            className="w-28"
-            size="md"
-          />
-
-
-          <div className="ml-2 flex items-center gap-2 ">
-          <Button onClick={goToToday} variant="light" aria-label="Filters" className="h-8" size="compact-md">Today</Button>
-            { hasFilters() 
-              ? <div className="flex">
-                  <Button color="orange" onClick={() => openFilter()} variant="light" aria-label="Filters" size="compact-md" leftSection={<IconAdjustments size={20} />} className="h-8 rounded-r-none">Filters on</Button>
-                  <ActionIcon color="orange" onClick={reset} variant="light" aria-label="Clear"  size="compact-md" ml={2} className="rounded-l-none pl-1 pr-1">
-                    <IconX stroke={1.5} size={18} />
-                  </ActionIcon>
-                </div>
-              : <ActionIcon onClick={() => openFilter()} variant="light" aria-label="Filters" className="size-8"  >
-                  <IconAdjustments stroke={1.5} />
-                </ActionIcon>
-            } 
-          </div>
-
-
-
-        </div>
-
-        <ActionIcon onClick={() => handleNav(1)} variant="subtle" size="lg"><IconArrowNarrowRight className="size-7" /></ActionIcon>
-
-      </div>
-
-      { !filteredList.days.current.length && !filteredList.days.upcoming.length &&
-        <div className="py-6">
-          <span className="text-base italic">No events in selected period. {hasFilters() ? "Try removing filters." : ""}</span>
-        </div>
-      }
-
-
-      <Card className="ev-calendar list-calendar" p={0}>
-
-        { !!filteredList.days.current.length &&
-          <div className="px-4 py-3">
-            <span className="font-semibold text-gray-500 text-sm uppercase tracking-wider">Currently on</span>
-          </div>
-        }
-
-        { filteredList.days?.current.map((day: any, i: number) => (
-          !!day.events.length &&
-          <div key={day.date_key} className="ev-calendar-item ev-calendar-item-current">
-            { day.date_key == dayjs().format("YYYY-MM-DD")
-              ? <Text className="font-semibold text-lg px-4 py-2 border-t">Started today</Text>
-              : <Text className="font-semibold text-lg px-4 py-2 border-t">Started on {dayjs.unix(Number(day.date)).format("D MMM")}</Text>
-            }
-            <div>
-              {day.events.map((event: any) => (
-                <div key={event.id}>
-                  <ListTease celldate={day.date} event={event} setSelectedEvent={setSelectedEvent}/>
-                </div>
-              ))}
+          <div className="text-xl font-semibold flex gap-2 items-center">
+            <div className="mr-2 flex items-center gap-2">
+              <ActionIcon onClick={() => setCaltype('calendar')} variant="light" className="size-8"  >
+                <IconCalendarWeek stroke={1.5} />
+              </ActionIcon>
+              <ActionIcon onClick={() => setCaltype('list')} variant="light" className="size-8"  >
+                <IconListDetails stroke={1.5} />
+              </ActionIcon>
             </div>
-          </div>
-        ))}
-      </Card>
+            <Select
+              placeholder="Term"
+              data={[
+                { value: '1', label: 'Term 1' },
+                { value: '2', label: 'Term 2' },
+                { value: '3', label: 'Term 3' },
+                { value: '4', label: 'Term 4' },
+              ]}
+              value={date.term} 
+              onChange={handleTermSelect} 
+              className="w-36"
+              size="md"
+            />
 
-      <Card className="ev-calendar list-calendar mt-4" p={0}>
-        { !!filteredList.days.upcoming.length &&
-          <div className="px-4 py-3">
-            <span className="font-semibold text-gray-500 text-sm uppercase tracking-wider">Upcoming</span>
+            <Select
+              placeholder="Year"
+              data={Array
+                .from({ length: 11 }, (_, i) => parseInt(dayjs().format("YYYY"), 10) - 5 + i)
+                .map(year => year.toString())  
+              }
+              value={date.year} onChange={handleYearSelect} 
+              className="w-28"
+              size="md"
+            />
+
+
+            <div className="ml-2 flex items-center gap-2 ">
+            <Button onClick={goToToday} variant="light" aria-label="Filters" className="h-8" size="compact-md">Today</Button>
+              { hasFilters() 
+                ? <div className="flex">
+                    <Button color="orange" onClick={() => openFilter()} variant="light" aria-label="Filters" size="compact-md" leftSection={<IconAdjustments size={20} />} className="h-8 rounded-r-none">Filters on</Button>
+                    <ActionIcon color="orange" onClick={reset} variant="light" aria-label="Clear"  size="compact-md" ml={2} className="rounded-l-none pl-1 pr-1">
+                      <IconX stroke={1.5} size={18} />
+                    </ActionIcon>
+                  </div>
+                : <ActionIcon onClick={() => openFilter()} variant="light" aria-label="Filters" className="size-8"  >
+                    <IconAdjustments stroke={1.5} />
+                  </ActionIcon>
+              } 
+            </div>
+
+
+
           </div>
+
+          <ActionIcon onClick={() => handleNav(1)} variant="subtle" size="lg"><IconArrowNarrowRight className="size-7" /></ActionIcon>
+
+        </div>
+ 
+
+
+
+      <div className="relative">
+        
+        { filteredList.days.current.length
+          ? <LoadingOverlay visible={loading} />
+          : loading && <div className="p-6"><Loader size="sm" /></div>
         }
 
-        { filteredList.days.upcoming.map((day: any, i: number) => (
-          !!day.events.length &&
-          <div key={day.date_key} className="ev-calendar-item ev-calendar-item-current">
-            { day.date_key == dayjs().format("YYYY-MM-DD")
-              ? <Text className="font-semibold text-lg px-4 py-2 border-t">Today</Text>
-              : <Text className="font-semibold text-lg px-4 py-2 border-t">{dayjs.unix(Number(day.date)).format("ddd, D MMM YYYY")}</Text>
-            }
-            <ul>
-              {day.events.map((event: any) => (
-                <div key={event.id}>
-                  <ListTease celldate={day.date} event={event} setSelectedEvent={setSelectedEvent}/>
-                </div>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </Card>
+        { !loading && !filteredList.days.current.length && !filteredList.days.upcoming.length &&
+          <div className="text-base italic p-6">No events in selected period. {hasFilters() ? "Try removing filters." : ""}</div>
+        }
 
+        <Card className="ev-calendar list-calendar rounded-none" p={0}>
+
+          { !!filteredList.days.current.length &&
+            <div className="hidden px-4 py-3">
+              <span className="font-semibold text-gray-500 text-sm uppercase tracking-wider">Currently on</span>
+            </div>
+          }
+
+          { filteredList.days?.current.map((day: any, i: number) => (
+            !!day.events.length &&
+            <div key={day.date_key} className="ev-calendar-item ev-calendar-item-current">
+              { day.date_key == dayjs().format("YYYY-MM-DD")
+                ? <Text className="font-semibold text-lg px-4 py-2 border-t">Started today</Text>
+                : <Text className="font-semibold text-lg px-4 py-2 border-t">Started on {dayjs.unix(Number(day.date)).format("D MMM")}</Text>
+              }
+              <div>
+                {day.events.map((event: any) => (
+                  <div key={event.id}>
+                    <ListTease celldate={day.date} event={event} setSelectedEvent={setSelectedEvent}/>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </Card>
+
+        <Card className="ev-calendar list-calendar border-b rounded-none" p={0}>
+          { !!filteredList.days.upcoming.length &&
+            <div className="hidden px-4 py-3">
+              <span className="font-semibold text-gray-500 text-sm uppercase tracking-wider">Upcoming</span>
+            </div>
+          }
+
+          { filteredList.days.upcoming.map((day: any, i: number) => (
+            !!day.events.length &&
+            <div key={day.date_key} className="ev-calendar-item ev-calendar-item-current">
+              { day.date_key == dayjs().format("YYYY-MM-DD")
+                ? <Text className="font-semibold text-lg px-4 py-2 border-t">Today</Text>
+                : <Text className="font-semibold text-lg px-4 py-2 border-t">{dayjs.unix(Number(day.date)).format("ddd, D MMM YYYY")}</Text>
+              }
+              <ul>
+                {day.events.map((event: any) => (
+                  <div key={event.id}>
+                    <ListTease celldate={day.date} event={event} setSelectedEvent={setSelectedEvent}/>
+                  </div>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </Card>
+      </div>
 
 
       <EventModal activity={selectedEvent} close={() => setSelectedEvent(null)} />

@@ -34,7 +34,7 @@ export function Header() {
             </Link>
           </Group>
           <div className="flex items-center gap-4">
-            <Anchor className="text-white hover:no-underline mr-4 text-sm" href="/">CGS Connect</Anchor>
+            <Anchor className="text-white hover:no-underline mr-4 text-sm font-semibold" href="/">{getConfig().sitename}</Anchor>
             { getConfig().roles.includes('staff') 
               ? <Button component={Link} to="/new" size="compact-md" radius="lg" color="blue" leftSection={<IconPlus size={20} />}>Create new</Button> : null
             }
@@ -47,7 +47,7 @@ export function Header() {
                 </UnstyledButton>
               </Menu.Target>
               <Menu.Dropdown>
-                <Menu.Item leftSection={<IconHome2 size={14} />} onMouseDown={() => window.location.replace('/')}>CGS Connect</Menu.Item>
+                <Menu.Item leftSection={<IconHome2 size={14} />} onMouseDown={() => window.location.replace('/')}>{getConfig().sitename}</Menu.Item>
                 <Menu.Item leftSection={<IconLogout size={14} />} onMouseDown={() => window.location.replace(getConfig().logoutUrl)}>Logout</Menu.Item>
               </Menu.Dropdown>
             </Menu>
@@ -55,9 +55,9 @@ export function Header() {
           
         </Group>
       </Container>
-      {getConfig().headerlogourl &&
-        <div className="hidden 3xl:block absolute right-0 top-0 w-[170px]">
-          <a href="/"><img className="w-full" src={getConfig().headerlogourl} /></a>
+      {false && getConfig().headerlogourl &&
+        <div className="hidden 3xl:block absolute left-0 top-0 h-[54px]">
+          <a href="/"><img className="h-full" src={getConfig().headerlogourl} /></a>
         </div>
       }
     </Box>

@@ -10,6 +10,7 @@
     $config->version = $activitiesconfig->version;
     $config->sesskey = sesskey();
     $config->wwwroot = $CFG->wwwroot;
+    $config->sitename = $SITE->fullname;
     $config->toolname = \local_activities\lib\service_lib::get_toolname();
     $config->headerbg = $activitiesconfig->headerbg;
     $config->headerfg = $activitiesconfig->headerfg;

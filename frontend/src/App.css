@@ -98,7 +98,6 @@ table thead th {
 /* Calendar View */
 .full-calendar {
   width: 100%;
-  min-width: 920px;
   table-layout: fixed;
   background-color: #fff;
 }
@@ -166,7 +165,7 @@ table thead th {
 
 
 /* List View */
-.list-calendar .ev-calendar-item div .hover-line {
+/*.list-calendar .ev-calendar-item div .hover-line {
   height: 0;
   width: 1px;
   background-color: #59a5d7;
@@ -180,7 +179,7 @@ table thead th {
 }
 .list-calendar .ev-calendar-item div:hover .hover-line {
   height: 100%;
-}
+}*/
 .list-calendar .ev-calendar-item .te-start-time {
   display: block;
   float: left;
@@ -268,4 +267,9 @@ table thead th {
 /* Preview email in history block */
 .rendered-email p {
   margin-bottom: 10px;
+}
+
+/*Skinny loader*/
+.mantine-Loader-root::after {
+  border-width: 2px;
 }
