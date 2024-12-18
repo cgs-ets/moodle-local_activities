@@ -27,6 +27,7 @@ import { EmailHistory } from "./components/EmailHistory/EmailHistory";
 import { NextSteps } from "./components/NextSteps/NextSteps";
 import { getConfig } from "../../utils";
 import useFetch from "../../hooks/useFetch";
+import { StudentListDIY } from "./components/StudentList/StudentListDIY";
 
 export function EditActivity() {
   let { id } = useParams();
@@ -267,7 +268,7 @@ export function EditActivity() {
                       { isActivity(activitytype) &&
                         <>
                           <Permissions openSendMessage={emailModalHandlers.open} />
-                          <StudentList />
+                          <StudentListDIY />
                           <Paperwork />
                         </>
                       }

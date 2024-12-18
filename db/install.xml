@@ -132,7 +132,7 @@
         <FIELD NAME="activityid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="username" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="studentsjson" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="audience" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="audiences" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="extratext" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="includes" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="status" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>

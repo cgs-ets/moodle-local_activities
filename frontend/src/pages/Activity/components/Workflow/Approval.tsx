@@ -160,8 +160,8 @@ export function Approval({
             ? <Avatar onClick={open} className="cursor-pointer" alt="Approver" title="Approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.username}><IconUser size={14} /></Avatar>
             : !!approval.approvers
                 ? <Avatar.Group onClick={open} className="cursor-pointer">
-                    {Object.keys(approval.approvers).slice(0,4).map((approverusername: string) => {
-                      return <Avatar size={24} key={approverusername} src={'/local/activities/avatar.php?username=' + approverusername}><IconUser size={14} /></Avatar>
+                    {Object.keys(approval.approvers).slice(0,4).map((approverusername: string, i: number) => {
+                      return <Avatar size={24} key={i} src={'/local/activities/avatar.php?username=' + approverusername}><IconUser size={14} /></Avatar>
                     })}
                     { Object.keys(approval.approvers).length > 4
                       ?<Avatar size={24}>+{Object.keys(approval.approvers).length - 4}</Avatar>

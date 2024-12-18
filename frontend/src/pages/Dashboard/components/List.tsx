@@ -166,6 +166,9 @@ export function List({setCaltype}: Props) {
       });
       return { ...day, events: filteredEvents, events_count: filteredEvents.length };
     })
+    .filter((day: any) => {
+      return !!day.events.length
+    })
   }
 
   const filteredList = useMemo(() => {
@@ -174,8 +177,8 @@ export function List({setCaltype}: Props) {
     const filteredCurrent = filterEvents(list.days.current)
 
     const filteredUpcoming = filterEvents(list.days.upcoming)
-  
-    return {
+
+    const newList = {
       ...list,
       days: {
         ...list.days,
@@ -183,6 +186,10 @@ export function List({setCaltype}: Props) {
         upcoming: filteredUpcoming,
       },
     };
+    
+    console.log(newList)
+  
+    return newList
   }, [filters, list]);
 
 
