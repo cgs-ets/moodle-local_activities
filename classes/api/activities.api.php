@@ -145,9 +145,16 @@ trait activities_api {
     /**
     * Submit parent permission.
     */
-   static public function submit_permission($args) { 
-    ['permissionid' => $permissionid, 'response' => $response] = $args;
-    return activities_lib::submit_permission($permissionid, $response);
-}
+    static public function submit_permission($args) { 
+        ['permissionid' => $permissionid, 'response' => $response] = $args;
+        return activities_lib::submit_permission($permissionid, $response);
+    }
+
+    /**
+     * Get events where user is involved.
+     */
+    static public function get_my_involvement() {
+        return activities_lib::get_by_involvement();
+    }
 
 }

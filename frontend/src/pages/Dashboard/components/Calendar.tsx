@@ -264,7 +264,7 @@ export function Calendar({setCaltype}: Props) {
       <div>
         
         <div className="relative">
-          <LoadingOverlay visible={loading}  />
+          <LoadingOverlay visible={loading} p={100} />
           <table className="ev-calendar full-calendar">
             <thead>
               <tr className="days-names">

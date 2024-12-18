@@ -647,8 +647,24 @@ class activities_lib {
     }
 
 
+    /*
+    * get_involvement
+    */
+    public static function get_by_involvement() {
+        global $DB;
+
+        // We need to find events where this user is:
+        // Student participant
+        // Parent of participating student
+        // Staff member in charge
+        // Planner
+        // Accompanying
 
 
+    }
+
+
+    /*
     public static function get_for_user($username) {
         global $DB;
 
@@ -700,8 +716,6 @@ class activities_lib {
 
         return $activities;
     }
-
-
 
 
     public static function get_for_auditor($username) {
@@ -992,7 +1006,7 @@ class activities_lib {
         $activities = static::get_by_ids(array_merge($accompanyingids, $staffinchargeids));
 
         return $activities;
-    }
+    }*/
 
     public static function get_for_absences($now, $startlimit, $endlimit) {
         global $DB;
@@ -1090,7 +1104,7 @@ class activities_lib {
     }
 
     
-
+/*
     public static function get_notices($activityid, $approvals) {
         global $DB;
 
@@ -1134,6 +1148,7 @@ class activities_lib {
         return $notices;
     }
 
+
     public static function delete_existing_absences($activityid) {
 
         if (! (is_int($activityid) && $activityid > 0) ) {
@@ -1157,7 +1172,8 @@ class activities_lib {
         return true;
 
     }
-    
+
+*/ 
 
 
     /**
@@ -1176,12 +1192,7 @@ class activities_lib {
         return $students;
     }
 
-    /**
-    * Gets all of the activity students.
-    *
-    * @param int $postid.
-    * @return array.
-    */
+/*
     public static function get_excursion_students_temp($activityid) {
         global $DB;
         $sql = "SELECT *
@@ -1191,6 +1202,7 @@ class activities_lib {
         $students = $DB->get_records_sql($sql, $params);
         return $students;
     }
+*/
 
 
     /*
@@ -1450,7 +1462,7 @@ class activities_lib {
         $result = service_lib::email_to_user($toUser, $USER, $subject, '', $messageHtml, '', '', true);
     }
 
-    
+/*
     public static function get_messagehistory($activityid) {
         global $DB;
 
@@ -1470,6 +1482,7 @@ class activities_lib {
     }
 
 
+
     public static function get_all_permissions($activityid) {
         global $USER, $DB;
 
@@ -1483,6 +1496,7 @@ class activities_lib {
 
         return $permissions;
     }
+*/
 
     /*
     * A "no" response means the student is not attending, even if another parent response "yes"
@@ -1531,6 +1545,7 @@ class activities_lib {
         return $permissions;
     }
 
+    /*
     public static function get_student_permissions($activityid, $studentusername) {
         global $DB;
 
@@ -1545,6 +1560,7 @@ class activities_lib {
 
         return $permissions;
     }
+    */
 
     public static function get_students_by_response($activityid, $response) {
         global $DB;
