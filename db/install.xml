@@ -80,6 +80,7 @@
       </KEYS>
     </TABLE>
 
+<!--
     <TABLE NAME="activity_students_temp" COMMENT="Temp list for running the medical report.">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
@@ -91,7 +92,8 @@
         <KEY NAME="fk_activityid" TYPE="foreign" FIELDS="activityid" REFTABLE="activities" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
-
+ -->
+ 
     <TABLE NAME="activity_approvals" COMMENT="Approvers for activities">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>

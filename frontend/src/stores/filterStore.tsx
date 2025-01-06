@@ -4,6 +4,7 @@ import { create } from 'zustand'
 export type Filters = {
   categories: string[];
   types: string[];
+  campus: string[];
   status: string[];
   staff: string[];
 }
@@ -17,6 +18,7 @@ const defaults: Filters = {
   status: [],
   categories: [],
   types: [],
+  campus: [],
   staff: [],
 };
 

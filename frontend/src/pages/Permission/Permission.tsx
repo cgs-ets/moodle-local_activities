@@ -38,26 +38,25 @@ export function Permission() {
 
 
   const getActivity = async () => {
-
     const fetchResponse = await api.call({
       query: {
         methodname: 'local_activities-get_activity_with_permission',
         id: id,
       }
     })
-
-    console.log(fetchResponse)
-
+  
     if (fetchResponse && !fetchResponse.error) {
-      document.title = fetchResponse.data.activity.activityname + " - Permission"
-
-      setPermissions(fetchResponse.data.permissions)
-      setPermissionsHelper(fetchResponse.data.permissionshelper)
-
+      document.title = fetchResponse.data.activityname + " - Permission"
+  
+      const { permissions, permissionshelper, ...activity } = fetchResponse.data
+  
+      setPermissions(permissions)
+      setPermissionsHelper(permissionshelper)
+  
       const data = {
-        ...fetchResponse.data.activity,
-        timestart: Number(fetchResponse.data.activity.timestart) ? fetchResponse.data.activity.timestart : dayjs().unix(),
-        timeend: Number(fetchResponse.data.activity.timeend) ? fetchResponse.data.activity.timeend : dayjs().unix(),
+        ...activity,
+        timestart: Number(activity.timestart) ? activity.timestart : dayjs().unix(),
+        timeend: Number(activity.timeend) ? activity.timeend : dayjs().unix(),
       }
       setFormData({...defaults, ...data})
     }
@@ -117,8 +116,8 @@ export function Permission() {
                           : null
                         }
                         { permissions.map((permission: any) => (
-                          <div className={cn(expired() ? "pointer-events-none" : null)}>
-                            <StuPermission key={permission.id} expired={expired() || false} permissionid={permission.id} student={permission.student} init={Number(permission.response ?? 0)} />
+                          <div key={permission.id} className={cn(expired() ? "pointer-events-none" : null)}>
+                            <StuPermission expired={expired() || false} permissionid={permission.id} student={permission.student} init={Number(permission.response ?? 0)} />
                           </div>
                         ))}
                       </Card>

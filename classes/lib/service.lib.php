@@ -11,8 +11,10 @@ use \stdClass;
 class service_lib {
 
     const PARENT_FUNCTIONS  = [
+        'check_login',
         'get_activity_with_permission',
         'submit_permission',
+        'get_my_involvement',
     ];
 
     /*

@@ -72,7 +72,7 @@ export function StaffSelector({staff, setStaff, label, multiple, readOnly}: Prop
   const options = searchResults.map((item) => (
     <Combobox.Option value={JSON.stringify(item.value)} key={item.username}>
       <Group gap="sm">
-        <Avatar alt={item.label} size={24} mr={5} src={item.image} radius="xl"><IconUser size={14} /></Avatar>
+        <Avatar alt={item.label} size={24} mr={5} src={item.image} radius="xl"><IconUser /></Avatar>
         <Text>{item.label} ({item.username})</Text>
       </Group>
     </Combobox.Option>
@@ -84,7 +84,7 @@ export function StaffSelector({staff, setStaff, label, multiple, readOnly}: Prop
     return (
       <Badge key={user.username} variant='filled' p={0} color="gray.2" size="lg" radius="xl" 
         leftSection={
-          <Avatar alt={user.label} size={24} mr={5} src={user.image} radius="xl"><IconUser size={14} /></Avatar>
+          <Avatar alt={user.label} size={24} mr={5} src={user.image} radius="xl"><IconUser /></Avatar>
         }
       >
         <Flex gap={4}>
@@ -156,7 +156,7 @@ export function StaffSelector({staff, setStaff, label, multiple, readOnly}: Prop
     const user = decorateStaff(item)
     return (
       <Badge key={user.username} variant='filled' pl={0} color="gray.2" size="lg" radius="xl" leftSection={
-        <Avatar alt={user.label} size={24} mr={5} src={user.image} radius="xl"><IconUser size={14} /></Avatar>
+        <Avatar alt={user.label} size={24} mr={5} src={user.image} radius="xl"><IconUser /></Avatar>
       }>
         <Flex gap={4}>
           <Text className="normal-case font-normal text-black text-sm">{user.label}</Text>

@@ -17,7 +17,7 @@ export const studentColumn = (showPermissions: boolean) => {
       return (
         <Flex wrap="wrap" gap={4} align="center">
           <Badge variant='filled' key={row.un} pl={0} size="lg" color={color} radius="xl" leftSection={
-              <Avatar alt={row.fn + " " + row.ln} size={24} mr={5} src={'/local/activities/avatar.php?username=' + row.un} radius="xl"><IconUser size={14} /></Avatar>
+              <Avatar alt={row.fn + " " + row.ln} size={24} mr={5} src={'/local/activities/avatar.php?username=' + row.un} radius="xl"><IconUser /></Avatar>
             }
           >
             <Text className="normal-case font-normal text-black text-sm">{row.ln + ", " + row.fn}</Text>
@@ -44,7 +44,7 @@ export const parentColumn = {
             }
             return (
               <Badge variant='filled' key={parent.un} pl={0} size="lg" color={color} radius="xl" leftSection={
-                  <Avatar alt={parent.fn + " " + parent.ln} size={24} mr={5} src={'/local/activities/avatar.php?username=' + parent.un} radius="xl"><IconUser size={14} /></Avatar>
+                  <Avatar alt={parent.fn + " " + parent.ln} size={24} mr={5} src={'/local/activities/avatar.php?username=' + parent.un} radius="xl"><IconUser /></Avatar>
                 }
               >
                 <Text className="normal-case font-normal text-black text-sm">{parent.fn + " " + parent.ln}</Text>

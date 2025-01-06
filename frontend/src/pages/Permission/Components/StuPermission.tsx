@@ -1,4 +1,4 @@
-import { Avatar, Group, LoadingOverlay, Switch, Text } from "@mantine/core"
+import { Avatar, Group, LoadingOverlay, Radio, SegmentedControl, Switch, Text } from "@mantine/core"
 import { IconUser } from "@tabler/icons-react"
 import { useAjax } from "../../../hooks/useAjax";
 import { useEffect, useState } from "react";
@@ -18,8 +18,6 @@ export function StuPermission({
 }) {
   const [response, setResponse] = useState<number>(init)
   const [submitResponse, submitError, submitLoading, submitAjax, setSubmitData] = useAjax(); // destructure state and fetch function
-
-  console.log("permission", init)
   
   const onRespond = (checked: boolean) => {
     return submitAjax({
@@ -65,6 +63,8 @@ export function StuPermission({
             <Text>{ student.fn} { student.ln}</Text>
           </Group>
         </div>
+        
+        { /*
         <div className="flex gap-3">
           <div>No</div>
           <Switch
@@ -75,6 +75,20 @@ export function StuPermission({
           />
           <div>Yes</div>
         </div>
+        */ }
+
+        <Radio.Group
+          name={student.un + 'permission'}
+          value={response == 1 ? 'Yes' : response == 2 ? 'No' : undefined}
+          onChange={(value) => value == 'Yes' ? onRespond(true) : onRespond(false)}
+        >
+          <Group>
+            <Radio color="red" value="No" label="No" />
+            <Radio color="green" value="Yes" label="Yes" />
+          </Group>
+        </Radio.Group>
+      
+
       </div>
     </div>
   )

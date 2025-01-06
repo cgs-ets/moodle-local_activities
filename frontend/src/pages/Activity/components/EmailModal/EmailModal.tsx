@@ -91,7 +91,7 @@ export function EmailModal({opened, close, students}: Props) {
   const student = (data: User) => {
     return (
         <Badge key={data.un} variant='filled' p={0} color="gray.2" size="lg" radius="xl" leftSection={
-          <Avatar alt={data.fn + " " + data.ln} size={24} mr={5} src={'/local/activities/avatar.php?username=' + data.un} radius="xl"><IconUser size={14} /></Avatar>
+          <Avatar alt={data.fn + " " + data.ln} size={24} mr={5} src={'/local/activities/avatar.php?username=' + data.un} radius="xl"><IconUser /></Avatar>
         }>
           <Flex gap={4}>
             <Text className="normal-case font-normal text-black text-sm">{data.ln + ", " + data.fn}</Text>

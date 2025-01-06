@@ -29,7 +29,7 @@ class activities_lib {
     /** Table to store this persistent model instances. */
     const TABLE = 'activities';
     const TABLE_ACTIVITY_STUDENTS  = 'activity_students';
-    const TABLE_ACTIVITY_STUDENTS_TEMP  = 'activity_students_temp';
+    //const TABLE_ACTIVITY_STUDENTS_TEMP  = 'activity_students_temp';
     const TABLE_ACTIVITY_APPROVALS  = 'activity_approvals';
     const TABLE_ACTIVITY_COMMENTS = 'activity_comments';
     const TABLE_ACTIVITY_EMAILS = 'activity_emails';
@@ -79,20 +79,44 @@ class activities_lib {
             $permission->student = utils_lib::user_stub($permission->studentusername);
         }
 
+        // Sort the permissions array by studentusername
+        usort($permissions, function($a, $b) {
+            return strcmp($a->studentusername, $b->studentusername);
+        });
+
         return [
-            'activity' => [
-                'id' => $exported->id,
-                'activityname' => $exported->activityname,
-                'timestart' => $exported->timestart,
-                'timeend' => $exported->timeend,
-                'location' => $exported->location,
-                'transport' => $exported->transport,
-                'cost' => $exported->cost,
-                'staffinchargejson' => $exported->staffinchargejson,
-                'description' => $exported->description,
-            ],
+            'id' => $exported->id,
+            'activityname' => $exported->activityname,
+            'timestart' => $exported->timestart,
+            'timeend' => $exported->timeend,
+            'location' => $exported->location,
+            'transport' => $exported->transport,
+            'cost' => $exported->cost,
+            'staffinchargejson' => $exported->staffinchargejson,
+            'description' => $exported->description,
+            'permissionsdueby' => $exported->permissionsdueby,
             'permissions' => array_values($permissions),
             'permissionshelper' => static::permissions_helper($activity),
+        ];
+    }
+
+    /**
+     * Get and decorate the data.
+     *
+     * @param array $rec activity record
+     * @return array
+     */
+    public static function minimise_record($rec) {
+        return [
+            'id' => $rec->id,
+            'activityname' => $rec->activityname,
+            'timestart' => $rec->timestart,
+            'timeend' => $rec->timeend,
+            'location' => $rec->location,
+            'transport' => $rec->transport,
+            'cost' => $rec->cost,
+            'staffinchargejson' => $rec->staffinchargejson,
+            'description' => $rec->description,
         ];
     }
 
@@ -130,7 +154,7 @@ class activities_lib {
                 if (static::is_activity($data->activitytype)) {
                     $activity->set('status', max(static::ACTIVITY_STATUS_DRAFT, $activity->get('status')));
                 } else {
-                    // If this is a calendar entry or assessment, there is no draft state, it's ether 0 (new), 2 (in review) or 3 (approved)
+                    // If this is a calendar entry or assessment, there is no draft state. From the moment it's saved, it's 2 (in review) or 3 (approved)
                     $activity->set('status', max(static::ACTIVITY_STATUS_INREVIEW, $activity->get('status')));
                 }
             } else {
@@ -182,8 +206,12 @@ class activities_lib {
             $activity->set('absencesprocessed', 0);
             $activity->set('classrollprocessed', 0);
 
-            // Set stepname to empty, we'll fifure that out when generating approvals.
-            $activity->set('stepname', '');
+            if (static::is_activity($data->activitytype)) {
+                // Set stepname to empty, we'll figure that out when generating approvals.
+                $activity->set('stepname', '');
+            } else {
+                $activity->set('stepname', 'Calendar Approval');
+            }
 
             // Default staff in charge.
             if (empty($data->staffincharge)) {
@@ -651,7 +679,7 @@ class activities_lib {
     * get_involvement
     */
     public static function get_by_involvement() {
-        global $DB;
+        global $DB, $USER;
 
         // We need to find events where this user is:
         // Student participant
@@ -660,7 +688,185 @@ class activities_lib {
         // Planner
         // Accompanying
 
+        $involvement = array(
+            'student' => array(
+                'heading' => "",
+                'events' => array(),
+            ),
+            'parent' => array(
+                'heading' => "Your children's activities",
+                'events' => array(),
+            ),
+            'staff' => array(
+                'heading' => "Staff member in charge",
+                'events' => array(),
+            ),
+            'planner' => array(
+                'heading' => "Planner",
+                'events' => array(),
+            ),
+            'accompanying' => array(
+                'heading' => "Accompanying staff",
+                'events' => array(),
+            ),
+        );
 
+        // Student participant
+        $involvement['student']['events'] = static::get_for_student($USER->username);
+
+        // Parent of participating student
+        $involvement['parent']['events'] = static::get_for_parent($USER->username);
+
+        // Staff member in charge
+        $involvement['staff']['events'] = static::get_for_owner($USER->username);
+
+        // Planner
+        $involvement['planner']['events'] = static::get_for_plannner($USER->username);
+
+        // Accompanying
+        $involvement['accompanying']['events'] = static::get_for_accompanying($USER->username);
+
+        return $involvement;
+    }
+
+    public static function get_by_ids($ids, $status = null, $orderby = null, $futureonly = false, $exported = true) {
+        global $DB;
+
+        $activities = array();
+
+        if ($ids) {
+            $activityids = array_unique($ids);
+            list($insql, $inparams) = $DB->get_in_or_equal($activityids);
+            $sql = "SELECT *
+                    FROM {" . static::TABLE . "}
+                    WHERE id $insql
+                    AND deleted = 0";
+
+            if ($status) {
+                $sql .= " AND status = {$status} ";
+            }
+
+            if ($futureonly) {
+                $sql .= " AND timeend >= " . time();
+            }
+
+            if (empty($orderby)) {
+                $orderby = 'timestart DESC';
+            }
+            $sql .= " ORDER BY " . $orderby;
+
+            $records = $DB->get_records_sql($sql, $inparams);
+            $activities = array();
+            foreach ($records as $record) {
+                $activity = new Activity($record->id);
+                if ($exported) {
+                    $activities[] = $activity->export();
+                } else {
+                    $activities[] = $activity;
+                }
+            }
+        }
+
+        return $activities;
+    }
+
+    public static function get_for_student($username) {
+        global $DB;
+
+        $activities = array();
+
+        $sql = "SELECT id, activityid
+                  FROM {" . static::TABLE_ACTIVITY_STUDENTS . "} 
+                 WHERE username = ?";
+        $ids = $DB->get_records_sql($sql, array($username));
+
+        $activities = static::get_by_ids(array_column($ids, 'activityid'), 3, null, true); // Approved and future only.
+        foreach ($activities as $i => $activity) {
+            if ($activity->permissions) {
+                $attending = static::get_all_attending($activity->id);
+                if (!in_array($username, $attending)) {
+                    unset($activities[$i]);
+                    continue;
+                }
+            }
+            $activities[$i] = static::minimise_record($activity);
+        }
+
+        return array_filter($activities);
+    }
+
+    public static function get_for_parent($username) {
+        global $DB;
+
+        $activities = array();
+
+        $sql = "SELECT activityid
+                  FROM {" . static::TABLE_ACTIVITY_PERMISSIONS . "} 
+                 WHERE parentusername = ?";
+        $ids = $DB->get_fieldset_sql($sql, array($username));
+
+        $activities = static::get_by_ids($ids, 3, null, true, false); // Approved and future only.
+
+        foreach ($activities as $i => $activity) {
+            $permissions = static::get_parent_permissions($activity->get('id'), $username);
+            foreach ($permissions as &$permission) {
+                $permission->student = utils_lib::user_stub($permission->studentusername);
+            }
+            $exported = $activity->export();
+            $activities[$i] = static::minimise_record($exported);
+            $activities[$i]['stupermissions'] = array_values($permissions);
+            $activities[$i]['permissionshelper'] = static::permissions_helper($activity);
+        }        
+
+        return $activities;
+    }
+
+    public static function get_for_owner($username) {
+        global $DB;
+
+        $activities = array();
+
+        $sql = "SELECT id
+                  FROM {" . static::TABLE . "} 
+                 WHERE staffincharge = ?";
+        $ids = $DB->get_fieldset_sql($sql, array($username));
+
+        $activities = static::get_by_ids($ids, null, null, true); // All statuses and future only.
+
+        return $activities;
+    }
+
+    public static function get_for_plannner($username) {
+        global $DB;
+
+        // Get creator and planners.
+        $activities = array();
+
+        $sql = "SELECT activityid
+                FROM {" . static::TABLE_ACTIVITY_STAFF. "} 
+                WHERE username = ? 
+                AND usertype = 'planning'";
+        $plannerids = $DB->get_fieldset_sql($sql, array($username));
+
+        $activities = static::get_by_ids($plannerids, null, null, true); // All statuses and future only.
+
+        return $activities;
+    }
+
+    public static function get_for_accompanying($username) {
+        global $DB;
+
+        $activities = array();
+
+        $sql = "SELECT activityid
+                FROM {" . static::TABLE_ACTIVITY_STAFF. "} 
+                WHERE username = ? 
+                AND usertype = 'accompany'";
+        $ids = $DB->get_fieldset_sql($sql, array($username));
+
+        $activities = static::get_by_ids($ids, null, null, true); // All statuses and future only.
+
+        return $activities;
     }
 
 
@@ -693,29 +899,7 @@ class activities_lib {
     }
 
 
-    public static function get_for_plannner($username) {
-        global $DB;
-
-        $activities = array();
-
-        $sql = "SELECT id
-                FROM {" . static::TABLE . "}
-                WHERE deleted = 0
-                AND ( timemodified > " . strtotime("-3 months") . " OR timeend >=  " . time() . " )
-                AND username = ?";
-        $useractivities = $DB->get_records_sql($sql, array($username));
-        $useractivityids = array_column($useractivities, 'id');
-
-        $sql = "SELECT id, activityid
-                    FROM {" . static::TABLE_ACTIVITY_PLANNING_STAFF. "} 
-                    WHERE username = ?";
-        $planningstaff = $DB->get_records_sql($sql, array($username));
-        $planningids = array_column($planningstaff, 'activityid');
-        
-        $activities = static::get_by_ids(array_merge($planningids, $useractivityids));
-
-        return $activities;
-    }
+    
 
 
     public static function get_for_auditor($username) {
@@ -752,43 +936,9 @@ class activities_lib {
         return $activities;
     }
 
-    public static function get_for_parent($username) {
-        global $DB;
+   
 
-        $activities = array();
-
-        $sql = "SELECT id, activityid
-                  FROM {" . static::TABLE_ACTIVITY_PERMISSIONS . "} 
-                 WHERE parentusername = ?";
-        $ids = $DB->get_records_sql($sql, array($username));
-
-        $activities = static::get_by_ids(array_column($ids, 'activityid'), 3); // Approved only.
-
-        return $activities;
-    }
-
-    public static function get_for_student($username) {
-        global $DB;
-
-        $activities = array();
-
-        $sql = "SELECT id, activityid
-                  FROM {" . static::TABLE_ACTIVITY_STUDENTS . "} 
-                 WHERE username = ?";
-        $ids = $DB->get_records_sql($sql, array($username));
-
-        $activities = static::get_by_ids(array_column($ids, 'activityid'), 3); // Approved only.
-        foreach ($activities as $i => $activity) {
-            if ($activity->get('permissions')) {
-                $attending = static::get_all_attending($activity->get('id'));
-                if (!in_array($username, $attending)) {
-                    unset($activities[$i]);
-                }
-            }
-        }
-
-        return array_filter($activities);
-    }
+    
 
     
     public static function get_for_primary($username) {
@@ -914,46 +1064,7 @@ class activities_lib {
         return $activities;
     }
 
-    public static function get_by_ids($ids, $status = null, $orderby = null) {
-        global $DB;
-
-        $activities = array();
-
-        if ($ids) {
-            $activityids = array_unique($ids);
-            list($insql, $inparams) = $DB->get_in_or_equal($activityids);
-            $sql = "SELECT *
-                        ,case
-                            when status = 0 OR status = 1 then 1
-                            else 0
-                        end as isdraft
-                        ,case
-                            when timeend < " . time() . " then 1
-                            else 0
-                        end as ispastevent
-                      FROM {" . static::TABLE . "}
-                     WHERE id $insql
-                       AND deleted = 0
-                       ";
-
-            if ($status) {
-                $sql .= " AND status = {$status} ";
-            }
-
-            if (empty($orderby)) {
-                $orderby = 'isdraft DESC, ispastevent ASC, timestart DESC';
-            }
-            $sql .= " ORDER BY " . $orderby;
-
-            $records = $DB->get_records_sql($sql, $inparams);
-            $activities = array();
-            foreach ($records as $record) {
-                $activities[] = new static($record->id, $record);
-            }
-        }
-
-        return $activities;
-    }
+    
 
     public static function get_for_approver($username, $sortby = '') {
         global $DB;

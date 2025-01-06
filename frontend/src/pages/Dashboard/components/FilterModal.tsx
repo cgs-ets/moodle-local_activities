@@ -85,6 +85,23 @@ export function FilterModal({opened, filters, setFilters, close}: Props) {
 
 
                 <Card.Section pos="relative" className='m-0 border-b flex items-start gap-1 px-4 py-4'>
+                  <div className='w-36 font-bold'>Campus</div>
+                  <div>
+                    <Checkbox.Group value={filters.campus} onChange={(values) => handleFilterChange('campus', values)}>
+                      <div className="flex flex-col gap-1">
+                        <Checkbox value="primary" label="Primary School" />
+                        <Checkbox value="senior" label="Senior School" />
+                        <Checkbox value="whole" label="Whole School" />
+                      </div>
+                    </Checkbox.Group>
+                    { !!filters.campus?.length && <Button onClick={() => handleFilterChange('campus', [])} size="compact-md" className="rounded-full mt-3" variant="light" leftSection={<IconX className="size-5" />}>Clear</Button>}
+                  </div>
+                </Card.Section>
+
+
+
+
+                <Card.Section pos="relative" className='m-0 border-b flex items-start gap-1 px-4 py-4'>
                   <div className='w-36 font-bold'>Categories</div>
 
                   <div>

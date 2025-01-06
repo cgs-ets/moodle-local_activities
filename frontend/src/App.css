@@ -144,9 +144,7 @@ body {
   font-size: 12px;
   font-weight: 400;
 }
-.full-calendar .te-link {
-  width: 100%;
-}
+
 @media only screen and (max-width: 991px) {
   .calendar-full-wrap .container {
     margin: 0;

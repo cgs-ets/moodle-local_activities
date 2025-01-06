@@ -163,6 +163,11 @@ export function Calendar({setCaltype}: Props) {
             filters.types.length === 0 || 
             filters.types.includes(event.activitytype);
 
+            
+          const matchesCampus =
+            filters.campus.length === 0 || 
+            filters.campus.includes(event.campus);
+
           const matchesStatus =
             filters.status.length === 0 || 
             filters.status.includes(event.status.toString());
@@ -173,7 +178,7 @@ export function Calendar({setCaltype}: Props) {
             filterStaff.length === 0 || 
             filterStaff.some((staff) => uniqueEventStaff.includes(staff));
 
-          if (matchesCategory && matchesType && matchesStatus && matchesStaff) {
+          if (matchesCategory && matchesType && matchesCampus && matchesStatus && matchesStaff) {
             filteredEvents[eventId] = event;
           }
         }
@@ -187,7 +192,7 @@ export function Calendar({setCaltype}: Props) {
 
 
   const hasFilters = () => {
-    return filters.categories.length || filters.types.length || filters.status.length || filters.staff.length
+    return filters.categories.length || filters.types.length || filters.campus.length || filters.status.length || filters.staff.length
   }
 
 
@@ -283,9 +288,7 @@ export function Calendar({setCaltype}: Props) {
                               { Object.keys(cell.events).map((ts) => {
                                 const event = cell.events[ts]
                                 return (
-                                  <div key={event.id}>                            
-                                    <CalendarTease celldate={cell.date} event={event} setSelectedEvent={setSelectedEvent}/>
-                                  </div>
+                                  <CalendarTease key={event.id} celldate={cell.date} event={event} setSelectedEvent={setSelectedEvent}/>
                                 )})
                               }
                             </ul>

@@ -136,7 +136,7 @@ export function Approval({
         { approval.status == '0' && approval.skip == '0' && approval.selectable
           ? approval.nominated
             ? <div className="flex gap-1 items-center">
-                <Avatar onClick={open} className="cursor-pointer" alt="Nominated approver" title="Nominated approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.nominated} radius="xl"><IconUser size={14} /></Avatar> 
+                <Avatar onClick={open} className="cursor-pointer" alt="Nominated approver" title="Nominated approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.nominated} radius="xl"><IconUser /></Avatar> 
                 {approval.description}
                 <ActionIcon variant="transparent"><IconPencil onClick={() => unsetNominated(approval.id)} className="size-4" /></ActionIcon>
               </div>
@@ -157,11 +157,11 @@ export function Approval({
       <div className="flex items-center gap-2">
         {!approval.selectable || approval.username && (approval.status == '1' || approval.skip == '1') // Not a selectable step, or approved
           ? approval.username && (approval.status == '1' || approval.skip == '1') // approved
-            ? <Avatar onClick={open} className="cursor-pointer" alt="Approver" title="Approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.username}><IconUser size={14} /></Avatar>
+            ? <Avatar onClick={open} className="cursor-pointer" alt="Approver" title="Approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.username}><IconUser /></Avatar>
             : !!approval.approvers
                 ? <Avatar.Group onClick={open} className="cursor-pointer">
                     {Object.keys(approval.approvers).slice(0,4).map((approverusername: string, i: number) => {
-                      return <Avatar size={24} key={i} src={'/local/activities/avatar.php?username=' + approverusername}><IconUser size={14} /></Avatar>
+                      return <Avatar size={24} key={i} src={'/local/activities/avatar.php?username=' + approverusername}><IconUser /></Avatar>
                     })}
                     { Object.keys(approval.approvers).length > 4
                       ?<Avatar size={24}>+{Object.keys(approval.approvers).length - 4}</Avatar>
@@ -206,8 +206,8 @@ export function Approval({
          <div className="flex flex-col">
           {Object.keys(approval.approvers).slice(0,4).map((approverusername: string) => {
             return (
-              <div className="flex gap-2 border-b px-4 py-2">
-                <Avatar size={24} key={approverusername} src={'/local/activities/avatar.php?username=' + approverusername}><IconUser size={14} /></Avatar>
+              <div key={approverusername} className="flex gap-2 border-b px-4 py-2">
+                <Avatar size={24} key={approverusername} src={'/local/activities/avatar.php?username=' + approverusername}><IconUser /></Avatar>
                 <Text>{approval.approvers[approverusername].fullname}</Text>
               </div>
             )

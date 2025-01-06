@@ -31,10 +31,10 @@ export function Dashboard() {
     <>
       <Header />
       <div className="page-wrapper">
-        <Container size="xl" className="w-full max-w-full p-0">
+        
         
           { getConfig().roles.includes("staff") 
-            ? <>
+            ? <Container size="xl" className="w-full max-w-full p-0">
                 <Grid grow gutter={0}>
                     <Grid.Col span={{ base: 12, lg: 9 }} className="border-r min-h-screen bg-white pb-6">
                       { caltype == 'calendar'
@@ -43,16 +43,26 @@ export function Dashboard() {
                       }
                   </Grid.Col>
                   <Grid.Col span={{ base: 12, lg: 3 }}>
-                    <MyActivities />
+                    <div>
+                      <div className='bg-white border-b p-4'>
+                        <span className="text-base">My upcoming activities</span>
+                      </div>
+                      <MyActivities />
+                    </div>
                   </Grid.Col>
                 </Grid>
-              </>
-            : <>
-                <MyActivities />
-              </>
+                </Container>
+            : <Container size="xl" className="p-4">
+                <div className='bg-white border rounded-t p-4'>
+                  <span className="text-base">My upcoming activities</span>
+                </div>
+                <div className="border-x">
+                  <MyActivities />
+                </div>
+              </Container>
           }
 
-        </Container>
+        
 
 
 

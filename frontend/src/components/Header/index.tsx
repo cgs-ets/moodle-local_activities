@@ -26,7 +26,7 @@ export function Header() {
   return (
   <>
     <Box bg={getConfig().headerbg}>
-      <Container size="xl">
+      <div className="px-6">
         <Group h={54} justify="space-between">
           <Group gap="md">
             <Link to="/" style={{ textDecoration: 'none' }}>
@@ -54,7 +54,7 @@ export function Header() {
           </div>
           
         </Group>
-      </Container>
+      </div>
       {false && getConfig().headerlogourl &&
         <div className="hidden 3xl:block absolute left-0 top-0 h-[54px]">
           <a href="/"><img className="h-full" src={getConfig().headerlogourl} /></a>

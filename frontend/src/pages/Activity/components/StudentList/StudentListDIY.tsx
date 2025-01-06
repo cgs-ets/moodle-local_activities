@@ -224,7 +224,7 @@ export function StudentListDIY() {
                           <div className='flex h-11 items-center bg-[#f8f9fa] border-b ps-4'>
                             <div className='w-12'><Checkbox onChange={(event) => handleGlobalAction(event.currentTarget.checked)} size="xs" checked={allSelected()} indeterminate={someSelected()} /></div>
                             <div className='w-48 font-semibold'>Student</div>
-                            <div className='flex-1 font-semibold'>Permissions</div>
+                            {columns[1] ? <div className='flex-1 font-semibold'>Permissions</div> : null }
                           </div>
                         </div>
 
@@ -233,10 +233,10 @@ export function StudentListDIY() {
                           {filteredStudents.map((student) => {
                             const selected = Object.keys(rowSelection).includes(student.un)
                             return <>
-                              <div onClick={() => handleStudentSelect(student)} className={cn('flex h-11 items-center border-b ps-4 cursor-pointer', selected ? 'bg-[rgba(34,139,230,0.1)]' : '')}>
+                              <div key={student.un} onClick={() => handleStudentSelect(student)} className={cn('flex h-11 items-center border-b ps-4 cursor-pointer', selected ? 'bg-[rgba(34,139,230,0.1)]' : '')}>
                                 <div className='w-12'><Checkbox size="xs" checked={selected} onChange={() => {}} /></div>
-                                <div className='w-48'>{columns[0].accessorFn(student)}</div>
-                                <div className='flex-1'>{columns[1].accessorFn(student)}</div>
+                                <div className='w-48'>{columns[0]?.accessorFn(student)}</div>
+                                <div className='flex-1'>{columns[1]?.accessorFn(student)}</div>
                               </div>
                             </>
                           })}
