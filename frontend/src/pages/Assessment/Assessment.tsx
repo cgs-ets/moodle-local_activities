@@ -21,10 +21,11 @@ interface Module {
 
 interface FormData {
   id: string;
-  course: string;
+  courseid: string;
   module: Module | null;
+  cmid: string;
   name: string;
-  duedate: string;
+  timedue: string;
 }
 
 export function Assessment() {
@@ -36,10 +37,11 @@ export function Assessment() {
   const [error, setError] = useState<string>("")
   const [formData, setFormData] = useState<FormData>({
     id: id ?? "",
-    course: "",
+    courseid: "",
     module: null,
+    cmid: "",
     name: "",
-    duedate: "",
+    timedue: dayjs().unix().toString(),
   })
   const [courses, setCourses] = useState([])
   const [modules, setModules] = useState<Module[]>([])
@@ -71,10 +73,9 @@ export function Assessment() {
 
 
   const getAssessment = async () => {
-
     const fetchResponse = await api.call({
       query: {
-        methodname: 'local_activities-get_activity',
+        methodname: 'local_activities-get_assessment',
         id: id,
       }
     })
@@ -95,7 +96,7 @@ export function Assessment() {
         editable: false,
       } as ViewStateProps)
     }
-    document.title = fetchResponse.data.assessmentname
+    document.title = fetchResponse.data.name
     const data = {
       ...fetchResponse.data,
       timecreated: Number(fetchResponse.data.timecreated) ? fetchResponse.data.timecreated : dayjs().unix(),
@@ -155,6 +156,9 @@ export function Assessment() {
       loading: false,
     })
 
+    formData.name = formData.name ? formData.name : formData.module ? formData.module.label : ""
+    formData.cmid = formData.module?.value ?? ''
+
     //return
     submitAjax({
       method: "POST", 
@@ -167,24 +171,24 @@ export function Assessment() {
 
 
   useEffect(() => {
-    if (!formData.course) {
+    if (!formData.courseid) {
       return
     }
     getModules()
-  }, [formData.course])
+  }, [formData.courseid])
 
 
   const getModules = async () => {
     setModules([])
     updateField('module', null)
-    if (!formData.course) {
+    if (!formData.courseid) {
       return
     }
     setModulesLoading(true)
     const fetchResponse = await api2.call({
       query: {
         methodname: 'local_activities-get_modules',
-        courseid: formData.course,
+        courseid: formData.courseid,
       }
     })
     setModulesLoading(false)
@@ -193,6 +197,7 @@ export function Assessment() {
     }
     if (fetchResponse?.data) {
       setModules(fetchResponse.data)
+      updateField('module', moduleById(formData.cmid))
     }
   }
 
@@ -239,8 +244,8 @@ export function Assessment() {
                           <Select
                             label="Course"
                             data={courses}
-                            value={formData.course}
-                            onChange={(e) => updateField('course', e)}
+                            value={formData.courseid}
+                            onChange={(e) => updateField('courseid', e)}
                             readOnly={viewStateProps.readOnly}
                             allowDeselect={false}
                           />
@@ -256,7 +261,7 @@ export function Assessment() {
                               leftSection={modulesLoading ? <Loader size="xs" /> : null}
                             />
 
-                            { !!formData.course && !!formData.module
+                            { !!formData.courseid && !!formData.module
                               ? <>
                                   <Anchor
                                     href={formData.module.url}
@@ -275,8 +280,8 @@ export function Assessment() {
                           <div>
                             <Text fz="sm" mb="5px" fw={500} c="#212529">Due date</Text>
                             <DateTimePicker 
-                              value={dayjs.unix(Number(formData.duedate))}
-                              onChange={(newValue) => updateField('duedate', (newValue?.unix() ?? 0).toString())}
+                              value={dayjs.unix(Number(formData.timedue))}
+                              onChange={(newValue) => updateField('timedue', (newValue?.unix() ?? 0).toString())}
                               views={['day', 'month', 'year', 'hours', 'minutes']}
                               readOnly={viewStateProps.readOnly}
                               slotProps={{

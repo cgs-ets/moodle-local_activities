@@ -10,6 +10,14 @@ use \local_activities\lib\activities_lib;
 
 class assessments_lib {
 
+    public static function get($id) {
+        global $DB;
+
+        $assessment = $DB->get_record('activity_assessments', array('id' => $id));
+
+        return $assessment;
+    }
+
     public static function get_courses() {
         global $DB;
 
@@ -51,7 +59,7 @@ class assessments_lib {
 
 
     public static function get_modules($courseid) {
-        global $DB, $USER, $PAGE;
+        global $DB;
 
         $modules = array();
 
@@ -73,15 +81,16 @@ class assessments_lib {
     public static function save_from_data($data) {
         global $DB, $USER;
 
-        $data = (array) $data;
+        $data->creator = $USER->id;
+        $data->timecreated = time();
+        $data->timemodified = time();
+        //var_export($data); exit;   
 
-        $data['userid'] = $USER->id;
-        $data['timecreated'] = time();
-        $data['timemodified'] = time();
+        $id = $DB->insert_record('activity_assessments', (object) $data);
 
-        $DB->insert_record('activities_assessments', (object) $data);
-
-        return true;
+        return array(
+            'id' => $id,
+        );
     }
 
 

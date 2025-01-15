@@ -37,11 +37,19 @@ trait assessments_api {
      *
      * @return array
      */
-    static public function post_assessment() {
+    static public function post_assessment($args) {
         return assessments_lib::save_from_data( (object) $args);
     }
 
-    
+    /**
+     * Get assessment
+     *
+     * @return array
+     */
+    static public function get_assessment() {
+        $id = required_param('id', PARAM_INT);
+        return assessments_lib::get($id);
+    }
 
 
 }

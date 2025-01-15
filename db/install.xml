@@ -78,7 +78,7 @@
     </TABLE>
 
 
-    <TABLE NAME="activities_assessments" COMMENT="">
+    <TABLE NAME="activity_assessments" COMMENT="">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>

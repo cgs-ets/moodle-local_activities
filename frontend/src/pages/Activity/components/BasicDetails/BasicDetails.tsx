@@ -80,7 +80,7 @@ export function BasicDetails() {
               className="border"
               readOnly={viewStateProps.readOnly}
             />
-            <NavLink to="/assessment" className="flex"><Anchor className="text-sm flex items-center gap-1 flex-nowrap">Assessment <IconExternalLink className="size-4 stroke-1" /></Anchor></NavLink>
+            <NavLink replace={false} to="/assessment" className="flex"><Text className="text-blue-500 text-sm flex items-center gap-1 flex-nowrap">Assessment <IconExternalLink className="size-4 stroke-1" /></Text></NavLink>
 
           </div>
           <div className="pt-2 pl-1 text-sm">
