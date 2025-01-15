@@ -3,7 +3,10 @@ import { Link } from "react-router-dom";
 import { statuses } from "../../../../utils";
 import { useFormStore } from '../../../../stores/formStore';
 
-export function PageHeader() {
+type Props = {
+  entityname: string;
+}
+export function PageHeader(props: Props) {
   const name = useFormStore((state) => (state.activityname))
   const status = useFormStore((state) => (state.status))
 
@@ -15,9 +18,9 @@ export function PageHeader() {
               <Link to="/">
                 <Text c="blue">Calendar</Text>
               </Link>
-              <Text c="gray.6">Activity</Text>
+              <Text c="gray.6">{props.entityname}</Text>
             </Breadcrumbs>
-            <h2 className="page-title">{name ? name : ( status == statuses.draft ? 'New activity' : 'Edit activity') } </h2>
+            <h2 className="page-title">{name ? name : ( status == statuses.draft ? `New ${props.entityname.toLowerCase()}` : `Edit ${props.entityname.toLowerCase()}`) } </h2>
         </Container>
       </div>
     </>

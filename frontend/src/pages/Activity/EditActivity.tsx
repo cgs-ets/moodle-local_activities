@@ -255,7 +255,7 @@ export function EditActivity() {
         { (!error && activityid) || !id ?
           <>
             <Container size="xl">
-              <PageHeader />
+              <PageHeader entityname="Activity" />
             </Container>
             <Container size="xl" my="md">
               <form noValidate onSubmit={handleSubmit}>

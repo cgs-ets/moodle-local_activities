@@ -85,7 +85,7 @@ export function Permission() {
         { activityid && permissions.length
           ? <>
               <Container size="xl">
-                <PageHeader />
+                <PageHeader entityname="Activity" />
               </Container>
               <Container size="xl" my="md">
                 <Grid grow>

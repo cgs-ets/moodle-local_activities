@@ -13,6 +13,7 @@ require_once(__DIR__.'/conflicts.api.php');
 require_once(__DIR__.'/utils.api.php');
 require_once(__DIR__.'/workflow.api.php');
 require_once(__DIR__.'/calendar.api.php');
+require_once(__DIR__.'/assessments.api.php');
 
 class API {
     use \local_activities\api\activities_api;
@@ -20,4 +21,5 @@ class API {
     use \local_activities\api\utils_api;
     use \local_activities\api\workflow_api;
     use \local_activities\api\calendar_api;
+    use \local_activities\api\assessments_api;
 }

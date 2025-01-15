@@ -8,6 +8,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import 'dayjs/locale/en-gb';
 import { EditActivity } from "./pages/Activity/EditActivity";
 import { Permission } from "./pages/Permission/Permission";
+import { Assessment } from "./pages/Assessment/Assessment";
 
 
 
@@ -22,6 +23,14 @@ function App() {
       {
         path: "new", // Matches /new
         element: <EditActivity />,
+      },
+      {
+        path: "assessment", // Matches /assessment
+        element: <Assessment />,
+      },
+      {
+        path: "assessment/:id", // Matches /assessment/<number>
+        element: <Assessment />,
       },
       {
         path: ":id", // Matches /<number>

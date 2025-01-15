@@ -7,10 +7,10 @@ import { User } from '../../../types/types';
 export function ActivityDetails({activity}: {activity: Form}) {
 
   const details = [
-    {
-      label: "Type",
-      value: activity.activitytype.charAt(0).toUpperCase() + String(activity.activitytype).slice(1),
-    },
+    //{
+    //  label: "Type",
+    //  value: activity.activitytype.charAt(0).toUpperCase() + String(activity.activitytype).slice(1),
+    //},
     {
       label: "Location",
       value: activity.location,
@@ -21,7 +21,7 @@ export function ActivityDetails({activity}: {activity: Form}) {
     },
     {
       label: "Cost",
-      value: activity.cost,
+      value: Number(activity.cost) ? activity.cost : '',
     },
   ]
 

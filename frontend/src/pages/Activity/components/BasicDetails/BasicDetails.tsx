@@ -11,6 +11,8 @@ import { useDisclosure } from "@mantine/hooks";
 import { Conflicts } from "../Conflicts/Conflicts";
 import { isActivity } from "../../../../utils/utils";
 import { useStateStore } from "../../../../stores/stateStore";
+import { Link as NavLink } from "react-router-dom";
+
 
 export function BasicDetails() {
 
@@ -74,12 +76,11 @@ export function BasicDetails() {
                 { value: 'incursion', label: 'Incursion' },
                 { value: 'calendar', label: 'Calendar entry' },
                 { value: 'commercial', label: 'Commercial' },
-                //{ value: 'assessment', label: 'Assessment' },
               ]}
               className="border"
               readOnly={viewStateProps.readOnly}
             />
-            <Anchor className="text-sm flex items-center gap-1 flex-nowrap" href={""}>Assessment <IconExternalLink className="size-4 stroke-1" /></Anchor>
+            <NavLink to="/assessment" className="flex"><Anchor className="text-sm flex items-center gap-1 flex-nowrap">Assessment <IconExternalLink className="size-4 stroke-1" /></Anchor></NavLink>
 
           </div>
           <div className="pt-2 pl-1 text-sm">
