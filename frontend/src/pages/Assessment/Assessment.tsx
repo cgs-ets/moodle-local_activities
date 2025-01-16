@@ -8,10 +8,10 @@ import { useAjax } from "../../hooks/useAjax";
 import { Header } from "../../components/Header";
 import { cn } from "../../utils/utils";
 import { Anchor, Box, Button, Card, Center, Container, Grid, Loader, NavLink, Select, Text, TextInput } from "@mantine/core";
-import { PageHeader } from "../Activity/components/PageHeader";
 import { Footer } from "../../components/Footer";
 import { DateTimePicker } from "@mui/x-date-pickers";
 import { IconCloudUp, IconExternalLink } from "@tabler/icons-react";
+import { PageHeader } from "./components/PageHeader";
 
 interface Module {
   value: string;
@@ -19,13 +19,15 @@ interface Module {
   url: string;
 }
 
-interface FormData {
+export interface AssessmentData {
   id: string;
   courseid: string;
   module: Module | null;
   cmid: string;
   name: string;
+  url: string;
   timedue: string;
+  course?: any;
 }
 
 export function Assessment() {
@@ -35,19 +37,20 @@ export function Assessment() {
   const updateViewStateProps = useStateStore((state) => (state.updateViewStateProps))
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
   const [error, setError] = useState<string>("")
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<AssessmentData>({
     id: id ?? "",
     courseid: "",
     module: null,
     cmid: "",
     name: "",
+    url: "",
     timedue: dayjs().unix().toString(),
   })
   const [courses, setCourses] = useState([])
   const [modules, setModules] = useState<Module[]>([])
+  const [coursesLoading, setCoursesLoading] = useState<boolean>(false)
   const [modulesLoading, setModulesLoading] = useState<boolean>(false)
   const [submitResponse, submitError, submitLoading, submitAjax, setSubmitData] = useAjax(); // destructure state and fetch function
-
 
   useEffect(() => {
     document.title = 'Manage Assessment'
@@ -79,6 +82,7 @@ export function Assessment() {
         id: id,
       }
     })
+    console.log("Assessment", fetchResponse)
     if (fetchResponse.error) {
       setError(fetchResponse.exception?.message ?? "Error")
       return
@@ -107,6 +111,7 @@ export function Assessment() {
   }
 
   const getCourses = async () => {
+    setCoursesLoading(true)
     const fetchResponse = await api2.call({
       query: {
         methodname: 'local_activities-get_courses',
@@ -118,6 +123,7 @@ export function Assessment() {
     if (fetchResponse?.data) {
       setCourses(fetchResponse.data)
     }
+    setCoursesLoading(false)
   }
 
   const updateField = (name: string, value: any) => {
@@ -156,8 +162,9 @@ export function Assessment() {
       loading: false,
     })
 
-    formData.name = formData.name ? formData.name : formData.module ? formData.module.label : ""
+    formData.name = formData.name ? formData.name : formData.module ? formData.module.label : ''
     formData.cmid = formData.module?.value ?? ''
+    formData.url = formData.module?.url ?? ''
 
     //return
     submitAjax({
@@ -197,7 +204,7 @@ export function Assessment() {
     }
     if (fetchResponse?.data) {
       setModules(fetchResponse.data)
-      updateField('module', moduleById(formData.cmid))
+      updateField('module', fetchResponse.data.find((obj: Module) => obj.value === formData.cmid))
     }
   }
 
@@ -232,7 +239,7 @@ export function Assessment() {
         { (!error && formData.id ) || !id ?
           <>
             <Container size="xl">
-              <PageHeader entityname="Assessment" />
+              <PageHeader name={formData.name} />
             </Container>
             <Container size="xl" my="md">
               <form noValidate onSubmit={handleSubmit}>
@@ -248,6 +255,7 @@ export function Assessment() {
                             onChange={(e) => updateField('courseid', e)}
                             readOnly={viewStateProps.readOnly}
                             allowDeselect={false}
+                            leftSection={coursesLoading ? <Loader size="xs" /> : null}
                           />
 
                           <div>
@@ -269,7 +277,7 @@ export function Assessment() {
                                     rel="noreferrer"
                                     className="mt-2 text-sm inline-flex gap-1"
                                   >
-                                    Open module in course <IconExternalLink className="size-4 stroke-1" />
+                                    View module in course <IconExternalLink className="size-4 stroke-1" />
                                   </Anchor>
                                 </>
                               : null

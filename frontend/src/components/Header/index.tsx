@@ -34,7 +34,8 @@ export function Header() {
             </Link>
           </Group>
           <div className="flex items-center gap-4">
-            <Anchor className="text-white hover:no-underline mr-4 text-sm font-semibold" href="/">{getConfig().sitename}</Anchor>
+            <Anchor className="text-white hover:no-underline mr-4 text-md font-normal" href="/local/activities/assessments">Assessments</Anchor>
+            <Anchor className="text-white hover:no-underline mr-4 text-md font-normal" href="/">{getConfig().sitename}</Anchor>
             { getConfig().roles.includes('staff') 
               ? <Button component={Link} to="/new" size="compact-md" radius="lg" color="blue" leftSection={<IconPlus size={20} />}>Create new</Button> : null
             }

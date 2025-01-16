@@ -166,7 +166,7 @@ export function CalendarFlow({
 
 
         { showSyncs() &&
-          <div className="relative flex flex-col text-sm">
+          <div className="relative flex flex-col text-sm border-t">
             {syncs.map((sync: any, i) => {
               return(
                 <div key={i} className="flex justify-between items-center gap-2 border-b px-4 h-10 xbg-[#d4edda]">

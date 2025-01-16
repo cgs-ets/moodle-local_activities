@@ -9,6 +9,7 @@ import 'dayjs/locale/en-gb';
 import { EditActivity } from "./pages/Activity/EditActivity";
 import { Permission } from "./pages/Permission/Permission";
 import { Assessment } from "./pages/Assessment/Assessment";
+import { Assessments } from "./pages/Assessment/Assessments";
 
 
 
@@ -23,6 +24,10 @@ function App() {
       {
         path: "new", // Matches /new
         element: <EditActivity />,
+      },
+      {
+        path: "assessments", // Matches /assessments
+        element: <Assessments />,
       },
       {
         path: "assessment", // Matches /assessment

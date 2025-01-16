@@ -269,7 +269,6 @@ class calendar_lib {
 
 		//default args
         $year_now = $year = date('Y');
-		$mode = 'daily';
 		$long_events = true;
 		$type = 'list';
 		
@@ -314,11 +313,6 @@ class calendar_lib {
 			if ( $args['term'] >= 1 && $args['term'] <= 4 ) {
 				$term = $args['term'];
 			}
-		}
-
-		// Get mode of grouping if provided. Will only ever use daily in initial version.
-		if( ! empty($args['mode']) ) {
-			$mode = $args['mode'];
 		}
 
 		// Get long events if provided.
@@ -389,46 +383,42 @@ class calendar_lib {
 			return $events_array;
 		}
 
-		switch ( $mode ){
-			default: //daily
-				//go through the events and put them into a daily array
-				$events_dates = array();
-				foreach($events as $event){
-					$event_start_date = $event->timestart;
-					$event_eventful_date = date('Y-m-d', $event_start_date);
+        //go through the events and put them into a daily array
+        $events_dates = array();
+        foreach($events as $event){
+            $event_start_date = $event->timestart;
+            $event_eventful_date = date('Y-m-d', $event_start_date);
 
-					$in_scope = strtotime($event_eventful_date) >= strtotime($scope_datetime_start->format('Y-m-d'));
-					
-					$past = $event->timeend < time() ? true : false;
-					if ($past) { 
-						continue; 
-					}
+            $in_scope = strtotime($event_eventful_date) >= strtotime($scope_datetime_start->format('Y-m-d'));
+            
+            $past = $event->timeend < time() ? true : false;
+            if ($past) { 
+                continue; 
+            }
 
 
-					$currently_on = (!$past) && ($event->timestart < time()) ? true : false;
-					if( $currently_on ) {
-						$events_dates['current'][$event_eventful_date][] = $event;
-					} else {
-						if ($in_scope) {
-							$events_dates['upcoming'][$event_eventful_date][] = $event;
-						}
-					}
+            $currently_on = (!$past) && ($event->timestart < time()) ? true : false;
+            if( $currently_on ) {
+                $events_dates['current'][$event_eventful_date][] = $event;
+            } else {
+                if ($in_scope) {
+                    $events_dates['upcoming'][$event_eventful_date][] = $event;
+                }
+            }
 
-					//if long events requested, add event to other dates too
-					if( (!$currently_on) && $long_events && date('Y-m-d', $event->timeend) != date('Y-m-d', $event->timestart) ) {
-						$tomorrow = $event_start_date + 86400;
-						while( $tomorrow <= $event->timeend && $tomorrow <= strtotime($scope_datetime_end->format('Y-m-d h:i:s')) ){
-							$event_eventful_date = date('Y-m-d', $tomorrow);
-							$in_scope = strtotime($event_eventful_date) >= strtotime($scope_datetime_start->format('Y-m-d'));
-							if ($in_scope) {
-								$events_dates['upcoming'][$event_eventful_date][] = $event;
-							}
-							$tomorrow = $tomorrow + 86400;
-						}
-					}
-				}
-				break;
-		}
+            //if long events requested, add event to other dates too
+            if( (!$currently_on) && $long_events && date('Y-m-d', $event->timeend) != date('Y-m-d', $event->timestart) ) {
+                $tomorrow = $event_start_date + 86400;
+                while( $tomorrow <= $event->timeend && $tomorrow <= strtotime($scope_datetime_end->format('Y-m-d h:i:s')) ){
+                    $event_eventful_date = date('Y-m-d', $tomorrow);
+                    $in_scope = strtotime($event_eventful_date) >= strtotime($scope_datetime_start->format('Y-m-d'));
+                    if ($in_scope) {
+                        $events_dates['upcoming'][$event_eventful_date][] = $event;
+                    }
+                    $tomorrow = $tomorrow + 86400;
+                }
+            }
+        }
 
 		foreach($events_dates as $period_key => $days) {
 			foreach($events_dates[$period_key] as $day_key => $events) {

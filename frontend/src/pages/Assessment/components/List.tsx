@@ -2,16 +2,15 @@ import { ActionIcon, Button, Card, Loader, LoadingOverlay, Select, Text } from "
 import { IconAdjustments, IconArrowNarrowLeft, IconArrowNarrowRight, IconCalendarDue, IconCalendarWeek, IconListDetails, IconX } from "@tabler/icons-react";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
-import useFetch from "../../../hooks/useFetch";
-import { EventModal } from "./EventModal";
-import { Form } from "../../../stores/formStore";
 import { useSearchParams } from "react-router-dom";
-import { FilterModal } from "./FilterModal";
 import { useDisclosure } from "@mantine/hooks";
 import { useFilterStore } from "../../../stores/filterStore";
-import { ListTease } from "./ListTease";
-import { User } from "../../../types/types";
 import { getMonthFromTerm, getTermFromMonth } from "../../../utils/utils";
+import useFetch from "../../../hooks/useFetch";
+import { AssessmentData } from "../Assessment";
+import { User } from "../../../types/types";
+import { ListTease } from "./ListTease";
+import { FilterModal } from "./FilterModal";
 
 type TermYear = {
   term: string,
@@ -61,7 +60,7 @@ export function List({setCaltype}: Props) {
     }
   })
 
-  const [selectedEvent, setSelectedEvent] = useState<Form|null>(null)
+  const [selected, setSelected] = useState<AssessmentData|null>(null)
 
   // If search params change, update the date.
   useEffect(() => {
@@ -81,7 +80,7 @@ export function List({setCaltype}: Props) {
     startLoading()
     const res = await getCalendarAPI.call({
       query: {
-        methodname: 'local_activities-get_cal',
+        methodname: 'local_activities-get_assessments',
         type: 'list',
         term: date.term,
         year: date.year,
@@ -139,9 +138,13 @@ export function List({setCaltype}: Props) {
   }
 
   const filterEvents = (days: any[]) => {
+    //return days;
     const filterStaff = filters.staff.map((u: string) => JSON.parse(u).un)
     return days.map((day: any) => {
       const filteredEvents = day.events.filter((event: any) => {
+
+
+        /*
         const eventCategories = JSON.parse(event.categoriesjson || '[]') as string[];
   
         const matchesCategory =
@@ -159,14 +162,14 @@ export function List({setCaltype}: Props) {
         const matchesStatus =
           filters.status.length === 0 || 
           filters.status.includes(event.status.toString());
+        */
   
-        const eventStaff = [event.staffincharge, ...JSON.parse(event.planningstaffjson).map((u: User) => u.un), ...JSON.parse(event.accompanyingstaffjson).map((u: User) => u.un)]
-        const uniqueEventStaff = [...new Set(eventStaff.filter(item => item.trim() !== ""))];
+        const eventStaff = [event.creator.un]
         const matchesStaff =
           filterStaff.length === 0 || 
-          filterStaff.some((staff) => uniqueEventStaff.includes(staff));
+          filterStaff.some((staff) => eventStaff.includes(staff));
 
-        return matchesCategory && matchesType && matchesCampus && matchesStatus && matchesStaff;
+        return matchesStaff;
 
       });
       return { ...day, events: filteredEvents, events_count: filteredEvents.length };
@@ -191,8 +194,6 @@ export function List({setCaltype}: Props) {
         upcoming: filteredUpcoming,
       },
     };
-    
-    console.log(newList)
   
     return newList
   }, [filters, list]);
@@ -210,14 +211,7 @@ export function List({setCaltype}: Props) {
           <ActionIcon onClick={() => handleNav(-1)} variant="subtle" size="lg"><IconArrowNarrowLeft className="size-7" /></ActionIcon>
 
           <div className="text-xl font-semibold flex gap-2 items-center">
-            <div className="mr-2 flex items-center gap-2">
-              <ActionIcon onClick={() => setCaltype('calendar')} variant="light" className="size-8"  >
-                <IconCalendarWeek stroke={1.5} />
-              </ActionIcon>
-              <ActionIcon onClick={() => setCaltype('list')} variant="light" className="size-8"  >
-                <IconListDetails stroke={1.5} />
-              </ActionIcon>
-            </div>
+
             <Select
               placeholder="Term"
               data={[
@@ -245,7 +239,7 @@ export function List({setCaltype}: Props) {
 
 
             <div className="ml-2 flex items-center gap-2 ">
-            <Button onClick={goToToday} variant="light" aria-label="Filters" className="h-8" size="compact-md">Today</Button>
+              <Button onClick={goToToday} variant="light" aria-label="Filters" className="h-8" size="compact-md">Today</Button>
               { hasFilters() 
                 ? <div className="flex">
                     <Button color="orange" onClick={() => openFilter()} variant="light" aria-label="Filters" size="compact-md" leftSection={<IconAdjustments size={20} />} className="h-8 rounded-r-none">Filters on</Button>
@@ -278,7 +272,7 @@ export function List({setCaltype}: Props) {
         }
 
         { !loading && !filteredList.days.current.length && !filteredList.days.upcoming.length &&
-          <div className="text-base italic p-6">No events in selected period. {hasFilters() ? "Try removing filters." : ""}</div>
+          <div className="text-base italic p-6">No assessments in selected period. {hasFilters() ? "Try removing filters." : ""}</div>
         }
 
         <Card className="ev-calendar list-calendar rounded-none" p={0}>
@@ -297,9 +291,9 @@ export function List({setCaltype}: Props) {
                 : <Text className="font-semibold text-lg px-4 py-2 border-t">Started on {dayjs.unix(Number(day.date)).format("D MMM")}</Text>
               }
               <div>
-                {day.events.map((event: any) => (
-                  <div key={event.id}>
-                    <ListTease celldate={day.date} event={event} setSelectedEvent={setSelectedEvent}/>
+                {day.events.map((assessment: any) => (
+                  <div key={assessment.id}>
+                    <ListTease assessment={assessment} setSelected={setSelected}/>
                   </div>
                 ))}
               </div>
@@ -322,9 +316,9 @@ export function List({setCaltype}: Props) {
                 : <Text className="font-semibold text-lg px-4 py-2 border-t">{dayjs.unix(Number(day.date)).format("ddd, D MMM YYYY")}</Text>
               }
               <ul>
-                {day.events.map((event: any) => (
-                  <div key={event.id}>
-                    <ListTease celldate={day.date} event={event} setSelectedEvent={setSelectedEvent}/>
+              {day.events.map((assessment: any) => (
+                  <div key={assessment.id}>
+                    <ListTease assessment={assessment} setSelected={setSelected}/>
                   </div>
                 ))}
               </ul>
@@ -334,9 +328,8 @@ export function List({setCaltype}: Props) {
       </div>
 
 
-      <EventModal activity={selectedEvent} close={() => setSelectedEvent(null)} />
-
       <FilterModal opened={filterOpened} filters={filters} setFilters={setFilters} close={() => closeFilter()} />
+
 
 
     </div>

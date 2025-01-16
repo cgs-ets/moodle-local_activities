@@ -344,7 +344,6 @@ class activities_lib {
      *
      * @param int $activityid
      * @param array $newstudents
-     * @param string $source
      * @return void
      */   
     public static function sync_students_from_data($activityid, $newstudents) {
@@ -368,7 +367,7 @@ class activities_lib {
 
         // Process inserted students.
         if (count($newstudents)) {
-            $newstudentdata = array_map(function($username) use ($activityid, $source) {
+            $newstudentdata = array_map(function($username) use ($activityid) {
                 $rec = new \stdClass();
                 $rec->activityid = $activityid;
                 $rec->username = $username;

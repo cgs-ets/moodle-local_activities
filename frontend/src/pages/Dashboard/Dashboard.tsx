@@ -31,8 +31,6 @@ export function Dashboard() {
     <>
       <Header />
       <div className="page-wrapper">
-        
-        
           { getConfig().roles.includes("staff") 
             ? <Container size="xl" className="w-full max-w-full p-0">
                 <Grid grow gutter={0}>
@@ -61,14 +59,7 @@ export function Dashboard() {
                 </div>
               </Container>
           }
-
-        
-
-
-
-
       </div>
-
     </>
   );
 };

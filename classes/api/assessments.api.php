@@ -51,5 +51,18 @@ trait assessments_api {
         return assessments_lib::get($id);
     }
 
+    static public function get_assessments() {
+        $type = required_param('type', PARAM_RAW);
+        $month = optional_param('month', '', PARAM_ALPHANUMEXT);
+        $year = optional_param('year', '', PARAM_ALPHANUMEXT);
+        $term = optional_param('term', '', PARAM_ALPHANUMEXT);
+        return assessments_lib::get_cal([
+            'type' => $type,
+            'month' => $month,
+            'year' => $year,
+            'term' => $term,
+        ]);
+    }
+
 
 }
