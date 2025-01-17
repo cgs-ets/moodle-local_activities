@@ -3,7 +3,6 @@ import { Header } from "../../components/Header";
 import { getConfig } from "../../utils";
 import { Container } from "@mantine/core";
 import { useSearchParams } from "react-router-dom";
-import { Calendar } from "../Dashboard/components/Calendar";
 import { List } from "./components/List";
 
 export function Assessments() {

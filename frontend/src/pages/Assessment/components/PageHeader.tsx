@@ -17,9 +17,9 @@ export function PageHeader(props: Props) {
               <Link to="/assessments">
                 <Text c="blue">Assessments</Text>
               </Link>
-              <Text c="gray.6">Entry</Text>
+              <Text c="gray.6">{props.name ? props.name : `Entry` }</Text>
             </Breadcrumbs>
-            <h2 className="page-title">{props.name ? props.name : `New assessment` } </h2>
+            <h2 className="page-title">{props.name ? props.name : `New assessment` }</h2>
         </Container>
       </div>
     </>

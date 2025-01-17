@@ -26,6 +26,19 @@ class assessments_lib {
         return $assessment;
     }
 
+    public static function get_course_cats() {
+        global $DB;
+
+        // Get courses under Senior Academic
+        $courses = array();
+        $cat = $DB->get_record('course_categories', array('idnumber' => 'SEN-ACADEMIC'));
+        if ($cat) {
+            $cat = \core_course_category::get($cat->id);
+            $cats = $cat->get_children();
+            var_export($cats); exit;
+        }
+    }
+
     public static function get_courses() {
         global $DB;
 

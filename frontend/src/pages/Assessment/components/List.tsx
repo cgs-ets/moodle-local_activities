@@ -141,8 +141,12 @@ export function List({setCaltype}: Props) {
     //return days;
     const filterStaff = filters.staff.map((u: string) => JSON.parse(u).un)
     return days.map((day: any) => {
+
       const filteredEvents = day.events.filter((event: any) => {
 
+        const matchesCourse =
+        filters.courses.length === 0 ||
+        filters.courses.some((course) => event.courseid == course.split("|")[0]);
 
         /*
         const eventCategories = JSON.parse(event.categoriesjson || '[]') as string[];
@@ -169,7 +173,7 @@ export function List({setCaltype}: Props) {
           filterStaff.length === 0 || 
           filterStaff.some((staff) => eventStaff.includes(staff));
 
-        return matchesStaff;
+        return matchesStaff && matchesCourse;
 
       });
       return { ...day, events: filteredEvents, events_count: filteredEvents.length };
@@ -211,7 +215,7 @@ export function List({setCaltype}: Props) {
           <ActionIcon onClick={() => handleNav(-1)} variant="subtle" size="lg"><IconArrowNarrowLeft className="size-7" /></ActionIcon>
 
           <div className="text-xl font-semibold flex gap-2 items-center">
-
+            <div className="mr-2 underline decoration-wavy decoration-sky-500">Assessments</div>
             <Select
               placeholder="Term"
               data={[

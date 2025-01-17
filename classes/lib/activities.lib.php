@@ -117,6 +117,8 @@ class activities_lib {
             'cost' => $rec->cost,
             'staffinchargejson' => $rec->staffinchargejson,
             'description' => $rec->description,
+            'statushelper' => $rec->statushelper,
+            'status' => $rec->status,
         ];
     }
 
@@ -317,7 +319,7 @@ class activities_lib {
 
         // Process inserted staff.
         if (count($newstaff)) {
-            $newstaffdata = array_map(function($staff) use ($activityid, $type, $source) {
+            $newstaffdata = array_map(function($staff) use ($activityid, $type) {
                 $rec = new \stdClass();
                 $rec->activityid = $activityid;
                 $rec->username = $staff['un'];

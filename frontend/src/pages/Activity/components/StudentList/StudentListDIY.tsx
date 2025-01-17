@@ -59,9 +59,10 @@ export function StudentListDIY() {
 
   const insertStudents = (students: User[]) => {
     // Deduplicate.
-    const newStudents = students.filter(student => !studentlist.map(u => u.username).includes(student.un))
-
-    setState({['studentlist']: newStudents} as Form)
+    const newStudents = students.filter(student => !studentlist.map(u => u.un).includes(student.un))
+    console.log('existing', studentlist)
+    console.log('new students', newStudents)
+    setState({['studentlist']: [...studentlist, ...newStudents]} as Form)
   }
 
   const removeStudents = () => {
@@ -232,13 +233,13 @@ export function StudentListDIY() {
                         <div>
                           {filteredStudents.map((student) => {
                             const selected = Object.keys(rowSelection).includes(student.un)
-                            return <>
+                            return (
                               <div key={student.un} onClick={() => handleStudentSelect(student)} className={cn('flex h-11 items-center border-b ps-4 cursor-pointer', selected ? 'bg-[rgba(34,139,230,0.1)]' : '')}>
                                 <div className='w-12'><Checkbox size="xs" checked={selected} onChange={() => {}} /></div>
                                 <div className='w-48'>{columns[0]?.accessorFn(student)}</div>
                                 <div className='flex-1'>{columns[1]?.accessorFn(student)}</div>
                               </div>
-                            </>
+                            )
                           })}
                         </div>
               

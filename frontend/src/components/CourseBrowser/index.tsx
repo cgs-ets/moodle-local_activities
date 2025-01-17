@@ -49,10 +49,6 @@ export function CourseBrowser({selectedIds, setSelectedIds}: Props) {
   }, [filter, courseList]);
 
 
-  
-  console.log("courseList", courseList)
-
-
   return (
     <Box className="overflow-auto max-h-56">
       <LoadingOverlay loaderProps={{size:"sm"}} visible={isLoading} overlayProps={{blur: 2}} />

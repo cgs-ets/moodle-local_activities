@@ -1,9 +1,10 @@
 import { Button, Card, Checkbox, Modal, Text } from '@mantine/core';
-import { CategoriesModal } from '../../Activity/components/Modals/CategoriesModal/CategoriesModal';
 import { useDisclosure } from '@mantine/hooks';
 import {  IconCategoryFilled, IconFilterX, IconX } from '@tabler/icons-react';
 import { StaffSelector } from '../../Activity/components/StaffDetails/components/StaffSelector/StaffSelector';
 import { User } from '../../../types/types';
+import { CoursesModal } from './CoursesModal';
+import { CategoriesModal } from './CategoriesModal';
 
 type Props = {
   opened: boolean;
@@ -53,20 +54,20 @@ export function FilterModal({opened, filters, setFilters, close}: Props) {
                   <div className='w-36 font-bold'>Courses</div>
 
                   <div>
-                    { !!filters.categories?.length &&
+                    { !!filters.courses?.length &&
                       <>
-                        <Checkbox.Group value={filters.categories} onChange={(values) => handleFilterChange('categories', values)}>
+                        <Checkbox.Group value={filters.courses} onChange={(values) => handleFilterChange('courses', values)}>
                           <div className="flex flex-col gap-1 mb-4">
-                            {filters.categories.map((cat: string) => (
-                              <Checkbox key={cat} value={cat} label={cat.replace('/', ' > ')} />
+                            {filters.courses.map((course: string) => (
+                              <Checkbox key={course} value={course} label={course.split("|")[1]} />
                             ))}
                           </div>
                         </Checkbox.Group>
                       </>
                     }
                     <div className="flex gap-2">
-                      <Button onClick={openCatsModal} size="compact-md" className="rounded-full" variant="light" rightSection={<IconCategoryFilled className="size-5" />}>{filters.categories?.length ? "Change" : "Select"}</Button>
-                      { !!filters.categories?.length && <Button onClick={() => handleFilterChange('categories', [])} size="compact-md" className="rounded-full" variant="light" leftSection={<IconX className="size-5" />}>Clear</Button>}
+                      <Button onClick={openCoursesModal} size="compact-md" className="rounded-full" variant="light" rightSection={<IconCategoryFilled className="size-5" />}>{filters.courses?.length ? "Change" : "Select"}</Button>
+                      { !!filters.courses?.length && <Button onClick={() => handleFilterChange('courses', [])} size="compact-md" className="rounded-full" variant="light" leftSection={<IconX className="size-5" />}>Clear</Button>}
                     </div>
                   </div>
                 
@@ -119,7 +120,7 @@ export function FilterModal({opened, filters, setFilters, close}: Props) {
               </Card>
 
               <div className="flex justify-end pt-0 p-4">
-                <Button onClick={close} type="submit" radius="xl" >Done</Button>
+                <Button onClick={close} type="submit" radius="xl">Done</Button>
               </div>
 
             </Modal.Body>
@@ -128,6 +129,7 @@ export function FilterModal({opened, filters, setFilters, close}: Props) {
       </Modal.Root>
 
       <CategoriesModal categories={filters.categories} opened={catsModalOpened} close={closeCatsModal} handleChange={(cats) => handleFilterChange('categories', cats)} />
+      <CoursesModal courses={filters.courses} opened={coursesModalOpened} close={closeCoursesModal} handleChange={(courses) => handleFilterChange('courses', courses)} />
 </>
 
 

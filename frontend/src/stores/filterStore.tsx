@@ -7,6 +7,7 @@ export type Filters = {
   campus: string[];
   status: string[];
   staff: string[];
+  courses: string[];
 }
 
 type FilterStore = Filters & {
@@ -20,6 +21,7 @@ const defaults: Filters = {
   types: [],
   campus: [],
   staff: [],
+  courses: [],
 };
 
 const useFilterStore = create<FilterStore>((set) => ({
