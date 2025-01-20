@@ -278,7 +278,7 @@ export function EditActivity() {
                     <Status submitLoading={submitLoading} submitError={submitError} submitResponse={submitResponse} />
                     <Workflow activityid={Number(id || 0)} />
                     <NextSteps />
-                    <Conflicts />
+                    { false && <Conflicts /> }
                     <CalendarFlow activityid={Number(id || 0)} />
                     <EmailHistory />
                     <Comments />

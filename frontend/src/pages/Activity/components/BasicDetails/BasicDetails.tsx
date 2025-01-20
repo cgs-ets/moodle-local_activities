@@ -12,6 +12,7 @@ import { Conflicts } from "../Conflicts/Conflicts";
 import { isActivity } from "../../../../utils/utils";
 import { useStateStore } from "../../../../stores/stateStore";
 import { Link as NavLink } from "react-router-dom";
+import { ConflictsInline } from "../Conflicts/ConflictsInline";
 
 
 export function BasicDetails() {
@@ -121,7 +122,7 @@ export function BasicDetails() {
 
         <div>
 
-          <div className="flex gap-4 items-center">
+          <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
             <div>
               <Text fz="sm" mb="5px" fw={500} c="#212529">Start time</Text>
               <DateTimePicker 
@@ -136,12 +137,12 @@ export function BasicDetails() {
                 readOnly={viewStateProps.readOnly}
               />
             </div>
-            <div>
+            <div className="hidden sm:block">
               <span>&nbsp;</span>
               <IconArrowNarrowRight className="size-4" />
             </div>
             <div>
-            <Text fz="sm" mb="5px" fw={500} c="#212529">End time</Text>
+              <Text fz="sm" mb="5px" fw={500} c="#212529">End time</Text>
               <DateTimePicker 
                 value={dayjs.unix(Number(formData.timeend))}
                 onChange={(newValue) => updateField('timeend', (newValue?.unix() ?? 0).toString())}
@@ -154,10 +155,13 @@ export function BasicDetails() {
                 readOnly={viewStateProps.readOnly}
               />
             </div>
+            <div className="hidden sm:block">
+              <span>&nbsp;</span>
+            </div>
+            <ConflictsInline />
           </div>
           {errors.timestart ? <div className="text-red-600 text-sm mt-1">{errors.timestart}</div> : null}
 
-          {false && <Conflicts />}
           
         </div>
 

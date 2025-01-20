@@ -91,7 +91,7 @@ class assessments_lib {
             $modules[] = array(
                 'value' => $cm->id,
                 'label' => $cm->name,
-                'url' => $cm->url->out(false),
+                'url' => !empty($cm->url) ? $cm->url->out(false) : '',
             );
         }
         //var_export($modules); exit;

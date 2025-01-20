@@ -99,7 +99,7 @@ export function Workflow({
         <span className="text-base">Workflow {status == statuses.draft || status == statuses.saved ? "(Not started)" : ""}</span>
       </div>
       
-      <div className="relative flex flex-col xborder-t text-sm">
+      <div className="relative flex flex-col border-t text-sm">
         <LoadingOverlay visible={fetchLoading || fetchDraftLoading} />
         { approvals.length && draftApprovals.length
           ? <div className="z-10 absolute top-0 left-0 w-full h-full xbg-black/40 backdrop-blur-[2px]">

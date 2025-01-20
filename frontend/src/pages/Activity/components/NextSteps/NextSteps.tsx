@@ -16,17 +16,20 @@ export function NextSteps() {
 
 
   return (
-    status == statuses.approved && isActivity(activitytype) && viewStateProps.editable &&
+    //status == statuses.approved && 
+    isActivity(activitytype) && 
+    viewStateProps.editable &&
     <Card withBorder radius="sm" mb="lg">
-      <Card.Section withBorder inheritPadding py="sm">
+      
+      {false && <Card.Section withBorder inheritPadding py="sm">
         <h3 className="text-base m-0">Next steps</h3>
-      </Card.Section>
+      </Card.Section>}
 
-      <Card.Section className='p-4 bg-gray-50 border-b'>To help streamline your activity planning process at CGS, we’ve provided a list of essential components for you to consider for pre- and post-activity arrangements.</Card.Section>
+      <Card.Section className='p-4 xbg-gray-50 border-b'>To help streamline your activity planning process at CGS, we’ve provided a list of essential components for you to consider for pre- and post-activity arrangements.</Card.Section>
 
       <Card.Section>
       <Accordion>
-        {permissions &&
+        {status == statuses.approved && permissions &&
           <Accordion.Item value="permissions">
             <Accordion.Control
               icon={
@@ -41,23 +44,7 @@ export function NextSteps() {
           </Accordion.Item>
         }
 
-        <Accordion.Item value="venue">
-          <Accordion.Control
-            icon={
-              <IconBuildingPavilion className='size-5' />
-            }
-          >
-            Venue Booking
-          </Accordion.Control>
-          <Accordion.Panel>
-            <Text size="sm">
-              Have you secured a venue? Begin by confirming availability and booking through <Anchor target="_blank" href="https://sobs.com.au/ui/login.php?schoolid=728">SOBS Primary</Anchor> or <Anchor target="_blank" href="https://sobs.com.au/ui/login.php?schoolid=157">SOBS Senior</Anchor>, ensuring your reservation includes time for setup and pack-down. 
-            </Text>
-            <Text size="sm">
-              If you’re booking the Snow Concert Hall, please complete the information that’s required in SOBS. 
-            </Text>
-          </Accordion.Panel>
-        </Accordion.Item>
+        
 
 
         <Accordion.Item value="catering">
@@ -72,12 +59,44 @@ export function NextSteps() {
             <Text size="sm">
               If your activity requires catering, please complete the <Anchor target="_blank" href="https://infiniti.canberragrammar.org.au/Infiniti/Produce/launch.aspx?id=db4a01bf-5152-46e3-b345-6a560946de3e&portal=1">Catering Request Form</Anchor>. 
             </Text>
+          </Accordion.Panel>
+        </Accordion.Item>
+
+
+
+
+        <Accordion.Item value="financial">
+          <Accordion.Control
+            icon={
+              <IconToolsKitchen2 className='size-5' />
+            }
+          >
+            Financial Approvals
+          </Accordion.Control>
+          <Accordion.Panel>
             <Text size="sm">
-              If you’re booking the Snow Concert Hall, please complete the information that’s required in SOBS. 
+            If your activity has cost implications, please ensure that the financials have been approved formally.
             </Text>
           </Accordion.Panel>
         </Accordion.Item>
 
+
+        
+
+        <Accordion.Item value="it">
+          <Accordion.Control
+            icon={
+              <IconCloudComputing className='size-5' />
+            }
+          >
+            IT Support
+          </Accordion.Control>
+          <Accordion.Panel>
+            <Text size="sm">
+              For technical assistance, including audio-visual needs or access control support, submit a ticket through the <Anchor target="_blank" href="https://support.cgs.act.edu.au/">Ed Tech Support Desk link</Anchor>.
+            </Text>
+          </Accordion.Panel>
+        </Accordion.Item>
 
 
 
@@ -92,30 +111,14 @@ export function NextSteps() {
           </Accordion.Control>
           <Accordion.Panel>
             <Text size="sm">
-              For any logistical support, such as event setup, or equipment needs, submit a request through the <Anchor target="_blank" href="https://support.cgs.act.edu.au/">Property and Facilities Support Desk link</Anchor>. As these requests are supported by different teams, can you please put in separate tickets for 
+              For any logistical support, such as event setup or equipment needs, submit a request through the <Anchor target="_blank" href="https://support.cgs.act.edu.au/">Property and Facilities Support Desk link</Anchor>. Remember to include pack-up information as well.
             </Text>
-            <List type="unordered" size="sm">
-              <List.Item>Cleaning (Please specify whether the event is intended for external participants, including parents. This information is essential to ensure our spaces are appropriately presented for any external visitors) </List.Item>
-              <List.Item>Event setup and pack-down requirements, with times </List.Item>
-              <List.Item>Equipment needed. </List.Item>
-            </List>
           </Accordion.Panel>
         </Accordion.Item>
 
-        <Accordion.Item value="it">
-          <Accordion.Control
-            icon={
-              <IconCloudComputing className='size-5' />
-            }
-          >
-            IT Support
-          </Accordion.Control>
-          <Accordion.Panel>
-            <Text size="sm">
-              For technical assistance, including audio-visual needs, doors or room access (SALTO), access control support, submit a ticket through the <Anchor target="_blank" href="https://support.cgs.act.edu.au/">Ed Tech Support Desk link</Anchor>. 
-            </Text>
-          </Accordion.Panel>
-        </Accordion.Item>
+
+
+
 
         <Accordion.Item value="marketing">
           <Accordion.Control
@@ -127,7 +130,7 @@ export function NextSteps() {
           </Accordion.Control>
           <Accordion.Panel>
             <Text size="sm">
-              For graphic design, communications (such as CGS Connect news and announcements), photography, or online RSVP/payment system (Humanitix), submit a ticket via the <Anchor target="_blank" href="https://support.cgs.act.edu.au/">Marketing, Graphic Design and Events Support Desk link</Anchor>. If you need event management support, select "Events" in the drop-down menu to notify the Events Manager and team. 
+              For graphic design, communications (such as CGS Connect news and announcements), photography, or online RSVP/payment system (Humanitix), submit a ticket via the <Anchor target="_blank" href="https://support.cgs.act.edu.au/">Marketing, Graphic Design and Events Support Desk link</Anchor>. If you require event management support, select "Events" in the drop-down menu to notify the Events Manager and team.
             </Text>
           </Accordion.Panel>
         </Accordion.Item>
@@ -144,40 +147,29 @@ export function NextSteps() {
           </Accordion.Control>
           <Accordion.Panel>
             <Text size="sm">
-              If this is a student-led project and you are the supervising staff member, direct students to raise requests via the <Anchor target="_blank" href="https://support.cgs.act.edu.au/">Student Projects Support Desk link </Anchor>. These steps will help ensure thorough preparation for your event, covering all aspects from venue to support services. 
+              If this is a student-led project and you are the supervising staff member, please pass onto the student the <Anchor target="_blank" href="https://kb.cgs.act.edu.au/guides/senior-school-student-projects">Project Guidelines link</Anchor>. These guidelines will prompt students to then requests further assistance via the <Anchor target="_blank" href="https://support.cgs.act.edu.au/">Student Projects Support Desk link </Anchor>.
             </Text>
           </Accordion.Panel>
         </Accordion.Item>
 
 
-        <Accordion.Item value="ready">
+        <Accordion.Item value="venue">
           <Accordion.Control
             icon={
-              <IconCircleDashedCheck className='size-5' />
+              <IconBuildingPavilion className='size-5' />
             }
           >
-            Ready
+            Venue Booking
           </Accordion.Control>
           <Accordion.Panel>
-            <Text size="sm">You're all set to go!</Text>
+            <Text size="sm">
+              Have you secured a venue? Begin by confirming availability and booking through <Anchor target="_blank" href="https://sobs.com.au/ui/login.php?schoolid=728">SOBS Primary</Anchor> or <Anchor target="_blank" href="https://sobs.com.au/ui/login.php?schoolid=157">SOBS Senior</Anchor>, ensuring your reservation includes time for setup and pack-up. Any classroom bookings will need to go through SOBS and an email sent to the <Anchor target="_blank" href="mailto:timetable@cgs.act.edu.au">timetable@cgs.act.edu.au</Anchor> 
+            </Text>
           </Accordion.Panel>
         </Accordion.Item>
 
 
-
       </Accordion>
-
-
-
-
-
-
-
-
-
-
-
-
 
 
           
