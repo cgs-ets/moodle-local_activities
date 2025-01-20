@@ -30,13 +30,20 @@ class assessments_lib {
         global $DB;
 
         // Get courses under Senior Academic
-        $courses = array();
+        $categories = array();
         $cat = $DB->get_record('course_categories', array('idnumber' => 'SEN-ACADEMIC'));
         if ($cat) {
             $cat = \core_course_category::get($cat->id);
             $cats = $cat->get_children();
-            var_export($cats); exit;
+            foreach($cats as $cat) {
+                $categories[] = array(
+                    'value' => $cat->id,
+                    'label' => $cat->name
+                );
+            }
         }
+
+        return $categories;
     }
 
     public static function get_courses() {
@@ -118,7 +125,8 @@ class assessments_lib {
             case 'list':
                 return self::getList($args);
             default:
-                return self::getFull($args);
+                return self::getList($args);
+                //return self::getFull($args);
         }
 	}
 
@@ -146,17 +154,14 @@ class assessments_lib {
         $records = $DB->get_records_sql($sql, [$start, $end]);
         $assessments = array();
         foreach ($records as $record) {
-
             $record->creator = utils_lib::user_stub($record->creator);
             $record->timestart = $record->timedue;
             $record->timeend = $record->timedue;
             $record->course = $DB->get_record('course', array('id' => $record->courseid));
-
             $record->usercanedit = false;
             if ($record->creator == $USER->username || has_capability('moodle/site:config', \context_user::instance($USER->id))) {
                 $record->usercanedit = true;
             }
-
             $assessments[] = $record;            
         }
 

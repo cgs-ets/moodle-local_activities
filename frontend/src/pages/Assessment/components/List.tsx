@@ -1,10 +1,9 @@
-import { ActionIcon, Button, Card, Loader, LoadingOverlay, Select, Text } from "@mantine/core";
-import { IconAdjustments, IconArrowNarrowLeft, IconArrowNarrowRight, IconCalendarDue, IconCalendarWeek, IconListDetails, IconX } from "@tabler/icons-react";
+import { ActionIcon, Anchor, Button, Card, Loader, LoadingOverlay, Select, Text } from "@mantine/core";
+import { IconAdjustments, IconArrowNarrowLeft, IconArrowNarrowRight, IconCalendarDue, IconCalendarWeek, IconChecklist, IconListDetails, IconX } from "@tabler/icons-react";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useDisclosure } from "@mantine/hooks";
-import { useFilterStore } from "../../../stores/filterStore";
 import { getMonthFromTerm, getTermFromMonth } from "../../../utils/utils";
 import useFetch from "../../../hooks/useFetch";
 import { AssessmentData } from "../Assessment";
@@ -17,6 +16,11 @@ type TermYear = {
   year: string,
 }
 
+type Filters = {
+  categories: string[],
+  staff: string[],
+  courses: string[],
+}
 
 type Props = {
   setCaltype: (caltype: string) => void,
@@ -26,9 +30,23 @@ export function List({setCaltype}: Props) {
 
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const filters = useFilterStore((state) => state)
-  const setFilters = useFilterStore((state) => (state.setState))
-  const reset = useFilterStore((state) => (state.reset))
+
+
+  //const filters = useFilterStore((state) => state)
+  //const setFilters = useFilterStore((state) => (state.setState))
+  //const reset = useFilterStore((state) => (state.reset))
+
+  const defaultFilters: Filters = {
+    categories: [],
+    staff: [],
+    courses: [],
+  };
+  const [filters, setFilters] = useState<Filters>(defaultFilters)
+  const resetFilters = () => {
+    setFilters(defaultFilters)
+  }
+
+
   const [loading, {open: startLoading, close: stopLoading}] = useDisclosure(true)
 
   const [filterOpened, {close: closeFilter, open: openFilter}] = useDisclosure(false)
@@ -64,9 +82,10 @@ export function List({setCaltype}: Props) {
 
   // If search params change, update the date.
   useEffect(() => {
-    if (searchParams.get('term') && searchParams.get('year')) {
-      setDate({term: searchParams.get('term')!, year: searchParams.get('year')!})
-    }
+    setDate({
+      term: searchParams.get('term') || currterm.toString(), 
+      year: searchParams.get('year') || initYear, 
+    })
   }, [searchParams]);
 
   // If the date changes, get calendar.
@@ -142,11 +161,15 @@ export function List({setCaltype}: Props) {
     const filterStaff = filters.staff.map((u: string) => JSON.parse(u).un)
     return days.map((day: any) => {
 
-      const filteredEvents = day.events.filter((event: any) => {
+      const filteredEvents = day.events.filter((ass: any) => {
 
         const matchesCourse =
         filters.courses.length === 0 ||
-        filters.courses.some((course) => event.courseid == course.split("|")[0]);
+        filters.courses.some((course) => ass.courseid == course.split("|")[0]);
+
+        const matchesCategory =
+        filters.categories.length === 0 ||
+        filters.categories.some((cat) => ass.course.category == cat.split("|")[0]);
 
         /*
         const eventCategories = JSON.parse(event.categoriesjson || '[]') as string[];
@@ -168,12 +191,12 @@ export function List({setCaltype}: Props) {
           filters.status.includes(event.status.toString());
         */
   
-        const eventStaff = [event.creator.un]
+        const eventStaff = [ass.creator.un]
         const matchesStaff =
           filterStaff.length === 0 || 
           filterStaff.some((staff) => eventStaff.includes(staff));
 
-        return matchesStaff && matchesCourse;
+        return matchesStaff && matchesCourse && matchesCategory;
 
       });
       return { ...day, events: filteredEvents, events_count: filteredEvents.length };
@@ -204,8 +227,10 @@ export function List({setCaltype}: Props) {
 
 
   const hasFilters = () => {
-    return filters.categories.length || filters.types.length || filters.status.length || filters.staff.length
+    return filters.categories.length || filters.courses.length || filters.staff.length
   }
+
+  let navigate = useNavigate();
 
   return (
     <div>
@@ -215,7 +240,15 @@ export function List({setCaltype}: Props) {
           <ActionIcon onClick={() => handleNav(-1)} variant="subtle" size="lg"><IconArrowNarrowLeft className="size-7" /></ActionIcon>
 
           <div className="text-xl font-semibold flex gap-2 items-center">
-            <div className="mr-2 underline decoration-wavy decoration-sky-500">Assessments</div>
+
+            <div className="flex mr-4">
+              <Button color="dark" variant="light" aria-label="Filters" size="compact-md" leftSection={<IconChecklist size={20} />} className="h-8 rounded-r-none pointer-events-none">Assessments</Button>
+              <ActionIcon color="dark" onClick={() => navigate("/")} variant="light" size="compact-md" ml={2} className="rounded-l-none pl-1 pr-1">
+                <IconX stroke={1.5} size={18} />
+              </ActionIcon>
+            </div>
+
+
             <Select
               placeholder="Term"
               data={[
@@ -247,7 +280,7 @@ export function List({setCaltype}: Props) {
               { hasFilters() 
                 ? <div className="flex">
                     <Button color="orange" onClick={() => openFilter()} variant="light" aria-label="Filters" size="compact-md" leftSection={<IconAdjustments size={20} />} className="h-8 rounded-r-none">Filters on</Button>
-                    <ActionIcon color="orange" onClick={reset} variant="light" aria-label="Clear"  size="compact-md" ml={2} className="rounded-l-none pl-1 pr-1">
+                    <ActionIcon color="orange" onClick={resetFilters} variant="light" aria-label="Clear"  size="compact-md" ml={2} className="rounded-l-none pl-1 pr-1">
                       <IconX stroke={1.5} size={18} />
                     </ActionIcon>
                   </div>
@@ -331,9 +364,9 @@ export function List({setCaltype}: Props) {
         </Card>
       </div>
 
-
-      <FilterModal opened={filterOpened} filters={filters} setFilters={setFilters} close={() => closeFilter()} />
-
+      {filterOpened &&
+        <FilterModal opened={true} filters={filters} setFilters={setFilters} close={() => closeFilter()} />
+      }
 
 
     </div>

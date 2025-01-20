@@ -12,9 +12,13 @@ export function Assessments() {
       document.title = 'Assessments';
     }, []);
   
-    const [caltype, setCaltype] = useState<string>(searchParams.get('type') || 'list')
+    const defaultCalType = 'list'
+    const [caltype, setCaltype] = useState<string>(searchParams.get('type') || defaultCalType)
   
     useEffect(() => {
+      if (!searchParams.get('type') && caltype == defaultCalType) {
+        return // Default caltype, don't append as it adds to hisory.
+      }
       if (caltype) {
         setSearchParams(params => {
           params.set("type", caltype);

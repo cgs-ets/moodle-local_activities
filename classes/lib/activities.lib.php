@@ -29,7 +29,6 @@ class activities_lib {
     /** Table to store this persistent model instances. */
     const TABLE = 'activities';
     const TABLE_ACTIVITY_STUDENTS  = 'activity_students';
-    //const TABLE_ACTIVITY_STUDENTS_TEMP  = 'activity_students_temp';
     const TABLE_ACTIVITY_APPROVALS  = 'activity_approvals';
     const TABLE_ACTIVITY_COMMENTS = 'activity_comments';
     const TABLE_ACTIVITY_EMAILS = 'activity_emails';
@@ -169,7 +168,12 @@ class activities_lib {
                 // Create a new activity with data that doesn't change on update.
                 $activity = new Activity();
                 $activity->set('creator', $USER->username);
-                $activity->set('status', static::ACTIVITY_STATUS_DRAFT);
+                if (static::is_activity($data->activitytype)) {
+                    $activity->set('status', static::ACTIVITY_STATUS_DRAFT);
+                } else {
+                    // If this is a calendar entry or assessment, there is no draft state. From the moment it's saved, it's 2 (in review) or 3 (approved)
+                    $activity->set('status', static::ACTIVITY_STATUS_INREVIEW);
+                }
                 // Generate an idnumber
                 $slug = strtolower(trim(preg_replace('/[\s-]+/', '-', preg_replace('/[^A-Za-z0-9-]+/', '-', preg_replace('/[&]/', 'and', preg_replace('/[\']/', '', iconv('UTF-8', 'ASCII//TRANSLIT', $data->activityname))))), '-'));
                 do {
@@ -1304,19 +1308,7 @@ class activities_lib {
         return $students;
     }
 
-/*
-    public static function get_excursion_students_temp($activityid) {
-        global $DB;
-        $sql = "SELECT *
-                  FROM {" . static::TABLE_ACTIVITY_STUDENTS_TEMP . "}
-                 WHERE activityid = ?";
-        $params = array($activityid);
-        $students = $DB->get_records_sql($sql, $params);
-        return $students;
-    }
-*/
-
-
+    
     /*
     * Add a comment to an activity.
     */

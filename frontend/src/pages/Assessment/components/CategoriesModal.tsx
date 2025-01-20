@@ -20,7 +20,6 @@ export function CategoriesModal({opened, close, categories, handleChange}: {open
     })
     if (!fetchResponse.error && fetchResponse?.data) {
       setCategories(fetchResponse.data)
-      console.log(fetchResponse.data)
     }
   }
 

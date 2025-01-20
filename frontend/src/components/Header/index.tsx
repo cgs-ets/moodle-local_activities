@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Container, Avatar, Menu, UnstyledButton, Group, Text, Box, Button, Anchor } from '@mantine/core';
 import { IconCalendarPlus, IconExternalLink, IconHome2, IconLogout, IconPlus } from '@tabler/icons-react';
 import { useInterval } from "@mantine/hooks";
@@ -23,6 +23,8 @@ export function Header() {
     return interval.stop;
   }, []);
 
+  const location = useLocation();
+
   return (
   <>
     <Box bg={getConfig().headerbg}>
@@ -34,10 +36,12 @@ export function Header() {
             </Link>
           </Group>
           <div className="flex items-center gap-4">
-            <Anchor className="text-white hover:no-underline mr-4 text-md font-normal" href="/local/activities/assessments">Assessments</Anchor>
+            { !location.pathname.includes("/assessments") &&
+              <Anchor href="/local/activities/assessments" className="text-white hover:no-underline mr-4 text-md font-normal">Assessments</Anchor>
+            }
             <Anchor className="text-white hover:no-underline mr-4 text-md font-normal" href="/">{getConfig().sitename}</Anchor>
             { getConfig().roles.includes('staff') 
-              ? <Button component={Link} to="/new" size="compact-md" radius="lg" color="blue" leftSection={<IconPlus size={20} />}>Create new</Button> : null
+              ? <Button component={Link} to={location.pathname.includes("/assessments") ? "/assessment" : "/new"} size="compact-md" radius="lg" color="blue" leftSection={<IconPlus size={20} />}>Create new</Button> : null
             }
             <Menu position="bottom-end" width={200} shadow="md">
               <Menu.Target>

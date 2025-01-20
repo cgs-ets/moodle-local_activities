@@ -11,7 +11,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { useFilterStore } from "../../../stores/filterStore";
 import { ListTease } from "./ListTease";
 import { User } from "../../../types/types";
-import { getMonthFromTerm, getTermFromMonth } from "../../../utils/utils";
+import { getMonthFromTerm, getTermFromMonth, isCalReviewer } from "../../../utils/utils";
 
 type TermYear = {
   term: string,
@@ -65,9 +65,10 @@ export function List({setCaltype}: Props) {
 
   // If search params change, update the date.
   useEffect(() => {
-    if (searchParams.get('term') && searchParams.get('year')) {
-      setDate({term: searchParams.get('term')!, year: searchParams.get('year')!})
-    }
+    setDate({
+      term: searchParams.get('term') || currterm.toString(), 
+      year: searchParams.get('year') || initYear, 
+    })
   }, [searchParams]);
 
   // If the date changes, get calendar.
@@ -292,10 +293,19 @@ export function List({setCaltype}: Props) {
           { filteredList.days?.current.map((day: any, i: number) => (
             !!day.events.length &&
             <div key={day.date_key} className="ev-calendar-item ev-calendar-item-current">
-              { day.date_key == dayjs().format("YYYY-MM-DD")
-                ? <Text className="font-semibold text-lg px-4 py-2 border-t">Started today</Text>
-                : <Text className="font-semibold text-lg px-4 py-2 border-t">Started on {dayjs.unix(Number(day.date)).format("D MMM")}</Text>
-              }
+              <div className="flex justify-between px-4 py-2 border-t">
+                { day.date_key == dayjs().format("YYYY-MM-DD")
+                  ? <Text className="font-semibold text-lg">Started today</Text>
+                  : <Text className="font-semibold text-lg">Started on {dayjs.unix(Number(day.date)).format("D MMM")}</Text>
+                }
+                { isCalReviewer() && 
+                  <div className="text-gray-500 flex items-center text-center">
+                    <div className="w-20"><Text className="text-sm">Approved</Text></div>
+                    <div className="w-20"><Text className="text-sm">Public Now</Text></div>
+                  </div>
+                }
+              </div>
+              
               <div>
                 {day.events.map((event: any) => (
                   <div key={event.id}>
@@ -317,10 +327,18 @@ export function List({setCaltype}: Props) {
           { filteredList.days.upcoming.map((day: any, i: number) => (
             !!day.events.length &&
             <div key={day.date_key} className="ev-calendar-item ev-calendar-item-current">
-              { day.date_key == dayjs().format("YYYY-MM-DD")
-                ? <Text className="font-semibold text-lg px-4 py-2 border-t">Today</Text>
-                : <Text className="font-semibold text-lg px-4 py-2 border-t">{dayjs.unix(Number(day.date)).format("ddd, D MMM YYYY")}</Text>
-              }
+              <div className="flex justify-between px-4 py-2 border-t">
+                { day.date_key == dayjs().format("YYYY-MM-DD")
+                  ? <Text className="font-semibold text-lg">Today</Text>
+                  : <Text className="font-semibold text-lg">{dayjs.unix(Number(day.date)).format("ddd, D MMM YYYY")}</Text>
+                }
+                { isCalReviewer() && 
+                  <div className="text-gray-500 flex items-center text-center">
+                    <div className="w-20"><Text className="text-sm">Approved</Text></div>
+                    <div className="w-20"><Text className="text-sm">Public Now</Text></div>
+                  </div>
+                }
+              </div>
               <ul>
                 {day.events.map((event: any) => (
                   <div key={event.id}>

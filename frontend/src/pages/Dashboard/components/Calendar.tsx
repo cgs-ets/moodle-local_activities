@@ -33,7 +33,7 @@ export function Calendar({setCaltype}: Props) {
   const [filterOpened, {close: closeFilter, open: openFilter}] = useDisclosure(false)
 
   const [date, setDate] = useState<MoYear>({
-    month: searchParams.get('month') || dayjs().format("MM"),
+    month: searchParams.get('month') || dayjs().format("M"),
     year: searchParams.get('year') || dayjs().format("YYYY"),
   })
   
@@ -47,13 +47,12 @@ export function Calendar({setCaltype}: Props) {
 
   // If search params change, update the date.
   useEffect(() => {
-    if (searchParams.get('month')) {
-      setDate( (date) => ({...date, month: searchParams.get('month')!}))
-    }
-    if (searchParams.get('year')) {
-      setDate( (date) => ({...date, year: searchParams.get('year')!}))
-    }
+    setDate({
+      month: searchParams.get('month') || dayjs().format("M"), 
+      year: searchParams.get('year') || dayjs().format("YYYY"), 
+    })
   }, [searchParams]);
+
 
   // If the date changes, get calendar.
   useEffect(() => {

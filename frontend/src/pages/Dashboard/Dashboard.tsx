@@ -16,9 +16,14 @@ export function Dashboard() {
     document.title = 'Activities Dashboard';
   }, []);
 
-  const [caltype, setCaltype] = useState<string>(searchParams.get('type') || 'calendar')
+  const defaultCalType = 'calendar'
+
+  const [caltype, setCaltype] = useState<string>(searchParams.get('type') || defaultCalType)
 
   useEffect(() => {
+    if (!searchParams.get('type') && caltype == defaultCalType) {
+      return // Default caltype, don't append as it adds to hisory.
+    }
     if (caltype) {
       setSearchParams(params => {
         params.set("type", caltype);

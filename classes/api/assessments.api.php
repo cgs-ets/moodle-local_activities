@@ -23,6 +23,15 @@ trait assessments_api {
     }
 
     /**
+     * Get course categories
+     *
+     * @return array
+     */
+    static public function get_course_cats() {
+        return assessments_lib::get_course_cats();
+    }
+
+    /**
      * Get modules
      *
      * @return array

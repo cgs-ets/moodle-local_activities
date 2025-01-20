@@ -256,6 +256,7 @@ export function Assessment() {
                             readOnly={viewStateProps.readOnly}
                             allowDeselect={false}
                             leftSection={coursesLoading ? <Loader size="xs" /> : null}
+                            searchable
                           />
 
                           <div>
@@ -267,6 +268,7 @@ export function Assessment() {
                               readOnly={viewStateProps.readOnly}
                               allowDeselect={false}
                               leftSection={modulesLoading ? <Loader size="xs" /> : null}
+                              searchable
                             />
 
                             { !!formData.courseid && !!formData.module

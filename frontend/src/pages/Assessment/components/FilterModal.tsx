@@ -85,7 +85,7 @@ export function FilterModal({opened, filters, setFilters, close}: Props) {
                         <Checkbox.Group value={filters.categories} onChange={(values) => handleFilterChange('categories', values)}>
                           <div className="flex flex-col gap-1 mb-4">
                             {filters.categories.map((cat: string) => (
-                              <Checkbox key={cat} value={cat} label={cat.replace('/', ' > ')} />
+                              <Checkbox key={cat} value={cat} label={cat.split("|")[1]} />
                             ))}
                           </div>
                         </Checkbox.Group>

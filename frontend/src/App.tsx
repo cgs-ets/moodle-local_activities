@@ -15,7 +15,7 @@ import { Assessments } from "./pages/Assessment/Assessments";
 
 function App() { 
 
-  const router = createBrowserRouter(
+  /*const router = createBrowserRouter(
     [
       {
         index: true, // Matches /
@@ -49,6 +49,19 @@ function App() {
     {
       basename: '/local/activities'
     }
+  );*/
+
+  const router = createBrowserRouter(
+    [
+      { path: "/", element: <Dashboard /> },
+      { path: "new", element: <EditActivity /> },
+      { path: "assessments", element: <Assessments /> },
+      { path: "assessment", element: <Assessment /> },
+      { path: "assessment/:id", element: <Assessment /> },
+      { path: ":id/permission", element: <Permission /> },
+      { path: ":id", element: <EditActivity /> },
+    ],
+    { basename: '/local/activities' }
   );
 
   return (
