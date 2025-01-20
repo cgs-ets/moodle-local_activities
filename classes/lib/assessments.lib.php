@@ -85,7 +85,7 @@ class assessments_lib {
         $modules = array();
 
         $course = $DB->get_record('course', array('id' => $courseid));
-        $modinfo = get_fast_modinfo($course);
+        $modinfo = @get_fast_modinfo($course);
 
         foreach ($modinfo->cms as $cm) {
             $modules[] = array(
