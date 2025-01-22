@@ -12,14 +12,16 @@ type Props = {
   setSelectedEvent: (form: Form) => void
 }
 export function ListTease({celldate, event, setSelectedEvent}: Props) {
-console.log(event)
+
   const [publicNow, setPublicNow] = useState(!!Number(event.pushpublic));
   const [reviewed, setReviewed] = useState(event.statushelper.isapproved);
   const [approvedResponse, approvedError, approvedLoading, submitApprovedAjax, setApprovedData] = useAjax(); // destructure state and fetch function
   const [publicResponse, publicError, publicLoading, submitPublicAjax, setPublicData] = useAjax(); // destructure state and fetch function
   
+  console.log('displaypub', event.displaypublic)
+
   const showPublicNowOpt = () => {
-    return isCalReviewer() && isActivity(event.activitytype) && event.displaypublic && !event.statushelper.isapproved
+    return isCalReviewer() && isActivity(event.activitytype) && Number(event.displaypublic) && !event.statushelper.isapproved
   }
 
   const showApproveOpt = () => {
