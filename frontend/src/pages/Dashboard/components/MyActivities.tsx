@@ -52,7 +52,11 @@ export function MyActivities() {
                     {/* The tease */}
                     <div className='cursor-pointer w-full' onClick={() => setSelectedEvent(event)} >
                       <div className='flex items-center gap-2'>
-                        <div className={cn("size-2 rounded-full min-w-2", event.status == statuses.approved ? "bg-[#4aa15d]" : "bg-[#ffa94d]")}></div>
+                        <div className={cn("size-2 rounded-full min-w-2", event.status == statuses.approved 
+                          ? "bg-[#4aa15d]" 
+                          : event.status == statuses.saved 
+                            ? "bg-gray-400"
+                            : "bg-[#ffa94d]")}></div>
                         {event.activityname}
                       </div>
                       <div>
