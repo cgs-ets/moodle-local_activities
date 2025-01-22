@@ -17,6 +17,7 @@ export function EventModal({activity, close}: Props) {
     return null
   }
 
+
   return (
     <Modal.Root 
       opened={true} 
@@ -34,7 +35,9 @@ export function EventModal({activity, close}: Props) {
                   <Text fz="xl" fw={600}>{activity.activityname}</Text>
                   { activity.status == statuses.approved
                     ? <Badge color='apprgreen.2' className='text-black normal-case'>Approved</Badge>
-                    : <Badge color='orange.1' className='text-black normal-case'>Pending - {activity.stepname}</Badge>
+                    : activity.status == statuses.saved 
+                      ? <Badge color='gray.2' className='text-black normal-case'>Draft</Badge>
+                      : <Badge color='orange.1' className='text-black normal-case'>Pending - {activity.stepname}</Badge>
                   }
                 </div>
               </Modal.Title>
