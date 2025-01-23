@@ -5,7 +5,6 @@ import { Form } from '../../../stores/formStore';
 import dayjs from 'dayjs';
 import { statuses } from '../../../utils';
 import { cn } from '../../../utils/utils';
-import { User } from '../../../types/types';
 import { IconChecklist, IconUser } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 import { EventModal } from './EventModal';

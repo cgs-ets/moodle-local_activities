@@ -756,7 +756,7 @@ class activities_lib {
             }
 
             if (empty($orderby)) {
-                $orderby = 'timestart DESC';
+                $orderby = 'timestart ASC';
             }
             $sql .= " ORDER BY " . $orderby;
 
