@@ -205,7 +205,8 @@ export function Assessment() {
     }
     if (fetchResponse?.data) {
       setModules(fetchResponse.data)
-      updateField('module', fetchResponse.data.find((obj: Module) => obj.value === formData.cmid))
+      const selectedcm = fetchResponse.data.find((obj: Module) => obj.value === formData.cmid)
+      updateField('module', selectedcm)
     }
   }
 

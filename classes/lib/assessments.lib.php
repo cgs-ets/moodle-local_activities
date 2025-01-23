@@ -94,6 +94,7 @@ class assessments_lib {
         $course = $DB->get_record('course', array('id' => $courseid));
         $modinfo = @get_fast_modinfo($course);
 
+        //var_export($modinfo); exit;
         foreach ($modinfo->cms as $cm) {
             $modules[] = array(
                 'value' => $cm->id,
