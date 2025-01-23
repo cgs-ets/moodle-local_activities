@@ -108,6 +108,7 @@ export function Assessment() {
       timedue: Number(fetchResponse.data.timedue) ? fetchResponse.data.timedue : dayjs().unix(),
     }
     setFormData({...data})
+    updateField('module', modules.find((obj: Module) => obj.value === data.cmid))
   }
 
   const getCourses = async () => {
@@ -145,7 +146,7 @@ export function Assessment() {
       }
       // Successful save.
       if (!id) {
-        navigate('/assessment/' + submitResponse.data.id, {replace: true})
+        navigate('/assessment/' + submitResponse.data.id, {replace: false})
       } else {
         
       }

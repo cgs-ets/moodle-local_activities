@@ -109,14 +109,21 @@ class assessments_lib {
     public static function save_from_data($data) {
         global $DB, $USER;
 
-        $data->creator = $USER->username;
-        $data->timecreated = time();
-        $data->timemodified = time();
+        if ($data->id) {
+            $data->timemodified = time();
+            $DB->update_record('activity_assessments', (object) $data);
+        } else {
+            $data->creator = $USER->username;
+            $data->timecreated = time();
+            $data->id = $DB->insert_record('activity_assessments', (object) $data);
+        }
 
-        $id = $DB->insert_record('activity_assessments', (object) $data);
+        
+
+
 
         return array(
-            'id' => $id,
+            'id' => $data->id,
         );
     }
 
@@ -145,6 +152,7 @@ class assessments_lib {
         $start = strtotime($args->scope->start . " 00:00:00");
         $end = strtotime($args->scope->end . " 00:00:00");
         $end += 86400; //add a day
+
 
         $sql = "SELECT *
                 FROM mdl_activity_assessments
@@ -282,13 +290,6 @@ class assessments_lib {
             'upcoming' => array(),
         );
 
-		// If look ahead period set overwrite scope.
-		if (isset($args['lookahead']) && $args['lookahead']) {
-			$scope_datetime_start = new DateTime();
-			$scope_datetime_end = new DateTime();
-			$scope_datetime_end->modify('+'. $args['lookahead'] . ' day');
-		}
-
 		$events_args = array (
 			'scope' => array( 
 				'start' => $scope_datetime_start->format('Y-m-d'), 
@@ -297,7 +298,6 @@ class assessments_lib {
 			'categories' => $categories
 		);
         
-        //$events = Events::get($events_args);
         //var_export($events_args); exit;
 		$events = assessments_lib::get_assessments(json_decode(json_encode($events_args, JSON_FORCE_OBJECT)));
 
@@ -314,11 +314,10 @@ class assessments_lib {
 
             $in_scope = strtotime($event_eventful_date) >= strtotime($scope_datetime_start->format('Y-m-d'));
             
-            $past = $event->timeend < time() ? true : false;
+            $past = $event->timeend < strtotime('today midnight') ? true : false;
             if ($past) { 
                 continue; 
             }
-
 
             $currently_on = (!$past) && ($event->timestart < time()) ? true : false;
             if( $currently_on ) {

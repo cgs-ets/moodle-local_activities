@@ -324,7 +324,7 @@ export function List({setCaltype}: Props) {
             !!day.events.length &&
             <div key={day.date_key} className="ev-calendar-item ev-calendar-item-current">
               { day.date_key == dayjs().format("YYYY-MM-DD")
-                ? <Text className="font-semibold text-lg px-4 py-2 border-t">Started today</Text>
+                ? <Text className="font-semibold text-lg px-4 py-2 border-t">Today, {dayjs.unix(Number(day.date)).format("D MMM YYYY")}</Text>
                 : <Text className="font-semibold text-lg px-4 py-2 border-t">Started on {dayjs.unix(Number(day.date)).format("D MMM")}</Text>
               }
               <div>
@@ -349,7 +349,7 @@ export function List({setCaltype}: Props) {
             !!day.events.length &&
             <div key={day.date_key} className="ev-calendar-item ev-calendar-item-current">
               { day.date_key == dayjs().format("YYYY-MM-DD")
-                ? <Text className="font-semibold text-lg px-4 py-2 border-t">Today</Text>
+                ? <Text className="font-semibold text-lg px-4 py-2 border-t">Today, {dayjs.unix(Number(day.date)).format("D MMM YYYY")}</Text>
                 : <Text className="font-semibold text-lg px-4 py-2 border-t">{dayjs.unix(Number(day.date)).format("ddd, D MMM YYYY")}</Text>
               }
               <ul>
