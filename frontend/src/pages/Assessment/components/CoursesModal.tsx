@@ -29,7 +29,7 @@ export function CoursesModal({opened, close, courses, handleChange}: {opened: bo
     <Modal 
       opened={opened} 
       onClose={close} 
-      title="Select a category" 
+      title="Select courses" 
       size="xl"
       styles={{
         header: {

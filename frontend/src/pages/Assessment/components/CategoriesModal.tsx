@@ -28,7 +28,7 @@ export function CategoriesModal({opened, close, categories, handleChange}: {open
     <Modal 
       opened={opened} 
       onClose={close} 
-      title="Select a category" 
+      title="Select categories" 
       size="xl"
       styles={{
         header: {
