@@ -42,7 +42,7 @@ export function CategoriesModal({opened, close, categories, handleChange}: {open
         <Box pt="md">
 
           <Checkbox.Group value={categories} onChange={handleChange}>
-            <div className="courses-selector flex justify-between">
+            <div className="courses-selector flex justify-between flex-col">
               {dbcats.map((cat: any) => (
                 <Checkbox key={cat.value} value={`${cat.value}|${cat.label}`} label={cat.label} />
               ))}
