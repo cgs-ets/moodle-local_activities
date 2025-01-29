@@ -7,7 +7,6 @@ SELECT * INTO mdl_files_backup FROM mdl_files where component = 'local_excursion
 DELETE FROM mdl_activities
 DELETE FROM mdl_activity_approvals
 DELETE FROM mdl_activity_assessments
-DELETE FROM mdl_activity_cal_areas
 DELETE FROM mdl_activity_cal_sync
 DELETE FROM mdl_activity_comments
 DELETE FROM mdl_activity_conflicts
@@ -29,6 +28,7 @@ INNER JOIN mdl_files_backup b
     ON f.id = b.id;          -- Match rows by their ID
 
 */
+
 
 -- Start the migration
 BEGIN TRANSACTION;
@@ -251,12 +251,6 @@ SELECT e.id, ec.username, ec.comment, ec.timecreated
 FROM mdl_excursions_comments ec
 JOIN mdl_excursions e ON ec.activityid = e.id;
 
--- Migration for `mdl_excursions_events_areas` to `mdl_activity_cal_areas`
-INSERT INTO mdl_activity_cal_areas (activityid, area)
-SELECT e.id, eea.area
-FROM mdl_excursions_events_areas eea
-JOIN mdl_excursions e ON eea.eventid = e.id;
-
 -- Migration for `mdl_excursions_events_sync` to `mdl_activity_cal_sync`
 INSERT INTO mdl_activity_cal_sync (activityid, calendar, externalid, changekey, weblink, status, timesynced)
 SELECT e.id, ees.calendar, ees.externalid, ees.changekey, ees.weblink, ees.status, ees.timesynced
@@ -287,7 +281,8 @@ SELECT e.id, es.username
 FROM mdl_excursions_students es
 JOIN mdl_excursions e ON es.activityid = e.id;
 
--- Change file references to local_activites. Can't copy file from script.
+-- Change file references to local_activites.
+/*
 UPDATE f
 SET 
     component = 'local_activities',
@@ -295,24 +290,30 @@ SET
     filearea = CASE 
                   WHEN f.filearea = 'ra' THEN 'riskassessment' -- Change 'ra' to 'riskassessment'
                   ELSE f.filearea -- Keep other values unchanged
-               END
+               END,
+	pathnamehash = LOWER(CONVERT(VARCHAR(40), HASHBYTES('SHA1', 
+        '/1/local_activities/' + 
+        CASE 
+            WHEN f.filearea = 'ra' THEN 'riskassessment'
+            ELSE f.filearea
+        END + '/' + 
+        CAST(new_activities.id AS VARCHAR(20)) + '/' + 
+        f.filename
+    ), 2))
 FROM mdl_files f
 INNER JOIN mdl_excursions e
     ON f.itemid = e.id
 INNER JOIN mdl_activities AS new_activities
     ON e.id = new_activities.oldexcursionid
 WHERE f.component = 'local_excursions';
+*/
 
 
-
-
-
--- Update staffinchargejson in mdl_activities
 -- Update staffinchargejson in mdl_activities
 UPDATE mdl_activities
 SET staffinchargejson = 
     CASE 
-        WHEN staffinchargejson IS NULL OR LTRIM(RTRIM(staffinchargejson)) = '' THEN '[]'
+        WHEN staffinchargejson IS NULL OR LTRIM(RTRIM(staffinchargejson)) = '' OR LTRIM(RTRIM(staffinchargejson)) = '[]' THEN '[]'
         ELSE (
             SELECT JSON_QUERY(
                 '[' + STRING_AGG(
@@ -334,7 +335,7 @@ WHERE staffinchargejson IS NOT NULL;
 UPDATE mdl_activities
 SET planningstaffjson = 
     CASE 
-        WHEN planningstaffjson IS NULL OR LTRIM(RTRIM(planningstaffjson)) = '' THEN '[]'
+        WHEN planningstaffjson IS NULL OR LTRIM(RTRIM(planningstaffjson)) = '' OR LTRIM(RTRIM(planningstaffjson)) = '[]' THEN '[]'
         ELSE (
             SELECT JSON_QUERY(
                 '[' + STRING_AGG(
@@ -355,7 +356,7 @@ WHERE planningstaffjson IS NOT NULL;
 UPDATE mdl_activities
 SET accompanyingstaffjson = 
     CASE 
-        WHEN accompanyingstaffjson IS NULL OR LTRIM(RTRIM(accompanyingstaffjson)) = '' THEN '[]'
+        WHEN accompanyingstaffjson IS NULL OR LTRIM(RTRIM(accompanyingstaffjson)) = '' OR LTRIM(RTRIM(accompanyingstaffjson)) = '[]' THEN '[]'
         ELSE (
             SELECT JSON_QUERY(
                 '[' + STRING_AGG(
@@ -397,5 +398,9 @@ BEGIN CATCH
     RAISERROR (@ErrorMessage, @ErrorSeverity, @ErrorState);
 END CATCH;
 
-select * from mdl_activities
-select * FROM mdl_files where component = 'local_activities'
+--select * from mdl_activities
+--select * FROM mdl_files where component = 'local_activities' and itemid = 1915
+
+
+
+

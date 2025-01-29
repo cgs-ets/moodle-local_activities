@@ -99,7 +99,18 @@ class Activity {
 
         $data = clone($this->data);
         $data->riskassessment = $this->export_files('riskassessment');
+        // If nothing in riskassessment, check oldexcursionid.
+        if (empty($data->riskassessment)) {
+            if ($this->data->oldexcursionid) {
+                $data->riskassessment = $this->export_old_files('ra', $this->data->oldexcursionid);
+            }
+        }
         $data->attachments = $this->export_files('attachments');
+        if (empty($data->attachments)) {
+            if ($this->data->oldexcursionid) {
+                $data->attachments = $this->export_old_files('attachments', $this->data->oldexcursionid);
+            }
+        }
         $other = $this->get_other_values($usercontext);
         $merged = (object) array_merge((array) $data, (array) $other);
 
@@ -332,6 +343,33 @@ class Activity {
                 $filenameParts = explode('__', $file->get_filename()); // Store result in a variable
                 $displayname = array_pop($filenameParts); // Now array_pop can safely operate on the variable
                 $path = file_encode_url($CFG->wwwroot.'/pluginfile.php', '/1/local_activities/'.$area.'/'.$id.'/'.$file->get_filename());
+                $out[] = [
+                    'displayname' => $displayname,
+                    'fileid' => $file->get_id(),
+                    'serverfilename' => $file->get_filename(),
+                    'mimetype' => $file->get_mimetype(),
+                    'path' => $path,
+                    'existing' => true,
+                ];
+            }
+        }
+        
+        return $out;
+    }
+
+
+    public function export_old_files($area, $id) {
+        global $CFG;
+
+        $out = [];
+        $fs = get_file_storage();
+	    $files = $fs->get_area_files(1, 'local_excursions', $area, $id, "filename", false);
+        //var_export($files); exit;
+        if ($files) {
+            foreach ($files as $file) {
+                $filenameParts = explode('__', $file->get_filename()); // Store result in a variable
+                $displayname = array_pop($filenameParts); // Now array_pop can safely operate on the variable
+                $path = file_encode_url($CFG->wwwroot.'/pluginfile.php', '/1/local_excursions/'.$area.'/'.$id.'/'.$file->get_filename());
                 $out[] = [
                     'displayname' => $displayname,
                     'fileid' => $file->get_id(),

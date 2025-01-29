@@ -48,7 +48,7 @@ function local_activities_pluginfile($course, $cm, $context, $filearea, $args, $
 
     $areas = array(
         'attachments' => 'attachments',
-        'ra' => 'riskassessment',
+        'riskassessment' => 'riskassessment',
     );
 
     // filearea must contain a real area
