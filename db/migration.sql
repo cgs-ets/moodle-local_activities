@@ -1,8 +1,4 @@
 /*
-
--- backup files
-SELECT * INTO mdl_files_backup FROM mdl_files where component = 'local_excursions'
-
 -- Delete everything to start again.
 DELETE FROM mdl_activities
 DELETE FROM mdl_activity_approvals
@@ -16,16 +12,6 @@ DELETE FROM mdl_activity_staff
 DELETE FROM mdl_activity_students
 DELETE FROM mdl_activity_students_temp
 DELETE FROM mdl_activity_sys_emails
-
--- mdl_files ... Restore original values from the backup table
-UPDATE f
-SET 
-    component = b.component, -- Restore original component
-    itemid = b.itemid,       -- Restore original itemid
-    filearea = b.filearea    -- Restore original filearea
-FROM mdl_files f
-INNER JOIN mdl_files_backup b
-    ON f.id = b.id;          -- Match rows by their ID
 
 */
 
@@ -90,7 +76,7 @@ SELECT
     e.notes AS description, -- Notes from mdl_excursions_events
     x.transport,
     x.cost,
-    e.status,
+    x.status,
     x.permissions,
     x.permissionslimit,
     x.permissionsdueby,
@@ -241,72 +227,54 @@ WHERE e.assessment = 1;            -- Only migrate records where assessment = 1
 
 -- Migration for `mdl_excursions_approvals` to `mdl_activity_approvals`
 INSERT INTO mdl_activity_approvals (activityid, type, username, nominated, sequence, description, status, invalidated, skip, timemodified)
-SELECT e.id, ea.type, ea.username, ea.nominated, ea.sequence, ea.description, ea.status, ea.invalidated, ea.skip, ea.timemodified
+SELECT new_activities.id, ea.type, ea.username, ea.nominated, ea.sequence, ea.description, ea.status, ea.invalidated, ea.skip, ea.timemodified
 FROM mdl_excursions_approvals ea
-JOIN mdl_excursions e ON ea.activityid = e.id;
+JOIN mdl_excursions e ON ea.activityid = e.id
+JOIN mdl_activities new_activities ON e.id = new_activities.oldexcursionid;
 
 -- Migration for `mdl_excursions_comments` to `mdl_activity_comments`
 INSERT INTO mdl_activity_comments (activityid, username, comment, timecreated)
-SELECT e.id, ec.username, ec.comment, ec.timecreated
+SELECT new_activities.id, ec.username, ec.comment, ec.timecreated
 FROM mdl_excursions_comments ec
-JOIN mdl_excursions e ON ec.activityid = e.id;
+JOIN mdl_excursions e ON ec.activityid = e.id
+JOIN mdl_activities new_activities ON e.id = new_activities.oldexcursionid;
 
 -- Migration for `mdl_excursions_events_sync` to `mdl_activity_cal_sync`
 INSERT INTO mdl_activity_cal_sync (activityid, calendar, externalid, changekey, weblink, status, timesynced)
-SELECT e.id, ees.calendar, ees.externalid, ees.changekey, ees.weblink, ees.status, ees.timesynced
+SELECT new_activities.id, ees.calendar, ees.externalid, ees.changekey, ees.weblink, ees.status, ees.timesynced
 FROM mdl_excursions_events_sync ees
-JOIN mdl_excursions e ON ees.eventid = e.id;
+JOIN mdl_excursions e ON ees.eventid = e.id
+JOIN mdl_activities new_activities ON e.id = new_activities.oldexcursionid;
 
 
 -- Migration for `mdl_excursions_permissions` to `mdl_activity_permissions`
 INSERT INTO mdl_activity_permissions (activityid, studentusername, parentusername, queueforsending, queuesendid, response, timecreated, timeresponded)
-SELECT e.id, ep.studentusername, ep.parentusername, ep.queueforsending, ep.queuesendid, ep.response, ep.timecreated, ep.timeresponded
+SELECT new_activities.id, ep.studentusername, ep.parentusername, ep.queueforsending, ep.queuesendid, ep.response, ep.timecreated, ep.timeresponded
 FROM mdl_excursions_permissions ep
-JOIN mdl_excursions e ON ep.activityid = e.id;
+JOIN mdl_excursions e ON ep.activityid = e.id
+JOIN mdl_activities new_activities ON e.id = new_activities.oldexcursionid;
 
 -- Migration for `mdl_excursions_planning_staff` and `mdl_excursions_staff` to `mdl_activity_staff`
+-- Planning staff
 INSERT INTO mdl_activity_staff (activityid, username, usertype)
-SELECT e.id, eps.username, 'planning'
+SELECT new_activities.id, eps.username, 'planning'
 FROM mdl_excursions_planning_staff eps
-JOIN mdl_excursions e ON eps.activityid = e.id;
+JOIN mdl_excursions e ON eps.activityid = e.id
+JOIN mdl_activities new_activities ON e.id = new_activities.oldexcursionid;
 
+-- Accompanying staff
 INSERT INTO mdl_activity_staff (activityid, username, usertype)
-SELECT e.id, es.username, 'accompany'
+SELECT new_activities.id, es.username, 'accompany'
 FROM mdl_excursions_staff es
-JOIN mdl_excursions e ON es.activityid = e.id;
+JOIN mdl_excursions e ON es.activityid = e.id
+JOIN mdl_activities new_activities ON e.id = new_activities.oldexcursionid;
 
 -- Migration for `mdl_excursions_students` to `mdl_activity_students`
 INSERT INTO mdl_activity_students (activityid, username)
-SELECT e.id, es.username
+SELECT new_activities.id, es.username
 FROM mdl_excursions_students es
-JOIN mdl_excursions e ON es.activityid = e.id;
-
--- Change file references to local_activites.
-/*
-UPDATE f
-SET 
-    component = 'local_activities',
-    itemid = new_activities.id,
-    filearea = CASE 
-                  WHEN f.filearea = 'ra' THEN 'riskassessment' -- Change 'ra' to 'riskassessment'
-                  ELSE f.filearea -- Keep other values unchanged
-               END,
-	pathnamehash = LOWER(CONVERT(VARCHAR(40), HASHBYTES('SHA1', 
-        '/1/local_activities/' + 
-        CASE 
-            WHEN f.filearea = 'ra' THEN 'riskassessment'
-            ELSE f.filearea
-        END + '/' + 
-        CAST(new_activities.id AS VARCHAR(20)) + '/' + 
-        f.filename
-    ), 2))
-FROM mdl_files f
-INNER JOIN mdl_excursions e
-    ON f.itemid = e.id
-INNER JOIN mdl_activities AS new_activities
-    ON e.id = new_activities.oldexcursionid
-WHERE f.component = 'local_excursions';
-*/
+JOIN mdl_excursions e ON es.activityid = e.id
+JOIN mdl_activities new_activities ON e.id = new_activities.oldexcursionid;
 
 
 -- Update staffinchargejson in mdl_activities
@@ -316,13 +284,10 @@ SET staffinchargejson =
         WHEN staffinchargejson IS NULL OR LTRIM(RTRIM(staffinchargejson)) = '' OR LTRIM(RTRIM(staffinchargejson)) = '[]' THEN '[]'
         ELSE (
             SELECT JSON_QUERY(
-                '[' + STRING_AGG(
-                    ('{"un":"' + CONVERT(NVARCHAR(MAX), JSON_VALUE(value, '$.idfield')) + 
-                    '","fn":"' + CONVERT(NVARCHAR(MAX), LTRIM(RTRIM(SUBSTRING(JSON_VALUE(value, '$.fullname'), 1, CHARINDEX(' ', JSON_VALUE(value, '$.fullname')) - 1)))) + 
-                    '","ln":"' + CONVERT(NVARCHAR(MAX), LTRIM(RTRIM(SUBSTRING(JSON_VALUE(value, '$.fullname'), CHARINDEX(' ', JSON_VALUE(value, '$.fullname')) + 1, LEN(JSON_VALUE(value, '$.fullname')))))) + 
-                    '","permission":-1,"parents":[]}')
-                , ','
-                ) + ']'
+				'{"un":"' + CONVERT(NVARCHAR(MAX), JSON_VALUE(value, '$.idfield')) + 
+				'","fn":"' + CONVERT(NVARCHAR(MAX), LTRIM(RTRIM(SUBSTRING(JSON_VALUE(value, '$.fullname'), 1, CHARINDEX(' ', JSON_VALUE(value, '$.fullname')) - 1)))) + 
+				'","ln":"' + CONVERT(NVARCHAR(MAX), LTRIM(RTRIM(SUBSTRING(JSON_VALUE(value, '$.fullname'), CHARINDEX(' ', JSON_VALUE(value, '$.fullname')) + 1, LEN(JSON_VALUE(value, '$.fullname')))))) + 
+				'"}'
             )
             FROM OPENJSON(staffinchargejson)
         )
@@ -342,7 +307,7 @@ SET planningstaffjson =
                     ('{"un":"' + CONVERT(NVARCHAR(MAX), JSON_VALUE(value, '$.idfield')) + 
                     '","fn":"' + CONVERT(NVARCHAR(MAX), LTRIM(RTRIM(SUBSTRING(JSON_VALUE(value, '$.fullname'), 1, CHARINDEX(' ', JSON_VALUE(value, '$.fullname')) - 1)))) + 
                     '","ln":"' + CONVERT(NVARCHAR(MAX), LTRIM(RTRIM(SUBSTRING(JSON_VALUE(value, '$.fullname'), CHARINDEX(' ', JSON_VALUE(value, '$.fullname')) + 1, LEN(JSON_VALUE(value, '$.fullname')))))) + 
-                    '","permission":-1,"parents":[]}')
+                    '"}')
                 , ','
                 ) + ']'
             )
@@ -363,7 +328,7 @@ SET accompanyingstaffjson =
                     ('{"un":"' + CONVERT(NVARCHAR(MAX), JSON_VALUE(value, '$.idfield')) + 
                     '","fn":"' + CONVERT(NVARCHAR(MAX), LTRIM(RTRIM(SUBSTRING(JSON_VALUE(value, '$.fullname'), 1, CHARINDEX(' ', JSON_VALUE(value, '$.fullname')) - 1)))) + 
                     '","ln":"' + CONVERT(NVARCHAR(MAX), LTRIM(RTRIM(SUBSTRING(JSON_VALUE(value, '$.fullname'), CHARINDEX(' ', JSON_VALUE(value, '$.fullname')) + 1, LEN(JSON_VALUE(value, '$.fullname')))))) + 
-                    '","permission":-1,"parents":[]}')
+                    '"}')
                 , ','
                 ) + ']'
             )
@@ -398,9 +363,6 @@ BEGIN CATCH
     RAISERROR (@ErrorMessage, @ErrorSeverity, @ErrorState);
 END CATCH;
 
---select * from mdl_activities
---select * FROM mdl_files where component = 'local_activities' and itemid = 1915
-
-
-
-
+select * from mdl_activities
+--select * FROM mdl_files where component = 'local_excursions' and itemid = 2038
+--select * from mdl_activities where id = 3829
