@@ -54,6 +54,7 @@ function App() {
   const router = createBrowserRouter(
     [
       { path: "/", element: <Dashboard /> },
+      { path: "/index.php", element: <Dashboard /> },
       { path: "new", element: <EditActivity /> },
       { path: "assessments", element: <Assessments /> },
       { path: "assessment", element: <Assessment /> },
