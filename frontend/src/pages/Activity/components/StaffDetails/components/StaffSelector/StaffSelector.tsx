@@ -9,11 +9,12 @@ type Props = {
   staff: User[],
   setStaff: (value: any[]) => void,
   label: string,
+  sublabel?: string,
   multiple: boolean,
   readOnly: boolean,
 }
 
-export function StaffSelector({staff, setStaff, label, multiple, readOnly}: Props) {
+export function StaffSelector({staff, setStaff, label, sublabel, multiple, readOnly}: Props) {
 
   const [search, setSearch] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -168,13 +169,16 @@ export function StaffSelector({staff, setStaff, label, multiple, readOnly}: Prop
 
   return (
     <div>
-      <Text fz="sm" mb="5px" fw={500} c="#212529">{label}</Text>
-      {readOnly
-        ? readOnlyValues.length 
-          ? readOnlyValues
-          : <div className="ml-2 italic">No staff selected</div>
-        : dropdown
-      }
+      <Text fz="sm" fw={500} c="#212529">{label}</Text>
+      <div className="mt-1">
+        {readOnly
+          ? readOnlyValues.length 
+            ? readOnlyValues
+            : <div className="ml-2 italic">No staff selected</div>
+          : dropdown
+        }
+      </div>
+      {sublabel && <Text fz="xs" fw={400} c="#212529">{sublabel}</Text>}
     </div>
   );
 };

@@ -32,7 +32,7 @@ export function StaffDetails() {
       </div>
       <div className="flex flex-col gap-6 p-4 border-t border-gray-300">
         <div className="flex flex-col gap-4">
-          <StaffSelector staff={staffincharge} setStaff={setStaffInCharge} label="Leader" multiple={false} readOnly={viewStateProps.readOnly} />
+          <StaffSelector staff={staffincharge} setStaff={setStaffInCharge} label="Leader" sublabel="If accompanying please also add name in accompanying list" multiple={false} readOnly={viewStateProps.readOnly} />
           { isActivity(activitytype) &&
             <>
               <StaffSelector staff={planningstaff} setStaff={setPlanning} label="Planning" multiple={true} readOnly={viewStateProps.readOnly} />

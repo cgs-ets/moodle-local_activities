@@ -173,7 +173,6 @@ export function Status({
       }
 
       { viewStateProps.editable &&
-
         <Group justify="space-between" mt="xs">
           <Group gap="xs">
             <Button 

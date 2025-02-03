@@ -272,6 +272,7 @@ export function EditActivity() {
                           <Paperwork />
                         </>
                       }
+                      <Status submitLoading={submitLoading} submitError={submitError} submitResponse={submitResponse} />
                     </Box>
                   </Grid.Col>
                   <Grid.Col span={{ base: 12, lg: 4 }}>

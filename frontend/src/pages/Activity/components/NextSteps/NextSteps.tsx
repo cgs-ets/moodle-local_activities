@@ -75,7 +75,7 @@ export function NextSteps() {
           </Accordion.Control>
           <Accordion.Panel>
             <Text size="sm">
-            If your activity has cost implications, please ensure that the financials have been approved formally.
+            If your activity has cost implications, please ensure that the financials have been approved formally - See your line manager, HoD or Director.
             </Text>
           </Accordion.Panel>
         </Accordion.Item>

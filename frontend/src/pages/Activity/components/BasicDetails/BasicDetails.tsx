@@ -77,6 +77,7 @@ export function BasicDetails() {
                 { value: 'incursion', label: 'Incursion' },
                 { value: 'calendar', label: 'Calendar entry' },
                 { value: 'commercial', label: 'Commercial' },
+                //{ value: 'assessment', label: 'Assessment' },
               ]}
               className="border"
               readOnly={viewStateProps.readOnly}
@@ -86,10 +87,10 @@ export function BasicDetails() {
           </div>
           <div className="pt-2 pl-1 text-sm">
             {formData.activitytype == "excursion" &&
-              <span>This activity is taking place off campus.</span>
+              <span>Select this option if you need access to admin/budget approval, staffing list, student list, parent permissions, or risk assessment approval.</span>
             }
             {formData.activitytype == "incursion" &&
-              <span>This activity is taking place on campus.</span>
+              <span>Select this option if you need access to admin/budget approval, staffing list, student list, parent permissions, or risk assessment approval.</span>
             }
             {formData.activitytype == "calendar" &&
               <span>Do not select this option if admin/budget approval, staffing list, student list, parent permissions, or risk assessment approval is required.</span>

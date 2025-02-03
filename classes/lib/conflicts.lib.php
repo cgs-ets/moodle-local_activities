@@ -29,10 +29,7 @@ class conflicts_lib {
         $sql = "SELECT * 
                 FROM {activities}
                 WHERE deleted = 0 
-                AND (
-                    status = 3 OR 
-                    (activitytype = 'calendar' AND status = 1)
-                )
+                AND status > 1
                 AND (
                     (timestart > ? AND timestart < ?) OR 
                     (timeend > ? AND timeend < ?) OR 

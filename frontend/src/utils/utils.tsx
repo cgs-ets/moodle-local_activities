@@ -10,9 +10,12 @@ export const isActivity = (activitytype: string) => {
   return (
     activitytype == 'excursion' || 
     activitytype == 'incursion' ||
-    activitytype == 'commercial'
+    activitytype == 'commercial' ||
+    activitytype == 'assessment' 
   )
 };
+
+
 
 export const isCalEntry = (activitytype: string) => {
   return (activitytype == 'calendar')
