@@ -97,7 +97,7 @@ export function ActivityDetails({activity}: {activity: Form}) {
 
       <Card.Section pos="relative" className='m-0 border-b  flex items-start gap-1 px-4 py-2'>
         <div className='w-36 font-bold'>Categories</div>
-        <div className='flex flex-col gap-2'>
+        <div className='flex flex-wrap gap-2'>
           { !JSON.parse(activity.areasjson).length && <div className='italic'>No categories selected</div>}
           { JSON.parse(activity.areasjson)?.map((area: string) => {
             return (

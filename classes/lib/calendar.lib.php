@@ -392,10 +392,9 @@ class calendar_lib {
             $in_scope = strtotime($event_eventful_date) >= strtotime($scope_datetime_start->format('Y-m-d'));
             
             $past = $event->timeend < time() ? true : false;
-            if ($past) { 
-                continue; 
-            }
-
+            //if ($past) { 
+            //    continue; 
+            //}
 
             $currently_on = (!$past) && ($event->timestart < time()) ? true : false;
             if( $currently_on ) {

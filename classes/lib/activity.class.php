@@ -86,21 +86,17 @@ class Activity {
      *
      * @return array
      */
-    public function export_minimal($usercontext = null) {
+    public function export_minimal() {
         global $USER;
 
         if (!$this->get('id')) {
             return static::defaults;
         }
 
-        if (empty($usercontext)) {
-            $usercontext = $USER;
-        }
-
         $data = clone($this->data);
-        //$other = $this->get_other_values($usercontext);
-        //$merged = (object) array_merge((array) $data, (array) $other);
-        return $data;
+        $other = $this->get_other_values_minimal();
+        $merged = (object) array_merge((array) $data, (array) $other);
+        return $merged;
     }
 
     /**
@@ -586,30 +582,11 @@ class Activity {
      */
     protected function get_other_values_minimal($usercontext) {
         global $USER, $DB;
-
-        $usercontext = $USER;
-        if (isset($this->related['usercontext'])) {
-            $usercontext = $this->related['usercontext'];
-        }
+        
+        $statushelper = activities_lib::status_helper($this->data->status);
 
     	return [
-            'manageurl' => $manageurl->out(false),
-            'permissionsurl' => $permissionsurl->out(false),
             'statushelper' => $statushelper,
-            'iscreator' => $iscreator,
-            'isapprover' => $isapprover,
-            'isplanner' => $isplanner,
-            'isaccompanying' => $isaccompanying,
-            'isstaffincharge' => $isstaffincharge,
-            'staffinchargedata' => utils_lib::user_stub($this->data->staffincharge),
-            'usercanedit' => $usercanedit,
-            'usercansendmail' => $usercansendmail,
-            'ispast' => $ispast,
-            'duration' => $duration,
-            'isactivity' => $isactivity,
-            'startreadabletime' => $startreadabletime,
-            'endreadabletime' => $endreadabletime,
-            'isallday' => ( date('H:i', $this->data->timestart) == '00:00' && date('H:i', $this->data->timeend) == '23:59')
 	    ];
     }
 
