@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Group, Avatar, Text, Loader, Badge, Flex, CloseButton, Combobox, useCombobox, Pill, PillsInput } from '@mantine/core';
-import { IconUser, IconUsers } from '@tabler/icons-react';
+import { Group, Avatar, Text, Loader, Badge, Flex, CloseButton, Combobox, useCombobox, Pill, PillsInput, Tooltip, Button } from '@mantine/core';
+import { IconAlertSquare, IconUser, IconUsers } from '@tabler/icons-react';
 import { fetchData } from "../../../../../../utils";
 import { DecordatedUser, User } from "../../../../../../types/types";
 import { useStateStore } from "../../../../../../stores/stateStore";
@@ -10,11 +10,12 @@ type Props = {
   setStaff: (value: any[]) => void,
   label: string,
   sublabel?: string,
+  tip?: string,
   multiple: boolean,
   readOnly: boolean,
 }
 
-export function StaffSelector({staff, setStaff, label, sublabel, multiple, readOnly}: Props) {
+export function StaffSelector({staff, setStaff, label, sublabel, tip, multiple, readOnly}: Props) {
 
   const [search, setSearch] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -169,7 +170,17 @@ export function StaffSelector({staff, setStaff, label, sublabel, multiple, readO
 
   return (
     <div>
-      <Text fz="sm" fw={500} c="#212529">{label}</Text>
+      <div className="flex items-center gap-2">
+        <Text fz="sm" fw={500} c="#212529">{label}</Text>
+        {tip && 
+          <Tooltip label={tip} multiline w={320} withArrow>
+            <div className="flex items-center gap-1 text-blue-600">
+              <IconAlertSquare className="size-5" />
+              Important info
+            </div>
+          </Tooltip>
+        }
+      </div>
       <div className="mt-1">
         {readOnly
           ? readOnlyValues.length 

@@ -673,7 +673,7 @@ class activities_lib {
         $activities = array();
         foreach ($records as $record) {
             $activity = new Activity($record->id);
-            $activities[] = $activity->export();
+            $activities[] = $activity->export_minimal();
         }
 
         return $activities;
@@ -765,7 +765,7 @@ class activities_lib {
             foreach ($records as $record) {
                 $activity = new Activity($record->id);
                 if ($exported) {
-                    $activities[] = $activity->export();
+                    $activities[] = $activity->export_minimal();
                 } else {
                     $activities[] = $activity;
                 }
@@ -817,7 +817,7 @@ class activities_lib {
             foreach ($permissions as &$permission) {
                 $permission->student = utils_lib::user_stub($permission->studentusername);
             }
-            $exported = $activity->export();
+            $exported = $activity->export_minimal();
             $activities[$i] = static::minimise_record($exported);
             $activities[$i]['stupermissions'] = array_values($permissions);
             $activities[$i]['permissionshelper'] = static::permissions_helper($activity);

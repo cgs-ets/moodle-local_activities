@@ -99,6 +99,4 @@ if ($hassiteconfig) {
 
     $settings->add(new admin_setting_configtext('local_activities/getterminfosql', get_string('getterminfosql', 'local_activities'), '', ''));
 
-    
-
 }

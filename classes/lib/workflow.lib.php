@@ -21,6 +21,7 @@ class workflow_lib extends \local_activities\local_activities_config {
 
 
     private static function get_approval_clone($name, $sequence, $activityid) {
+        global $DB;
         // Approval stub.
         $approval = new \stdClass();
         $approval->activityid = $activityid;
@@ -29,10 +30,26 @@ class workflow_lib extends \local_activities\local_activities_config {
         $approval->type = $name;
         $approval->sequence = $sequence;
         $approval->description = static::WORKFLOW[$approval->type]['name'];
-        $approval->approvers = array_filter(
-            static::WORKFLOW[$approval->type]['approvers'], 
-            function($item) { return !isset($item['silent']) || !$item['silent']; }
-        );
+        if (isset(static::WORKFLOW[$approval->type]['fromsqlproc'])) {
+            // Load approvers from SQL.
+            $approval->approvers = [];
+            $sql = 'EXECUTE ' . static::WORKFLOW[$approval->type]['fromsqlproc'];
+            $rows = $DB->execute($sql, []);
+            foreach ($rows as $row) {
+                $username = $row['staffid'];
+                $approval->approvers[$username] = array(
+                    'username' => $username,
+                    'contacts' => null,
+                );
+            }
+            var_export($approval->approvers); exit;
+        } else {
+            // Get approves from config.
+            $approval->approvers = array_filter(
+                static::WORKFLOW[$approval->type]['approvers'], 
+                function($item) { return !isset($item['silent']) || !$item['silent']; }
+            );
+        }
 
         return $approval;
     }
@@ -54,13 +71,16 @@ class workflow_lib extends \local_activities\local_activities_config {
             switch ($campus) {
                 case 'senior': {
                     // Senior School - 1st approver.
-                    $approvals[] = static::get_approval_clone('senior_ra', 1, $activityid);
+                    $approvals[] = static::get_approval_clone('senior_hod', 1, $activityid);
 
                     // Senior School - 2nd approver.
-                    $approvals[] = static::get_approval_clone('senior_admin', 2, $activityid);
+                    $approvals[] = static::get_approval_clone('senior_ra', 2, $activityid);
 
                     // Senior School - 3st approver.
-                    $approvals[] = static::get_approval_clone('senior_hoss', 3, $activityid);
+                    $approvals[] = static::get_approval_clone('senior_admin', 3, $activityid);
+
+                    // Senior School - 4th approver.
+                    $approvals[] = static::get_approval_clone('senior_hoss', 4, $activityid);
                     break;
                 }
                 case 'primary': {

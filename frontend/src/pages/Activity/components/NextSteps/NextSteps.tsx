@@ -4,7 +4,7 @@ import { statuses } from '../../../../utils';
 import { useFormStore } from '../../../../stores/formStore';
 import { isActivity } from '../../../../utils/utils';
 import { Accordion } from '@mantine/core';
-import { IconAd2, IconAward, IconBuilding, IconBuildingPavilion, IconChecklist, IconCircle, IconCircleDashedCheck, IconCloudComputing, IconMeat, IconToolsKitchen2, IconTruckLoading } from '@tabler/icons-react';
+import { IconAd2, IconAward, IconBuilding, IconBuildingPavilion, IconChecklist, IconCircle, IconCircleDashedCheck, IconCloudComputing, IconMeat, IconReportMoney, IconToolsKitchen2, IconTruckLoading } from '@tabler/icons-react';
 import { useStateStore } from '../../../../stores/stateStore';
 
 
@@ -68,7 +68,7 @@ export function NextSteps() {
         <Accordion.Item value="financial">
           <Accordion.Control
             icon={
-              <IconToolsKitchen2 className='size-5' />
+              <IconReportMoney className='size-5' />
             }
           >
             Financial Approvals
