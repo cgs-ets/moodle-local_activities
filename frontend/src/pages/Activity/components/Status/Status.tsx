@@ -161,9 +161,9 @@ export function Status({
           ?  status == statuses.saved 
             ? "All information is saved."
             : status == statuses.inreview
-              ? "Your activity is under review. You may continue to update information."
+              ? "Activity is under review. Information may be updated by planners."
               : status == statuses.approved 
-                ? "Activity is approved! You may continue to make changes to information."
+                ? "Activity is approved!"
                 : "Get started by entering the details for this activity."
           : status > statuses.saved
             ? "All information is saved."
