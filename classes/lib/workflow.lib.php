@@ -36,10 +36,10 @@ class workflow_lib extends \local_activities\local_activities_config {
             // Prepare the SQL query based on the database type
             if ($CFG->dbtype === 'mysqli' || $CFG->dbtype === 'mariadb') {
                 // For MySQL, use the `CALL` syntax with the username parameter
-                $sql = "CALL local_activities_get_hods(?)";
+                $sql = "CALL " . static::WORKFLOW[$approval->type]['fromsqlproc'] . " (?)";
             } else {
                 // For SQL Server, use the `EXEC` syntax with the username parameter
-                $sql = "EXEC local_activities_get_hods @username = ?";
+                $sql = "EXEC " . static::WORKFLOW[$approval->type]['fromsqlproc'] . " @username = ?";
             }
             
             $config = get_config('local_activities');
