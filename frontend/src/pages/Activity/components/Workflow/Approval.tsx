@@ -15,6 +15,11 @@ export function Approval({
   approval: any,
   activityid: number,
 }) {
+
+  if (!approval) {
+    return null
+  }
+
   const setFormData = useFormStore((state) => state.setState)
   const [submitResponse, submitError, submitLoading, submitAjax, setSubmitData] = useAjax(); // destructure state and fetch function
   const approvals = useWorkflowStore((state) => state.approvals)
@@ -203,7 +208,7 @@ export function Approval({
           }
         }}
         >
-          { approval?.approvers.length &&
+          { Object.keys(approval.approvers).length &&
             <div className="flex flex-col">
               {Object.keys(approval.approvers).slice(0,4).map((approverusername: string) => {
                 return (
