@@ -580,7 +580,7 @@ class Activity {
      *
      * @return array Keys are the property names, values are their values.
      */
-    protected function get_other_values_minimal($usercontext) {
+    protected function get_other_values_minimal() {
         global $USER, $DB;
         
         $statushelper = activities_lib::status_helper($this->data->status);

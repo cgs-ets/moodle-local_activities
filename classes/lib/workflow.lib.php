@@ -21,7 +21,7 @@ class workflow_lib extends \local_activities\local_activities_config {
 
 
     private static function get_approval_clone($name, $sequence, $activityid) {
-        global $DB;
+        global $DB, $CFG, $USER;
         // Approval stub.
         $approval = new \stdClass();
         $approval->activityid = $activityid;
@@ -33,16 +33,25 @@ class workflow_lib extends \local_activities\local_activities_config {
         if (isset(static::WORKFLOW[$approval->type]['fromsqlproc'])) {
             // Load approvers from SQL.
             $approval->approvers = [];
-            $sql = 'EXECUTE ' . static::WORKFLOW[$approval->type]['fromsqlproc'];
-            $rows = $DB->execute($sql, []);
+            // Prepare the SQL query based on the database type
+            if ($CFG->dbtype === 'mysqli' || $CFG->dbtype === 'mariadb') {
+                // For MySQL, use the `CALL` syntax with the username parameter
+                $sql = "CALL local_activities_get_hods(?)";
+            } else {
+                // For SQL Server, use the `EXEC` syntax with the username parameter
+                $sql = "EXEC local_activities_get_hods @username = ?";
+            }
+            $rows = $DB->get_records_sql($sql, array($USER->username));
+            if (empty($rows)) {
+                return null;
+            }
             foreach ($rows as $row) {
-                $username = $row['staffid'];
+                $username = $row->staffid;
                 $approval->approvers[$username] = array(
                     'username' => $username,
                     'contacts' => null,
                 );
             }
-            var_export($approval->approvers); exit;
         } else {
             // Get approves from config.
             $approval->approvers = array_filter(
@@ -108,8 +117,8 @@ class workflow_lib extends \local_activities\local_activities_config {
             }
         }
 
-    
-        return $approvals;
+        // Remove nulls, which could come from workflows where no approvers were listed of found in the sql.
+        return array_values(array_filter($approvals, fn($item) => !is_null($item)));
     }
 
     public static function generate_approvals($originalactivity, $newactivity) {
