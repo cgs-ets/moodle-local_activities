@@ -208,7 +208,8 @@ export function Approval({
           }
         }}
         >
-          { Object.keys(approval.approvers).length &&
+            {console.log(approval)}
+          { approval.approvers &&
             <div className="flex flex-col">
               {Object.keys(approval.approvers).slice(0,4).map((approverusername: string) => {
                 return (
