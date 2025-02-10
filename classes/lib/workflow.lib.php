@@ -21,7 +21,7 @@ class workflow_lib extends \local_activities\local_activities_config {
 
 
     private static function get_approval_clone($name, $sequence, $activityid) {
-        global $DB, $CFG, $USER;
+        global $CFG, $USER;
         // Approval stub.
         $approval = new \stdClass();
         $approval->activityid = $activityid;
@@ -41,17 +41,29 @@ class workflow_lib extends \local_activities\local_activities_config {
                 // For SQL Server, use the `EXEC` syntax with the username parameter
                 $sql = "EXEC local_activities_get_hods @username = ?";
             }
-            $rows = $DB->get_records_sql($sql, array($USER->username));
-            if (empty($rows)) {
+            
+            $config = get_config('local_activities');
+            if (empty($config->dbhost ?? '') || empty($config->dbuser ?? '') || empty($config->dbpass ?? '') || empty($config->dbname ?? '')) {
                 return null;
             }
-            foreach ($rows as $row) {
-                $username = $row->staffid;
-                $approval->approvers[$username] = array(
-                    'username' => $username,
-                    'contacts' => null,
-                );
+            try {
+                $externalDB = \moodle_database::get_driver_instance($config->dbtype, 'native', true);
+                $externalDB->connect($config->dbhost, $config->dbuser, $config->dbpass, $config->dbname, '');
+                $rows = $externalDB->get_records_sql($sql, array($USER->username));
+                if (empty($rows)) {
+                    return null;
+                }
+                foreach ($rows as $row) {
+                    $username = $row->staffid;
+                    $approval->approvers[$username] = array(
+                        'username' => $username,
+                        'contacts' => null,
+                    );
+                }
+            } catch (\Exception $e) {
+                return null;
             }
+            
         } else {
             // Get approves from config.
             $approval->approvers = array_filter(
