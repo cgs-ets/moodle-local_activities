@@ -153,6 +153,7 @@ export function Approval({
                   onChange={(value) => updateNominated(approval.id, value)}
                   data={Object.keys(approval.approvers).map((a: any) => ({value: approval.approvers[a].username, label: approval.approvers[a].fullname}))}
                   className="flex-1"
+                  searchable
                 />
                 {approval.tempnominated && approval.tempnominated != approval.nominated ? <Button onClick={() => submitNominated(approval.id)} variant="light" size="compact-xs">Save</Button> : '' }
               </div>

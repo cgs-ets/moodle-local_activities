@@ -63,6 +63,7 @@ export function SelectApproversModal({save}: Props) {
                     onChange={(value) => setSelected({...selected, [approval.id]: value})}
                     data={Object.keys(approval.approvers).map((a: any) => ({value: approval.approvers[a].username, label: approval.approvers[a].fullname}))}
                     className="flex-1"
+                    searchable
                   />
                 </Box>
               )
