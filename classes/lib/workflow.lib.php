@@ -5,10 +5,12 @@ namespace local_activities\lib;
 defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__.'/activities.lib.php');
+require_once(__DIR__.'/utils.lib.php');
 require_once(__DIR__.'/activity.class.php');
 
 use \local_activities\lib\activities_lib;
 use \local_activities\lib\activity;
+use \local_activities\lib\utils_lib;
 
 /**
  * Activity lib
@@ -19,6 +21,43 @@ class workflow_lib extends \local_activities\local_activities_config {
     const APPROVAL_STATUS_APPROVED = 1;
     const APPROVAL_STATUS_REJECTED = 2;
 
+    private static function get_approvers_from_proc($approvaltype) {
+        global $CFG, $USER;
+        // Load approvers from SQL.
+        $approvers = [];
+        // Prepare the SQL query based on the database type
+        if ($CFG->dbtype === 'mysqli' || $CFG->dbtype === 'mariadb') {
+            // For MySQL, use the `CALL` syntax with the username parameter
+            $sql = "CALL " . static::WORKFLOW[$approvaltype]['fromsqlproc'] . " (?)";
+        } else {
+            // For SQL Server, use the `EXEC` syntax with the username parameter
+            $sql = "EXEC " . static::WORKFLOW[$approvaltype]['fromsqlproc'] . " @username = ?";
+        }
+        
+        $config = get_config('local_activities');
+        if (empty($config->dbhost ?? '') || empty($config->dbuser ?? '') || empty($config->dbname ?? '')) {
+            return null;
+        }
+        try {
+            $externalDB = \moodle_database::get_driver_instance($config->dbtype, 'native', true);
+            @$externalDB->connect($config->dbhost, $config->dbuser, $config->dbpass, $config->dbname, '');
+            $rows = $externalDB->get_records_sql($sql, array($USER->username));
+            if (empty($rows)) {
+                return null;
+            }
+            foreach ($rows as $row) {
+                $username = $row->staffid;
+                $approvers[$username] = array(
+                    'username' => $username,
+                    'contacts' => null,
+                );
+            }
+        } catch (\Exception $e) {
+            return null;
+        }
+
+        return $approvers;
+    }
 
     private static function get_approval_clone($name, $sequence, $activityid) {
         global $CFG, $USER;
@@ -30,40 +69,9 @@ class workflow_lib extends \local_activities\local_activities_config {
         $approval->type = $name;
         $approval->sequence = $sequence;
         $approval->description = static::WORKFLOW[$approval->type]['name'];
+        
         if (isset(static::WORKFLOW[$approval->type]['fromsqlproc'])) {
-            // Load approvers from SQL.
-            $approval->approvers = [];
-            // Prepare the SQL query based on the database type
-            if ($CFG->dbtype === 'mysqli' || $CFG->dbtype === 'mariadb') {
-                // For MySQL, use the `CALL` syntax with the username parameter
-                $sql = "CALL " . static::WORKFLOW[$approval->type]['fromsqlproc'] . " (?)";
-            } else {
-                // For SQL Server, use the `EXEC` syntax with the username parameter
-                $sql = "EXEC " . static::WORKFLOW[$approval->type]['fromsqlproc'] . " @username = ?";
-            }
-            
-            $config = get_config('local_activities');
-            if (empty($config->dbhost ?? '') || empty($config->dbuser ?? '') || empty($config->dbpass ?? '') || empty($config->dbname ?? '')) {
-                return null;
-            }
-            try {
-                $externalDB = \moodle_database::get_driver_instance($config->dbtype, 'native', true);
-                $externalDB->connect($config->dbhost, $config->dbuser, $config->dbpass, $config->dbname, '');
-                $rows = $externalDB->get_records_sql($sql, array($USER->username));
-                if (empty($rows)) {
-                    return null;
-                }
-                foreach ($rows as $row) {
-                    $username = $row->staffid;
-                    $approval->approvers[$username] = array(
-                        'username' => $username,
-                        'contacts' => null,
-                    );
-                }
-            } catch (\Exception $e) {
-                return null;
-            }
-            
+            $approval->approvers = static::get_approvers_from_proc($approval->type);
         } else {
             // Get approves from config.
             $approval->approvers = array_filter(
@@ -390,11 +398,11 @@ class workflow_lib extends \local_activities\local_activities_config {
 
         // Check if user is allowed to do this.
         $isapprover = static::is_approver_of_activity($activityid);
-        if (!$isapprover) {
-            return null;
+        if (!$isapprover && !utils_lib::has_capability_edit_activity($activityid)) {
+            return static::check_status($activityid, null, false, [], false);
         }
-        $activity = new static($activityid);
 
+        $activity = new static($activityid);
         // Update the approval.
         $sql = "UPDATE mdl_activity_approvals
                    SET nominated = ?, timemodified = ?
@@ -407,14 +415,19 @@ class workflow_lib extends \local_activities\local_activities_config {
         // Send the notification.
         $approvals = static::get_approval($activityid, $approvalid);
         foreach ($approvals as $approval) {
-            $approver = static::WORKFLOW[$approval->type]['approvers'][$nominated];
-            if ($approver['contacts']) {
-                foreach ($approver['contacts'] as $email) {
-                    static::send_next_approval_email($activityid, static::WORKFLOW[$approval->type]['name'], $nominated, $email, [$USER->email]);
-                }
-            } else {
+            if (static::WORKFLOW[$approval->type]['fromsqlproc']) {
                 static::send_next_approval_email($activityid, static::WORKFLOW[$approval->type]['name'], $nominated, null, [$USER->email]);
+            } else {
+                $approver = static::WORKFLOW[$approval->type]['approvers'][$nominated];
+                if ($approver['contacts']) {
+                    foreach ($approver['contacts'] as $email) {
+                        static::send_next_approval_email($activityid, static::WORKFLOW[$approval->type]['name'], $nominated, $email, [$USER->email]);
+                    }
+                } else {
+                    static::send_next_approval_email($activityid, static::WORKFLOW[$approval->type]['name'], $nominated, null, [$USER->email]);
+                }
             }
+            
         }
 
         // Return updated status and workflow.
@@ -865,18 +878,45 @@ class workflow_lib extends \local_activities\local_activities_config {
     }
 
     public static function get_workflow($activityid) {
+        $activity = new Activity($activityid);
+        $exported = $activity->export();
+
         // Get approvals.
         $userapprovertypes = static::get_approver_types();
         $approvals = static::get_approvals($activityid);
         $i = 0;
         foreach ($approvals as $approval) {
+            $approval->selectable = false;
+            $approval->isapprover = static::is_approver_of_activity($activityid);
+
             // Check if last approval.
             if(++$i === count($approvals)) {
                 $approval->last = true;
             }
+            
+            // Approvers and editors (planners etc) can see the approvers in the workflow.
+            if ($approval->isapprover || $exported->usercanedit) {
+                // Get step approvers.
+                if (isset(static::WORKFLOW[$approval->type]['fromsqlproc'])) {
+                    $approvers = static::get_approvers_from_proc($approval->type);
+                } else {
+                    $approvers = static::WORKFLOW[$approval->type]['approvers'];
+                }
+
+                // Remove silent approvers.
+                $approval->approvers = array_filter(
+                    $approvers, 
+                    function($item) { return !isset($item['silent']) || !$item['silent']; }
+                );
+
+                // Pull in the approvers name.
+                foreach ($approval->approvers as &$approver) {
+                    $user = \core_user::get_user_by_username($approver['username']);
+                    $approver['fullname'] = fullname($user);
+                }
+            }
 
             // Check if ready to approve.
-            $approval->isapprover = static::is_approver_of_activity($activityid);
             if ($approval->isapprover) {
                 // Check if skippable.
                 if (isset(static::WORKFLOW[$approval->type]['canskip'])) {
@@ -895,38 +935,29 @@ class workflow_lib extends \local_activities\local_activities_config {
                     }
                 }
 
-                // Get step approvers but remove any silent approvers.
-                $approvers = static::WORKFLOW[$approval->type]['approvers'];
-                $approval->approvers = array_filter(
-                    $approvers, 
-                    function($item) { return !isset($item['silent']) || !$item['silent']; }
-                );
-                // Pull in the approvers name.
-                foreach ($approval->approvers as &$approver) {
-                    $user = \core_user::get_user_by_username($approver['username']);
-                    $approver['fullname'] = fullname($user);
-                }
-
                 // Can this user select someone in this step?
-                $approval->selectable = false;
                 if (isset(static::WORKFLOW[$approval->type]['selectable']) && static::WORKFLOW[$approval->type]['selectable']) {
                     if (empty($prerequisites)) {
                         $approval->selectable = true;
-                        //$approval->approvers = [];
-                        //$approvers = static::WORKFLOW[$approval->type]['approvers'];
                         foreach ($approval->approvers as &$approver) {
                             $approver['isselected'] = ($approver['username'] == $approval->nominated);
-
-                            //$user = \core_user::get_user_by_username($un);
-                            //$approval->approvers[] = array(
-                                //'username' => $user->username,
-                                //'fullname' => fullname($user),
-                                //'isselected' => ($user->username == $approval->nominated)
-                            //);
                         }
                     }
                 }
             }
+
+            
+            // Ok, we just checked if the approval is selectable for a approvers. 
+            // Check if selectable for a planner.
+            if( $exported->usercanedit &&
+                isset(static::WORKFLOW[$approval->type]['selectable']) &&
+                static::WORKFLOW[$approval->type]['selectable'] &&
+                isset(static::WORKFLOW[$approval->type]['selectablebywho']) &&
+                static::WORKFLOW[$approval->type]['selectablebywho'] == 'planner') {
+                $approval->selectable = true;
+                $approval->selectablebywho = 'planner';
+            }
+            
         }
 
         return $approvals;

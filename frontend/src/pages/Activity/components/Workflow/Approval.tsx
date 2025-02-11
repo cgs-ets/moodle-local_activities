@@ -86,9 +86,9 @@ export function Approval({
   }
 
   const unsetNominated = (id: string) => {
-    const newApprovals = approvals.map((approval: { id: string }) => 
+    const newApprovals = approvals.map((approval: { id: string, nominated: string }) => 
       approval.id === id
-        ? { ...approval, nominated: "" } 
+        ? { ...approval, nominated: "", currentnominated: approval.nominated } 
         : approval
     )
     setApprovals(newApprovals)
@@ -148,7 +148,7 @@ export function Approval({
             : <div className="flex gap-2 items-center">
                 <Select
                   size="xs"
-                  placeholder="Nominate approver"
+                  placeholder={approval.description}
                   value={approval.tempnominated ? approval.tempnominated : approval.nominated}
                   onChange={(value) => updateNominated(approval.id, value)}
                   data={Object.keys(approval.approvers).map((a: any) => ({value: approval.approvers[a].username, label: approval.approvers[a].fullname}))}
@@ -208,7 +208,6 @@ export function Approval({
           }
         }}
         >
-            {console.log(approval)}
           { approval.approvers &&
             <div className="flex flex-col">
               {Object.keys(approval.approvers).slice(0,4).map((approverusername: string) => {

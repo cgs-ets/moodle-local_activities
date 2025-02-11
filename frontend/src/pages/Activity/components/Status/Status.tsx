@@ -1,7 +1,7 @@
-import { Card, Group, Button, Text, Menu, Loader, Transition, Box, Alert,  } from '@mantine/core';
+import { Card, Group, Button, Text, Menu, Loader, Transition, Box } from '@mantine/core';
 import { IconDots, IconCloudUp, IconCheckbox, IconArrowMoveLeft, IconCheck } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
-import { useTimeout } from '@mantine/hooks';
+import { useDisclosure, useTimeout } from '@mantine/hooks';
 import { statuses } from '../../../../utils';
 import { useAjax } from '../../../../hooks/useAjax';
 import { useParams } from 'react-router-dom';
@@ -9,7 +9,6 @@ import { Form, useFormStore } from '../../../../stores/formStore';
 import { useStateStore } from '../../../../stores/stateStore';
 import { entryStatus, excursionStatus, isActivity, isCalEntry } from '../../../../utils/utils';
 import { useWorkflowStore } from '../../../../stores/workflowStore';
-
 
 export function Status({
   submitLoading, 
@@ -31,7 +30,7 @@ export function Status({
   const hash = useStateStore((state) => (state.hash))
   const setFormData = useFormStore((state) => state.setState)
   const setApprovals = useWorkflowStore((state) => state.setApprovals)
-  
+
   const formloaded = useStateStore((state) => (state.formloaded))
   const studentsloaded = useStateStore((state) => (state.studentsloaded))
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
@@ -92,6 +91,7 @@ export function Status({
       setFormData({
         status: pubResponse.data.status,
       } as Form)
+      //console.log('pubResponse.data.workflow', pubResponse.data.workflow)
       setApprovals(pubResponse.data.workflow)
     }
   }, [pubResponse])
@@ -122,6 +122,7 @@ export function Status({
     }
     return options
   }
+
 
   return (
     <Card withBorder radius="sm" p="md" mb="lg" className="overflow-visible rounded-b-none"
@@ -203,6 +204,7 @@ export function Status({
           }
         </Group>
       }
+        
     </Card>
   )
 

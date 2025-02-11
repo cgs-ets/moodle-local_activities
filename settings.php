@@ -69,7 +69,7 @@ if ($hassiteconfig) {
         get_string('settingsheaderdb', 'local_activities'), 
         ''
     ));
-	$options = array('', "mysqli", "oci", "pdo", "pgsql", "sqlite3", "sqlsrv");
+	$options = array('', "mariadb", "mysqli", "oci", "pdo", "pgsql", "sqlite3", "sqlsrv");
     $options = array_combine($options, $options);
     $settings->add(new admin_setting_configselect(
         'local_activities/dbtype', 

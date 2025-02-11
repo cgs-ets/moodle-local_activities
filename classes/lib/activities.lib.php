@@ -57,7 +57,12 @@ class activities_lib {
             exit;
         }
         $activity = new Activity($id);
-        return $activity->export();
+        $exported = $activity->export();
+        if((!$exported->usercanedit) && $exported->status < static::ACTIVITY_STATUS_INREVIEW) {
+            throw new \Exception("Permission denied.");
+            exit;
+        }
+        return $exported;
     }
 
 
@@ -460,12 +465,12 @@ class activities_lib {
             throw new \Exception("Permission denied.");
             exit;
         }
+
         $originalactivity = new Activity($activityid);
         $activity = new Activity($activityid);
         $activity->set('status', $status);
         $activity->save();
 
- 
         // If going to draft, remove any existing approvals.
         if ($status <= static::ACTIVITY_STATUS_DRAFT) {
             $sql = "UPDATE mdl_activity_approvals

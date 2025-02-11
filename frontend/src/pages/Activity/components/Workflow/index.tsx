@@ -9,6 +9,7 @@ import { useWorkflowStore } from "../../../../stores/workflowStore";
 import { Approval } from "./Approval";
 import { statuses } from "../../../../utils";
 import { useStateStore } from "../../../../stores/stateStore";
+import { SelectApproversModal } from "../Status/SelectApproversModal";
 
 export function Workflow({
   activityid,
@@ -87,51 +88,83 @@ export function Workflow({
       }
     }
   }, [fetchDraftResponse]);
-  
+
+
+  const [submitResponse, submitError, submitLoading, submitAjax, setSubmitData] = useAjax(); // destructure state and fetch function
+  const selectApprovers = (selections: { [key: string]: string }) => {
+    console.log("Selected approvers", selections)
+    for (let i = 0; i < Object.keys(selections).length; i++) {
+      const id = Object.keys(selections)[i]
+      const nominated = selections[id]
+      if (id && nominated) {
+        return submitAjax({
+          method: "POST", 
+          body: {
+            methodname: 'local_activities-nominate_approver',
+            args: {
+              activityid: activityid,
+              approvalid: id,
+              nominated: nominated,
+            },
+          }
+        })
+      }
+    }
+  }
+  useEffect(() => {
+    if (submitResponse && !submitError) {
+      setApprovals(submitResponse.data.workflow)
+    }
+  }, [submitResponse]);
 
   
   return (
-    isActivity(activitytype) && (approvals.length || draftApprovals.length) ?
-    <Card withBorder radius="sm" className="p-0 rounded-t-none -mt-[1px]" mb="lg">
-      
-      
-      <div className="px-4 py-2">
-        <span className="text-base">Workflow {status == statuses.draft || status == statuses.saved ? "(Not started)" : ""}</span>
-      </div>
-      
-      <div className="relative flex flex-col border-t text-sm">
-        <LoadingOverlay visible={fetchLoading || fetchDraftLoading} />
-        { approvals.length && draftApprovals.length
-          ? <div className="z-10 absolute top-0 left-0 w-full h-full xbg-black/40 backdrop-blur-[2px]">
-              <div className="flex flex-col items-center justify-center w-full h-full text-gray-500">
-                <IconX stroke={0.5} className="size-10 text-black" />
-                <div className="text-black">Workflow change based on selections</div>
-              </div>
+    isActivity(activitytype) && (approvals.length || draftApprovals.length) 
+      ? <>
+          <Card withBorder radius="sm" className="p-0 rounded-t-none -mt-[1px]" mb="lg">
+            
+            
+            <div className="px-4 py-2">
+              <span className="text-base">Workflow {status == statuses.draft || status == statuses.saved ? "(Not started)" : ""}</span>
             </div>
-          : null
-        }
-        {approvals.map((approval: any, i) => {
-          return(
-            <Approval key={approval.id} activityid={activityid} approval={approval} />
-          )
-        })}
-      </div>
-
-      { draftApprovals.length 
-        ? <div className="relative flex flex-col text-sm">
-            <LoadingOverlay visible={fetchDraftLoading} />
-            <div className="hidden z-10 absolute top-0 left-0 w-full h-full bg-green-600/40">
-              <IconPlus stroke={0.3} className="w-full h-full text-white" />
+            
+            <div className="relative flex flex-col border-t text-sm">
+              <LoadingOverlay visible={fetchLoading || fetchDraftLoading} />
+              { approvals.length && draftApprovals.length
+                ? <div className="z-10 absolute top-0 left-0 w-full h-full xbg-black/40 backdrop-blur-[2px]">
+                    <div className="flex flex-col items-center justify-center w-full h-full text-gray-500">
+                      <IconX stroke={0.5} className="size-10 text-black" />
+                      <div className="text-black">Workflow change based on selections</div>
+                    </div>
+                  </div>
+                : null
+              }
+              {approvals.map((approval: any, i) => {
+                return(
+                  <Approval key={approval.id} activityid={activityid} approval={approval} />
+                )
+              })}
             </div>
-            {draftApprovals.map((approval: any, i) => {
-              return(
-                <Approval key={i} activityid={activityid} approval={approval} />
-              )
-            })}
-          </div>
-        : null
-      }
 
-    </Card> : null
+            { draftApprovals.length 
+              ? <div className="relative flex flex-col text-sm">
+                  <LoadingOverlay visible={fetchDraftLoading} />
+                  <div className="hidden z-10 absolute top-0 left-0 w-full h-full bg-green-600/40">
+                    <IconPlus stroke={0.3} className="w-full h-full text-white" />
+                  </div>
+                  {draftApprovals.map((approval: any, i) => {
+                    return(
+                      <Approval key={i} activityid={activityid} approval={approval} />
+                    )
+                  })}
+                </div>
+              : null
+            }
+
+          </Card>
+          
+          <SelectApproversModal save={selectApprovers} />
+        </>
+      : null
   )
 }
