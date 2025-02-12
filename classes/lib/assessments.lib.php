@@ -23,6 +23,10 @@ class assessments_lib {
             $assessment->usercanedit = true;
         }
 
+        if ($assessment->activityid) {
+            $assessment->activityname = $DB->get_field('activities', 'activityname', array('id' => $assessment->activityid));
+        }
+
         return $assessment;
     }
 
@@ -316,9 +320,9 @@ class assessments_lib {
             $in_scope = strtotime($event_eventful_date) >= strtotime($scope_datetime_start->format('Y-m-d'));
             
             $past = $event->timeend < strtotime('today midnight') ? true : false;
-            if ($past) { 
-                continue; 
-            }
+            //if ($past) { 
+            //    continue; 
+            //}
 
             $currently_on = (!$past) && ($event->timestart < time()) ? true : false;
             if( $currently_on ) {

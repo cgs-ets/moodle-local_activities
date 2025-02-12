@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Box, Container, Grid, Center, Text, Loader } from '@mantine/core';
-import { useNavigate, useParams } from "react-router-dom";
+import { Box, Container, Grid, Center, Text, Loader, Badge, Button } from '@mantine/core';
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
 import { PageHeader } from "./components/PageHeader";
@@ -12,7 +12,7 @@ import { useStateStore, ViewStateProps } from "../../stores/stateStore";
 import { defaults, Errors, Form, useFormStore, useFormValidationStore } from "../../stores/formStore";
 import { StaffDetails } from "./components/StaffDetails/StaffDetails";
 import { CalendarSettings } from "./components/CalendarSettings/CalendarSettings";
-import { Workflow } from "./components/Workflow";
+import { Workflow } from "./components/Workflow/Workflow";
 import { useWorkflowStore } from "../../stores/workflowStore";
 import { Conflicts } from "./components/Conflicts/Conflicts";
 import { CalendarFlow } from "./components/CalendarFlow/CalendarFlow";
@@ -21,7 +21,6 @@ import { useDisclosure } from "@mantine/hooks";
 import { Permissions } from "./components/Permissions/Permissions";
 import { cn, isActivity } from "../../utils/utils";
 import { Comments } from "./components/Comments/Comments";
-import { StudentList } from "./components/StudentList/StudentList";
 import { PermissionsEmailModal } from "./components/PermissionsEmailModal/PermissionsEmailModal";
 import { EmailHistory } from "./components/EmailHistory/EmailHistory";
 import { NextSteps } from "./components/NextSteps/NextSteps";
@@ -48,12 +47,11 @@ export function EditActivity() {
   const activitytype = useFormStore((state) => state.activitytype)
   const updateViewStateProps = useStateStore((state) => (state.updateViewStateProps))
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
-
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const resetForm = useFormStore((state) => (state.reset))
   const resetState = useStateStore((state) => (state.reset))
   const resetWF = useWorkflowStore((state) => (state.reset))
-
 
   useEffect(() => {
     document.title = 'Manage Activity'
@@ -176,6 +174,7 @@ export function EditActivity() {
     formData.planningstaffjson = JSON.stringify(formData.planningstaff)
     formData.accompanyingstaffjson = JSON.stringify(formData.accompanyingstaff)
     formData.staffinchargejson = JSON.stringify(formData.staffincharge.length ? formData.staffincharge[0] : '')
+    formData.assessmentid = searchParams.get('assessment') || null
 
     setSubmitData({
       response: null,
@@ -233,6 +232,12 @@ export function EditActivity() {
     return ""
   }
 
+  useEffect(() => {
+    // If search params has assessmentid, pop it into the formData.
+    if (searchParams.get('assessment')) {
+      setFormData({assessmentid: searchParams.get('assessment')} as Form)
+    }
+  }, [searchParams])
 
 
   return (
@@ -261,7 +266,7 @@ export function EditActivity() {
               <form noValidate onSubmit={handleSubmit}>
                 <Grid grow>
                   <Grid.Col span={{ base: 12, lg: 8 }}>
-                    <Box className="flex flex-col gap-4">
+                    <Box className="flex flex-col gap-4 relative">
                       <BasicDetails />
                       <CalendarSettings />
                       <StaffDetails />

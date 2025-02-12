@@ -208,9 +208,9 @@ class activities_lib {
             $activity->set('otherparticipants', $data->otherparticipants);
             $activity->set('colourcategory', $data->colourcategory);
             $activity->set('displaypublic', $data->displaypublic);
-            $activity->set('isassessment', $data->isassessment);
-            $activity->set('courseid', $data->courseid);
-            $activity->set('assessmenturl', $data->assessmenturl);
+            //$activity->set('isassessment', $data->isassessment);
+            //$activity->set('courseid', $data->courseid);
+            //$activity->set('assessmenturl', $data->assessmenturl);
             $activity->set('studentlistjson', $data->studentlistjson);
 
             // Set absences flag back to 0 so that absences are cleaned in case of student list change.
@@ -282,6 +282,15 @@ class activities_lib {
                 static::is_activity($data->activitytype)
             ) {
                 $newstatusinfo = workflow_lib::generate_approvals($originalactivity, $activity);
+            }
+
+            // Finally, if assessmentid is included in data, update the assessment record with the activityid.
+            if ($data->assessmentid) {
+                $sql = "UPDATE mdl_activity_assessments
+                        SET activityid = ?
+                        WHERE id = ?";
+                $params = array($activity->get('id'), $data->assessmentid);
+                $DB->execute($sql, $params);
             }
 
         } catch (\Exception $e) {

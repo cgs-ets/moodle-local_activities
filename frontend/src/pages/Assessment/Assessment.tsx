@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { getConfig } from "../../utils";
 import { useStateStore, ViewStateProps } from "../../stores/stateStore";
 import useFetch from "../../hooks/useFetch";
@@ -7,11 +7,12 @@ import dayjs from "dayjs";
 import { useAjax } from "../../hooks/useAjax";
 import { Header } from "../../components/Header";
 import { cn } from "../../utils/utils";
-import { Anchor, Box, Button, Card, Center, Container, Grid, Loader, NavLink, Select, Text, TextInput } from "@mantine/core";
+import { ActionIcon, Anchor, Box, Button, Card, Center, Checkbox, Container, Grid, Loader, NavLink, Select, Text, TextInput } from "@mantine/core";
 import { Footer } from "../../components/Footer";
 import { DateTimePicker } from "@mui/x-date-pickers";
-import { IconCloudUp, IconExternalLink } from "@tabler/icons-react";
+import { IconCloudUp, IconExternalLink, IconX } from "@tabler/icons-react";
 import { PageHeader } from "./components/PageHeader";
+import { ActivitiesSearchInput } from "./components/ActivitiesSearchInput";
 
 interface Module {
   value: string;
@@ -28,16 +29,20 @@ export interface AssessmentData {
   url: string;
   timedue: string;
   course?: any;
+  activityrequired: boolean;
+  activityid: string;
+  activityname: string;
 }
 
 export function Assessment() {
   let { id } = useParams();
   const api = useFetch()
   const api2 = useFetch()
+  const api3 = useFetch()
   const updateViewStateProps = useStateStore((state) => (state.updateViewStateProps))
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
   const [error, setError] = useState<string>("")
-  const [formData, setFormData] = useState<AssessmentData>({
+  const defaults = {
     id: id ?? "",
     courseid: "",
     module: null,
@@ -45,12 +50,17 @@ export function Assessment() {
     name: "",
     url: "",
     timedue: dayjs().unix().toString(),
-  })
+    activityrequired: false,
+    activityid: "",
+    activityname: "",
+  }
+  const [formData, setFormData] = useState<AssessmentData>(defaults)
   const [courses, setCourses] = useState([])
   const [modules, setModules] = useState<Module[]>([])
   const [coursesLoading, setCoursesLoading] = useState<boolean>(false)
   const [modulesLoading, setModulesLoading] = useState<boolean>(false)
-  const [submitResponse, submitError, submitLoading, submitAjax, setSubmitData] = useAjax(); // destructure state and fetch function
+  //const [submitResponse, submitError, submitLoading, submitAjax, setSubmitData] = useAjax(); // destructure state and fetch function
+  const [submitLoading, setSubmitLoading] = useState<boolean>(false)
 
   useEffect(() => {
     document.title = 'Manage Assessment'
@@ -71,6 +81,7 @@ export function Assessment() {
 
     return () => {
       // Clear everything when leaving.
+      setFormData(defaults)
     };
   }, [id]);
 
@@ -133,48 +144,38 @@ export function Assessment() {
 
   const navigate = useNavigate()
 
-  useEffect(() => {
-    if (!submitError && submitResponse) {
-      // Error saving.
-      if (!submitResponse.data.id) {
-        setSubmitData({
-          response: {exception: {message: "Something went wrong! Please reload and try again."}},
-          error: true,
-          loading: false,
-        })
-        return
-      }
-      // Successful save.
-      if (!id) {
-        navigate('/assessment/' + submitResponse.data.id, {replace: false})
-      } else {
-        
-      }
-    }
-  }, [submitResponse])
 
-
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    setSubmitData({
-      response: null,
-      error: false,
-      loading: false,
-    })
+  const handleSubmit = async (redirect?: string) => {
+    setSubmitLoading(true)
 
     formData.name = formData.name ? formData.name : formData.module ? formData.module.label : ''
     formData.cmid = formData.module?.value ?? ''
     formData.url = formData.module?.url ?? ''
 
-    //return
-    submitAjax({
-      method: "POST", 
+    const response = await api3.call({
+      method: "POST",
       body: {
         methodname: 'local_activities-post_assessment',
         args: formData,
       }
     })
+
+    setSubmitLoading(false)
+
+    if (!response.error && response.data) {
+      // If there is a redirect (user has saved and required an activity), navigate to that with the new ID.
+      if (redirect) {
+        navigate(`${redirect}?assessment=${response.data.id}`, { replace: false });
+      } else {
+        // If there is no redirect, it's a save.
+        if (!id) {
+          navigate('/assessment/' + response.data.id, {replace: false})
+        }
+      }
+    } else {
+      setError(response.exception?.message ?? "Error")
+    }
+    
   }
 
 
@@ -244,7 +245,7 @@ export function Assessment() {
               <PageHeader name={formData.name} />
             </Container>
             <Container size="xl" my="md">
-              <form noValidate onSubmit={handleSubmit}>
+              <div>
                 <Box className="flex flex-col gap-4 max-w-xl">
                   <Card withBorder className="overflow-visible rounded p-4 flex flex-col gap-6">
                   
@@ -313,7 +314,67 @@ export function Assessment() {
                           />                          
                           
                         </div>
-                  </Card> 
+                  </Card>
+                  <Card withBorder className="overflow-visible rounded p-4 flex flex-col gap-6">
+                    <div className="flex flex-col gap-2 pb-2">
+
+                      { !!Number(formData.activityid)
+                        ? <>
+                            <span className="font-semibold">Linked Activity</span>
+                            <div className="flex mr-4">
+                              <Button 
+                                color="dark" 
+                                variant="light" 
+                                aria-label="Filters" 
+                                size="compact-md" 
+                                leftSection={<IconExternalLink size={18} />} 
+                                className="h-8 rounded-r-none"
+                                component={Link}                        
+                                to={'/' + formData.activityid}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {formData.activityname}
+                              </Button>
+                              {false && <ActionIcon color="dark" onClick={() => updateField('activityid', 0)} variant="light" size="compact-md" ml={2} className="rounded-l-none pl-1 pr-1">
+                                <IconX stroke={1.5} size={18} />
+                              </ActionIcon>}
+                            </div>
+                          </>
+                        : <>
+                            <Checkbox 
+                              label="Do you require an excursion/incursion for this assessment?"
+                              checked={formData.activityrequired}
+                              onChange={(e) => updateField('activityrequired', e.target.checked)}
+                              readOnly={viewStateProps.readOnly}
+                            />
+
+                            {formData.activityrequired && !viewStateProps.readOnly &&
+                              <div className="flex gap-4 items-center">
+                                <ActivitiesSearchInput
+                                  placeholder="Search activities"
+                                  delay={300}
+                                />
+                                <span className="text-gray-400">or</span>
+                                <Button 
+                                  variant="light"
+                                  type="submit" 
+                                  size="compact-sm" 
+                                  radius="xl"
+                                  onClick={() => handleSubmit('/new')}
+                                >
+                                  Create new
+                                </Button>
+                              </div>
+                            } 
+                          </>
+                        
+                      }
+
+                      
+
+                    </div>
+                  </Card>
                 </Box>
                 <Button 
                   className="mt-4 px-3"
@@ -321,10 +382,12 @@ export function Assessment() {
                   size="compact-lg" 
                   radius="xl" 
                   leftSection={<IconCloudUp className='size-5' />} 
-                  loading={submitLoading}>
+                  loading={submitLoading}
+                  onClick={() => handleSubmit()}
+                >
                   Save
                 </Button>
-              </form>
+              </div>
           </Container>
         </> : null
         }

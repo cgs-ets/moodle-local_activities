@@ -25,6 +25,7 @@ export function Workflow({
   const status = useFormStore((state) => state.status)
   const initialCampus = useFormStore((state) => state.initialCampus)
   const initialActivitytype = useFormStore((state) => state.initialActivitytype)
+  const assessmentid = useFormStore((state) => state.assessmentid)
 
   const [draftApprovals, setDraftApprovals] = useState<any[]>([])
   const savedtime = useStateStore((state) => (state.savedtime))
@@ -78,6 +79,7 @@ export function Workflow({
         id: activityid,
         activitytype: activitytype,
         campus: campus,
+        assessmentid: assessmentid,
       }
     })
   }

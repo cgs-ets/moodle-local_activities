@@ -60,9 +60,10 @@ class Activity {
         'pushpublic' => 0,
         'timesynclive' => 0,
         'timesyncplanning' => 0,
-        'isassessment' => 0,
-        'courseid' => 0,
-        'assessmenturl' => ''
+        'assessmentid' => 0,
+        //'isassessment' => 0,
+        //'courseid' => 0,
+        //'assessmenturl' => ''
     ];
 
 
@@ -553,6 +554,9 @@ class Activity {
             $endreadabletime = date('j M Y, g:ia', $this->data->timeend);
         }
 
+        // Check if this activity is linked to an assessment.
+        $assessmentid = $DB->get_field('activity_assessments', 'id', array('activityid' => $this->data->id));
+
     	return [
             'manageurl' => $manageurl->out(false),
             'permissionsurl' => $permissionsurl->out(false),
@@ -570,7 +574,8 @@ class Activity {
             'isactivity' => $isactivity,
             'startreadabletime' => $startreadabletime,
             'endreadabletime' => $endreadabletime,
-            'isallday' => ( date('H:i', $this->data->timestart) == '00:00' && date('H:i', $this->data->timeend) == '23:59')
+            'isallday' => ( date('H:i', $this->data->timestart) == '00:00' && date('H:i', $this->data->timeend) == '23:59'),
+            'assessmentid' => $assessmentid,
 	    ];
     }
 

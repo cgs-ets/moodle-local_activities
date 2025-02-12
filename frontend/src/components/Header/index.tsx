@@ -36,12 +36,18 @@ export function Header() {
             </Link>
           </Group>
           <div className="flex items-center gap-4">
-            { !location.pathname.includes("/assessments") &&
-              <Anchor href="/local/activities/assessments" className="text-white hover:no-underline mr-4 text-md font-normal">Assessments</Anchor>
+            <Anchor className="text-gray-200 hover:no-underline mr-4 text-md font-normal" href="/">{getConfig().sitename}</Anchor>
+
+            { !location.pathname.includes("/assessment") 
+              ? <Anchor href="/local/activities/assessments" className="text-white hover:no-underline mr-4 text-md font-semibold">Assessments</Anchor>
+              : <Anchor href="/local/activities" className="text-white hover:no-underline mr-4 text-md font-semibold">Activities</Anchor>
             }
-            <Anchor className="text-white hover:no-underline mr-4 text-md font-normal" href="/">{getConfig().sitename}</Anchor>
+
             { getConfig().roles.includes('staff') 
-              ? <Button component={Link} to={location.pathname.includes("/assessments") ? "/assessment" : "/new"} size="compact-md" radius="lg" color="blue" leftSection={<IconPlus size={20} />}>Create new</Button> : null
+              ? location.pathname.includes("/assessment") 
+                ? <Button component={Link} to={"/assessment"} size="compact-md" radius="lg" color="blue" leftSection={<IconPlus size={20} />}>Assessment</Button> 
+                : <Button component={Link} to={"/new"} size="compact-md" radius="lg" color="blue" leftSection={<IconPlus size={20} />}>Create new</Button> 
+              : null
             }
             <Menu position="bottom-end" width={200} shadow="md">
               <Menu.Target>

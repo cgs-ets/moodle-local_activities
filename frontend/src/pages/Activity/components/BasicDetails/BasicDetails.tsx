@@ -1,6 +1,7 @@
 import { useEffect } from "react";
-import { TextInput, Text, SegmentedControl, Card, Anchor, Alert } from '@mantine/core';
+import { TextInput, Text, SegmentedControl, Card, Anchor, Alert, Button } from '@mantine/core';
 import { RichTextEditor, Link } from '@mantine/tiptap';
+import { Link as RouterLink } from 'react-router-dom';
 import { useEditor } from '@tiptap/react';
 import { StarterKit } from '@tiptap/starter-kit';
 import { IconArrowNarrowRight, IconExternalLink } from "@tabler/icons-react";
@@ -22,6 +23,7 @@ export function BasicDetails() {
   const activitytype = useFormStore((state) => (state.activitytype))
   const setState = useFormStore(state => state.setState)
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
+  const assessmentid = useFormStore((state) => state.assessmentid)
 
   const updateField = (name: string, value: any) => {
     setState({
@@ -55,15 +57,36 @@ export function BasicDetails() {
     <Card withBorder className="overflow-visible rounded p-4 flex flex-col gap-6">
 
       <div className="flex flex-col gap-6">
-          
-        <TextInput
-          placeholder="Eg. The Great Book Swap"
-          label="Activity name"
-          value={formData.activityname}
-          error={errors.activityname}
-          onChange={(e) => updateField('activityname', e.target.value)}
-          readOnly={viewStateProps.readOnly}
-        />
+        
+        <div>
+          <TextInput
+            placeholder="Eg. The Great Book Swap"
+            label="Activity name"
+            value={formData.activityname}
+            error={errors.activityname}
+            onChange={(e) => updateField('activityname', e.target.value)}
+            readOnly={viewStateProps.readOnly}
+          />
+
+          { assessmentid &&
+            <div>
+              <Button
+                color="dark" 
+                variant="light" 
+                aria-label="Filters" 
+                size="compact-sm" 
+                leftSection={<IconExternalLink size={15} />} 
+                className="h-7 mt-3"
+                component={RouterLink}                        
+                to={'/assessment/' + assessmentid}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Linked to assessment
+              </Button>
+            </div>
+          }
+        </div>
 
         <div>
           <Text fz="sm" mb="5px" fw={500} c="#212529">Type</Text>
@@ -77,13 +100,13 @@ export function BasicDetails() {
                 { value: 'incursion', label: 'Incursion' },
                 { value: 'calendar', label: 'Calendar entry' },
                 { value: 'commercial', label: 'Commercial' },
-                //{ value: 'assessment', label: 'Assessment' },
               ]}
               className="border"
               readOnly={viewStateProps.readOnly}
             />
-            <NavLink replace={false} to="/assessment" className="flex"><Text className="text-blue-500 text-sm flex items-center gap-1 flex-nowrap">Assessment <IconExternalLink className="size-4 stroke-1" /></Text></NavLink>
-
+            { !assessmentid && 
+              <NavLink replace={false} to="/assessment" className="flex"><Text className="text-blue-500 text-sm flex items-center gap-1 flex-nowrap">Assessment <IconExternalLink className="size-4 stroke-1" /></Text></NavLink>
+            }
           </div>
           <div className="pt-2 pl-1 text-sm">
             {formData.activitytype == "excursion" &&

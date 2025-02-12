@@ -33,7 +33,8 @@ trait workflow_api {
     static public function get_draft_workflow() {
         $campus = required_param('campus', PARAM_TEXT);
         $activitytype = required_param('activitytype', PARAM_TEXT);
-        return workflow_lib::get_draft_workflow($activitytype, $campus);
+        $assessmentid = optional_param('assessmentid', 0, PARAM_INT);
+        return workflow_lib::get_draft_workflow($activitytype, $campus, $assessmentid);
     } 
 
     /**

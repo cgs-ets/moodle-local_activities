@@ -24,6 +24,7 @@ export function Status({
   const formData = useFormStore()
   const status = useFormStore((state) => (state.status))
   const activitytype = useFormStore((state) => (state.activitytype))
+  const assessmentid = useFormStore((state) => (state.assessmentid))
   const haschanges = useStateStore((state) => (state.haschanges))
   const updateHash = useStateStore((state) => (state.updateHash))
   const baselineHash = useStateStore((state) => (state.baselineHash))
@@ -188,7 +189,14 @@ export function Status({
                   : "Submit"
                 : haschanges ? "Save changes" : "Save" }
             </Button>
-            { showReviewButton() && <Button color="apprgreen" onClick={handleSendReview} size="compact-md" radius="xl" leftSection={<IconCheckbox size={14} />} loading={pubLoading}>Start review</Button> }
+            { showReviewButton() && 
+              <Button color="apprgreen" onClick={handleSendReview} size="compact-md" radius="xl" leftSection={<IconCheckbox size={14} />} loading={pubLoading}>
+                {assessmentid && activitytype == 'incursion'
+                  ? 'Publish'
+                  : 'Start review'
+                }
+              </Button> 
+            }
           </Group>
 
           { getExtraOptions().length 

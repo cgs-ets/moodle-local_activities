@@ -83,11 +83,12 @@ class workflow_lib extends \local_activities\local_activities_config {
         return $approval;
     }
 
-    private static function get_approval_stubs($activityid, $activitytype, $campus) {
-        
+    private static function get_approval_stubs($activityid, $activitytype, $campus, $assessmentid) {
         $approvals = array();
 
-        if ($activitytype == 'commercial') {
+        if ($activitytype == 'incursion' && $assessmentid) {
+            return $approvals;
+        } else if ($activitytype == 'commercial') {
             // commercial_ra - 1st approver.
             $approvals[] =  static::get_approval_clone('commercial_ra', 1, $activityid);
 
@@ -161,7 +162,10 @@ class workflow_lib extends \local_activities\local_activities_config {
             }
         }
 
-        $approvals = static::get_approval_stubs($newactivity->get('id'), $newactivity->get('activitytype'), $newactivity->get('campus'));
+        // Is activity linked to an assessment?
+        $assessmentid = $DB->get_field('activity_assessments', 'id', array('activityid' => $newactivity->get('id')));
+
+        $approvals = static::get_approval_stubs($newactivity->get('id'), $newactivity->get('activitytype'), $newactivity->get('campus'), $assessmentid ? $assessmentid : 0);
         //echo "<pre>"; var_export($approvals); exit;
 
         // Invalidate approvals that should not be there.
@@ -964,8 +968,8 @@ class workflow_lib extends \local_activities\local_activities_config {
     }
 
 
-    public static function get_draft_workflow($activitytype, $campus) {
-        return static::get_approval_stubs(0, $activitytype, $campus); //$campus == 'whole' ? 'senior' : $campus);
+    public static function get_draft_workflow($activitytype, $campus, $assessmentid) {
+        return static::get_approval_stubs(0, $activitytype, $campus, $assessmentid);
     }
 
 

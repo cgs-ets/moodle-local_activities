@@ -50,10 +50,12 @@ export type Form = {
   colourcategory: string;
   areasjson: string;
   displaypublic: boolean;
-  pushpublic: boolean,
-  isassessment: string;
-  courseid: string;
-  assessmenturl: string;
+  pushpublic: boolean;
+
+  assessmentid: string;
+  //isassessment: string;
+  //courseid: string;
+  //assessmenturl: string;
 
   stepname: string;
 };
@@ -110,9 +112,10 @@ const defaults: Form = {
   areasjson: '',
   displaypublic: false,
   pushpublic: false,
-  isassessment: '',
-  courseid: '',
-  assessmenturl: '',
+  assessmentid: '',
+  //isassessment: '',
+  //courseid: '',
+  //assessmenturl: '',
   
   stepname: '',
 };
