@@ -42,6 +42,8 @@ export function Assessment() {
   const updateViewStateProps = useStateStore((state) => (state.updateViewStateProps))
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
   const [error, setError] = useState<string>("")
+  const formErrorDefaults = {name: '', cmid: ''}
+  const [formErrors, setFormErrors] = useState(formErrorDefaults)
   const defaults = {
     id: id ?? "",
     courseid: "",
@@ -93,7 +95,6 @@ export function Assessment() {
         id: id,
       }
     })
-    console.log("Assessment", fetchResponse)
     if (fetchResponse.error) {
       setError(fetchResponse.exception?.message ?? "Error")
       return
@@ -146,12 +147,21 @@ export function Assessment() {
 
 
   const handleSubmit = async (redirect?: string) => {
-    setSubmitLoading(true)
-
     formData.name = formData.name ? formData.name : formData.module ? formData.module.label : ''
     formData.cmid = formData.module?.value ?? ''
     formData.url = formData.module?.url ?? ''
 
+    // Check for required fieds.
+    const errors = {
+      name: formData.name.length ? '' : 'Required',
+      cmid: formData.cmid.length ? '' : 'Required',
+    };
+    if (Object.values(errors).some(error => error !== '')) {
+      setFormErrors(errors)
+      return;
+    }
+
+    setSubmitLoading(true)
     const response = await api3.call({
       method: "POST",
       body: {
@@ -260,6 +270,7 @@ export function Assessment() {
                             allowDeselect={false}
                             leftSection={coursesLoading ? <Loader size="xs" /> : null}
                             searchable
+                            error={formErrors.name}
                           />
 
                           <div>
@@ -272,6 +283,7 @@ export function Assessment() {
                               allowDeselect={false}
                               leftSection={modulesLoading ? <Loader size="xs" /> : null}
                               searchable
+                              error={formErrors.cmid}
                             />
 
                             { !!formData.courseid && !!formData.module
