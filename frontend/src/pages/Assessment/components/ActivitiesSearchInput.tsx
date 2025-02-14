@@ -82,7 +82,7 @@ export function ActivitiesSearchInput({
         rightSection={api2.state.loading ? <Loader size="xs" /> : null}
       />
       {!!searchResults.length && 
-        <ScrollArea h={300} className="flex flex-col gap-1 pt-1 border mt-1 rounded    absolute w-full bg-white z-10">
+        <ScrollArea h={ searchResults.length > 6 ? 270 : undefined} className="flex flex-col gap-1 pt-1 border mt-1 rounded    absolute w-full bg-white z-10">
           {searchResults.map((activity) => {
             return (
               <div 
