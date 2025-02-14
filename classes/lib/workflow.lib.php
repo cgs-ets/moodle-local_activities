@@ -86,9 +86,10 @@ class workflow_lib extends \local_activities\local_activities_config {
     private static function get_approval_stubs($activityid, $activitytype, $campus, $assessmentid) {
         $approvals = array();
 
-        if ($activitytype == 'incursion' && $assessmentid) {
-            return $approvals;
-        } else if ($activitytype == 'commercial') {
+        //if ($activitytype == 'incursion' && $assessmentid) {
+        //    return $approvals;
+        //} else 
+        if ($activitytype == 'commercial') {
             // commercial_ra - 1st approver.
             $approvals[] =  static::get_approval_clone('commercial_ra', 1, $activityid);
 

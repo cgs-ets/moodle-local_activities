@@ -629,19 +629,10 @@ class activities_lib {
     public static function search($text) {
         global $DB;
 
-        $sql = "SELECT id 
-                    ,case
-                        when status = 0 OR status = 1 then 1
-                        else 0
-                    end as isdraft
-                    ,case
-                        when timeend < " . time() . " then 1
-                        else 0
-                    end as ispastevent
+        $sql = "SELECT id, status
                   FROM {" . static::TABLE . "}
                  WHERE deleted = 0
-                   AND (activityname LIKE ? OR username LIKE ? OR staffinchargejson LIKE ?)
-              ORDER BY isdraft DESC, ispastevent ASC, timestart DESC";
+                   AND (activityname LIKE ? OR staffincharge LIKE ? OR creator LIKE ?)";
         $params = array();
         $params[] = '%'.$text.'%';
         $params[] = '%'.$text.'%';
@@ -651,7 +642,12 @@ class activities_lib {
         $records = $DB->get_records_sql($sql, $params);
         $activities = array();
         foreach ($records as $record) {
-            $activities[] = new Activity($record->id);
+            $activity = new Activity($record->id);
+            $exported = $activity->export();
+            if((!$exported->usercanedit) && $exported->status < static::ACTIVITY_STATUS_INREVIEW) {
+                continue;
+            }
+            $activities[] = $exported;
         }
 
         return $activities;

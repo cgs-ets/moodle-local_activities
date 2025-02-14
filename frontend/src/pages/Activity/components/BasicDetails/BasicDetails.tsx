@@ -128,7 +128,7 @@ export function BasicDetails() {
         </div>
 
         <div>
-          <Text fz="sm" mb="5px" fw={500} c="#212529">Campus</Text>
+          <Text fz="sm" mb="5px" fw={500} c="#212529">Campus Workflow</Text>
           <SegmentedControl
             color="blue"
             value={formData.campus}

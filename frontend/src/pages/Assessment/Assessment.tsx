@@ -13,6 +13,7 @@ import { DateTimePicker } from "@mui/x-date-pickers";
 import { IconCloudUp, IconExternalLink, IconX } from "@tabler/icons-react";
 import { PageHeader } from "./components/PageHeader";
 import { ActivitiesSearchInput } from "./components/ActivitiesSearchInput";
+import { Form } from "../../stores/formStore";
 
 interface Module {
   value: string;
@@ -232,6 +233,11 @@ export function Assessment() {
     return ""
   }
 
+  const selectActivity = (activity: Form) => {
+    updateField('activityid', activity.id)
+    updateField('activityname', activity.activityname)
+  }
+
   return (
     <>
       <Header />
@@ -348,35 +354,38 @@ export function Assessment() {
                               >
                                 {formData.activityname}
                               </Button>
-                              {false && <ActionIcon color="dark" onClick={() => updateField('activityid', 0)} variant="light" size="compact-md" ml={2} className="rounded-l-none pl-1 pr-1">
+                              <ActionIcon color="dark" onClick={() => updateField('activityid', 0)} variant="light" size="compact-md" ml={2} className="rounded-l-none pl-1 pr-1">
                                 <IconX stroke={1.5} size={18} />
-                              </ActionIcon>}
+                              </ActionIcon>
                             </div>
                           </>
                         : <>
-                            <Checkbox 
+                            <Checkbox
                               label="Do you require an excursion/incursion for this assessment?"
-                              checked={formData.activityrequired}
+                              checked={formData.activityrequired || false}  // Ensures it's always boolean
                               onChange={(e) => updateField('activityrequired', e.target.checked)}
                               readOnly={viewStateProps.readOnly}
                             />
 
                             {formData.activityrequired && !viewStateProps.readOnly &&
-                              <div className="flex gap-4 items-center">
+                              <div className="flex gap-4 items-top">
                                 <ActivitiesSearchInput
                                   placeholder="Search activities"
                                   delay={300}
+                                  onSelect={selectActivity}
                                 />
-                                <span className="text-gray-400">or</span>
-                                <Button 
-                                  variant="light"
-                                  type="submit" 
-                                  size="compact-sm" 
-                                  radius="xl"
-                                  onClick={() => handleSubmit('/new')}
-                                >
-                                  Create new
-                                </Button>
+                                <div className="mt-1">
+                                  <span className="text-gray-400 mr-1">or </span>
+                                  <Button 
+                                    variant="light"
+                                    type="submit" 
+                                    size="compact-sm" 
+                                    radius="xl"
+                                    onClick={() => handleSubmit('/new')}
+                                  >
+                                    Create new
+                                  </Button>
+                                </div>
                               </div>
                             } 
                           </>

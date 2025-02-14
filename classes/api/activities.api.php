@@ -75,9 +75,9 @@ trait activities_api {
      *
      * @return array results.
      */
-    static public function search_activitys() {
-        $text = required_param('text', PARAM_ALPHANUMEXT);
-        return activities_lib::search_activitys($text);
+    static public function search_activities() {
+        $text = required_param('search', PARAM_ALPHANUMEXT);
+        return activities_lib::search($text);
     }
 
     /**
