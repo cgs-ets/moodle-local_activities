@@ -81,22 +81,24 @@ export function ActivitiesSearchInput({
         onChange={handleInputChange}
         rightSection={api2.state.loading ? <Loader size="xs" /> : null}
       />
-      <ScrollArea h={300} className="flex flex-col gap-1 pt-1 border mt-1 rounded    absolute w-full bg-white z-10">
-        {searchResults.map((activity) => {
-          return (
-            <div 
-              key={activity.id} 
-              onClick={() => onSelect(activity)}
-              className="cursor-pointer border-b py-1 px-2 hover:text-blue-600"
-            >
-              {activity.activityname}
-              <div className='text-xs flex items-center gap-1 text-gray-400'>
-                {dayjs.unix(Number(activity.timestart)).format("H:mm D MMM YY")} <IconArrowNarrowRight className='stroke-1 size-3' /> {dayjs.unix(Number(activity.timeend)).format("H:mm D MMM YY")}
+      {!!searchResults.length && 
+        <ScrollArea h={300} className="flex flex-col gap-1 pt-1 border mt-1 rounded    absolute w-full bg-white z-10">
+          {searchResults.map((activity) => {
+            return (
+              <div 
+                key={activity.id} 
+                onClick={() => onSelect(activity)}
+                className="cursor-pointer border-b py-1 px-2 hover:text-blue-600"
+              >
+                {activity.activityname}
+                <div className='text-xs flex items-center gap-1 text-gray-400'>
+                  {dayjs.unix(Number(activity.timestart)).format("H:mm D MMM YY")} <IconArrowNarrowRight className='stroke-1 size-3' /> {dayjs.unix(Number(activity.timeend)).format("H:mm D MMM YY")}
+                </div>
               </div>
-            </div>
-          )
-        })}
-      </ScrollArea>
+            )
+          })}
+        </ScrollArea>
+      }
     </div>
     
   );
