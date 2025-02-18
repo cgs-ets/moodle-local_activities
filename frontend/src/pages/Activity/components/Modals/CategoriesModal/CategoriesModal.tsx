@@ -1,7 +1,57 @@
-
 import { Box, Button, Checkbox, Flex, Modal } from '@mantine/core';
+import { useEffect, useRef } from 'react';
 
 export function CategoriesModal({opened, close, categories, handleChange}: {opened: boolean, close: () => void, categories: string[], handleChange: (cats: string[]) => void}) {
+  // Keep track of explicitly unselected parents
+  const unselectedParents = useRef<Set<string>>(new Set());
+  
+  // Helper function to check if any child categories are selected
+  const hasSelectedChildren = (parent: string, values: string[] = categories) => {
+    return values.some(cat => cat.startsWith(parent + '/'));
+  };
+
+  // Helper to check which campuses have selected categories
+  const getSelectedCampuses = (values: string[]) => {
+    const parents = ['Primary School', 'Senior School', 'Whole School'];
+    return parents.filter(parent => 
+      values.some(cat => cat === parent || cat.startsWith(parent + '/'))
+    );
+  };
+
+  // Handle checkbox changes including parent-child relationships
+  const handleCheckboxChange = (newValues: string[]) => {
+    let updatedValues = [...newValues];
+    const parents = ['Primary School', 'Senior School', 'Whole School'];
+
+    // Check if a parent was just unselected
+    parents.forEach(parent => {
+      if (categories.includes(parent) && !updatedValues.includes(parent)) {
+        unselectedParents.current.add(parent);
+      }
+      // Remove from unselected if it was just selected
+      if (!categories.includes(parent) && updatedValues.includes(parent)) {
+        unselectedParents.current.delete(parent);
+      }
+    });
+
+    // Add parent categories if children are selected and parent wasn't explicitly unselected
+    parents.forEach(parent => {
+      if (hasSelectedChildren(parent, updatedValues) && 
+          !unselectedParents.current.has(parent) && 
+          !updatedValues.includes(parent)) {
+        updatedValues.push(parent);
+      }
+    });
+
+    // Check if categories are from multiple campuses
+    const selectedCampuses = getSelectedCampuses(updatedValues);
+    if (selectedCampuses.length > 1 && !updatedValues.includes('Whole School')) {
+      updatedValues.push('Whole School');
+      unselectedParents.current.delete('Whole School');
+    }
+    
+    handleChange(updatedValues);
+  };
 
   return (
     <Modal 
@@ -19,12 +69,13 @@ export function CategoriesModal({opened, close, categories, handleChange}: {open
       }}
       >
         <Box pt="md">
-
-          <Checkbox.Group value={categories} onChange={handleChange}>
+          <Checkbox.Group value={categories} onChange={handleCheckboxChange}>
             <div className="categories-selector flex justify-between">
-
               <div className="category-group flex flex-col gap-1">
-                <Checkbox value="Primary School" label={<b>Primary School</b>} />
+                <Checkbox 
+                  value="Primary School" 
+                  label={<b>Primary School</b>} 
+                />
                 <Checkbox value="Primary School/Staff" label="Staff" />
                 <Checkbox value="Primary School/Sports" label="Sports" />
                 <Checkbox value="Primary School/Creative & Performing Arts" label="Creative & Performing Arts" />
@@ -49,7 +100,10 @@ export function CategoriesModal({opened, close, categories, handleChange}: {open
               </div>
 
               <div className="category-group flex flex-col gap-1">
-                <Checkbox value="Senior School" label={<b>Senior School</b>} />
+                <Checkbox 
+                  value="Senior School" 
+                  label={<b>Senior School</b>} 
+                />
                 <Checkbox value="Senior School/Staff" label="Staff" />
                 <Checkbox value="Senior School/Sports" label="Sports" />
                 <Checkbox value="Senior School/Creative & Performing Arts" label="Creative & Performing Arts" />
@@ -71,7 +125,10 @@ export function CategoriesModal({opened, close, categories, handleChange}: {open
               </div>
 
               <div className="category-group flex flex-col gap-1">
-                <Checkbox value="Whole School" label={<b>Whole School</b>} checked />
+                <Checkbox 
+                  value="Whole School" 
+                  label={<b>Whole School</b>} 
+                />
                 <Checkbox value="Whole School/Staff" label="Staff" />
                 <Checkbox value="Whole School/Sports" label="Sports" />
                 <Checkbox value="Whole School/Creative & Performing Arts" label="Creative & Performing Arts" />
@@ -89,7 +146,7 @@ export function CategoriesModal({opened, close, categories, handleChange}: {open
           </Checkbox.Group>
 
           <Flex pt="sm" justify="end">
-            <Button onClick={close} type="submit" radius="xl" >Done</Button>
+            <Button onClick={close} type="submit" radius="xl">Done</Button>
           </Flex>
         </Box>
     </Modal>

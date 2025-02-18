@@ -14,7 +14,7 @@ export function Paperwork() {
     <>
       <Card withBorder radius="sm">
         <Card.Section withBorder inheritPadding py="sm">
-          <h3 className="text-base m-0">Paperwork</h3>
+          <h3 className="text-base m-0">Documentation</h3>
         </Card.Section>
         <Card.Section>
 
@@ -27,7 +27,7 @@ export function Paperwork() {
           </div>
 
           <div className='border-b p-4'>
-            <Text className="font-semibold">Attachments</Text>
+            <Text className="font-semibold">Other Documentation</Text>
             <FileUploader inputName="attachments" desc="or Drag files. Maximum 10 files. Each file should not exceed 10mb." maxFiles={10} maxSize={10} />
           </div>
 

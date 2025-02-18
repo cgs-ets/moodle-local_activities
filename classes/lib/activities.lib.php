@@ -792,7 +792,8 @@ class activities_lib {
 
         $sql = "SELECT id, activityid
                   FROM {" . static::TABLE_ACTIVITY_STUDENTS . "} 
-                 WHERE username = ?";
+                 WHERE username = ?
+                 AND status = " . static::ACTIVITY_STATUS_APPROVED;
         $ids = $DB->get_records_sql($sql, array($username));
 
         $activities = static::get_by_ids(array_column($ids, 'activityid'), 3, null, true); // Approved and future only.
@@ -817,7 +818,8 @@ class activities_lib {
 
         $sql = "SELECT activityid
                   FROM {" . static::TABLE_ACTIVITY_PERMISSIONS . "} 
-                 WHERE parentusername = ?";
+                 WHERE parentusername = ?
+                 AND status = " . static::ACTIVITY_STATUS_APPROVED;
         $ids = $DB->get_fieldset_sql($sql, array($username));
 
         $activities = static::get_by_ids($ids, 3, null, true, false); // Approved and future only.

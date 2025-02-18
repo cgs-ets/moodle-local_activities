@@ -2,9 +2,9 @@ import { Card, Flex, Text, Checkbox, NumberInput, Grid, Button, Group, Alert, Pa
 import { IconChevronDown, IconChevronUp, IconCopy, IconMail } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
 import { useClipboard } from 'use-clipboard-copy';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { getConfig, statuses } from '../../../../utils';
-import { Form, useFormStore } from '../../../../stores/formStore';
+import { Form, useFormStore, defaults } from '../../../../stores/formStore';
 import dayjs from 'dayjs';
 import { DateTimePicker } from '@mui/x-date-pickers';
 import { useStateStore } from '../../../../stores/stateStore';
@@ -22,7 +22,8 @@ export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
   const config = getConfig()
   const [openedPermissionsURL, togglePermissionsURL] = useDisclosure(false);
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
-
+  const timestart = useFormStore((state) => state.timestart);
+  const manuallyEdited = useRef(false);
 
   const permissionsUrlClipboard = useClipboard({
     copiedTimeout: 1000,
@@ -39,7 +40,7 @@ export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
 
   const updateField = (name: string, value: any) => {
     setState({
-      [name]:value
+      [name]: value
     } as Form)
   }
 
@@ -53,6 +54,12 @@ export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
     </>
   )
 
+  // Update permissionsdueby when timestart changes
+  useEffect(() => {
+    if (permissions && !manuallyEdited.current) {
+      updateField('permissionsdueby', timestart.toString());
+    }
+  }, [timestart, permissions]);
 
   return (
     <>
@@ -92,7 +99,10 @@ export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
                 <Text className='text-xs text-gray-500 mb-1'>Responses will not be accepted after this time</Text>
                 <DateTimePicker 
                   value={dayjs.unix(Number(permissionsdueby))}
-                  onChange={(newValue) => updateField('permissionsdueby', (newValue?.unix() ?? 0).toString())}
+                  onChange={(newValue) => {
+                    manuallyEdited.current = true;
+                    updateField('permissionsdueby', (newValue?.unix() ?? 0).toString());
+                  }}
                   views={['day', 'month', 'year', 'hours', 'minutes']}
                   readOnly={viewStateProps.readOnly}
                 />

@@ -4,6 +4,7 @@ import { Form, useFormStore } from "../../../../stores/formStore";
 import { useDisclosure } from "@mantine/hooks";
 import { CategoriesModal } from "../Modals/CategoriesModal/CategoriesModal";
 import { useStateStore } from '../../../../stores/stateStore';
+import { useEffect } from 'react';
 
 export function CalendarSettings() {
 
@@ -31,6 +32,37 @@ export function CalendarSettings() {
     }
   }
 
+  const getAvailableColouringCategories = () => {
+    const parents = ['Primary School', 'Senior School', 'Whole School'];
+    const selectedCampuses = parents.filter(parent => 
+      categories.some(cat => cat === parent || cat.startsWith(parent + '/'))
+    );
+
+    if (selectedCampuses.length > 1) {
+      // If categories from multiple campuses are selected, only allow Whole School
+      return ['Whole School'];
+    } else if (selectedCampuses.length === 1) {
+      // If categories from single campus are selected, allow all categories from that campus
+      return categories.filter(cat => 
+        cat === selectedCampuses[0] || cat.startsWith(selectedCampuses[0] + '/')
+      );
+    }
+    return categories;
+  };
+
+  useEffect(() => {
+    const availableColourCategories = getAvailableColouringCategories();
+    
+    // If current colourcategory is not in available options, update it
+    if (colourcategory && !availableColourCategories.includes(colourcategory)) {
+      if (categories.includes('Whole School')) {
+        updateField('colourcategory', 'Whole School');
+      } else if (availableColourCategories.length) {
+        updateField('colourcategory', availableColourCategories[0]);
+      }
+    }
+  }, [categories]);
+
   return (
     <Card withBorder radius="sm" className="p-0">
       <div className="px-4 py-3">
@@ -52,7 +84,7 @@ export function CalendarSettings() {
             ? <div className="p-4 border-t">
                 <Text className='text-sm font-semibold mb-1'>Select the colouring category</Text>
                 <Select 
-                  data={categories}
+                  data={getAvailableColouringCategories()}
                   value={colourcategory} 
                   onChange={(value) => value && updateField('colourcategory', value)}
                   className='w-full max-w-96'
