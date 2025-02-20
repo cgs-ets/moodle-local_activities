@@ -136,7 +136,7 @@ class conflicts_lib {
         // Sync found conflicts to db.
         // Get existing conflicts for this activity.
         $existingConflicts = $DB->get_records_sql("
-            SELECT * FROM {activity_conflicts}
+            SELECT * FROM {activities_conflicts}
             WHERE activityid1 = ?
             OR activityid2 = ?
         ", [$activityid, $activityid]);
@@ -160,7 +160,7 @@ class conflicts_lib {
             if (empty($conflict->conflictid)) {
                 // Make sure this conflict does not exist.
                 $sql = "SELECT id 
-                FROM {activity_conflicts} 
+                FROM {activities_conflicts} 
                 WHERE activityid1 = ? AND activityid2 = ? 
                 OR activityid2 = ? AND activityid1 = ?";
                 $exists = $DB->get_records_sql($sql, [$activityid, $conflict->activityid, $activityid, $conflict->activityid]);
@@ -174,18 +174,18 @@ class conflicts_lib {
                 }
             }
         }
-        $DB->insert_records('activity_conflicts', $createConflicts);
+        $DB->insert_records('activities_conflicts', $createConflicts);
 
         // Delete db conflicts that are no longer conflicts.
         foreach ($existingConflicts as $remaining) {
-            $DB->execute("DELETE FROM {activity_conflicts} WHERE id = ?", [$remaining->id]);
+            $DB->execute("DELETE FROM {activities_conflicts} WHERE id = ?", [$remaining->id]);
         }
     }
 
     public static function set_conflict_status($id, $status) {
         global $DB;
 
-        $theConflict = $DB->get_record('activity_conflicts', array('id' => $id));
+        $theConflict = $DB->get_record('activities_conflicts', array('id' => $id));
         if (empty($theConflict)) {
             return;
         }

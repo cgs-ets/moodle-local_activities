@@ -16,7 +16,7 @@ class assessments_lib {
     public static function get($id) {
         global $DB, $USER;
 
-        $assessment = $DB->get_record('activity_assessments', array('id' => $id));
+        $assessment = $DB->get_record('activities_assessments', array('id' => $id));
 
         $assessment->usercanedit = false;
         if ($assessment->creator == $USER->username || has_capability('moodle/site:config', \context_user::instance($USER->id))) {
@@ -116,11 +116,11 @@ class assessments_lib {
 
         if ($data->id) {
             $data->timemodified = time();
-            $DB->update_record('activity_assessments', (object) $data);
+            $DB->update_record('activities_assessments', (object) $data);
         } else {
             $data->creator = $USER->username;
             $data->timecreated = time();
-            $data->id = $DB->insert_record('activity_assessments', (object) $data);
+            $data->id = $DB->insert_record('activities_assessments', (object) $data);
         }
 
         
@@ -160,7 +160,7 @@ class assessments_lib {
 
 
         $sql = "SELECT *
-                FROM mdl_activity_assessments
+                FROM mdl_activities_assessments
                 WHERE deleted = 0
                 AND (timedue >= ? AND timedue <= ?)
                 ORDER BY timedue ASC";

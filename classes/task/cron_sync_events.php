@@ -124,7 +124,7 @@ class cron_sync_events extends \core\task\scheduled_task {
 
             // Get existing sync entries.
             $sql = "SELECT *
-                FROM {activity_cal_sync}
+                FROM {activities_cal_sync}
                 WHERE activityid = ?";
             $externalevents = $DB->get_records_sql($sql, [$event->id]);
 
@@ -149,7 +149,7 @@ class cron_sync_events extends \core\task\scheduled_task {
                         $this->log("Failed to delete event in calendar $externalevent->calendar: " . $e->getMessage(), 3);
                     }
                     $this->log("Removing event $externalevent->eventid from sync table", 3);
-                    $DB->delete_records('activity_cal_sync', array('id' => $externalevent->id));
+                    $DB->delete_records('activities_cal_sync', array('id' => $externalevent->id));
                 } else {
                     $destCal = $destinationCalendars[$calIx];
                     // Entry in a valid destination calendar, update entry.
@@ -201,7 +201,7 @@ class cron_sync_events extends \core\task\scheduled_task {
                     } catch (\Exception $e) {
                         $this->log("Failed to update event in calendar $externalevent->calendar: " . $e->getMessage(), 3);
                         $this->log("Cleaning event $externalevent->eventid from sync table", 3);
-                        $DB->delete_records('activity_cal_sync', array('id' => $externalevent->id));
+                        $DB->delete_records('activities_cal_sync', array('id' => $externalevent->id));
                         $error = true;
                     }
                 }

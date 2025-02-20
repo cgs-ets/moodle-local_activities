@@ -28,12 +28,12 @@ class activities_lib {
 
     /** Table to store this persistent model instances. */
     const TABLE = 'activities';
-    const TABLE_ACTIVITY_STUDENTS  = 'activity_students';
-    const TABLE_ACTIVITY_APPROVALS  = 'activity_approvals';
-    const TABLE_ACTIVITY_COMMENTS = 'activity_comments';
-    const TABLE_ACTIVITY_EMAILS = 'activity_emails';
-    const TABLE_ACTIVITY_PERMISSIONS = 'activity_permissions';
-    const TABLE_ACTIVITY_STAFF = 'activity_staff';
+    const TABLE_ACTIVITY_STUDENTS  = 'activities_students';
+    const TABLE_ACTIVITY_APPROVALS  = 'activities_approvals';
+    const TABLE_ACTIVITY_COMMENTS = 'activities_comments';
+    const TABLE_ACTIVITY_EMAILS = 'activities_emails';
+    const TABLE_ACTIVITY_PERMISSIONS = 'activities_permissions';
+    const TABLE_ACTIVITY_STAFF = 'activities_staff';
 
     public static function is_activity($activitytype) {
         return (
@@ -286,7 +286,7 @@ class activities_lib {
 
             // Finally, if assessmentid is included in data, update the assessment record with the activityid.
             if ($data->assessmentid) {
-                $sql = "UPDATE mdl_activity_assessments
+                $sql = "UPDATE mdl_activities_assessments
                         SET activityid = ?
                         WHERE id = ?";
                 $params = array($activity->get('id'), $data->assessmentid);
@@ -344,14 +344,14 @@ class activities_lib {
                 $rec->usertype = $type;
                 return $rec;
             }, $newstaff);
-            $DB->insert_records('activity_staff', $newstaffdata);
+            $DB->insert_records('activities_staff', $newstaffdata);
         }
 
         // Process remove staff.
         if (count($existingstaff)) {
             list($insql, $inparams) = $DB->get_in_or_equal($existingstaff);
             $params = array_merge([$activityid, $type], $inparams);
-            $sql = "DELETE FROM {activity_staff} 
+            $sql = "DELETE FROM {activities_staff} 
             WHERE activityid = ? 
             AND usertype = ? 
             AND username $insql";
@@ -393,14 +393,14 @@ class activities_lib {
                 $rec->username = $username;
                 return $rec;
             }, $newstudents);
-            $DB->insert_records('activity_students', $newstudentdata);
+            $DB->insert_records('activities_students', $newstudentdata);
         }
 
         // Process removed students.
         if (count($existingstudents)) {
             list($insql, $inparams) = $DB->get_in_or_equal($existingstudents);
             $params = array_merge([$activityid], $inparams);
-            $sql = "DELETE FROM {activity_students} 
+            $sql = "DELETE FROM {activities_students} 
             WHERE activityid = ? 
             AND username $insql";
             $DB->execute($sql, $params);
@@ -436,7 +436,7 @@ class activities_lib {
         if ($usertype != "*") {
             $conds['usertype'] = $usertype;
         }
-        return $DB->get_records('activity_staff', $conds, '', $fields);
+        return $DB->get_records('activities_staff', $conds, '', $fields);
     }
     
     /**
@@ -448,7 +448,7 @@ class activities_lib {
     public static function get_students($activityid) {
         global $DB;
         $conds = array('activityid' => $activityid);
-        return $DB->get_records('activity_students', $conds);
+        return $DB->get_records('activities_students', $conds);
     }
 
 
@@ -482,7 +482,7 @@ class activities_lib {
 
         // If going to draft, remove any existing approvals.
         if ($status <= static::ACTIVITY_STATUS_DRAFT) {
-            $sql = "UPDATE mdl_activity_approvals
+            $sql = "UPDATE mdl_activities_approvals
                     SET invalidated = 1
                     WHERE activityid = ?
                     AND invalidated = 0";
@@ -557,7 +557,7 @@ class activities_lib {
         }
 
         // Generate permissions for saved students.
-        $students = static::get_activity_students($activityid);
+        $students = static::get_activities_students($activityid);
         foreach ($students as $student) {
             // Find the student's mentors.
             $user = \core_user::get_user_by_username($student->username);
@@ -1310,7 +1310,7 @@ class activities_lib {
     * @param int $postid.
     * @return array.
     */
-    public static function get_activity_students($activityid) {
+    public static function get_activities_students($activityid) {
         global $DB;
         $sql = "SELECT *
                   FROM {" . static::TABLE_ACTIVITY_STUDENTS . "}
@@ -1418,7 +1418,7 @@ class activities_lib {
         }
 
         // Get the activity students.
-        $students = static::get_activity_students($data->activityid);
+        $students = static::get_activities_students($data->activityid);
         $students = array_values(array_column($students, 'username'));
         $studentsjson = json_encode($students);
         if (isset($data->scope) && $data->scope) {
@@ -1639,7 +1639,7 @@ class activities_lib {
             $attending = $DB->get_records_sql($sql, $params);
             $attending = array_values(array_column($attending, 'studentusername'));
         } else {
-            $attending = static::get_activity_students($activityid);
+            $attending = static::get_activities_students($activityid);
             $attending = array_values(array_column($attending, 'username'));
         }
 

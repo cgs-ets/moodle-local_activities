@@ -149,7 +149,7 @@ class Activity {
         }
 
         $sql = "SELECT *
-                  FROM {activity_staff}
+                  FROM {activities_staff}
                  WHERE activityid = ?
                    AND usertype = 'planning'";
         $params = array($this->get('id'));
@@ -180,7 +180,7 @@ class Activity {
         }
 
         $sql = "SELECT *
-                  FROM {activity_staff}
+                  FROM {activities_staff}
                  WHERE activityid = ?
                    AND usertype = 'accompanying'";
         $params = array($this->get('id'));
@@ -211,7 +211,7 @@ class Activity {
         }
 
         $sql = "SELECT *
-                FROM {activity_students}
+                FROM {activities_students}
                 WHERE activityid = ?";
         $params = array($this->get('id'));
         $records = $DB->get_records_sql($sql, $params);
@@ -555,7 +555,7 @@ class Activity {
         }
 
         // Check if this activity is linked to an assessment.
-        $assessmentid = $DB->get_field('activity_assessments', 'id', array('activityid' => $this->data->id));
+        $assessmentid = $DB->get_field('activities_assessments', 'id', array('activityid' => $this->data->id));
 
     	return [
             'manageurl' => $manageurl->out(false),

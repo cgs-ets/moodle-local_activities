@@ -151,7 +151,7 @@ class workflow_lib extends \local_activities\local_activities_config {
         $fieldschangedkeys = array_keys($fieldschanged);
         foreach (static::WORKFLOW as $type => $conf) {
             if (array_intersect($fieldschangedkeys, $conf['invalidated_on_edit'])) {
-                $sql = "UPDATE mdl_activity_approvals
+                $sql = "UPDATE mdl_activities_approvals
                            SET invalidated = 1
                          WHERE activityid = ?
                            AND type = ?
@@ -164,14 +164,14 @@ class workflow_lib extends \local_activities\local_activities_config {
         }
 
         // Is activity linked to an assessment?
-        $assessmentid = $DB->get_field('activity_assessments', 'id', array('activityid' => $newactivity->get('id')));
+        $assessmentid = $DB->get_field('activities_assessments', 'id', array('activityid' => $newactivity->get('id')));
 
         $approvals = static::get_approval_stubs($newactivity->get('id'), $newactivity->get('activitytype'), $newactivity->get('campus'), $assessmentid ? $assessmentid : 0);
         //echo "<pre>"; var_export($approvals); exit;
 
         // Invalidate approvals that should not be there.
         $approvaltypes = array_column($approvals, 'type');
-        $sql = "UPDATE mdl_activity_approvals
+        $sql = "UPDATE mdl_activities_approvals
                    SET invalidated = 1
                  WHERE activityid = ?
                    AND invalidated = 0
@@ -182,13 +182,13 @@ class workflow_lib extends \local_activities\local_activities_config {
         // Insert the approval if it doesn't already exist.
         $progressed = false;
         foreach ($approvals as $approval) {
-            $exists = $DB->record_exists('activity_approvals', array(
+            $exists = $DB->record_exists('activities_approvals', array(
                 'activityid' => $newactivity->get('id'), 
                 'type' => $approval->type, 
                 'invalidated' => 0
             ));
             if (!$exists) {
-                $DB->insert_record('activity_approvals', $approval);
+                $DB->insert_record('activities_approvals', $approval);
                 $progressed = true; // If inserting new approvals, it is because this is just going into review, or campus has changed.
             }
         }
@@ -202,7 +202,7 @@ class workflow_lib extends \local_activities\local_activities_config {
         global $DB;
         
         $sql = "SELECT *
-                  FROM mdl_activity_approvals
+                  FROM mdl_activities_approvals
                  WHERE activityid = ?
                    AND id = ? 
                    AND invalidated = 0
@@ -223,7 +223,7 @@ class workflow_lib extends \local_activities\local_activities_config {
         global $DB;
         
         $sql = "SELECT *
-                  FROM mdl_activity_approvals
+                  FROM mdl_activities_approvals
                  WHERE activityid = ?
                    AND invalidated = 0
               ORDER BY sequence ASC";
@@ -243,7 +243,7 @@ class workflow_lib extends \local_activities\local_activities_config {
         global $DB;
         
         $sql = "SELECT *
-                  FROM mdl_activity_approvals
+                  FROM mdl_activities_approvals
                  WHERE activityid = ?
                    AND invalidated = 0
                    AND skip = 0
@@ -270,7 +270,7 @@ class workflow_lib extends \local_activities\local_activities_config {
             // The user is potentially an approver. Check if approver for this activity.
             list($insql, $inparams) = $DB->get_in_or_equal($approvertypes);
             $sql = "SELECT * 
-                      FROM mdl_activity_approvals
+                      FROM mdl_activities_approvals
                      WHERE type $insql
                        AND activityid = ?";
             $inparams = array_merge($inparams, array($activityid));
@@ -352,7 +352,7 @@ class workflow_lib extends \local_activities\local_activities_config {
 
         // Update the approval status.
         list($insql, $inparams) = $DB->get_in_or_equal($userapprovertypes);
-        $sql = "UPDATE mdl_activity_approvals
+        $sql = "UPDATE mdl_activities_approvals
                    SET status = ?, username = ?, timemodified = ?
                  WHERE id = ?
                    AND activityid = ?
@@ -381,7 +381,7 @@ class workflow_lib extends \local_activities\local_activities_config {
         }
 
         // Update the approval status.
-        $sql = "UPDATE mdl_activity_approvals
+        $sql = "UPDATE mdl_activities_approvals
                    SET skip = ?, username = ?, timemodified = ?
                  WHERE id = ?
                    AND activityid = ?
@@ -409,7 +409,7 @@ class workflow_lib extends \local_activities\local_activities_config {
 
         $activity = new static($activityid);
         // Update the approval.
-        $sql = "UPDATE mdl_activity_approvals
+        $sql = "UPDATE mdl_activities_approvals
                    SET nominated = ?, timemodified = ?
                  WHERE id = ?
                    AND activityid = ?
@@ -533,7 +533,7 @@ class workflow_lib extends \local_activities\local_activities_config {
             // Check for any yet to be approved.
             list($insql, $inparams) = $DB->get_in_or_equal($prerequisites);
             $sql = "SELECT *
-                      FROM mdl_activity_approvals
+                      FROM mdl_activities_approvals
                      WHERE activityid = ?
                        AND invalidated = 0
                        AND skip = 0
@@ -978,7 +978,7 @@ class workflow_lib extends \local_activities\local_activities_config {
         global $DB;
         
         $sql = "SELECT *
-                  FROM mdl_activity_cal_sync
+                  FROM mdl_activities_cal_sync
                  WHERE activityid = ?
               ORDER BY timesynced ASC";
         $params = array($activityid);

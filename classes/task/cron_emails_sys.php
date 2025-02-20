@@ -32,14 +32,14 @@ class cron_emails_sys extends \core\task\scheduled_task {
         global $DB;
 
         $this->log_start("Fetching emails from queue");
-        $emails = $DB->get_records('activity_sys_emails', ["timesent" => 0]);
+        $emails = $DB->get_records('activities_sys_emails', ["timesent" => 0]);
         foreach ($emails as $email) {
             $data = json_decode($email->data);
             list($user, $from, $subject, $messagetext, $messagehtml, $attachments) = $data;
             $this->log("Sending email '$subject' to '$user->email'");
             //$DB->execute("DELETE FROM {excursions_email_queue} WHERE id = $email->id");
             $now = time();
-            $DB->execute("UPDATE {activity_sys_emails} SET timesent = $now WHERE id = $email->id");
+            $DB->execute("UPDATE {activities_sys_emails} SET timesent = $now WHERE id = $email->id");
             $result = service_lib::real_email_to_user($user, $from, $subject, $messagetext, $messagehtml, $attachments);
         }
         $this->log_finish("Finished sending emails.");

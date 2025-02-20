@@ -52,7 +52,7 @@
       </KEYS>
     </TABLE>
 
-    <TABLE NAME="activity_staff" COMMENT="Staff for an activity">
+    <TABLE NAME="activities_staff" COMMENT="Staff for an activity">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="activityid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
@@ -66,7 +66,7 @@
       </KEYS>
     </TABLE>
 
-    <TABLE NAME="activity_students" COMMENT="Student list for an activity">
+    <TABLE NAME="activities_students" COMMENT="Student list for an activity">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="activityid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
@@ -79,7 +79,7 @@
     </TABLE>
 
 
-    <TABLE NAME="activity_assessments" COMMENT="">
+    <TABLE NAME="activities_assessments" COMMENT="">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -98,7 +98,7 @@
       </KEYS>
     </TABLE>
  
-    <TABLE NAME="activity_approvals" COMMENT="Approvers for activities">
+    <TABLE NAME="activities_approvals" COMMENT="Approvers for activities">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="activityid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
@@ -118,7 +118,7 @@
       </KEYS>
     </TABLE>
 
-    <TABLE NAME="activity_comments" COMMENT="Discussions for activities">
+    <TABLE NAME="activities_comments" COMMENT="Discussions for activities">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="activityid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
@@ -132,7 +132,7 @@
       </KEYS>
     </TABLE>
 
-    <TABLE NAME="activity_emails" COMMENT="A queue of user initiated emails.">
+    <TABLE NAME="activities_emails" COMMENT="A queue of user initiated emails.">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="activityid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
@@ -151,7 +151,7 @@
       </KEYS>
     </TABLE>
 
-    <TABLE NAME="activity_permissions" COMMENT="Permission requests and responses">
+    <TABLE NAME="activities_permissions" COMMENT="Permission requests and responses">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="activityid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
@@ -170,7 +170,7 @@
     </TABLE>
 
 
-    <TABLE NAME="activity_cal_sync" COMMENT="">
+    <TABLE NAME="activities_cal_sync" COMMENT="">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="activityid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
@@ -183,12 +183,12 @@
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-        <KEY NAME="fk_activityid" TYPE="foreign" FIELDS="activityid" REFTABLE="activity_events" REFFIELDS="id"/>
+        <KEY NAME="fk_activityid" TYPE="foreign" FIELDS="activityid" REFTABLE="activities" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
 
 
-    <TABLE NAME="activity_conflicts" COMMENT="">
+    <TABLE NAME="activities_conflicts" COMMENT="">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="activityid1" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -202,7 +202,7 @@
     </TABLE>
 
     
-    <TABLE NAME="activity_sys_emails" COMMENT="A queue of fully exported sys emails">
+    <TABLE NAME="activities_sys_emails" COMMENT="A queue of fully exported sys emails">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="log" TYPE="text" NOTNULL="true" SEQUENCE="false"/>

@@ -205,7 +205,7 @@ class service_lib {
             $attachments
         ]);
         $email->timecreated = time();
-        $DB->insert_record('activity_sys_emails', $email);
+        $DB->insert_record('activities_sys_emails', $email);
     }
 
 

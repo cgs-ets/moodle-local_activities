@@ -1,17 +1,17 @@
 /*
 -- Delete everything to start again.
 DELETE FROM mdl_activities
-DELETE FROM mdl_activity_approvals
-DELETE FROM mdl_activity_assessments
-DELETE FROM mdl_activity_cal_sync
-DELETE FROM mdl_activity_comments
-DELETE FROM mdl_activity_conflicts
-DELETE FROM mdl_activity_emails
-DELETE FROM mdl_activity_permissions
-DELETE FROM mdl_activity_staff
-DELETE FROM mdl_activity_students
-DELETE FROM mdl_activity_students_temp
-DELETE FROM mdl_activity_sys_emails
+DELETE FROM mdl_activities_approvals
+DELETE FROM mdl_activities_assessments
+DELETE FROM mdl_activities_cal_sync
+DELETE FROM mdl_activities_comments
+DELETE FROM mdl_activities_conflicts
+DELETE FROM mdl_activities_emails
+DELETE FROM mdl_activities_permissions
+DELETE FROM mdl_activities_staff
+DELETE FROM mdl_activities_students
+DELETE FROM mdl_activities_students_temp
+DELETE FROM mdl_activities_sys_emails
 
 */
 
@@ -200,7 +200,7 @@ AND e.activityid = 0;
 
 
 -- migrate assessments.
-INSERT INTO mdl_activity_assessments (
+INSERT INTO mdl_activities_assessments (
     courseid,      -- Maps to courseid in mdl_excursions_events
     cmid,          -- Set to 0 as no direct mapping exists
     creator,       -- Maps to creator in mdl_excursions_events
@@ -217,7 +217,7 @@ SELECT
     e.creator,         -- Migrate creator from mdl_excursions_events
     e.activityname,    -- Migrate activityname from mdl_excursions_events to name
     e.assessmenturl,   -- Migrate assessmenturl from mdl_excursions_events to url
-    e.timeend,         -- Use timeend as timedue in mdl_activity_assessments
+    e.timeend,         -- Use timeend as timedue in mdl_activities_assessments
     e.deleted,         -- Migrate deleted status
     e.timecreated,     -- Migrate timecreated
     e.timemodified     -- Migrate timemodified
@@ -225,52 +225,52 @@ FROM mdl_excursions_events e
 WHERE e.assessment = 1;            -- Only migrate records where assessment = 1
 
 
--- Migration for `mdl_excursions_approvals` to `mdl_activity_approvals`
-INSERT INTO mdl_activity_approvals (activityid, type, username, nominated, sequence, description, status, invalidated, skip, timemodified)
+-- Migration for `mdl_excursions_approvals` to `mdl_activities_approvals`
+INSERT INTO mdl_activities_approvals (activityid, type, username, nominated, sequence, description, status, invalidated, skip, timemodified)
 SELECT new_activities.id, ea.type, ea.username, ea.nominated, ea.sequence, ea.description, ea.status, ea.invalidated, ea.skip, ea.timemodified
 FROM mdl_excursions_approvals ea
 JOIN mdl_excursions e ON ea.activityid = e.id
 JOIN mdl_activities new_activities ON e.id = new_activities.oldexcursionid;
 
--- Migration for `mdl_excursions_comments` to `mdl_activity_comments`
-INSERT INTO mdl_activity_comments (activityid, username, comment, timecreated)
+-- Migration for `mdl_excursions_comments` to `mdl_activities_comments`
+INSERT INTO mdl_activities_comments (activityid, username, comment, timecreated)
 SELECT new_activities.id, ec.username, ec.comment, ec.timecreated
 FROM mdl_excursions_comments ec
 JOIN mdl_excursions e ON ec.activityid = e.id
 JOIN mdl_activities new_activities ON e.id = new_activities.oldexcursionid;
 
--- Migration for `mdl_excursions_events_sync` to `mdl_activity_cal_sync`
-INSERT INTO mdl_activity_cal_sync (activityid, calendar, externalid, changekey, weblink, status, timesynced)
+-- Migration for `mdl_excursions_events_sync` to `mdl_activities_cal_sync`
+INSERT INTO mdl_activities_cal_sync (activityid, calendar, externalid, changekey, weblink, status, timesynced)
 SELECT new_activities.id, ees.calendar, ees.externalid, ees.changekey, ees.weblink, ees.status, ees.timesynced
 FROM mdl_excursions_events_sync ees
 JOIN mdl_excursions e ON ees.eventid = e.id
 JOIN mdl_activities new_activities ON e.id = new_activities.oldexcursionid;
 
 
--- Migration for `mdl_excursions_permissions` to `mdl_activity_permissions`
-INSERT INTO mdl_activity_permissions (activityid, studentusername, parentusername, queueforsending, queuesendid, response, timecreated, timeresponded)
+-- Migration for `mdl_excursions_permissions` to `mdl_activities_permissions`
+INSERT INTO mdl_activities_permissions (activityid, studentusername, parentusername, queueforsending, queuesendid, response, timecreated, timeresponded)
 SELECT new_activities.id, ep.studentusername, ep.parentusername, ep.queueforsending, ep.queuesendid, ep.response, ep.timecreated, ep.timeresponded
 FROM mdl_excursions_permissions ep
 JOIN mdl_excursions e ON ep.activityid = e.id
 JOIN mdl_activities new_activities ON e.id = new_activities.oldexcursionid;
 
--- Migration for `mdl_excursions_planning_staff` and `mdl_excursions_staff` to `mdl_activity_staff`
+-- Migration for `mdl_excursions_planning_staff` and `mdl_excursions_staff` to `mdl_activities_staff`
 -- Planning staff
-INSERT INTO mdl_activity_staff (activityid, username, usertype)
+INSERT INTO mdl_activities_staff (activityid, username, usertype)
 SELECT new_activities.id, eps.username, 'planning'
 FROM mdl_excursions_planning_staff eps
 JOIN mdl_excursions e ON eps.activityid = e.id
 JOIN mdl_activities new_activities ON e.id = new_activities.oldexcursionid;
 
 -- Accompanying staff
-INSERT INTO mdl_activity_staff (activityid, username, usertype)
+INSERT INTO mdl_activities_staff (activityid, username, usertype)
 SELECT new_activities.id, es.username, 'accompany'
 FROM mdl_excursions_staff es
 JOIN mdl_excursions e ON es.activityid = e.id
 JOIN mdl_activities new_activities ON e.id = new_activities.oldexcursionid;
 
--- Migration for `mdl_excursions_students` to `mdl_activity_students`
-INSERT INTO mdl_activity_students (activityid, username)
+-- Migration for `mdl_excursions_students` to `mdl_activities_students`
+INSERT INTO mdl_activities_students (activityid, username)
 SELECT new_activities.id, es.username
 FROM mdl_excursions_students es
 JOIN mdl_excursions e ON es.activityid = e.id
