@@ -28,6 +28,7 @@ export function Paperwork() {
 
           <div className='border-b p-4'>
             <Text className="font-semibold">Other Documentation</Text>
+            <Text className='text-xs'>Other files, such as the programme outline, provider risk assessment, risk waivers, child safe policy etc, should be uploaded here.</Text>
             <FileUploader inputName="attachments" desc="or Drag files. Maximum 10 files. Each file should not exceed 10mb." maxFiles={10} maxSize={10} />
           </div>
 

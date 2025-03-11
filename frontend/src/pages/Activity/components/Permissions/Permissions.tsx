@@ -1,5 +1,5 @@
-import { Card, Flex, Text, Checkbox, NumberInput, Grid, Button, Group, Alert, Paper, Center } from '@mantine/core';
-import { IconChevronDown, IconChevronUp, IconCopy, IconMail } from '@tabler/icons-react';
+import { Card, Flex, Text, Checkbox, NumberInput, Grid, Button, Group, Alert, Paper, Center, Tooltip, Popover } from '@mantine/core';
+import { IconChevronDown, IconChevronUp, IconCopy, IconHelpHexagon, IconMail, IconQuestionMark } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
 import { useClipboard } from 'use-clipboard-copy';
 import { useCallback, useEffect, useRef } from 'react';
@@ -61,12 +61,39 @@ export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
     }
   }, [timestart, permissions]);
 
+  const tip = () => (
+    <div>
+      <p className="mb-4">Do not request parent permission unnecessarily. Bulk excursion permissions are obtained from parents annually.</p>
+
+      <p className="mb-4">You only need to request parent permission for your excursion if it is:</p>
+
+      <ul className="list-disc pl-4 mt-2">
+        <li>International</li>
+        <li>Overnight</li>
+        <li>CGS Care, PreK or Pre S or</li>
+        <li>Additional risks (such as swimming) have been identified</li>
+      </ul>
+    </div>
+  )
+
+
   return (
     <>
       <Card withBorder radius="sm" className="p-0">
 
-        <div className="px-4 py-3">
+        <div className="px-4 py-3 flex items-center gap-4">
           <span className="text-base">Permissions</span>
+          <Popover width={320} position="bottom" withArrow shadow="md">
+            <Popover.Target>
+              <div className="flex items-center gap-1 text-blue-600 cursor-pointer">
+                <IconHelpHexagon className="size-5" />
+                Do I need parent permission?
+              </div>
+            </Popover.Target>
+            <Popover.Dropdown>
+              {tip()}
+            </Popover.Dropdown>
+          </Popover>
         </div>
 
         <div className="p-4 border-t border-gray-300">
