@@ -192,9 +192,11 @@ export function BasicDetails() {
         
 
         <div>
+          <Text fz="sm" fw={500} c="#212529">Location</Text>
+          <Text className="text-sm mb-1 text-gray-500">Include the contact person at the venue (optional).</Text>
           <TextInput
             placeholder="Snow Concert Hall"
-            label="Location"
+            label=""
             value={formData.location}
             error={errors.Location}
             onChange={(e) => updateField('location', e.target.value)}
