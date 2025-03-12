@@ -206,7 +206,8 @@ INSERT INTO mdl_activities_assessments (
     creator,       -- Maps to creator in mdl_excursions_events
     name,          -- Maps to activityname in mdl_excursions_events
     url,           -- Maps to assessmenturl in mdl_excursions_events
-    timedue,       -- Maps to timeend in mdl_excursions_events
+    timestart,       -- Maps to timestart in mdl_excursions_events
+    timeend,       -- Maps to timeend in mdl_excursions_events
     deleted,       -- Maps to deleted in mdl_excursions_events
     timecreated,   -- Maps to timecreated in mdl_excursions_events
     timemodified   -- Maps to timemodified in mdl_excursions_events
@@ -217,7 +218,8 @@ SELECT
     e.creator,         -- Migrate creator from mdl_excursions_events
     e.activityname,    -- Migrate activityname from mdl_excursions_events to name
     e.assessmenturl,   -- Migrate assessmenturl from mdl_excursions_events to url
-    e.timeend,         -- Use timeend as timedue in mdl_activities_assessments
+    e.timestart,       -- Migrate timestart from mdl_excursions_events
+    e.timeend,         -- Migrate timeend from mdl_excursions_events
     e.deleted,         -- Migrate deleted status
     e.timecreated,     -- Migrate timecreated
     e.timemodified     -- Migrate timemodified

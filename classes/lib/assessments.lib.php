@@ -162,14 +162,16 @@ class assessments_lib {
         $sql = "SELECT *
                 FROM mdl_activities_assessments
                 WHERE deleted = 0
-                AND (timedue >= ? AND timedue <= ?)
-                ORDER BY timedue ASC";
-        $records = $DB->get_records_sql($sql, [$start, $end]);
+                AND (
+                    (timestart >= ? AND timestart <= ?) OR 
+                    (timeend >= ? AND timeend <= ?) OR
+                    (timestart < ? AND timeend > ?)
+                )
+                ORDER BY timestart ASC";
+        $records = $DB->get_records_sql($sql, [$start, $end, $start, $end, $start, $end]);
         $assessments = array();
         foreach ($records as $record) {
             $record->creator = utils_lib::user_stub($record->creator);
-            $record->timestart = $record->timedue;
-            $record->timeend = $record->timedue;
             $record->course = $DB->get_record('course', array('id' => $record->courseid));
             $record->usercanedit = false;
             if ($record->creator == $USER->username || has_capability('moodle/site:config', \context_user::instance($USER->id))) {

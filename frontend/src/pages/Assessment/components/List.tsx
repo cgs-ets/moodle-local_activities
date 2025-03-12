@@ -7,7 +7,6 @@ import { useDisclosure } from "@mantine/hooks";
 import { getMonthFromTerm, getTermFromMonth } from "../../../utils/utils";
 import useFetch from "../../../hooks/useFetch";
 import { AssessmentData } from "../Assessment";
-import { User } from "../../../types/types";
 import { ListTease } from "./ListTease";
 import { FilterModal } from "./FilterModal";
 

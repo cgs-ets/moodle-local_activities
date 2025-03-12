@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { getConfig } from "../../utils";
 import { useStateStore, ViewStateProps } from "../../stores/stateStore";
@@ -28,7 +28,8 @@ export interface AssessmentData {
   cmid: string;
   name: string;
   url: string;
-  timedue: string;
+  timestart: string;
+  timeend: string;
   course?: any;
   activityrequired: boolean;
   activityid: string;
@@ -43,7 +44,7 @@ export function Assessment() {
   const updateViewStateProps = useStateStore((state) => (state.updateViewStateProps))
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
   const [error, setError] = useState<string>("")
-  const formErrorDefaults = {name: '', cmid: ''}
+  const formErrorDefaults = {name: '', cmid: '', timeend: ''};
   const [formErrors, setFormErrors] = useState(formErrorDefaults)
   const defaults = {
     id: id ?? "",
@@ -52,7 +53,8 @@ export function Assessment() {
     cmid: "",
     name: "",
     url: "",
-    timedue: dayjs().unix().toString(),
+    timestart: dayjs().unix().toString(),
+    timeend: dayjs().unix().toString(),
     activityrequired: false,
     activityid: "",
     activityname: "",
@@ -64,6 +66,7 @@ export function Assessment() {
   const [modulesLoading, setModulesLoading] = useState<boolean>(false)
   //const [submitResponse, submitError, submitLoading, submitAjax, setSubmitData] = useAjax(); // destructure state and fetch function
   const [submitLoading, setSubmitLoading] = useState<boolean>(false)
+  const manuallyEdited = useRef(false);
 
   useEffect(() => {
     document.title = 'Manage Assessment'
@@ -118,7 +121,8 @@ export function Assessment() {
       ...fetchResponse.data,
       timecreated: Number(fetchResponse.data.timecreated) ? fetchResponse.data.timecreated : dayjs().unix(),
       timemodified: Number(fetchResponse.data.timemodified) ? fetchResponse.data.timemodified : dayjs().unix(),
-      timedue: Number(fetchResponse.data.timedue) ? fetchResponse.data.timedue : dayjs().unix(),
+      timestart: Number(fetchResponse.data.timestart) ? fetchResponse.data.timestart : dayjs().unix(),
+      timeend: Number(fetchResponse.data.timeend) ? fetchResponse.data.timeend : dayjs().unix(),
     }
     setFormData({...data})
     updateField('module', modules.find((obj: Module) => obj.value === data.cmid))
@@ -156,6 +160,7 @@ export function Assessment() {
     const errors = {
       name: formData.name.length ? '' : 'Required',
       cmid: formData.cmid.length ? '' : 'Required',
+      timeend: formData.timestart <= formData.timeend ? '' : 'End time must be same or after start time',
     };
     if (Object.values(errors).some(error => error !== '')) {
       setFormErrors(errors)
@@ -188,7 +193,6 @@ export function Assessment() {
     }
     
   }
-
 
   useEffect(() => {
     if (!formData.courseid) {
@@ -237,6 +241,13 @@ export function Assessment() {
     updateField('activityid', activity.id)
     updateField('activityname', activity.activityname)
   }
+
+  // Update timeend when timestart changes
+  useEffect(() => {
+    if (!manuallyEdited.current) {
+      updateField('timeend', formData.timestart.toString());
+    }
+  }, [formData.timestart]);
 
   return (
     <>
@@ -307,21 +318,43 @@ export function Assessment() {
                             }
                           </div>
                           
+                          <div className="flex gap-4">
+                            <div>
+                              <Text fz="sm" mb="5px" fw={500} c="#212529">Start time</Text>
+                              <DateTimePicker 
+                                value={dayjs.unix(Number(formData.timestart))}
+                                onChange={(newValue) => updateField('timestart', (newValue?.unix() ?? 0).toString())}
+                                views={['day', 'month', 'year', 'hours', 'minutes']}
+                                readOnly={viewStateProps.readOnly}
+                                slotProps={{
+                                  textField: {
+                                    error: false,
+                                  },
+                                }}
+                              />
+                            </div>
+                            <div>
+                              <Text fz="sm" mb="5px" fw={500} c="#212529">End / Due time</Text>
+                              <DateTimePicker 
+                                value={dayjs.unix(Number(formData.timeend))}
+                                onChange={(newValue) => {
+                                  manuallyEdited.current = true;
+                                  updateField('timeend', (newValue?.unix() ?? 0).toString());
+                                }}
 
-                          <div>
-                            <Text fz="sm" mb="5px" fw={500} c="#212529">Due date</Text>
-                            <DateTimePicker 
-                              value={dayjs.unix(Number(formData.timedue))}
-                              onChange={(newValue) => updateField('timedue', (newValue?.unix() ?? 0).toString())}
-                              views={['day', 'month', 'year', 'hours', 'minutes']}
-                              readOnly={viewStateProps.readOnly}
-                              slotProps={{
-                                textField: {
-                                  error: false,
-                                },
-                              }}
-                            />
+                                views={['day', 'month', 'year', 'hours', 'minutes']}
+                                readOnly={viewStateProps.readOnly}
+                                slotProps={{
+                                  textField: {
+                                    error: !!formErrors.timeend,
+                                  },
+                                }}
+                                defaultValue={dayjs.unix(Number(formData.timestart))}
+                              />
+                              {formErrors.timeend ? <div className="text-red-600 text-xs mt-1">{formErrors.timeend}</div> : null}
+                            </div>
                           </div>
+                          
 
                           <TextInput
                             placeholder=""

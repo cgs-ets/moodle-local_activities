@@ -12,7 +12,7 @@ export function ListTease({assessment, setSelected}: Props) {
     <div className="relative border-t bg-gray-50">
       <span className="hover-line"></span>
       <div onClick={() => setSelected(assessment)} className="te-link no-underline hover:no-underline flex gap-1 items-start py-3" title={assessment.name}>
-        <div className="te-start-time text-lg">{dayjs.unix(Number(assessment.timedue)).format("H:mm")}</div>
+        <div className="te-start-time text-lg">{dayjs.unix(Number(assessment.timeend)).format("H:mm")}</div>
         <div className="te-deets">
           <div className="flex items-center gap-3 text-lg">
             <div className="text-gray-900 font-semibold ">{assessment.name}</div>
