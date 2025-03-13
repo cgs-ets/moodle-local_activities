@@ -1743,7 +1743,7 @@ class activities_lib {
         // Get the email users.
         $toUser = \core_user::get_user_by_username($permission->studentusername);
         $fromUser = \core_user::get_noreply_user();
-        $fromUser->bccaddress = array();
+        $fromUser->bccaddress = array("lms.archive@cgs.act.edu.au"); 
 
         // Get the activity for the permission.
         $activity = new Activity($permission->activityid);
@@ -1759,7 +1759,7 @@ class activities_lib {
 
 
         $messageHtml = $OUTPUT->render_from_template('local_activities/email_attending_html', $activity);
-        $subject = "Activity: " . $activity->activityname;
+        $subject = "Attending activity: " . $activity->activityname;
 
         $result = service_lib::wrap_and_email_to_user($toUser, $fromUser, $subject, $messageHtml);        
     }
