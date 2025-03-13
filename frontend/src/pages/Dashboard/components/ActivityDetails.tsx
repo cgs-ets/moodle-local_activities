@@ -25,9 +25,9 @@ export function ActivityDetails({activity}: {activity: Form}) {
     },
   ]
 
-  const staffincharge = JSON.parse(activity.staffinchargejson);
-  const planning = JSON.parse(activity.planningstaffjson);
-  const accompanying = JSON.parse(activity.accompanyingstaffjson);
+  const staffincharge = JSON.parse(activity.staffinchargejson || '{}');
+  const planning = JSON.parse(activity.planningstaffjson || '[]');
+  const accompanying = JSON.parse(activity.accompanyingstaffjson || '[]');
 
   return (
     <Card radius={0} className="p-0">
@@ -95,17 +95,18 @@ export function ActivityDetails({activity}: {activity: Form}) {
         </Card.Section>
       }
 
-      <Card.Section pos="relative" className='m-0 border-b  flex items-start gap-1 px-4 py-2'>
-        <div className='w-36 font-bold'>Categories</div>
-        <div className='flex flex-wrap gap-2'>
-          { !JSON.parse(activity.areasjson).length && <div className='italic'>No categories selected</div>}
-          { JSON.parse(activity.areasjson)?.map((area: string) => {
-            return (
-              <Badge key={area} variant='light'>{area}</Badge>
-            )
-          })}
-        </div>
-      </Card.Section>
+      { JSON.parse(activity.areasjson ?? '[]').length > 0 &&
+        <Card.Section pos="relative" className='m-0 border-b  flex items-start gap-1 px-4 py-2'>
+          <div className='w-36 font-bold'>Categories</div>
+          <div className='flex flex-wrap gap-2'>
+            { JSON.parse(activity.areasjson ?? '[]')?.map((area: string) => {
+              return (
+                <Badge key={area} variant='light'>{area}</Badge>
+              )
+            })}
+          </div>
+        </Card.Section>
+      }
 
       { !!activity.description.length &&
         <Card.Section pos="relative" className='m-0 px-4 py-2 border-b'>
@@ -113,7 +114,6 @@ export function ActivityDetails({activity}: {activity: Form}) {
           <div dangerouslySetInnerHTML={ {__html: activity.description || ''} }></div>
         </Card.Section>
       }
-
 
     </Card>
   );

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import useFetch from '../../../hooks/useFetch';
 import { Form } from '../../../stores/formStore';
 import dayjs from 'dayjs';
-import { statuses } from '../../../utils';
+import { getConfig, statuses } from '../../../utils';
 import { cn } from '../../../utils/utils';
 import { IconChecklist, IconUser } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
@@ -101,7 +101,7 @@ export function MyActivities() {
           })} 
         </div>
       </div>
-      <EventModal activity={selectedEvent} close={() => setSelectedEvent(null)} />
+      <EventModal hideOpenButton={!getConfig().roles.includes("staff")} activity={selectedEvent} close={() => setSelectedEvent(null)} />
 
     </>
   );

@@ -58,6 +58,8 @@ export type Form = {
   //assessmenturl: string;
 
   stepname: string;
+
+  stupermissions?: any[];
 };
 
 type FormStore = Form & {

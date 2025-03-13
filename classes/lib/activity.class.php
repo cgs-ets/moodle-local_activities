@@ -257,7 +257,7 @@ class Activity {
         }
 
         $sql = "SELECT *
-                FROM {activity_permissions}
+                FROM {activities_permissions}
                 WHERE activityid = ?";
         $params = array($this->get('id'));
         $records = $DB->get_records_sql($sql, $params);

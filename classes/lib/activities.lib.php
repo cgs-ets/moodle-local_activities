@@ -792,11 +792,10 @@ class activities_lib {
 
         $sql = "SELECT id, activityid
                   FROM {" . static::TABLE_ACTIVITY_STUDENTS . "} 
-                 WHERE username = ?
-                 AND status = " . static::ACTIVITY_STATUS_APPROVED;
+                 WHERE username = ?";
         $ids = $DB->get_records_sql($sql, array($username));
 
-        $activities = static::get_by_ids(array_column($ids, 'activityid'), 3, null, true); // Approved and future only.
+        $activities = static::get_by_ids(array_column($ids, 'activityid'), static::ACTIVITY_STATUS_APPROVED, null, true); // Approved and future only.
         foreach ($activities as $i => $activity) {
             if ($activity->permissions) {
                 $attending = static::get_all_attending($activity->id);
@@ -818,19 +817,23 @@ class activities_lib {
 
         $sql = "SELECT activityid
                   FROM {" . static::TABLE_ACTIVITY_PERMISSIONS . "} 
-                 WHERE parentusername = ?
-                 AND status = " . static::ACTIVITY_STATUS_APPROVED;
+                 WHERE parentusername = ?";
         $ids = $DB->get_fieldset_sql($sql, array($username));
 
-        $activities = static::get_by_ids($ids, 3, null, true, false); // Approved and future only.
+        $activities = static::get_by_ids($ids, static::ACTIVITY_STATUS_APPROVED, null, true, false); // Approved and future only.
 
         foreach ($activities as $i => $activity) {
+            // Export the activity.
+            $exported = $activity->export_minimal();
+            $activities[$i] = static::minimise_record($exported);
+            if (!$activity->get('permissions')) {
+                continue;
+            }
+            // Get the permissions for this parent.
             $permissions = static::get_parent_permissions($activity->get('id'), $username);
             foreach ($permissions as &$permission) {
                 $permission->student = utils_lib::user_stub($permission->studentusername);
             }
-            $exported = $activity->export_minimal();
-            $activities[$i] = static::minimise_record($exported);
             $activities[$i]['stupermissions'] = array_values($permissions);
             $activities[$i]['permissionshelper'] = static::permissions_helper($activity);
         }        
@@ -1971,6 +1974,14 @@ class activities_lib {
     }
 
 
+
+    public static function can_user_view_activity($user, $activityid) {
+        // Is the user a staff? If activity status is in review or approved, they can view.
+
+        // Is the user a parent? Check if they have a child in the activity.
+
+        // Otherwise no.
+    }
    
 
 
