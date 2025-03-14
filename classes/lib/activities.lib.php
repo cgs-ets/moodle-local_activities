@@ -99,8 +99,10 @@ class activities_lib {
             'staffinchargejson' => $exported->staffinchargejson,
             'description' => $exported->description,
             'permissionsdueby' => $exported->permissionsdueby,
-            'permissions' => array_values($permissions),
+            'stupermissions' => array_values($permissions),
             'permissionshelper' => static::permissions_helper($activity),
+            'status' => $exported->status,
+            'stepname' => $exported->stepname,
         ];
     }
 

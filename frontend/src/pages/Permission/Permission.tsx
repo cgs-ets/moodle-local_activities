@@ -48,9 +48,9 @@ export function Permission() {
     if (fetchResponse && !fetchResponse.error) {
       document.title = fetchResponse.data.activityname + " - Permission"
   
-      const { permissions, permissionshelper, ...activity } = fetchResponse.data
+      const { stupermissions, permissionshelper, ...activity } = fetchResponse.data
   
-      setPermissions(permissions)
+      setPermissions(stupermissions)
       setPermissionsHelper(permissionshelper)
   
       const data = {

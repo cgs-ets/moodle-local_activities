@@ -10,6 +10,7 @@ import { EditActivity } from "./pages/Activity/EditActivity";
 import { Permission } from "./pages/Permission/Permission";
 import { Assessment } from "./pages/Assessment/Assessment";
 import { Assessments } from "./pages/Assessment/Assessments";
+import { Preview } from "./pages/Preview/Preview";
 
 
 
@@ -60,6 +61,7 @@ function App() {
       { path: "assessment", element: <Assessment /> },
       { path: "assessment/:id", element: <Assessment /> },
       { path: ":id/permission", element: <Permission /> },
+      { path: ":id/preview", element: <Preview /> },
       { path: ":id", element: <EditActivity /> },
     ],
     { basename: '/local/activities' }
