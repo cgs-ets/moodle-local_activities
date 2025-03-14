@@ -1975,12 +1975,31 @@ class activities_lib {
 
 
 
-    public static function can_user_view_activity($user, $activityid) {
-        // Is the user a staff? If activity status is in review or approved, they can view.
+    public static function can_user_view_activity($activityid) {
+        global $DB, $USER;
 
-        // Is the user a parent? Check if they have a child in the activity.
+        if (utils_lib::is_user_staff()) {
+            // User a staff - If activity status is in review or approved, they can view.
+            $sql = "SELECT id
+                    FROM  {" . static::TABLE . "} 
+                    WHERE id = ?
+                    AND deleted = 0
+                    AND (status = " . static::ACTIVITY_STATUS_INREVIEW . ' OR status = ' . static::ACTIVITY_STATUS_APPROVED . ')';        
+            return $DB->record_exists_sql($sql, [$activityid]);
 
-        // Otherwise no.
+        } else if (utils_lib::is_user_parent()) {
+            // User is a parent - Check if they have a child in the activity.
+            $sql = "SELECT activityid
+                    FROM {" . static::TABLE . "} a 
+                    INNER JOIN {" . static::TABLE_ACTIVITY_PERMISSIONS . "} ap ON a.id = ap.activityid
+                    WHERE a.id = ?
+                    AND ap.parentusername = ?
+                    AND (a.status = " . static::ACTIVITY_STATUS_APPROVED . ")";
+            return $DB->record_exists_sql($sql, [$activityid, $USER->username]);
+
+        }
+
+        return false;
     }
    
 

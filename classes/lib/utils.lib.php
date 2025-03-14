@@ -417,5 +417,17 @@ class utils_lib {
         return false;
     }
 
+    public static function is_user_parent() {
+        global $USER;
+        
+        profile_load_custom_fields($USER);
+        $campusroles = strtolower($USER->profile['CampusRoles']);
+        if (strpos($campusroles, 'parent') !== false) {
+            return true;
+        }
+
+        return false;
+    }
+
 
 }
