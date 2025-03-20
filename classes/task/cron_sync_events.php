@@ -278,7 +278,7 @@ class cron_sync_events extends \core\task\scheduled_task {
                         $this->log(json_encode($eventdata), 3);
                         $error = true;
                     }
-                    $id = $DB->insert_record('activity_cal_sync', $record);
+                    $id = $DB->insert_record('activities_cal_sync', $record);
                 }
             }
 
