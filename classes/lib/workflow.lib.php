@@ -420,7 +420,7 @@ class workflow_lib extends \local_activities\local_activities_config {
         // Send the notification.
         $approvals = static::get_approval($activityid, $approvalid);
         foreach ($approvals as $approval) {
-            if (static::WORKFLOW[$approval->type]['fromsqlproc']) {
+            if (isset(static::WORKFLOW[$approval->type]['fromsqlproc']) && static::WORKFLOW[$approval->type]['fromsqlproc']) {
                 static::send_next_approval_email($activityid, static::WORKFLOW[$approval->type]['name'], $nominated, null, [$USER->email]);
             } else {
                 $approver = static::WORKFLOW[$approval->type]['approvers'][$nominated];
