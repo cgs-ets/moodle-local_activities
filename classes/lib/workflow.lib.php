@@ -348,18 +348,18 @@ class workflow_lib extends \local_activities\local_activities_config {
             return null;
         }
 
-        $userapprovertypes = static::get_approver_types($USER->username);
+        //$userapprovertypes = static::get_approver_types($USER->username);
 
         // Update the approval status.
-        list($insql, $inparams) = $DB->get_in_or_equal($userapprovertypes);
+        //list($insql, $inparams) = $DB->get_in_or_equal($userapprovertypes);
         $sql = "UPDATE mdl_activities_approvals
                    SET status = ?, username = ?, timemodified = ?
                  WHERE id = ?
                    AND activityid = ?
-                   AND invalidated = 0
-                   AND type $insql";
+                   AND invalidated = 0";
+                   //AND type $insql";
         $params = array($checked, $USER->username, time(), $approvalid, $activityid);
-        $params = array_merge($params, $inparams);
+        //$params = array_merge($params, $inparams);
         $DB->execute($sql, $params);
 
         // Check for approval finalisation and return new status.
@@ -875,6 +875,16 @@ class workflow_lib extends \local_activities\local_activities_config {
             foreach ($type['approvers'] as $approver) {
                 if ($approver['username'] == $username) {
                     $types[] = $code;
+                }
+            }
+            if (isset($type['fromsqlproc']) && $type['fromsqlproc']) {
+                // Run the SQL proc to get the approvers.
+                $approvers = static::get_approvers_from_proc($code);
+                foreach ($approvers as $approver) {
+                    if ($approver['username'] == $username) {
+                        $types[] = $code;
+                        break;
+                    }
                 }
             }
         }
