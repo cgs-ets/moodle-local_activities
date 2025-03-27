@@ -313,9 +313,9 @@ class cron_sync_events extends \core\task\scheduled_task {
                 $event->timesynclive = -1;
             }
             if ($event->activitytype == 'assessment') {
-                $DB->update_record_sql('UPDATE {activities_assessments} SET timesynclive = ? WHERE id = ?', [$event->timesynclive, $event->id]);
+                $DB->execute('UPDATE {activities_assessments} SET timesynclive = ? WHERE id = ?', [$event->timesynclive, $event->id]);
             } else {
-                $DB->update_record_sql('UPDATE {activities} SET timesynclive = ? WHERE id = ?', [$event->timesynclive, $event->id]);
+                $DB->execute('UPDATE {activities} SET timesynclive = ? WHERE id = ?', [$event->timesynclive, $event->id]);
             }
 
         }
