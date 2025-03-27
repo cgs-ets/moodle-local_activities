@@ -102,7 +102,7 @@ class workflow_lib extends \local_activities\local_activities_config {
             switch ($campus) {
                 case 'senior': {
                     // Senior School - 1st approver.
-                    $approvals[] = static::get_approval_clone('senior_hod', 1, $activityid);
+                    //$approvals[] = static::get_approval_clone('senior_hod', 1, $activityid);
 
                     // Senior School - 2nd approver.
                     $approvals[] = static::get_approval_clone('senior_ra', 2, $activityid);

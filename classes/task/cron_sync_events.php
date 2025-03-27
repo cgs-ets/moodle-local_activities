@@ -45,22 +45,47 @@ class cron_sync_events extends \core\task\scheduled_task {
                 WHERE timesynclive < timemodified"; 
         $events = $DB->get_records_sql($sql);
 
+        $this->log_start("Looking for assessments that require sync (modified after last sync).");
+        $sql = "SELECT *
+                FROM {activities_assessments}
+                WHERE timesync < timemodified"; 
+        $rawassessments = $DB->get_records_sql($sql);
+
+        // Loop through assessments and structure them like events.
+        $assessments = [];
+        foreach ($rawassessments as $assessment) {
+            $assessments[] = [
+                'id' => $assessment->id,
+                'activityname' => $assessment->name,
+                'timestart' => $assessment->timestart,
+                'timeend' => $assessment->timeend,
+                'location' => '',
+                'activitytype' => 'assessment',
+                'deleted' => $assessment->deleted,
+                'displaypublic' => false,
+                'pushpublic' => false,
+                'categoriesjson' => 'Senior School',
+                'areasjson' => '["Assessment"]',
+                'colourcategory' => 'Assessment',
+                'notes' => $assessment->url,
+            ];
+        }
+
+        // Merge events and assessments.
+        $all = array_merge($events, $assessments);
         
-        foreach ($events as $event) {
+        foreach ($all as $event) {
             $sdt = date('Y-m-d H:i', $event->timestart);
-            $this->log("Processing event $event->id: '$event->activityname', starting '$sdt'");
+            $this->log("Processing $event->activitytype $event->id: '$event->activityname', starting '$sdt'");
             $error = false;
 
-
-
-            // Load activity details.
-            $activity = new activity($event->id);
-            // Get some helpful meta.
-            $status = activities_lib::status_helper($activity->get('status'));
-            $approved = $status->isapproved;
-            $isActivity = activities_lib::is_activity($event->activitytype);
-
-
+            $approved = true;
+            $isActivity = false;
+            if ($event->activitytype !== 'assessment') {
+                $status = activities_lib::status_helper($activity->get('status'));
+                $approved = $status->isapproved;
+                $isActivity = activities_lib::is_activity($event->activitytype);
+            }
 
             // Should this activity be deleted or skipped in the sync process?
             $skipEvent = false;
@@ -286,7 +311,11 @@ class cron_sync_events extends \core\task\scheduled_task {
             if ($error) {
                 $event->timesynclive = -1;
             }
-            $DB->update_record('activities', $event);
+            if ($event->activitytype == 'assessment') {
+                $DB->update_record_sql('UPDATE {activities_assessments} SET timesynclive = ? WHERE id = ?', [$event->timesynclive, $event->id]);
+            } else {
+                $DB->update_record_sql('UPDATE {activities} SET timesynclive = ? WHERE id = ?', [$event->timesynclive, $event->id]);
+            }
 
         }
         $this->log_finish("Finished syncing events.");  
