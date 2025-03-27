@@ -82,6 +82,7 @@ class cron_sync_events extends \core\task\scheduled_task {
             $approved = true;
             $isActivity = false;
             if ($event->activitytype !== 'assessment') {
+                $activity = new activity($event->id);
                 $status = activities_lib::status_helper($activity->get('status'));
                 $approved = $status->isapproved;
                 $isActivity = activities_lib::is_activity($event->activitytype);
