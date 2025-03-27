@@ -80,34 +80,22 @@ class cron_sync_events extends \core\task\scheduled_task {
             $error = false;
 
             $approved = true;
+            $inreview = false;
             $isActivity = false;
             if ($event->activitytype !== 'assessment') {
                 $activity = new activity($event->id);
                 $status = activities_lib::status_helper($activity->get('status'));
                 $approved = $status->isapproved;
+                $inreview = $status->inreview;
                 $isActivity = activities_lib::is_activity($event->activitytype);
             }
 
-            // Should this activity be deleted or skipped in the sync process?
+            // Skip the event if it is deleted or not either approved or in review.
             $skipEvent = false;
             if ($event->deleted) {
-                // Event is deleted.
                 $skipEvent = true;
             }
-            // Note: The following is commented out because unapproved events are also synced (as tentative)
-            /*if (!$status->isapproved) {
-                // Event is unapproved.
-                // Possible exception:
-                if ($isActivity && $event->displaypublic && $event->pushpublic) {
-                    // Event may not be approved, but if it pushpublic then include it.
-                } else {
-                    $skipEvent = true;
-                }
-            }*/
-            if ($status->inreview || $status->isapproved) {
-                // These events are allowed. In review will be marked tentative.
-            } else {
-                // Any event that is draft or cancelled etc should be removed.
+            if (!($inreview || $approved)) {
                 $skipEvent = true;
             }
             if ($skipEvent) {

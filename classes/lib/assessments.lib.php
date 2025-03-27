@@ -124,10 +124,6 @@ class assessments_lib {
             $data->id = $DB->insert_record('activities_assessments', (object) $data);
         }
 
-        
-
-
-
         return array(
             'id' => $data->id,
         );
