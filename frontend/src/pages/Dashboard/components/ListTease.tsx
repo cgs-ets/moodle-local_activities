@@ -63,7 +63,7 @@ export function ListTease({celldate, event, setSelectedEvent}: Props) {
     <div className={cn("relative border-t bg-gray-50 flex justify-between", reviewed ? "bg-[#d4edda]" : "")}>
       <Anchor 
         onClick={() => setSelectedEvent(event)} 
-        className="te-link no-underline hover:no-underline flex gap-1 items-start py-3 justify-between w-full pr-3" 
+        className="te-link no-underline hover:no-underline flex gap-1 items-center py-3 justify-between w-full pr-3" 
         title={event.activityname}
       >
         <div>
@@ -85,7 +85,7 @@ export function ListTease({celldate, event, setSelectedEvent}: Props) {
             {event.location && <span className="text-gray-500"> - {event.location}</span>}
           </div>
         </div>
-        <div className="te-meta text-black capitalize">
+        <div className="te-meta text-sm text-black capitalize">
           {event.activitytype == 'calendar' ? 'Calendar entry' : event.activitytype}
         </div>
       </Anchor>
