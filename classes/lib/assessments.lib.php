@@ -120,6 +120,7 @@ class assessments_lib {
         } else {
             $data->creator = $USER->username;
             $data->timecreated = time();
+            $data->timemodified = time();
             $data->id = $DB->insert_record('activities_assessments', (object) $data);
         }
 
