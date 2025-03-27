@@ -54,7 +54,7 @@ class cron_sync_events extends \core\task\scheduled_task {
         // Loop through assessments and structure them like events.
         $assessments = [];
         foreach ($rawassessments as $assessment) {
-            $assessments[] = [
+            $assessments[] = (object) [
                 'id' => $assessment->id,
                 'activityname' => $assessment->name,
                 'timestart' => $assessment->timestart,
