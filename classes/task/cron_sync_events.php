@@ -48,7 +48,7 @@ class cron_sync_events extends \core\task\scheduled_task {
         $this->log_start("Looking for assessments that require sync (modified after last sync).");
         $sql = "SELECT *
                 FROM {activities_assessments}
-                WHERE timesync < timemodified"; 
+                WHERE timesynclive < timemodified"; 
         $rawassessments = $DB->get_records_sql($sql);
 
         // Loop through assessments and structure them like events.
