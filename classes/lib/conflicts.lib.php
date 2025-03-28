@@ -18,6 +18,11 @@ class conflicts_lib {
             $timeend = strtotime($timeend);
         }
 
+        // If timestart or timeend is NaN, return an empty array.
+        if ($timestart == 'NaN' || $timeend == 'NaN') {
+            return [];
+        }
+
         return static::check_conflicts_for_single($activityid, $timestart, $timeend);
     }
 

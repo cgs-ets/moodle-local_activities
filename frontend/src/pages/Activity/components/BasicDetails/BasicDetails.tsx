@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { TextInput, Text, SegmentedControl, Card, Anchor, Alert, Button } from '@mantine/core';
 import { RichTextEditor, Link } from '@mantine/tiptap';
 import { Link as RouterLink } from 'react-router-dom';
@@ -24,6 +24,7 @@ export function BasicDetails() {
   const setState = useFormStore(state => state.setState)
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
   const assessmentid = useFormStore((state) => state.assessmentid)
+  const manuallyEdited = useRef(false);
 
   const updateField = (name: string, value: any) => {
     setState({
@@ -51,6 +52,14 @@ export function BasicDetails() {
   }, [editor, description])
 
   const errors = useFormValidationStore((state) => state.formErrors)
+
+
+  // Update timeend when timestart changes
+  useEffect(() => {
+    if (!manuallyEdited.current) {
+      updateField('timeend', formData.timestart.toString());
+    }
+  }, [formData.timestart]);
 
 
   return (
@@ -169,7 +178,10 @@ export function BasicDetails() {
               <Text fz="sm" mb="5px" fw={500} c="#212529">End time</Text>
               <DateTimePicker 
                 value={dayjs.unix(Number(formData.timeend))}
-                onChange={(newValue) => updateField('timeend', (newValue?.unix() ?? 0).toString())}
+                onChange={(newValue) => {
+                  manuallyEdited.current = true;
+                  updateField('timeend', (newValue?.unix() ?? 0).toString());
+                }}
                 views={['day', 'month', 'year', 'hours', 'minutes']}
                 slotProps={{
                   textField: {

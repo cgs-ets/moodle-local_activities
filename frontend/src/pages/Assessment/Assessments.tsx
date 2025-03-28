@@ -4,6 +4,7 @@ import { getConfig } from "../../utils";
 import { Container } from "@mantine/core";
 import { useSearchParams } from "react-router-dom";
 import { List } from "./components/List";
+import { Calendar } from "./components/Calendar";
 
 export function Assessments() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -33,7 +34,10 @@ export function Assessments() {
       <div className="page-wrapper">
           { getConfig().roles.includes("staff") 
             ? <Container size="xl" className="w-full max-w-full p-0">
-                <List setCaltype={setCaltype} />
+                { caltype == 'calendar'
+                  ? <Calendar setCaltype={setCaltype} />
+                  : <List setCaltype={setCaltype} />
+                }
               </Container>
             :null
           }

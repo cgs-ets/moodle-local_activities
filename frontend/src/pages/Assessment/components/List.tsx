@@ -29,12 +29,6 @@ export function List({setCaltype}: Props) {
 
   const [searchParams, setSearchParams] = useSearchParams();
 
-
-
-  //const filters = useFilterStore((state) => state)
-  //const setFilters = useFilterStore((state) => (state.setState))
-  //const reset = useFilterStore((state) => (state.reset))
-
   const defaultFilters: Filters = {
     categories: [],
     staff: [],
@@ -169,26 +163,6 @@ export function List({setCaltype}: Props) {
         const matchesCategory =
         filters.categories.length === 0 ||
         filters.categories.some((cat) => ass.course.category == cat.split("|")[0]);
-
-        /*
-        const eventCategories = JSON.parse(event.categoriesjson || '[]') as string[];
-  
-        const matchesCategory =
-          filters.categories.length === 0 ||
-          filters.categories.some((cat) => eventCategories.includes(cat));
-  
-        const matchesType =
-          filters.types.length === 0 || 
-          filters.types.includes(event.activitytype);
-
-        const matchesCampus =
-          filters.campus.length === 0 || 
-          filters.campus.includes(event.campus);
-  
-        const matchesStatus =
-          filters.status.length === 0 || 
-          filters.status.includes(event.status.toString());
-        */
   
         const eventStaff = [ass.creator.un]
         const matchesStaff =
@@ -247,6 +221,14 @@ export function List({setCaltype}: Props) {
               </ActionIcon>
             </div>
 
+            <div className="mr-2 flex items-center gap-2">
+              <ActionIcon onClick={() => setCaltype('calendar')} variant="light" className="size-8"  >
+                <IconCalendarWeek stroke={1.5} />
+              </ActionIcon>
+              <ActionIcon onClick={() => setCaltype('list')} variant="light" className="size-8"  >
+                <IconListDetails stroke={1.5} />
+              </ActionIcon>
+            </div>
 
             <Select
               placeholder="Term"

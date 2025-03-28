@@ -47,7 +47,7 @@ export function Assessment() {
   const formErrorDefaults = {name: '', cmid: '', timeend: ''};
   const [formErrors, setFormErrors] = useState(formErrorDefaults)
   const defaults = {
-    id: id ?? "",
+    id: "",
     courseid: "",
     module: null,
     cmid: "",
@@ -64,7 +64,6 @@ export function Assessment() {
   const [modules, setModules] = useState<Module[]>([])
   const [coursesLoading, setCoursesLoading] = useState<boolean>(false)
   const [modulesLoading, setModulesLoading] = useState<boolean>(false)
-  //const [submitResponse, submitError, submitLoading, submitAjax, setSubmitData] = useAjax(); // destructure state and fetch function
   const [submitLoading, setSubmitLoading] = useState<boolean>(false)
   const manuallyEdited = useRef(false);
 
@@ -90,7 +89,6 @@ export function Assessment() {
       setFormData(defaults)
     };
   }, [id]);
-
 
   const getAssessment = async () => {
     const fetchResponse = await api.call({
@@ -151,7 +149,7 @@ export function Assessment() {
   const navigate = useNavigate()
 
 
-  const handleSubmit = async (redirect?: string) => {
+  const handleSubmit = async (redirect?: string, goBack: boolean = false) => {
     formData.name = formData.name ? formData.name : formData.module ? formData.module.label : ''
     formData.cmid = formData.module?.value ?? ''
     formData.url = formData.module?.url ?? ''
@@ -184,8 +182,11 @@ export function Assessment() {
         navigate(`${redirect}?assessment=${response.data.id}`, { replace: false });
       } else {
         // If there is no redirect, it's a save.
-        if (!id) {
+        if (!id && !goBack) {
           navigate('/assessment/' + response.data.id, {replace: false})
+        }
+        if (goBack) {
+          navigate('/assessments')
         }
       }
     } else {
@@ -341,7 +342,6 @@ export function Assessment() {
                                   manuallyEdited.current = true;
                                   updateField('timeend', (newValue?.unix() ?? 0).toString());
                                 }}
-
                                 views={['day', 'month', 'year', 'hours', 'minutes']}
                                 readOnly={viewStateProps.readOnly}
                                 slotProps={{
@@ -429,18 +429,34 @@ export function Assessment() {
 
                     </div>
                   </Card>
+
+                  <div className="flex gap-4 justify-between items-center">
+                    <Button 
+                      className="mt-4 px-3"
+                      type="submit" 
+                      size="compact-lg" 
+                      radius="xl" 
+                      leftSection={<IconCloudUp className='size-5' />} 
+                      loading={submitLoading}
+                      onClick={() => handleSubmit()}
+                    >
+                      Save
+                    </Button>
+                    <Button 
+                      variant="light"
+                      className="mt-4 px-3"
+                      type="submit" 
+                      size="compact-sm" 
+                      radius="xl" 
+                      loading={submitLoading}
+                      onClick={() => handleSubmit(undefined, true)}
+                    >
+                      Save & return to list
+                    </Button>
+                  </div>
+
+
                 </Box>
-                <Button 
-                  className="mt-4 px-3"
-                  type="submit" 
-                  size="compact-lg" 
-                  radius="xl" 
-                  leftSection={<IconCloudUp className='size-5' />} 
-                  loading={submitLoading}
-                  onClick={() => handleSubmit()}
-                >
-                  Save
-                </Button>
               </div>
           </Container>
         </> : null

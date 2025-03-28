@@ -20,7 +20,6 @@ export function CoursesModal({opened, close, courses, handleChange}: {opened: bo
     })
     if (!fetchResponse.error && fetchResponse?.data) {
       setCourses(fetchResponse.data)
-      console.log(fetchResponse.data)
     }
   }
 
