@@ -53,13 +53,11 @@ export type Form = {
   pushpublic: boolean;
 
   assessmentid: string;
-  //isassessment: string;
-  //courseid: string;
-  //assessmenturl: string;
 
   stepname: string;
 
   stupermissions?: any[];
+  isallday: boolean;
 };
 
 type FormStore = Form & {
@@ -115,11 +113,9 @@ const defaults: Form = {
   displaypublic: false,
   pushpublic: false,
   assessmentid: '',
-  //isassessment: '',
-  //courseid: '',
-  //assessmenturl: '',
   
   stepname: '',
+  isallday: false,
 };
 
 const useFormStore = create<FormStore>((set) => ({

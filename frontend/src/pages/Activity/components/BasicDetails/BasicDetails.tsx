@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { TextInput, Text, SegmentedControl, Card, Anchor, Alert, Button } from '@mantine/core';
+import { TextInput, Text, SegmentedControl, Card, Anchor, Alert, Button, Checkbox } from '@mantine/core';
 import { RichTextEditor, Link } from '@mantine/tiptap';
 import { Link as RouterLink } from 'react-router-dom';
 import { useEditor } from '@tiptap/react';
@@ -8,9 +8,6 @@ import { IconArrowNarrowRight, IconExternalLink } from "@tabler/icons-react";
 import { DateTimePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { Form, useFormStore, useFormValidationStore } from "../../../../stores/formStore";
-import { useDisclosure } from "@mantine/hooks";
-import { Conflicts } from "../Conflicts/Conflicts";
-import { isActivity } from "../../../../utils/utils";
 import { useStateStore } from "../../../../stores/stateStore";
 import { Link as NavLink } from "react-router-dom";
 import { ConflictsInline } from "../Conflicts/ConflictsInline";
@@ -56,11 +53,22 @@ export function BasicDetails() {
 
   // Update timeend when timestart changes
   useEffect(() => {
-    if (!manuallyEdited.current) {
+    if (!manuallyEdited.current && !formData.isallday) {
       updateField('timeend', formData.timestart.toString());
     }
   }, [formData.timestart]);
 
+
+  // Update timeend and timestart when isallday changes
+  useEffect(() => {
+    if (formData.isallday) {
+      // Update timestart to selected date with time 00:00:00
+      const timestartMs = formData.timestart * 1000
+      updateField('timestart', dayjs(timestartMs ).startOf('day').unix());
+      // Update timeend to selected date with time 23:59:59
+      updateField('timeend', dayjs(timestartMs ).endOf('day').unix());
+    }
+  }, [formData.isallday]);
 
   return (
     <Card withBorder className="overflow-visible rounded p-4 flex flex-col gap-6">
@@ -153,52 +161,59 @@ export function BasicDetails() {
         </div>
         
 
-        <div>
-
-          <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-            <div>
-              <Text fz="sm" mb="5px" fw={500} c="#212529">Start time</Text>
-              <DateTimePicker 
-                value={dayjs.unix(Number(formData.timestart))}
-                onChange={(newValue) => updateField('timestart', (newValue?.unix() ?? 0).toString())}
-                views={['day', 'month', 'year', 'hours', 'minutes']}
-                slotProps={{
-                  textField: {
-                    error: !!errors.timestart,
-                  },
-                }}
-                readOnly={viewStateProps.readOnly}
-              />
+        <div className="flex flex-col gap-2">
+          <Checkbox
+            label={<Text fz="sm" mb="5px" fw={500} c="#212529">All day</Text>}
+            checked={formData.isallday}
+            onChange={(e) => updateField('isallday', e.target.checked)}
+            readOnly={viewStateProps.readOnly}
+          />
+          {!formData.isallday &&
+            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+              <div>
+                <Text fz="sm" mb="5px" fw={500} c="#212529">Start time</Text>
+                <DateTimePicker 
+                  value={dayjs.unix(Number(formData.timestart))}
+                  onChange={(newValue) => updateField('timestart', (newValue?.unix() ?? 0).toString())}
+                  views={['day', 'month', 'year', 'hours', 'minutes']}
+                  slotProps={{
+                    textField: {
+                      error: !!errors.timestart,
+                    },
+                  }}
+                  readOnly={viewStateProps.readOnly}
+                />
+              </div>
+              <div className="hidden sm:block">
+                <span>&nbsp;</span>
+                <IconArrowNarrowRight className="size-4" />
+              </div>
+              <div>
+                <Text fz="sm" mb="5px" fw={500} c="#212529">End time</Text>
+                <DateTimePicker 
+                  value={dayjs.unix(Number(formData.timeend))}
+                  onChange={(newValue) => {
+                    manuallyEdited.current = true;
+                    updateField('timeend', (newValue?.unix() ?? 0).toString());
+                  }}
+                  views={['day', 'month', 'year', 'hours', 'minutes']}
+                  slotProps={{
+                    textField: {
+                      error: !!errors.timestart,
+                    },
+                  }}
+                  readOnly={viewStateProps.readOnly}
+                />
+              </div>
+              <div className="hidden sm:block">
+                <span>&nbsp;</span>
+              </div>
             </div>
-            <div className="hidden sm:block">
-              <span>&nbsp;</span>
-              <IconArrowNarrowRight className="size-4" />
-            </div>
-            <div>
-              <Text fz="sm" mb="5px" fw={500} c="#212529">End time</Text>
-              <DateTimePicker 
-                value={dayjs.unix(Number(formData.timeend))}
-                onChange={(newValue) => {
-                  manuallyEdited.current = true;
-                  updateField('timeend', (newValue?.unix() ?? 0).toString());
-                }}
-                views={['day', 'month', 'year', 'hours', 'minutes']}
-                slotProps={{
-                  textField: {
-                    error: !!errors.timestart,
-                  },
-                }}
-                readOnly={viewStateProps.readOnly}
-              />
-            </div>
-            <div className="hidden sm:block">
-              <span>&nbsp;</span>
-            </div>
-            <ConflictsInline />
-          </div>
+          }
           {errors.timestart ? <div className="text-red-600 text-sm mt-1">{errors.timestart}</div> : null}
 
-          
+          <ConflictsInline />
+
         </div>
 
         

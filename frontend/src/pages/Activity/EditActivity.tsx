@@ -120,6 +120,7 @@ export function EditActivity() {
       // Convert to bool.
       permissions: !!Number(fetchResponse.data.permissions),
       permissionsinitial: !!Number(fetchResponse.data.permissions),
+      isallday: !!Number(fetchResponse.data.isallday),
       // Move these into existing
       existingriskassessment: fetchResponse.data.riskassessment,
       existingattachments: fetchResponse.data.attachments,

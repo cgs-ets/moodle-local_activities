@@ -205,8 +205,10 @@ class cron_sync_events extends \core\task\scheduled_task {
                     $eventdata->location->displayName = $event->location;
                     $multiday = date('Y-m-d', $event->timestart) !== date('Y-m-d', $event->timeend);
                     $eventdata->showAs = $approved ? ($multiday ? 'free': 'busy') : 'tentative';
-                    if (strpos($eventdata->start->dateTime, 'T00:00:00') !== false &&
-                        strpos($eventdata->end->dateTime, 'T00:00:00') !== false) {
+                    if ($event->isallday ||
+                        (strpos($eventdata->start->dateTime, 'T00:00:00') !== false && strpos($eventdata->end->dateTime, 'T00:00:00') !== false)
+                        (strpos($eventdata->start->dateTime, 'T00:00:00') !== false && strpos($eventdata->end->dateTime, 'T23:59:59') !== false)
+                    ) {
                         $eventdata->isAllDay = true;
                     }
                     try {
@@ -266,11 +268,12 @@ class cron_sync_events extends \core\task\scheduled_task {
                     $eventdata->isOnlineMeeting = false;
                     $multiday = date('Y-m-d', $event->timestart) !== date('Y-m-d', $event->timeend);
                     $eventdata->showAs = $approved ? ($multiday ? 'free': 'busy') : 'tentative';
-                    if (strpos($eventdata->start->dateTime, 'T00:00:00') !== false &&
-                        strpos($eventdata->end->dateTime, 'T00:00:00') !== false) {
+                    if ($event->isallday ||
+                        (strpos($eventdata->start->dateTime, 'T00:00:00') !== false && strpos($eventdata->end->dateTime, 'T00:00:00') !== false)
+                        (strpos($eventdata->start->dateTime, 'T00:00:00') !== false && strpos($eventdata->end->dateTime, 'T23:59:59') !== false)
+                    ) {
                         $eventdata->isAllDay = true;
                     }
-
                     $record = new \stdClass();
                     $record->activityid = $event->id;
                     $record->calendar = $destCal;

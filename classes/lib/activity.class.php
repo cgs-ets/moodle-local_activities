@@ -574,7 +574,7 @@ class Activity {
             'isactivity' => $isactivity,
             'startreadabletime' => $startreadabletime,
             'endreadabletime' => $endreadabletime,
-            'isallday' => ( date('H:i', $this->data->timestart) == '00:00' && date('H:i', $this->data->timeend) == '23:59'),
+            //'isallday' => ( date('H:i', $this->data->timestart) == '00:00' && date('H:i', $this->data->timeend) == '23:59'),
             'assessmentid' => $assessmentid,
 	    ];
     }

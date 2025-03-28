@@ -209,10 +209,8 @@ class activities_lib {
             $activity->set('permissionsdueby', $data->permissionsdueby);
             $activity->set('otherparticipants', $data->otherparticipants);
             $activity->set('colourcategory', $data->colourcategory);
-            $activity->set('displaypublic', $data->displaypublic);
-            //$activity->set('isassessment', $data->isassessment);
-            //$activity->set('courseid', $data->courseid);
-            //$activity->set('assessmenturl', $data->assessmenturl);
+            $activity->set('displaypublic', $data->displaypublic ? 1 : 0);
+            $activity->set('isallday', $data->isallday ? 1 : 0);
             $activity->set('studentlistjson', $data->studentlistjson);
 
             // Set absences flag back to 0 so that absences are cleaned in case of student list change.
