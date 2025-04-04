@@ -206,7 +206,7 @@ class cron_sync_events extends \core\task\scheduled_task {
                     $multiday = date('Y-m-d', $event->timestart) !== date('Y-m-d', $event->timeend);
                     $eventdata->showAs = $approved ? ($multiday ? 'free': 'busy') : 'tentative';
                     if ($event->isallday ||
-                        (strpos($eventdata->start->dateTime, 'T00:00:00') !== false && strpos($eventdata->end->dateTime, 'T00:00:00') !== false)
+                        (strpos($eventdata->start->dateTime, 'T00:00:00') !== false && strpos($eventdata->end->dateTime, 'T00:00:00') !== false) ||
                         (strpos($eventdata->start->dateTime, 'T00:00:00') !== false && strpos($eventdata->end->dateTime, 'T23:59:59') !== false)
                     ) {
                         $eventdata->isAllDay = true;
@@ -269,7 +269,7 @@ class cron_sync_events extends \core\task\scheduled_task {
                     $multiday = date('Y-m-d', $event->timestart) !== date('Y-m-d', $event->timeend);
                     $eventdata->showAs = $approved ? ($multiday ? 'free': 'busy') : 'tentative';
                     if ($event->isallday ||
-                        (strpos($eventdata->start->dateTime, 'T00:00:00') !== false && strpos($eventdata->end->dateTime, 'T00:00:00') !== false)
+                        (strpos($eventdata->start->dateTime, 'T00:00:00') !== false && strpos($eventdata->end->dateTime, 'T00:00:00') !== false) ||
                         (strpos($eventdata->start->dateTime, 'T00:00:00') !== false && strpos($eventdata->end->dateTime, 'T23:59:59') !== false)
                     ) {
                         $eventdata->isAllDay = true;
