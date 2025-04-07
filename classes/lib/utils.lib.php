@@ -29,6 +29,24 @@ class utils_lib {
         $user->un = $mdluser->username;
         $user->fn = $mdluser->firstname;
         $user->ln = $mdluser->lastname;
+
+        return $user;
+    }
+
+    public static function student_stub($username) {
+        $mdluser = \core_user::get_user_by_username($username);
+        if (empty($mdluser)) {
+            return null;
+        }
+        $user = new \stdClass();
+        $user->un = $mdluser->username;
+        $user->fn = $mdluser->firstname;
+        $user->ln = $mdluser->lastname;
+        
+        // load custom fields
+        profile_load_custom_fields($mdluser);
+        $user->year = isset($mdluser->profile['Year']) ? $mdluser->profile['Year'] : '';
+
         return $user;
     }
 
@@ -94,11 +112,11 @@ class utils_lib {
 
         $first10Elements = array_slice($data, 0, 10);
 
-        $staff = [];
+        $students = [];
         foreach ($first10Elements as $row) {
-            $staff[] = static::user_stub($row->username);
+            $students[] = static::student_stub($row->username);
         }
-        return $staff;
+        return $students;
     }
 
     /**

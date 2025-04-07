@@ -44,4 +44,5 @@ export type Student =
   User & {
     permission: number,
     parents: Parent[],
+    year: string,
   }
