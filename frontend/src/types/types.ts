@@ -9,6 +9,7 @@ export type DecordatedUser = {
   label: string,
   username: string,
   image: string,
+  year?: string,
 }
 
 export type Course = {

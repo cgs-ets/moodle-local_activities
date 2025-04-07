@@ -20,11 +20,12 @@ export function StudentSelector({students, setStudents}: Props) {
     onDropdownOpen: () => combobox.updateSelectedOptionIndex('active'),
   });
 
-  const decorateUser = (item: User) => ({
+  const decorateUser = (item: Student) => ({
     value: { un: item.un, fn: item.fn, ln: item.ln }, // What we'll send to the server for saving.
     label: item.fn + " " + item.ln,
     username: item.un,
-    image: '/local/activities/avatar.php?username=' + item.un
+    image: '/local/activities/avatar.php?username=' + item.un,
+    year: item.year
   })
 
   const searchStudents = async (query: string) => {
@@ -70,7 +71,7 @@ export function StudentSelector({students, setStudents}: Props) {
     <Combobox.Option value={JSON.stringify(item.value)} key={item.username}>
       <Group gap="sm">
         <Avatar alt={item.label} size={24} mr={5} src={item.image} radius="xl"><IconUser /></Avatar>
-        <Text>{item.label} ({item.username})</Text>
+        <Text>{item.label} ({item.username}, Y{item.year})</Text>
       </Group>
     </Combobox.Option>
   ));

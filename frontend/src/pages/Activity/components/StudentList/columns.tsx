@@ -20,7 +20,7 @@ export const studentColumn = (showPermissions: boolean) => {
               <Avatar alt={row.fn + " " + row.ln} size={24} mr={5} src={'/local/activities/avatar.php?username=' + row.un} radius="xl"><IconUser /></Avatar>
             }
           >
-            <Text className="normal-case font-normal text-black text-sm">{row.ln}, {row.fn} {row.year ? '(' + row.year + ')' : ''}</Text>
+            <Text className="normal-case font-normal text-black text-sm">{row.ln}, {row.fn} {row.year ? '(Y' + row.year + ')' : ''}</Text>
           </Badge>
         </Flex>
       ) 
