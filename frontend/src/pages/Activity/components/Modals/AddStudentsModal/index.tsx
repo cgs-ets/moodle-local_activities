@@ -44,6 +44,8 @@ export function AddStudentsModal({opened, close, insert}: Props) {
     }
     insert(studentObjects)
     setStudents([])
+    setSelectedCourses([])
+    setSelectedGroups([])
     close()
   }
 

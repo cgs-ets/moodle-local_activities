@@ -208,7 +208,7 @@ class utils_lib {
         $students = array();
 
         foreach($records as $rec) {
-            $student = static::user_stub($rec->username);
+            $student = static::student_stub($rec->username);
             if (!$student) {
                 continue;
             }
@@ -277,10 +277,10 @@ class utils_lib {
 
         $students = array();
         foreach($records as $r) {
-            $student = new \stdClass();
-            $student->un = $r->username;
-            $student->fn = $r->firstname;
-            $student->ln = $r->lastname;
+            $student = static::student_stub($r->username);
+            if (!$student) {
+                continue;
+            }
             $students[] = $student;
         }
 
