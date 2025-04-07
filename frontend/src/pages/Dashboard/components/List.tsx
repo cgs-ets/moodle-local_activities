@@ -337,9 +337,9 @@ export function List({setCaltype}: Props) {
           { filteredList.days.upcoming.map((day: any, i: number) => (
             !!day.events.length &&
             <div key={day.date_key} className="ev-calendar-item ev-calendar-item-current">
-              <div className="flex justify-between px-4 py-2 border-t">
+              <div className={`flex justify-between px-4 py-2 border-t ${day.date_key == dayjs().format("YYYY-MM-DD") ? 'bg-blue-50 border-y border-blue-500' : ''}`}>
                 { day.date_key == dayjs().format("YYYY-MM-DD")
-                  ? <Text className="font-semibold text-lg">Today</Text>
+                  ? <Text className="font-semibold text-xl">Today</Text>
                   : <Text className="font-semibold text-lg">{dayjs.unix(Number(day.date)).format("ddd, D MMM YYYY")}</Text>
                 }
                 { isCalReviewer() && 
