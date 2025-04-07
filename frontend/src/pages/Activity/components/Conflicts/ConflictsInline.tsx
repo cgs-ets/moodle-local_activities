@@ -45,7 +45,7 @@ export function ConflictsInline() {
     ? <div> 
         <Text fz="sm" mb="5px" fw={500} c="#212529">Conflicts</Text>
         <div className="flex">
-          <Alert className={cn("p-0 m-0 inline-block shadow-none", status == statuses.approved ? "bg-white" : "bg-[#f8d1b6]")} variant="light">
+          <Alert className={cn("p-0 m-0 inline-block shadow-none", status == statuses.approved ? "bg-gray-100" : "bg-[#f8d1b6]")} variant="light">
             <Button c="black" onClick={() => conflictsOpened ? hideConflicts() : showConflicts()} variant="transparent" className="px-3 font-normal" rightSection={conflictsOpened ? <IconChevronDown className="size-5"/> : <IconChevronRight className="size-5"/>}>
               {conflicts.length} {conflicts.length > 1 ? "overlap" : "time overlaps" } found
             </Button>
