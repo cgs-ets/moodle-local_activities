@@ -67,7 +67,7 @@ class cron_sync_events extends \core\task\scheduled_task {
                 'categoriesjson' => 'Senior School',
                 'areasjson' => '["Assessment"]',
                 'colourcategory' => 'Assessment',
-                'notes' => $assessment->url,
+                'description' => $assessment->url,
             ];
         }
 
@@ -191,7 +191,7 @@ class cron_sync_events extends \core\task\scheduled_task {
                     $eventdata->subject = $event->activityname;
                     $eventdata->body = new \stdClass();
                     $eventdata->body->contentType = "HTML";
-                    $eventdata->body->content = nl2br($event->notes);
+                    $eventdata->body->content = nl2br($event->description);
                     if (!empty($categories)) {
                         $eventdata->categories = $categories;
                     }
@@ -253,7 +253,7 @@ class cron_sync_events extends \core\task\scheduled_task {
                     $eventdata->subject = $event->activityname;
                     $eventdata->body = new \stdClass();
                     $eventdata->body->contentType = "HTML";
-                    $eventdata->body->content = nl2br($event->notes);
+                    $eventdata->body->content = nl2br($event->description);
                     if (!empty($categories)) {
                         $eventdata->categories = $categories;
                     }
