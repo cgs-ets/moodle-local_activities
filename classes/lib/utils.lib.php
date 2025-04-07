@@ -41,18 +41,21 @@ class utils_lib {
     public static function search_staff($query) {
         global $DB;
 
-        $sql = "SELECT DISTINCT u.username
-        FROM {user} u, {user_info_field} f, {user_info_data} d
-        WHERE u.id = d.userid 
-		AND d.fieldid = f.id
-		AND f.shortname = 'CampusRoles'
-		AND d.data LIKE '%:Staff%'
-		AND u.suspended = 0
-        AND ( LOWER(u.firstname) LIKE ?
-            OR LOWER(u.lastname) LIKE ?
-            OR LOWER(u.username) LIKE ? )";
+        $sql = "SELECT DISTINCT u.*, d.*
+                FROM mdl_user u
+                JOIN mdl_user_info_data d ON u.id = d.userid
+                JOIN mdl_user_info_field f ON d.fieldid = f.id
+                WHERE f.shortname = 'CampusRoles'
+                AND d.data LIKE '%:Staff%'
+                AND u.suspended = 0
+                AND (
+                    LOWER(REPLACE(u.firstname, '''', '')) LIKE ?
+                    OR LOWER(REPLACE(u.lastname, '''', '')) LIKE ?
+                    OR LOWER(REPLACE(u.username, '''', '')) LIKE ?
+                )";
 
-        $likesearch = "%" . strtolower($query) . "%";
+        // remove apostrophes
+        $likesearch = "%" . strtolower(str_replace("'", "", $query)) . "%";
         $data = $DB->get_records_sql($sql, [$likesearch, $likesearch, $likesearch]);
         
         $first10Elements = array_slice($data, 0, 10);
@@ -79,12 +82,14 @@ class utils_lib {
 		AND d.fieldid = f.id
 		AND f.shortname = 'CampusRoles'
 		AND d.data LIKE '%:Student%'
-        AND u.suspended = 0
-        AND ( LOWER(u.firstname) LIKE ?
-        OR LOWER(u.lastname) LIKE ?
-        OR LOWER(u.username) LIKE ? )";
+        AND u.suspended = 0        
+        AND (
+            LOWER(REPLACE(u.firstname, '''', '')) LIKE ?
+            OR LOWER(REPLACE(u.lastname, '''', '')) LIKE ?
+            OR LOWER(REPLACE(u.username, '''', '')) LIKE ?
+        )";
 
-        $likesearch = "%" . strtolower($query) . "%";
+        $likesearch = "%" . strtolower(str_replace("'", "", $query)) . "%";
         $data = $DB->get_records_sql($sql, [$likesearch, $likesearch, $likesearch]);
 
         $first10Elements = array_slice($data, 0, 10);
