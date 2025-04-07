@@ -2,7 +2,7 @@
 import { Box, Button, Flex, Modal, ScrollArea, Tabs } from '@mantine/core';
 import { useState } from 'react';
 import { IconSchool, IconUser, IconUsers, IconUsersPlus } from '@tabler/icons-react';
-import { User } from '../../../../../types/types';
+import { Student, User } from '../../../../../types/types';
 import { StudentSelector } from '../../../../../components/StudentSelector';
 import { CourseBrowser } from '../../../../../components/CourseBrowser';
 import { fetchData } from '../../../../../utils';
@@ -11,16 +11,16 @@ import { GroupsBrowser } from '../../../../../components/GroupsBrowser';
 type Props = {
   opened: boolean,
   close: () => void,
-  insert: (students: User[]) => void,
+  insert: (students: Student[]) => void,
 }
 
 export function AddStudentsModal({opened, close, insert}: Props) {
-  const [students, setStudents] = useState<User[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
   const [selectedCourses, setSelectedCourses] = useState<number[]>([]);
   const [selectedGroups, setSelectedGroups] = useState<number[]>([]);
 
   const insertAndClose = async () => {
-    let studentObjects = [] as User[];
+    let studentObjects = [] as Student[];
     if (selectedCourses.length) {
       const response = await fetchData({
         query: {

@@ -1,13 +1,13 @@
 import { Fragment, useState } from "react";
 import { Group, Avatar, Text, Loader, Badge, Flex, CloseButton, useCombobox, Combobox, PillsInput, Pill } from '@mantine/core';
 import { IconUser, IconUsers } from '@tabler/icons-react';
-import { DecordatedUser, User } from "../../types/types";
+import { DecordatedUser, Student, User } from "../../types/types";
 import { fetchData } from "../../utils";
 import { useDebouncedCallback } from "@mantine/hooks";
 
 type Props = {
-  students: User[],
-  setStudents: (students: User[]) => void,
+  students: Student[],
+  setStudents: (students: Student[]) => void,
 }
 
 export function StudentSelector({students, setStudents}: Props) {
@@ -52,7 +52,7 @@ export function StudentSelector({students, setStudents}: Props) {
   }, 500);
 
 
-  const handleValueSelect = (val: User) => {
+  const handleValueSelect = (val: Student) => {
     setSearch('')
     setSearchResults([])
     if (!students.map(s => JSON.stringify(s)).includes(JSON.stringify(val))) {
@@ -60,7 +60,7 @@ export function StudentSelector({students, setStudents}: Props) {
     }
   }
 
-  const handleValueRemove = (val: User) => {
+  const handleValueRemove = (val: Student) => {
     setStudents(students.filter((v: any) => JSON.stringify(v) !== JSON.stringify(val)))
   }
   
