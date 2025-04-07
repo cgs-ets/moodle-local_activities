@@ -328,7 +328,7 @@ export function List({setCaltype}: Props) {
         </Card>
 
         <Card className="ev-calendar list-calendar border-b rounded-none" p={0}>
-          { !!filteredList.days.upcoming.length && date.term == currterm.toString() && date.year == dayjs().format("YYYY") &&
+          { !!filteredList.days.current.length && !!filteredList.days.upcoming.length && date.term == currterm.toString() && date.year == dayjs().format("YYYY") &&
             <div className="px-4 py-3 border-t">
               <span className="font-semibold text-gray-500 text-sm uppercase tracking-wider">{!showPast ? "Upcoming" : "All"}</span>
             </div>
