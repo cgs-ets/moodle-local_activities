@@ -392,9 +392,15 @@ class calendar_lib {
             $in_scope = strtotime($event_eventful_date) >= strtotime($scope_datetime_start->format('Y-m-d'));
             
             $past = $event->timeend < time() ? true : false;
-            //if ($past) { 
-            //    continue; 
-            //}
+
+            // IF looking at the CURRENT TERM, we don't want to show past events.
+            if ($past && 
+                $term == $term_now && 
+                $year == $year_now && 
+                (!isset($args['show_past']) || (isset($args['show_past']) && $args['show_past'] == false))
+            ) { 
+                continue; 
+            }
 
             $currently_on = (!$past) && ($event->timestart < time()) ? true : false;
             if( $currently_on ) {

@@ -18,11 +18,13 @@ trait calendar_api {
         $month = optional_param('month', '', PARAM_ALPHANUMEXT);
         $year = optional_param('year', '', PARAM_ALPHANUMEXT);
         $term = optional_param('term', '', PARAM_ALPHANUMEXT);
+        $show_past = optional_param('show_past', false, PARAM_BOOL);
         return calendar_lib::get([
             'type' => $type,
             'month' => $month,
             'year' => $year,
             'term' => $term,
+            'show_past' => $show_past,
         ]);
     }
 

@@ -1,5 +1,5 @@
 import { ActionIcon, Button, Card, Loader, LoadingOverlay, Select, Text } from "@mantine/core";
-import { IconAdjustments, IconArrowNarrowLeft, IconArrowNarrowRight, IconCalendarDue, IconCalendarWeek, IconListDetails, IconX } from "@tabler/icons-react";
+import { IconAdjustments, IconArrowNarrowLeft, IconArrowNarrowRight, IconCalendarDue, IconCalendarWeek, IconEye, IconListDetails, IconX } from "@tabler/icons-react";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
 import useFetch from "../../../hooks/useFetch";
@@ -31,8 +31,8 @@ export function List({setCaltype}: Props) {
   const setFilters = useFilterStore((state) => (state.setState))
   const reset = useFilterStore((state) => (state.reset))
   const [loading, {open: startLoading, close: stopLoading}] = useDisclosure(true)
-
   const [filterOpened, {close: closeFilter, open: openFilter}] = useDisclosure(false)
+  const [showPast, setShowPast] = useState(false)
 
   const currterm = dayjs().format("MM-DD") > '09-28' ? 4 
     : dayjs().format("MM-DD") > '06-29' ? 3
@@ -78,7 +78,7 @@ export function List({setCaltype}: Props) {
     }
   }, [date]);
 
-  const getList = async (date: TermYear) => {
+  const getList = async (date: TermYear, showPast: boolean = false) => {
     startLoading()
     const res = await getCalendarAPI.call({
       query: {
@@ -86,6 +86,7 @@ export function List({setCaltype}: Props) {
         type: 'list',
         term: date.term,
         year: date.year,
+        show_past: showPast,
       }
     })
     setList(res.data)
@@ -203,6 +204,11 @@ export function List({setCaltype}: Props) {
     return filters.categories.length || filters.types.length || filters.status.length || filters.staff.length
   }
 
+  const toggleShowPast = () => {
+    setShowPast(!showPast)
+    getList(date, !showPast)
+  }
+
   return (
     <div>
 
@@ -282,10 +288,14 @@ export function List({setCaltype}: Props) {
           <div className="text-base italic p-6">No events in selected period. {hasFilters() ? "Try removing filters." : ""}</div>
         }
 
+        { !loading && date.term == currterm.toString() && date.year == dayjs().format("YYYY") && !showPast &&
+          <Button size="compact-sm" variant="transparent" className="absolute top-2 right-2 z-50" onClick={() => toggleShowPast()}>Show past events</Button>
+        }
+
         <Card className="ev-calendar list-calendar rounded-none" p={0}>
 
-          { !!filteredList.days.current.length &&
-            <div className="hidden px-4 py-3">
+          { !!filteredList.days.current.length && date.term == currterm.toString() && date.year == dayjs().format("YYYY") &&
+            <div className="px-4 py-3 border-t">
               <span className="font-semibold text-gray-500 text-sm uppercase tracking-wider">Currently on</span>
             </div>
           }
@@ -318,8 +328,8 @@ export function List({setCaltype}: Props) {
         </Card>
 
         <Card className="ev-calendar list-calendar border-b rounded-none" p={0}>
-          { !!filteredList.days.upcoming.length &&
-            <div className="hidden px-4 py-3">
+          { !!filteredList.days.upcoming.length && date.term == currterm.toString() && date.year == dayjs().format("YYYY") &&
+            <div className="px-4 py-3 border-t">
               <span className="font-semibold text-gray-500 text-sm uppercase tracking-wider">Upcoming</span>
             </div>
           }
