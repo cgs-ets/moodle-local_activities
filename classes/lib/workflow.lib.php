@@ -105,13 +105,13 @@ class workflow_lib extends \local_activities\local_activities_config {
                     //$approvals[] = static::get_approval_clone('senior_hod', 1, $activityid);
 
                     // Senior School - 2nd approver.
-                    $approvals[] = static::get_approval_clone('senior_ra', 2, $activityid);
+                    $approvals[] = static::get_approval_clone('senior_ra', 1, $activityid);
 
                     // Senior School - 3st approver.
-                    $approvals[] = static::get_approval_clone('senior_admin', 3, $activityid);
+                    $approvals[] = static::get_approval_clone('senior_admin', 2, $activityid);
 
                     // Senior School - 4th approver.
-                    $approvals[] = static::get_approval_clone('senior_hoss', 4, $activityid);
+                    $approvals[] = static::get_approval_clone('senior_hoss', 3, $activityid);
                     break;
                 }
                 case 'primary': {
