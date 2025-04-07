@@ -81,6 +81,21 @@ class cron_create_absences extends \core\task\scheduled_task {
                         continue;
                     }
 
+                    // Sanity check if created from old system.
+                    if ($activity->get('oldexcursionid')) {
+                        $params = array(
+                            'username' => $student,
+                            'leavingdate' => $activitystart,
+                            'returningdate' => $activityend,
+                            'comment' => '#ID-' . $activity->get('oldexcursionid'),
+                        );
+                        $absenceevents = $externalDB->get_field_sql($sql, $params);
+                        if ($absenceevents) {
+                            $this->log("Student is already absent during this time. Student: {$student}. Leaving date: {$activitystart}. Returning date: {$activityend}.", 2);
+                            continue;
+                        }
+                    }
+
                     // Insert new absence.
                     $this->log("Creating absence. Student: {$student}. Leaving date: {$activitystart}. Returning date: {$activityend}.", 2);
                     $sql = $config->createabsencesql . ' :username, :leavingdate, :returningdate, :staffincharge, :comment';
