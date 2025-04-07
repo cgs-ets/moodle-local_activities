@@ -152,6 +152,10 @@ export function Calendar({setCaltype}: Props) {
   
         for (const [eventId, ass] of Object.entries(day.events as any[])) {
 
+          const matchesName =
+            filters.name.length === 0 || 
+            ass.name.toLowerCase().includes(filters.name.toLowerCase());
+
           const matchesCourse =
             filters.courses.length === 0 ||
             filters.courses.some((course) => ass.courseid == course.split("|")[0]);
@@ -165,7 +169,7 @@ export function Calendar({setCaltype}: Props) {
             filterStaff.length === 0 || 
             filterStaff.some((staff) => eventStaff.includes(staff));
   
-          if (matchesStaff && matchesCourse && matchesCategory) {
+          if (matchesStaff && matchesCourse && matchesCategory && matchesName) {
             filteredEvents[eventId] = ass;
           }
         }
@@ -179,7 +183,7 @@ export function Calendar({setCaltype}: Props) {
 
 
   const hasFilters = () => {
-    return filters.categories.length || filters.courses.length || filters.staff.length
+    return filters.categories.length || filters.courses.length || filters.staff.length || filters.name.length
   }
   
   let navigate = useNavigate();

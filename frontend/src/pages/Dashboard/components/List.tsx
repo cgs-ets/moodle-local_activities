@@ -145,6 +145,10 @@ export function List({setCaltype}: Props) {
     return days.map((day: any) => {
       const filteredEvents = day.events.filter((event: any) => {
         const eventCategories = JSON.parse(event.categoriesjson || '[]') as string[];
+
+        const matchesName =
+            filters.name.length === 0 || 
+            event.activityname.toLowerCase().includes(filters.name.toLowerCase());
   
         const matchesCategory =
           filters.categories.length === 0 ||
@@ -168,7 +172,7 @@ export function List({setCaltype}: Props) {
           filterStaff.length === 0 || 
           filterStaff.some((staff) => uniqueEventStaff.includes(staff));
 
-        return matchesCategory && matchesType && matchesCampus && matchesStatus && matchesStaff;
+        return matchesName && matchesCategory && matchesType && matchesCampus && matchesStatus && matchesStaff;
 
       });
       return { ...day, events: filteredEvents, events_count: filteredEvents.length };
@@ -201,7 +205,7 @@ export function List({setCaltype}: Props) {
 
 
   const hasFilters = () => {
-    return filters.categories.length || filters.types.length || filters.status.length || filters.staff.length
+    return filters.categories.length || filters.types.length || filters.status.length || filters.staff.length || filters.name.length
   }
 
   const toggleShowPast = () => {

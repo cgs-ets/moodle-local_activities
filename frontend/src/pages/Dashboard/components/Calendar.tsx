@@ -153,6 +153,11 @@ export function Calendar({setCaltype}: Props) {
   
         for (const [eventId, event] of Object.entries(day.events as Form[])) {
 
+          const matchesName =
+            filters.name.length === 0 || 
+            event.activityname.toLowerCase().includes(filters.name.toLowerCase());
+          
+
           const eventCategories = JSON.parse(event.categoriesjson || '[]');
           const matchesCategory =
             filters.categories.length === 0 || 
@@ -177,7 +182,7 @@ export function Calendar({setCaltype}: Props) {
             filterStaff.length === 0 || 
             filterStaff.some((staff) => uniqueEventStaff.includes(staff));
 
-          if (matchesCategory && matchesType && matchesCampus && matchesStatus && matchesStaff) {
+          if (matchesName && matchesCategory && matchesType && matchesCampus && matchesStatus && matchesStaff) {
             filteredEvents[eventId] = event;
           }
         }
@@ -191,7 +196,7 @@ export function Calendar({setCaltype}: Props) {
 
 
   const hasFilters = () => {
-    return filters.categories.length || filters.types.length || filters.campus.length || filters.status.length || filters.staff.length
+    return filters.categories.length || filters.types.length || filters.campus.length || filters.status.length || filters.staff.length || filters.name.length
   }
 
 

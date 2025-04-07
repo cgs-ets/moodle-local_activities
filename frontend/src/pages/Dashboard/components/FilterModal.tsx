@@ -1,4 +1,4 @@
-import { Button, Card, Checkbox, Modal, Text } from '@mantine/core';
+import { Button, Card, Checkbox, Modal, Text, TextInput } from '@mantine/core';
 import { CategoriesModal } from '../../Activity/components/Modals/CategoriesModal/CategoriesModal';
 import { useDisclosure } from '@mantine/hooks';
 import {  IconCategoryFilled, IconFilterX, IconX } from '@tabler/icons-react';
@@ -15,7 +15,7 @@ type Props = {
 export function FilterModal({opened, filters, setFilters, close}: Props) {
   const [catsModalOpened, {open: openCatsModal, close: closeCatsModal}] = useDisclosure(false);
 
-  const handleFilterChange  = (key: string, values: string[]) => {
+  const handleFilterChange  = (key: string, values: string[] | string) => {
     setFilters({...filters, [key]: values})
   } 
 
@@ -47,9 +47,19 @@ export function FilterModal({opened, filters, setFilters, close}: Props) {
               <Card radius={0} className="p-0 pb-4">
 
 
+                <Card.Section pos="relative" className='m-0 border-b flex items-start gap-1 px-4 pb-4'>
+                  <div className='w-36 font-bold mt-1'>Activity name</div>
+
+                  <div className='flex-1'>
+                    <TextInput value={filters.name} onChange={(e) => handleFilterChange('name', e.target.value)} placeholder="Search by activity title" />
+                    { !!filters.name?.length && <Button onClick={() => handleFilterChange('name', '')} size="compact-md" className="rounded-full mt-3" variant="light" leftSection={<IconX className="size-5" />}>Clear</Button>}
+                  </div>
+
+                </Card.Section>
 
 
-                <Card.Section pos="relative" className='m-0 border-b  flex items-start gap-1 px-4 pb-4'>
+
+                <Card.Section pos="relative" className='m-0 border-b  flex items-start gap-1 px-4 py-4'>
                   <div className='w-36 font-bold'>Status</div>
                   <div>
                     <Checkbox.Group value={filters.status} onChange={(values) => handleFilterChange('status', values)}>

@@ -1,4 +1,4 @@
-import { Button, Card, Checkbox, Modal, Text } from '@mantine/core';
+import { Button, Card, Checkbox, Modal, Text, TextInput } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import {  IconCategoryFilled, IconFilterX, IconX } from '@tabler/icons-react';
 import { StaffSelector } from '../../Activity/components/StaffDetails/components/StaffSelector/StaffSelector';
@@ -17,7 +17,7 @@ export function FilterModal({opened, filters, setFilters, close}: Props) {
   const [catsModalOpened, {open: openCatsModal, close: closeCatsModal}] = useDisclosure(false);
   const [coursesModalOpened, {open: openCoursesModal, close: closeCoursesModal}] = useDisclosure(false);
 
-  const handleFilterChange  = (key: string, values: string[]) => {
+  const handleFilterChange  = (key: string, values: string[] | string) => {
     setFilters({...filters, [key]: values})
   } 
 
@@ -48,6 +48,15 @@ export function FilterModal({opened, filters, setFilters, close}: Props) {
             <Modal.Body p={0}>
               <Card radius={0} className="p-0 pb-4">
 
+              <Card.Section pos="relative" className='m-0 border-b flex items-start gap-1 px-4 pb-4'>
+                  <div className='w-36 font-bold mt-1'>Name</div>
+
+                  <div className='flex-1'>
+                    <TextInput value={filters.name} onChange={(e: any) => handleFilterChange('name', e.target.value)} placeholder="Search by assessment title" />
+                    { !!filters.name?.length && <Button onClick={() => handleFilterChange('name', '')} size="compact-md" className="rounded-full mt-3" variant="light" leftSection={<IconX className="size-5" />}>Clear</Button>}
+                  </div>
+
+                </Card.Section>
 
 
                 <Card.Section pos="relative" className='m-0 border-b flex items-start gap-1 px-4 py-4'>

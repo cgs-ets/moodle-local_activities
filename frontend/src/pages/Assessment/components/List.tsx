@@ -19,6 +19,7 @@ type Filters = {
   categories: string[],
   staff: string[],
   courses: string[],
+  name: string,
 }
 
 type Props = {
@@ -33,6 +34,7 @@ export function List({setCaltype}: Props) {
     categories: [],
     staff: [],
     courses: [],
+    name: '',
   };
   const [filters, setFilters] = useState<Filters>(defaultFilters)
   const resetFilters = () => {
@@ -156,6 +158,10 @@ export function List({setCaltype}: Props) {
 
       const filteredEvents = day.events.filter((ass: any) => {
 
+        const matchesName =
+        filters.name.length === 0 || 
+        ass.name.toLowerCase().includes(filters.name.toLowerCase());
+
         const matchesCourse =
         filters.courses.length === 0 ||
         filters.courses.some((course) => ass.courseid == course.split("|")[0]);
@@ -169,7 +175,7 @@ export function List({setCaltype}: Props) {
           filterStaff.length === 0 || 
           filterStaff.some((staff) => eventStaff.includes(staff));
 
-        return matchesStaff && matchesCourse && matchesCategory;
+        return matchesStaff && matchesCourse && matchesCategory && matchesName;
 
       });
       return { ...day, events: filteredEvents, events_count: filteredEvents.length };
@@ -200,7 +206,7 @@ export function List({setCaltype}: Props) {
 
 
   const hasFilters = () => {
-    return filters.categories.length || filters.courses.length || filters.staff.length
+    return filters.categories.length || filters.courses.length || filters.staff.length || filters.name.length
   }
 
   let navigate = useNavigate();
