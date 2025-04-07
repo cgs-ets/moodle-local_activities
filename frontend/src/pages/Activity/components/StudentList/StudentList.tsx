@@ -51,7 +51,6 @@ export function StudentList() {
     if (fetchResponse && !fetchError) {
       setState({['studentlist']: fetchResponse.data} as Form)
       setStudentsLoaded()
-      console.log("stulist", fetchResponse.data)
     }
   }, [fetchResponse]);
 

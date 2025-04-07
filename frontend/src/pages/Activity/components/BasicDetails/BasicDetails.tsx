@@ -53,7 +53,8 @@ export function BasicDetails() {
 
   // Update timeend when timestart changes
   useEffect(() => {
-    if (!manuallyEdited.current && !formData.isallday) {
+    if (!manuallyEdited.current && !formData.isallday && formData.timestart > formData.timeend) {
+      console.log('forcing timeend to timestart', formData.timestart, formData.timeend)
       updateField('timeend', formData.timestart.toString());
     }
   }, [formData.timestart]);

@@ -35,7 +35,6 @@ export function EmailHistory() {
   useEffect(() => {
     if (fetchResponse && !fetchError) {
       setEmails(fetchResponse.data)
-      console.log("emails", fetchResponse.data)
     }
   }, [fetchResponse]);
 

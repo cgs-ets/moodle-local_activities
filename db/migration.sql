@@ -242,11 +242,11 @@ JOIN mdl_excursions e ON ec.activityid = e.id
 JOIN mdl_activities new_activities ON e.id = new_activities.oldexcursionid;
 
 -- Migration for `mdl_excursions_events_sync` to `mdl_activities_cal_sync`
-INSERT INTO mdl_activities_cal_sync (activityid, calendar, externalid, changekey, weblink, status, timesynced)
+/*INSERT INTO mdl_activities_cal_sync (activityid, calendar, externalid, changekey, weblink, status, timesynced)
 SELECT new_activities.id, ees.calendar, ees.externalid, ees.changekey, ees.weblink, ees.status, ees.timesynced
 FROM mdl_excursions_events_sync ees
 JOIN mdl_excursions e ON ees.eventid = e.id
-JOIN mdl_activities new_activities ON e.id = new_activities.oldexcursionid;
+JOIN mdl_activities new_activities ON e.id = new_activities.oldexcursionid;*/
 
 
 -- Migration for `mdl_excursions_permissions` to `mdl_activities_permissions`
