@@ -56,11 +56,11 @@ export function EditActivity() {
   useEffect(() => {
     document.title = 'Manage Activity'
 
-    if (id && getConfig().roles.includes("staff")) {
+    if (id && getConfig().roles?.includes("staff")) {
       getActivity()
     }
 
-    if (!id && getConfig().roles.includes("staff")) {
+    if (!id && getConfig().roles?.includes("staff")) {
       // New. Allow editing.
       updateViewStateProps({
         readOnly: false,
@@ -229,7 +229,7 @@ export function EditActivity() {
 
   }
 
-  if (!getConfig().roles.includes("staff")) {
+  if (!getConfig().roles?.includes("staff")) {
     return ""
   }
 

@@ -101,7 +101,7 @@ export function MyActivities() {
           })} 
         </div>
       </div>
-      <EventModal hideOpenButton={!getConfig().roles.includes("staff")} activity={selectedEvent} close={() => setSelectedEvent(null)} />
+      <EventModal hideOpenButton={!getConfig().roles?.includes("staff")} activity={selectedEvent} close={() => setSelectedEvent(null)} />
 
     </>
   );

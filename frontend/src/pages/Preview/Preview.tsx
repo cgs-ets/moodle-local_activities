@@ -39,7 +39,7 @@ export function Preview() {
 
   return (
     <>
-      <EventModal hideOpenButton={!getConfig().roles.includes("staff")} activity={activity} close={goHome} />
+      <EventModal hideOpenButton={!getConfig().roles?.includes("staff")} activity={activity} close={goHome} />
     </>
   );
 };

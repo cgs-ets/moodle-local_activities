@@ -43,7 +43,7 @@ export function Header() {
               : <Anchor href="/local/activities" className="text-white hover:no-underline mr-4 text-md font-semibold">Activities</Anchor>
             }
 
-            { getConfig().roles.includes('staff') 
+            { getConfig().roles?.includes('staff') 
               ? location.pathname.includes("/assessment") 
                 ? <Button component={Link} to={"/assessment"} size="compact-md" radius="lg" color="blue" leftSection={<IconPlus size={20} />}>Assessment</Button> 
                 : <Button component={Link} to={"/new"} size="compact-md" radius="lg" color="blue" leftSection={<IconPlus size={20} />}>Create new</Button> 

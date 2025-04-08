@@ -70,11 +70,11 @@ export function Assessment() {
   useEffect(() => {
     document.title = 'Manage Assessment'
 
-    if (id && getConfig().roles.includes("staff")) {
+    if (id && getConfig().roles?.includes("staff")) {
       getAssessment()
     }
 
-    if (!id && getConfig().roles.includes("staff")) {
+    if (!id && getConfig().roles?.includes("staff")) {
       // New. Allow editing.
       updateViewStateProps({
         readOnly: false,
@@ -234,7 +234,7 @@ export function Assessment() {
     return modules.find(obj => obj.value === moduleid)
   }
 
-  if (!getConfig().roles.includes("staff")) {
+  if (!getConfig().roles?.includes("staff")) {
     return ""
   }
 

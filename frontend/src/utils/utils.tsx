@@ -41,7 +41,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const isCalReviewer = () => {
-  return !!getConfig().calroles.includes("cal_reviewer")
+  return !!getConfig().calroles?.includes("cal_reviewer")
 }
 
 export const getTermFromMonth = (month: string, year: string) => {
