@@ -222,6 +222,10 @@ class graph_lib {
         ------
     */
     public static function deleteEvent($userPrincipalName, $id) {
+        if (empty($id)) {
+            throw new \Exception("Event ID cannot be empty for update operation");
+        }
+        
         $token = static::getAppOnlyToken();
         $appClient = (new Graph())->setAccessToken($token);
         
