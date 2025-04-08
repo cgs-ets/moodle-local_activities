@@ -218,7 +218,7 @@ class Activity {
 
         $students = array();
         foreach($records as $rec) {
-            $student = utils_lib::user_stub($rec->username);
+            $student = utils_lib::student_stub($rec->username);
             if (!$student) {
                 continue;
             }
