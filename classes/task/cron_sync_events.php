@@ -76,11 +76,9 @@ class cron_sync_events extends \core\task\scheduled_task {
         
         foreach ($all as $event) {
 
-            
-            if ($event->id != 9344) {
-                continue;
-            }
-
+            //if ($event->id != 9344) {
+            //    continue;
+            //}
 
             $sdt = date('Y-m-d H:i', $event->timestart);
             $this->log("Processing $event->activitytype $event->id: '$event->activityname', starting '$sdt'");
@@ -324,6 +322,7 @@ class cron_sync_events extends \core\task\scheduled_task {
             $event->timesynclive = time();
             if ($error) {
                 $event->timesynclive = -1;
+                $this->log("There was an error during sync. Going to attempt to resync this again in the next run", 3);
             }
             if ($event->activitytype == 'assessment') {
                 $DB->execute('UPDATE {activities_assessments} SET timesynclive = ? WHERE id = ?', [$event->timesynclive, $event->id]);

@@ -201,9 +201,6 @@ class graph_lib {
         
         //$requestUrl = "/users/$userPrincipalName/events/$id";
         $requestUrl = "/users/" . rawurlencode($userPrincipalName) . "/events/" . rawurlencode($id);
-        echo("Updating event for UPN: " . $userPrincipalName);
-        echo("Event ID: " . $id);
-        echo("Full request URL: " . $requestUrl);
 
         // Based on https://github.com/microsoftgraph/msgraph-sdk-php/blob/dev/tests/Functional/MailTest.php#L21
         $result = $appClient->createRequest("PATCH", $requestUrl)
@@ -229,7 +226,9 @@ class graph_lib {
         $token = static::getAppOnlyToken();
         $appClient = (new Graph())->setAccessToken($token);
         
-        $requestUrl = "/users/$userPrincipalName/events/$id";
+        //$requestUrl = "/users/$userPrincipalName/events/$id";
+        $requestUrl = "/users/" . rawurlencode($userPrincipalName) . "/events/" . rawurlencode($id);
+
 
         $result = $appClient->createRequest("DELETE", $requestUrl)
                             ->execute();
