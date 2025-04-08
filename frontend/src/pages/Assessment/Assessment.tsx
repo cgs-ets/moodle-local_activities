@@ -10,7 +10,7 @@ import { cn } from "../../utils/utils";
 import { ActionIcon, Anchor, Box, Button, Card, Center, Checkbox, Container, Grid, Loader, NavLink, Select, Text, TextInput } from "@mantine/core";
 import { Footer } from "../../components/Footer";
 import { DateTimePicker } from "@mui/x-date-pickers";
-import { IconCloudUp, IconExternalLink, IconX } from "@tabler/icons-react";
+import { IconCloudUp, IconExternalLink, IconTrash, IconX } from "@tabler/icons-react";
 import { PageHeader } from "./components/PageHeader";
 import { ActivitiesSearchInput } from "./components/ActivitiesSearchInput";
 import { Form } from "../../stores/formStore";
@@ -250,6 +250,25 @@ export function Assessment() {
     }
   }, [formData.timestart]);
 
+
+
+  const handleDelete = async () => {
+    const response = await api3.call({
+      method: "POST",
+      body: {
+        methodname: 'local_activities-delete_assessment',
+        args: {
+          id: id,
+        },
+      }
+    })
+    if (!response.error && response.data) {
+      navigate('/assessments');
+    } else {
+      setError(response.exception?.message ?? "Error")
+    }
+  }
+
   return (
     <>
       <Header />
@@ -442,17 +461,29 @@ export function Assessment() {
                     >
                       Save
                     </Button>
-                    <Button 
-                      variant="light"
-                      className="mt-4 px-3"
-                      type="submit" 
-                      size="compact-sm" 
-                      radius="xl" 
-                      loading={submitLoading}
-                      onClick={() => handleSubmit(undefined, true)}
-                    >
-                      Save & return to list
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="light"
+                        className="mt-4 px-3"
+                        type="submit" 
+                        size="compact-sm" 
+                        radius="xl" 
+                        loading={submitLoading}
+                        onClick={() => handleSubmit(undefined, true)}
+                      >
+                        Save & return to list
+                      </Button>
+                      <ActionIcon 
+                        variant="transparent"
+                        size="sm"
+                        className="mt-4"
+                        radius="xl" 
+                        loading={submitLoading}
+                        onClick={() => handleDelete()}
+                      >
+                        <IconTrash className="size-5 text-red-500" />
+                      </ActionIcon>
+                    </div>
                   </div>
 
 

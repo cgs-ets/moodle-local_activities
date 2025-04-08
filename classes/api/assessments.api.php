@@ -73,5 +73,9 @@ trait assessments_api {
         ]);
     }
 
+    static public function delete_assessment($args) {
+        return assessments_lib::delete($args['id']);
+    }
+
 
 }
