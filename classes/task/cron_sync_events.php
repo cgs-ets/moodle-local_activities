@@ -155,7 +155,7 @@ class cron_sync_events extends \core\task\scheduled_task {
                 }
 
                 if ($skipEvent || $deleteExternal) {
-                    // The event was deleted, or entry not in a valid destination calendar, delete.
+                    // The event was deleted, or entry not in a valid destination calendar, delete it from the outlook calendar.
                     try {
                         $this->log("Deleting existing entry in calendar $externalevent->calendar", 2);
                         $result = graph_lib::deleteEvent($externalevent->calendar, $externalevent->externalid);
@@ -215,6 +215,7 @@ class cron_sync_events extends \core\task\scheduled_task {
                         $result = graph_lib::updateEvent($destCal, $externalevent->externalid, $eventdata);
                         unset($destinationCalendars[$calIx]);
                     } catch (\Exception $e) {
+                        unset($destinationCalendars[$calIx]); // Do not try to add this event if update fails.
                         $this->log("Failed to update event in calendar $externalevent->calendar: " . $e->getMessage(), 3);
                         $this->log("Cleaning event $externalevent->eventid from sync table", 3);
                         $DB->delete_records('activities_cal_sync', array('id' => $externalevent->id));
