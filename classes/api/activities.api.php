@@ -157,4 +157,15 @@ trait activities_api {
         return activities_lib::get_by_involvement();
     }
 
+
+    /**
+     * Delete an activity.
+     *
+     * @return array containing comment id.
+     */
+    static public function delete_activity($args) { 
+        $data = (object) $args;
+        return activities_lib::soft_delete($data->id);
+    }
+
 }

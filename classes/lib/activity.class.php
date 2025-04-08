@@ -409,6 +409,7 @@ class Activity {
         global $DB;
         
         $this->set('deleted', 1);
+        $this->update();
         //randomize idnumber to take it out of playing field.
         $slug = 'archive-' . $this->get('idnumber');
         do {

@@ -1769,40 +1769,24 @@ class activities_lib {
 
 
 
-    public static function soft_delete($id) {
-        global $DB, $USER;
+    public static function soft_delete($activityid) {
+        global $DB;
 
-        $activity = new static($id);
-        if (empty($activity)) {
+        if (!activity::exists($activityid)) {
             return;
         }
-
-        // People that can delete.
-        $iscreator = ($activity->get('username') == $USER->username);
-        $isapprover = workflow_lib::is_approver_of_activity($id);
-        $isstaffincharge = ($activity->get('staffincharge') == $USER->username);
-
-
-        // Update activity.
-        if ($iscreator || $isapprover || $isstaffincharge) {
-            // Delete corresponding event.
-            $modified = time();
-            $sql = "UPDATE {" . static::TABLE_ACTIVITY_EVENTS . "}
-                    SET deleted = 1, timemodified = " . $modified . "
-                    WHERE activityid = ?
-                    AND isactivity = 1";
-            $DB->execute($sql, [$id]);
-
-            // Delete the activity.
-            $activity->set('deleted', 1);
-            // Reset absences processed so that Synergetic is updated.
-            $activity->set('absencesprocessed', 0);
-            $activity->set('classrollprocessed', 0);
-            $activity->update();
-
-            return 1;
+        if (!utils_lib::has_capability_edit_activity($activityid)) {
+            throw new \Exception("Permission denied.");
+            exit;
         }
-        
+
+        $originalactivity = new Activity($activityid);
+        $activity = new Activity($activityid);
+        //$activity->set('deleted', 1);
+        //$activity->save();
+        $activity->soft_delete();
+
+       return 1;
     }
 
     

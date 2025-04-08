@@ -1,10 +1,10 @@
 import { Card, Group, Button, Text, Menu, Loader, Transition, Box } from '@mantine/core';
-import { IconDots, IconCloudUp, IconCheckbox, IconArrowMoveLeft, IconCheck } from '@tabler/icons-react';
+import { IconDots, IconCloudUp, IconCheckbox, IconArrowMoveLeft, IconCheck, IconTrash } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import { useDisclosure, useTimeout } from '@mantine/hooks';
 import { statuses } from '../../../../utils';
 import { useAjax } from '../../../../hooks/useAjax';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Form, useFormStore } from '../../../../stores/formStore';
 import { useStateStore } from '../../../../stores/stateStore';
 import { entryStatus, excursionStatus, isActivity, isCalEntry } from '../../../../utils/utils';
@@ -67,6 +67,27 @@ export function Status({
   }, [submitLoading])
 
 
+  const [deleteResponse, deleteError, deleteLoading, deleteAjax, setDeleteData] = useAjax(); // destructure state and fetch function
+  const navigate = useNavigate()
+  const handleDelete = () => {
+    deleteAjax({
+      method: "POST", 
+      body: {
+        methodname: 'local_activities-delete_activity',
+        args: {
+          id: id,
+        },
+      }
+    })
+  }
+  useEffect(() => {
+    if (deleteResponse) {
+      navigate('/')
+    }
+  }, [deleteResponse]);
+
+
+
   const [pubResponse, pubError, pubLoading, pubAjax] = useAjax(); // destructure state and fetch function
   const updateStatus = (newStatus: number) => {
     pubAjax({
@@ -121,8 +142,18 @@ export function Status({
     if (isActivity(activitytype) && status > statuses.saved) {
       options.push(<Menu.Item key={1} onMouseDown={() => updateStatus(1)} leftSection={<IconArrowMoveLeft size={14} />}>Return to draft</Menu.Item>)
     }
+
+    console.log('status', status)
+    console.log('statuses.saved', statuses.saved)
+    if (status == statuses.saved) {
+      options.push(<Menu.Item key={2} onMouseDown={() => handleDelete()} leftSection={<IconTrash size={14} />}>Delete</Menu.Item>)
+    }
+
     return options
   }
+
+
+  
 
 
   return (
