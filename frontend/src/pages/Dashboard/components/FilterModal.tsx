@@ -74,8 +74,6 @@ export function FilterModal({opened, filters, setFilters, close}: Props) {
 
 
 
-
-
                 <Card.Section pos="relative" className='m-0 border-b flex items-start gap-1 px-4 py-4'>
                   <div className='w-36 font-bold'>Type</div>
                   <div>
@@ -147,6 +145,23 @@ export function FilterModal({opened, filters, setFilters, close}: Props) {
                   </div>
 
                 </Card.Section>
+
+
+                <Card.Section pos="relative" className='m-0 border-b  flex items-start gap-1 px-4 py-4'>
+                  <div className='w-36 font-bold'>Review step</div>
+                  <div>
+                    <Checkbox.Group value={filters.reviewstep} onChange={(values) => handleFilterChange('reviewstep', values)}>
+                      <div className="flex flex-col gap-1">
+                        <Checkbox value="Calendar Approval" label="Calendar Approval" />
+                        <Checkbox value="RA Approval" label="RA Approval" />
+                        <Checkbox value="Admin Approval" label="Admin Approval" />
+                        <Checkbox value="Final Approval" label="Final Approval" />
+                      </div>
+                    </Checkbox.Group>
+                    { !!filters.reviewstep?.length && <Button onClick={() => handleFilterChange('reviewstep', [])} size="compact-md" className="rounded-full mt-3" variant="light" leftSection={<IconX className="size-5" />}>Clear</Button>}
+                  </div>
+                </Card.Section>
+
 
 
 

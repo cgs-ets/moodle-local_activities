@@ -1,4 +1,4 @@
-import { Anchor, Checkbox } from "@mantine/core";
+import { Anchor, Badge, Checkbox } from "@mantine/core";
 import dayjs from "dayjs";
 import { Form } from "../../../stores/formStore";
 import { cn, isActivity, isCalEntry, isCalReviewer } from "../../../utils/utils";
@@ -85,8 +85,11 @@ export function ListTease({celldate, event, setSelectedEvent}: Props) {
             {event.location && <span className="text-gray-500"> - {event.location}</span>}
           </div>
         </div>
-        <div className="te-meta text-sm text-black capitalize">
-          {event.activitytype == 'calendar' ? 'Calendar entry' : event.activitytype}
+        <div className="flex items-center gap-4">
+          { event.status == statuses.inreview && <Badge variant="light" color="blue" className="capitalize">{event.stepname}</Badge> }
+          <div className="te-meta text-sm text-black capitalize">
+            {event.activitytype == 'calendar' ? 'Calendar entry' : event.activitytype}
+          </div>
         </div>
       </Anchor>
       { isCalReviewer() &&

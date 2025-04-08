@@ -12,6 +12,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { User } from "../../../types/types";
 import { useFilterStore } from "../../../stores/filterStore";
 import { getTermFromMonth } from "../../../utils/utils";
+import { statuses } from "../../../utils";
 
 type MoYear = {
   month: string,
@@ -182,7 +183,12 @@ export function Calendar({setCaltype}: Props) {
             filterStaff.length === 0 || 
             filterStaff.some((staff) => uniqueEventStaff.includes(staff));
 
-          if (matchesName && matchesCategory && matchesType && matchesCampus && matchesStatus && matchesStaff) {
+          const matchesReviewStep = filters.reviewstep.length === 0 ||
+            ( event.status == statuses.inreview && 
+              filters.reviewstep.some((step) => event.stepname.indexOf(step) > -1)
+            ); 
+
+          if (matchesName && matchesCategory && matchesType && matchesCampus && matchesStatus && matchesStaff && matchesReviewStep) {
             filteredEvents[eventId] = event;
           }
         }

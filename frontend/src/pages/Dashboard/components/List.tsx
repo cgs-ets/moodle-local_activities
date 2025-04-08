@@ -12,6 +12,7 @@ import { useFilterStore } from "../../../stores/filterStore";
 import { ListTease } from "./ListTease";
 import { User } from "../../../types/types";
 import { getMonthFromTerm, getTermFromMonth, isCalReviewer } from "../../../utils/utils";
+import { statuses } from "../../../utils";
 
 type TermYear = {
   term: string,
@@ -165,6 +166,7 @@ export function List({setCaltype}: Props) {
         const matchesStatus =
           filters.status.length === 0 || 
           filters.status.includes(event.status.toString());
+
   
         const eventStaff = [event.staffincharge, ...JSON.parse(event.planningstaffjson).map((u: User) => u.un), ...JSON.parse(event.accompanyingstaffjson).map((u: User) => u.un)]
         const uniqueEventStaff = [...new Set(eventStaff.filter(item => item.trim() !== ""))];
@@ -172,7 +174,12 @@ export function List({setCaltype}: Props) {
           filterStaff.length === 0 || 
           filterStaff.some((staff) => uniqueEventStaff.includes(staff));
 
-        return matchesName && matchesCategory && matchesType && matchesCampus && matchesStatus && matchesStaff;
+        const matchesReviewStep = filters.reviewstep.length === 0 ||
+          ( event.status == statuses.inreview && 
+            filters.reviewstep.some((step) => event.stepname.indexOf(step) > -1)
+          );
+
+        return matchesName && matchesCategory && matchesType && matchesCampus && matchesStatus && matchesStaff && matchesReviewStep;
 
       });
       return { ...day, events: filteredEvents, events_count: filteredEvents.length };
