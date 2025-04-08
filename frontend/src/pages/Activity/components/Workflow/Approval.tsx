@@ -211,7 +211,7 @@ export function Approval({
         >
           { approval.approvers &&
             <div className="flex flex-col">
-              {Object.keys(approval.approvers).slice(0,4).map((approverusername: string) => {
+              {Object.keys(approval.approvers).map((approverusername: string) => {
                 return (
                   <div key={approverusername} className="flex gap-2 border-b px-4 py-2">
                     <Avatar size={24} key={approverusername} src={'/local/activities/avatar.php?username=' + approverusername}><IconUser /></Avatar>

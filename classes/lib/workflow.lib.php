@@ -980,7 +980,17 @@ class workflow_lib extends \local_activities\local_activities_config {
 
 
     public static function get_draft_workflow($activitytype, $campus, $assessmentid) {
-        return static::get_approval_stubs(0, $activitytype, $campus, $assessmentid);
+        $approvals = static::get_approval_stubs(0, $activitytype, $campus, $assessmentid);
+
+        // Pull in approver fullnames.
+        foreach ($approvals as $approval) {
+            foreach ($approval->approvers as &$approver) {
+                $user = \core_user::get_user_by_username($approver['username']);
+                $approver['fullname'] = fullname($user);
+            }
+        }
+
+        return $approvals;
     }
 
 
