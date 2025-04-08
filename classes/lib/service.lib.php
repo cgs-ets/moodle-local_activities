@@ -655,7 +655,9 @@ class service_lib {
                 continue;
             }
         }
-        return array_map('trim', array_unique($campusroles));
+        $uniqueRoles = array_unique($campusroles);
+        $trimmedRoles = array_map('trim', $uniqueRoles);
+        return array_values($trimmedRoles);
     }
 
 
