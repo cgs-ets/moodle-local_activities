@@ -1,5 +1,5 @@
 import { ActionIcon, Button, Card, Loader, LoadingOverlay, Select, Text } from "@mantine/core";
-import { IconAdjustments, IconArrowNarrowLeft, IconArrowNarrowRight, IconCalendarDue, IconCalendarWeek, IconEye, IconListDetails, IconX } from "@tabler/icons-react";
+import { IconAdjustments, IconArrowNarrowLeft, IconArrowNarrowRight, IconCalendarDue, IconCalendarWeek, IconEye, IconListDetails, IconRotateClockwise2, IconX } from "@tabler/icons-react";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
 import useFetch from "../../../hooks/useFetch";
@@ -227,10 +227,10 @@ export function List({setCaltype}: Props) {
 
           <div className="text-xl font-semibold flex gap-2 items-center">
             <div className="mr-2 flex items-center gap-2">
-              <ActionIcon onClick={() => setCaltype('calendar')} variant="light" className="size-8"  >
+              <ActionIcon onClick={() => setCaltype('calendar')} variant="light" aria-label="Calendar view" title="Calendar view" className="size-8"  >
                 <IconCalendarWeek stroke={1.5} />
               </ActionIcon>
-              <ActionIcon onClick={() => setCaltype('list')} variant="light" className="size-8"  >
+              <ActionIcon onClick={() => setCaltype('list')} variant="light" aria-label="List view" title="List view" className="size-8"  >
                 <IconListDetails stroke={1.5} />
               </ActionIcon>
             </div>
@@ -261,18 +261,22 @@ export function List({setCaltype}: Props) {
 
 
             <div className="ml-2 flex items-center gap-2 ">
-            <Button onClick={goToToday} variant="light" aria-label="Filters" className="h-8" size="compact-md">Today</Button>
+              <Button onClick={goToToday} variant="light" aria-label="Go to today" title="Go to today" className="h-8" size="compact-md">Today</Button>
               { hasFilters() 
                 ? <div className="flex">
-                    <Button color="orange" onClick={() => openFilter()} variant="light" aria-label="Filters" size="compact-md" leftSection={<IconAdjustments size={20} />} className="h-8 rounded-r-none">Filters on</Button>
+                    <Button color="orange" onClick={() => openFilter()} variant="light" aria-label="Filters" title="Filters" size="compact-md" leftSection={<IconAdjustments size={20} />} className="h-8 rounded-r-none">Filters on</Button>
                     <ActionIcon color="orange" onClick={reset} variant="light" aria-label="Clear"  size="compact-md" ml={2} className="rounded-l-none pl-1 pr-1">
                       <IconX stroke={1.5} size={18} />
                     </ActionIcon>
                   </div>
-                : <ActionIcon onClick={() => openFilter()} variant="light" aria-label="Filters" className="size-8"  >
+                : <ActionIcon onClick={() => openFilter()} variant="light" aria-label="Filters" title="Filters" className="size-8"  >
                     <IconAdjustments stroke={1.5} />
                   </ActionIcon>
               } 
+
+              { !loading && date.term == currterm.toString() && date.year == dayjs().format("YYYY") && !showPast &&
+                <ActionIcon variant="light" aria-label="Show past events" title="Show past events" className="size-8" onClick={() => toggleShowPast()}><IconRotateClockwise2 className="transform rotate-90 scale-x-[-1]" stroke={1.5} /></ActionIcon>
+              }
             </div>
 
 
@@ -295,10 +299,6 @@ export function List({setCaltype}: Props) {
 
         { !loading && !filteredList.days.current.length && !filteredList.days.upcoming.length &&
           <div className="text-base italic p-6">No events in selected period. {hasFilters() ? "Try removing filters." : ""}</div>
-        }
-
-        { !loading && date.term == currterm.toString() && date.year == dayjs().format("YYYY") && !showPast &&
-          <Button size="compact-sm" variant="transparent" className="absolute top-2 right-2 z-50" onClick={() => toggleShowPast()}>Show past events</Button>
         }
 
         <Card className="ev-calendar list-calendar rounded-none" p={0}>
