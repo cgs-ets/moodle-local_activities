@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
 import { Header } from "../../components/Header";
-import { Footer } from "../../components/Footer";
-import { ActionIcon, Container, Grid, SegmentedControl } from "@mantine/core";
+import { Container, Grid } from "@mantine/core";
 import { getConfig } from "../../utils";
 import { Calendar } from "./components/Calendar";
-import { IconCalendarWeek, IconList, IconListDetails, IconTable } from "@tabler/icons-react";
 import { List } from "./components/List";
 import { MyActivities } from "./components/MyActivities";
 import { useSearchParams } from "react-router-dom";

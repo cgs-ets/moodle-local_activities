@@ -6,6 +6,15 @@ declare global {
 }
 
 const getConfig = () => {
+  if (!window.appdata) {
+    console.log("No appdata found!")
+    return {
+      roles: [],
+      user: null,
+      wwwroot: '',
+      sesskey: '',
+    }
+  }
   return window.appdata!.config
 };
 
