@@ -204,15 +204,13 @@ export function List({setCaltype}: Props) {
         upcoming: filteredUpcoming,
       },
     };
-    
-    console.log(newList)
-  
+
     return newList
   }, [filters, list]);
 
 
   const hasFilters = () => {
-    return filters.categories.length || filters.types.length || filters.status.length || filters.staff.length || filters.name.length
+    return filters.categories.length || filters.types.length || filters.status.length || filters.staff.length || filters.name.length || filters.reviewstep.length
   }
 
   const toggleShowPast = () => {
