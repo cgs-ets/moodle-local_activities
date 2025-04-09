@@ -1,3 +1,4 @@
+import dayjs from "dayjs"
 import { useFormStore } from "../../stores/formStore"
 
 
@@ -18,8 +19,8 @@ export function ActivitySummary() {
       <tbody>
         <tr><td width="120"><strong>Activity name: </strong></td><td>{activityname}</td></tr>
         <tr><td><strong>Location: </strong></td><td>{activitytype == 'incursion' ? "(Incursion)" : location}</td></tr>
-        <tr><td><strong>Start: </strong></td><td>{timestart}</td></tr>
-        <tr><td><strong>End: </strong></td><td>{timeend}</td></tr>
+        <tr><td><strong>Start: </strong></td><td>{dayjs.unix(Number(timestart)).format("DD MMM YYYY, h:mma")}</td></tr>
+        <tr><td><strong>End: </strong></td><td>{dayjs.unix(Number(timeend)).format("DD MMM YYYY, h:mma")}</td></tr>
         <tr><td><strong>Details: </strong></td><td dangerouslySetInnerHTML={ {__html: description} }></td></tr>
         { activitytype == 'excursion'
           ? <>
