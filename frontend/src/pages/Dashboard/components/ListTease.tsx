@@ -86,7 +86,7 @@ export function ListTease({celldate, event, setSelectedEvent}: Props) {
           </div>
         </div>
         <div className="flex items-center gap-4">
-          { event.status == statuses.inreview && <Badge variant="light" color="blue" className="capitalize">{event.stepname}</Badge> }
+          { event.status == statuses.inreview && event.stepname && <Badge variant="light" color="blue" className="capitalize">{event.stepname}</Badge> }
           <div className="te-meta text-sm text-black capitalize">
             {event.activitytype == 'calendar' ? 'Calendar entry' : event.activitytype}
           </div>
