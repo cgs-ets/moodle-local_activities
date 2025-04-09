@@ -279,6 +279,14 @@ JOIN mdl_excursions e ON es.activityid = e.id
 JOIN mdl_activities new_activities ON e.id = new_activities.oldexcursionid;
 
 
+-- Migration for `mdl_excursions_permissions_send` to `mdl_activities_emails`
+INSERT INTO mdl_activities_emails (activityid, username, studentsjson, audiences, extratext, includes, status, timecreated, rendered)
+SELECT new_activities.id, es.username, es.studentsjson, '["parents"]', es.extratext, '["details","permissions"]', es.status, es.timecreated, 'Unavailable - sent from old system'
+FROM mdl_excursions_permissions_send es
+JOIN mdl_excursions e ON es.activityid = e.id
+JOIN mdl_activities new_activities ON e.id = new_activities.oldexcursionid;
+
+
 -- Update staffinchargejson in mdl_activities
 UPDATE mdl_activities
 SET staffinchargejson = 

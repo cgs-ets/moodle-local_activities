@@ -239,7 +239,7 @@ export function BasicDetails() {
             editor={editor}
             >
               {viewStateProps.editable &&
-                <RichTextEditor.Toolbar sticky>
+                <RichTextEditor.Toolbar sticky className="ml-[1px]">
                   <RichTextEditor.ControlsGroup>
                     <RichTextEditor.Bold />
                     <RichTextEditor.Italic />
