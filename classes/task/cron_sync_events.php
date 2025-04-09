@@ -332,6 +332,7 @@ class cron_sync_events extends \core\task\scheduled_task {
 
         }
         $this->log_finish("Finished syncing events.");  
+        $this->cleanup_outlook_events();
     }
 
     private function make_public_categories($categories) {
@@ -366,4 +367,23 @@ class cron_sync_events extends \core\task\scheduled_task {
         return true;
     }
 
+    public function cleanup_outlook_events() {
+        global $DB;
+
+        $this->log("Cleaning up outlook events", 1);
+
+        // Look for events in outlook that match a Moodle activity, but are not linked to a Moodle activity. 
+        // First, only get events that start -1 month onwards.
+        $startdate = time() - (30 * 24 * 60 * 60);
+        $sql = "SELECT cs.* 
+                FROM {activities_cal_sync} cs
+                JOIN {activities} a ON cs.activityid = a.id
+                WHERE cs.timesynclive > 0 
+                AND a.timestart > ?";
+        $calevents = $DB->get_records_sql($sql, [$startdate]);
+        var_export($calevents);
+
+        foreach ($calevents as $calevent) {
+        }
+    }
 }
