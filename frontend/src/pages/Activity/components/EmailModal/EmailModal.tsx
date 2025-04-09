@@ -19,7 +19,7 @@ export function EmailModal({opened, close, students}: Props) {
   const activityname = useFormStore((state) => (state.activityname))
   const [message, setMessage] = useState<string>('')
   const [audiences, setAudiences] = useState<string[]>(['students', 'parents', 'staff'])
-  const [includes, setIncludes] = useState<string[]>(['details'])
+  const [includes, setIncludes] = useState<string[]>(['details', 'permissions'])
   const [recipients, setRecipients] = useState<User[]>([])
   const [showSuccess, setShowSuccess] = useState(false)
   const [submitResponse, submitError, submitLoading, submitAjax, setSubmitData] = useAjax();
@@ -139,7 +139,7 @@ export function EmailModal({opened, close, students}: Props) {
       </Box>
 
       <Box mb="md">
-        <Text fz="sm" mb={5} fw={500}>Presets</Text>
+        <Text fz="sm" mb={5} fw={500}>Options</Text>
         <Checkbox.Group
           value={includes}
           onChange={setIncludes}
@@ -182,7 +182,7 @@ export function EmailModal({opened, close, students}: Props) {
 
       <Box mb="md">
         <Text fz="sm" mb={5} fw={500}>Recipients</Text>
-        {includes.includes("permissions") && <Text fz="sm" mb={5} fs="italic">Permissions emails are sent to parents only.</Text>}
+        {includes.includes("permissions") && <Text fz="sm" mb={5} fs="italic">Permissions emails are sent to parents only. If you would like to send a message to students or staff, untick the "Include permission request link" option above.</Text>}
         <Checkbox.Group
           value={audiences}
           onChange={setAudiences}
