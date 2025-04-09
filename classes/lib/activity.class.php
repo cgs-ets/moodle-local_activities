@@ -527,8 +527,11 @@ class Activity {
             $isstaffincharge = true;
         }
 
+        // Check if user is an approver in general.
+        $isuserapprover = utils_lib::is_user_approver();
+        
         $usercanedit = false;
-        if ($iscreator || $isstaffincharge || $isapprover || $isplanner || has_capability('moodle/site:config', \context_user::instance($USER->id))) {
+        if ($isuserapprover || $iscreator || $isstaffincharge || $isplanner || has_capability('moodle/site:config', \context_user::instance($USER->id))) {
             $usercanedit = true;
         }
 

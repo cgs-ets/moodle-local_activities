@@ -454,5 +454,16 @@ class utils_lib {
         return false;
     }
 
+    public static function is_user_approver() {
+        global $USER;
+
+        $approvertypes = workflow_lib::get_approver_types($USER->username);
+        if ($approvertypes) {
+            return true;
+        }
+        
+        return false;
+    }
+
 
 }
