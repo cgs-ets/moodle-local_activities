@@ -465,5 +465,52 @@ class utils_lib {
         return false;
     }
 
+    public static function get_user_taglists() {
+        global $USER;
 
+        try {
+
+            $config = get_config('local_activities');
+            if (empty($config->usertaglistssql)) {
+                return [];
+            }
+            $externalDB = \moodle_database::get_driver_instance($config->dbtype, 'native', true);
+            $externalDB->connect($config->dbhost, $config->dbuser, $config->dbpass, $config->dbname, '');
+
+            $sql = $config->usertaglistssql . ' :username';
+            $params = array(
+                'username' => $USER->username
+            );
+
+            $taglists = $externalDB->get_records_sql($sql, $params);
+
+            return array_values($taglists);
+
+        } catch (Exception $ex) {
+            // Error.
+        }
+    }
+
+    public static function get_public_taglists() {
+        global $USER;
+
+        try {
+
+            $config = get_config('local_activities');
+            if (empty($config->publictaglistssql)) {
+                return [];
+            }
+            $externalDB = \moodle_database::get_driver_instance($config->dbtype, 'native', true);
+            $externalDB->connect($config->dbhost, $config->dbuser, $config->dbpass, $config->dbname, '');
+
+            $sql = $config->publictaglistssql;
+
+            $taglists = $externalDB->get_records_sql($sql);
+
+            return array_values($taglists);
+
+        } catch (Exception $ex) {
+            // Error.
+        }
+    }
 }

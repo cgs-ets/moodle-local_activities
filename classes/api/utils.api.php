@@ -103,4 +103,13 @@ trait utils_api {
         return utils_lib::get_students_from_groups(explode(',', $ids));
     }
 
+    /**
+     * Get groups list for user.
+     *
+     * @return array.
+     */
+    static public function get_user_taglists() {
+        return utils_lib::get_user_taglists();
+    }
+
 }

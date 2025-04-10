@@ -1,12 +1,13 @@
 
 import { Box, Button, Flex, Modal, ScrollArea, Tabs } from '@mantine/core';
 import { useState } from 'react';
-import { IconSchool, IconUser, IconUsers, IconUsersPlus } from '@tabler/icons-react';
+import { IconSchool, IconTag, IconUser, IconUsers, IconUsersPlus } from '@tabler/icons-react';
 import { Student, User } from '../../../../../types/types';
 import { StudentSelector } from '../../../../../components/StudentSelector';
 import { CourseBrowser } from '../../../../../components/CourseBrowser';
 import { fetchData } from '../../../../../utils';
 import { GroupsBrowser } from '../../../../../components/GroupsBrowser';
+import { TagListSelector } from '../../../../../components/TagListSelector';
 
 type Props = {
   opened: boolean,
@@ -18,6 +19,7 @@ export function AddStudentsModal({opened, close, insert}: Props) {
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedCourses, setSelectedCourses] = useState<number[]>([]);
   const [selectedGroups, setSelectedGroups] = useState<number[]>([]);
+  const [selectedTaglist, setSelectedTaglist] = useState<number>(0);
 
   const insertAndClose = async () => {
     let studentObjects = [] as Student[];
@@ -46,6 +48,7 @@ export function AddStudentsModal({opened, close, insert}: Props) {
     setStudents([])
     setSelectedCourses([])
     setSelectedGroups([])
+    setSelectedTaglist(0)
     close()
   }
 
@@ -75,6 +78,7 @@ export function AddStudentsModal({opened, close, insert}: Props) {
               <Tabs.Tab value="students" leftSection={<IconUser size="0.8rem" />}>Individuals</Tabs.Tab>
               <Tabs.Tab value="courses" leftSection={<IconSchool size="0.8rem" />}>Courses</Tabs.Tab>
               <Tabs.Tab value="groups" leftSection={<IconUsers size="0.8rem" />}>Groups</Tabs.Tab>
+              <Tabs.Tab value="taglist" leftSection={<IconTag size="0.8rem" />}>Taglist</Tabs.Tab>
             </Tabs.List>
             <Tabs.Panel value="students" px="md" pb="md" mih={150}>
               <StudentSelector students={students} setStudents={setStudents} />
@@ -84,6 +88,9 @@ export function AddStudentsModal({opened, close, insert}: Props) {
             </Tabs.Panel>
             <Tabs.Panel value="groups" px="md" pb="md" mih={150}>
               <GroupsBrowser selectedIds={selectedGroups} setSelectedIds={setSelectedGroups}/>
+            </Tabs.Panel>
+            <Tabs.Panel value="taglist" px="md" pb="md" mih={150}>
+              <TagListSelector selectedId={selectedTaglist} setSelectedId={setSelectedTaglist}/>
             </Tabs.Panel>
           </Tabs>
           <Flex pt="sm" justify="end">

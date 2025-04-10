@@ -47,3 +47,10 @@ export type Student =
     parents?: Parent[],
     year: string,
   }
+
+export type Taglist = {
+  id: number,
+  name: string,
+  students: Student[],
+}
+
