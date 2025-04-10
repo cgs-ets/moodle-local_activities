@@ -113,6 +113,15 @@ trait utils_api {
     }
 
     /**
+     * Get public taglists.
+     *
+     * @return array.
+     */ 
+    static public function get_public_taglists() {
+        return utils_lib::get_public_taglists();
+    }
+
+    /**
      * Get students from taglist.
      *
      * @return array.
