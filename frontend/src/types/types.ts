@@ -51,6 +51,5 @@ export type Student =
 export type Taglist = {
   id: number,
   name: string,
-  students: Student[],
 }
 

@@ -112,4 +112,14 @@ trait utils_api {
         return utils_lib::get_user_taglists();
     }
 
+    /**
+     * Get students from taglist.
+     *
+     * @return array.
+     */
+    static public function get_taglist_students() {
+        $id = required_param('id', PARAM_INT);
+        return utils_lib::get_students_from_taglist($id);
+    }
+
 }

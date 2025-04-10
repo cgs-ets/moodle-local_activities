@@ -287,6 +287,45 @@ class utils_lib {
         return $students;
     }
 
+    public static function get_students_from_taglist($type, $taglistid) {
+        global $DB;
+
+        try {
+
+            $config = get_config('local_activities');
+            $externalDB = \moodle_database::get_driver_instance($config->dbtype, 'native', true);
+            $externalDB->connect($config->dbhost, $config->dbuser, $config->dbpass, $config->dbname, '');
+
+            $sql = $config->taglistuserssql . ' :taglistseq';
+
+            $taglistusers = array();
+
+            $params = array(
+                'taglistseq' => $taglistid,
+            );
+            $rows = $externalDB->get_records_sql($sql, $params);
+            $taglistusers = array_unique(array_column($rows, 'id'));
+
+            list($insql, $params) = $DB->get_in_or_equal($taglistusers);
+            $sql = "SELECT DISTINCT u.id, u.username, u.firstname, u.lastname 
+                      FROM {user} u
+                INNER JOIN {user_info_data} ud ON ud.userid = u.id
+                INNER JOIN {user_info_field} uf ON uf.id = ud.fieldid
+                     WHERE u.username $insql
+                       AND uf.shortname = 'CampusRoles'
+                       AND LOWER(ud.data) LIKE '%student%'
+                       AND u.suspended = 0
+                       AND u.deleted = 0";
+            $students = $DB->get_records_sql($sql, $params);
+
+            return $students;
+        } catch (Exception $ex) {
+            // Error.
+        }
+
+    }
+    
+
     /**
      * Check if the current user has the capability to create an activity.
      *

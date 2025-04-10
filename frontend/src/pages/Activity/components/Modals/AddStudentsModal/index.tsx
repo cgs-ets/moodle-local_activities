@@ -41,6 +41,15 @@ export function AddStudentsModal({opened, close, insert}: Props) {
       })
       studentObjects = response.data
     }
+    else if (selectedTaglist) {
+      const response = await fetchData({
+        query: {
+          methodname: 'local_activities-get_taglist_students',
+          id: selectedTaglist,
+        }
+      })
+      studentObjects = response.data
+    }
     else if (students.length) {
       studentObjects = students
     }
