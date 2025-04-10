@@ -325,7 +325,32 @@ class graph_lib {
     }
     
 
+    public static function getSomeEvents($userPrincipalName, $timestamp) {
+        $token = static::getAppOnlyToken();
+        $graph = (new Graph())->setAccessToken($token);
+    
+        $startDateTime = gmdate("Y-m-d\TH:i:s\Z", $timestamp);
+    
+        $queryParams = [
+            '$filter' => "start/dateTime ge '$startDateTime'",
+            '$orderby' => 'start/dateTime',
+            '$top' => 10
+        ];
+    
+        $requestUrl = 'https://graph.microsoft.com/v1.0/users/' . rawurlencode($userPrincipalName) . '/events?' . http_build_query($queryParams);
+    
+        $someEvents = [];
 
+        // Fetch events as objects
+        $eventPage = $graph->createCollectionRequest('GET', $requestUrl)
+            ->setReturnType(Event::class)
+            ->execute();
+
+        // Merge the events into the result
+        $someEvents = array_merge($someEvents, $eventPage);
+    
+        return $someEvents;
+    }
 
 
     

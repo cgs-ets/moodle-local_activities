@@ -372,10 +372,28 @@ class cron_sync_events extends \core\task\scheduled_task {
 
         $this->log("Cleaning up outlook events", 1);
 
-        //$events = graph_lib::getAllEvents('cgs_calendar_ss@cgs.act.edu.au', 1744054200);
-        //var_export(count($events));
-        //var_export($events);
+        // Get a list of all moodle activities that have been synced to outlook.
+        $sql = "SELECT a.*, cs.* 
+                FROM {activities_cal_sync} cs
+                JOIN {activities} a ON cs.activityid = a.id
+                WHERE a.timesynclive > 0 
+                AND a.deleted = 0";
+        $calevents = $DB->get_records_sql($sql);
 
-        
+        // Get a list of all events in the SS calendar.
+        $events = graph_lib::getSomeEvents('cgs_calendar_ss@cgs.act.edu.au', 1744054200);
+        foreach ($events as $event) {
+            $this->log("Event: " . $event->getSubject() . " " . $event->getStart()->getDateTime()->getTimestamp(), 1);
+
+            // Try to find a matching event in the calevents list.
+            $matchingEvent = array_filter($calevents, function($calevent) use ($event) {
+                $datetime = $event->getStart()->getDateTime();
+                return $calevent->activityname == $event->getSubject() && $calevent->timestart == $datetime->getTimestamp();
+            });
+            if (empty($matchingEvent)) {
+                $this->log("Event not found in calevents list: " . $event->getSubject(), 1);
+            }
+        }
+
     }
 }
