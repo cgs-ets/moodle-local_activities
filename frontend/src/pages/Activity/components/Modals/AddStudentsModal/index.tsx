@@ -1,8 +1,8 @@
 
-import { Box, Button, Flex, Modal, ScrollArea, Tabs } from '@mantine/core';
+import { Box, Button, Flex, Modal, Tabs } from '@mantine/core';
 import { useState } from 'react';
 import { IconSchool, IconTag, IconUser, IconUsers, IconUsersPlus } from '@tabler/icons-react';
-import { Student, User } from '../../../../../types/types';
+import { Student } from '../../../../../types/types';
 import { StudentSelector } from '../../../../../components/StudentSelector';
 import { CourseBrowser } from '../../../../../components/CourseBrowser';
 import { fetchData } from '../../../../../utils';
