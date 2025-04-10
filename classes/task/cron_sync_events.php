@@ -375,15 +375,23 @@ class cron_sync_events extends \core\task\scheduled_task {
         // Look for events in outlook that match a Moodle activity, but are not linked to a Moodle activity. 
         // First, only get events that start -1 month onwards.
         $startdate = time() - (30 * 24 * 60 * 60);
-        $sql = "SELECT cs.* 
+        $sql = "SELECT a.*, cs.* 
                 FROM {activities_cal_sync} cs
                 JOIN {activities} a ON cs.activityid = a.id
-                WHERE cs.timesynclive > 0 
-                AND a.timestart > ?";
+                WHERE a.timesynclive > 0 
+                AND a.timesynclive < 1744243786
+                AND a.timestart > ?
+                AND a.deleted = 0";
         $calevents = $DB->get_records_sql($sql, [$startdate]);
-        var_export($calevents);
 
-        foreach ($calevents as $calevent) {
+        foreach ($calevents as $activity) {
+            // Look for events that start on this day in outlook with the same name.
+
         }
+
+
+        //$events = graph_lib::getAllEvents('cgs_calendar_ss@cgs.act.edu.au', 1744054200);
+        //var_export(count($events));
+        //var_export($events);
     }
 }

@@ -28,6 +28,7 @@ require_once($CFG->dirroot . '/local/activities/vendor/autoload.php');
 use Microsoft\Graph\Graph;
 use Microsoft\Graph\Http;
 use Microsoft\Graph\Model;
+use Microsoft\Graph\Model\Event;
 use GuzzleHttp\Client;
 
 class graph_lib {
@@ -234,6 +235,95 @@ class graph_lib {
                             ->execute();
         return $result;
     }
+
+
+    /*
+        ----------------------
+        SEARCH EVENT
+        ----------------------
+        Request and return details: https://learn.microsoft.com/en-us/graph/api/calendar-list-events?view=graph-rest-1.0&tabs=http#example-3-using-filter-and-orderby-to-get-events-in-a-date-time-range-and-including-their-occurrences
+        ------
+    */
+    public static function searchEvents($userPrincipalName, $eventTitle, $timestamp) {
+        $token = static::getAppOnlyToken();
+        $appClient = (new Graph())->setAccessToken($token);
+    
+        // 1. Escape single quotes in title for OData filter
+        $escapedTitle = str_replace("'", "''", $eventTitle);
+
+        // 2. Build ISO 8601 UTC datetimes ±30 mins
+        $startDateTime = gmdate("Y-m-d\TH:i:s\Z", $timestamp - 1800);
+        $endDateTime   = gmdate("Y-m-d\TH:i:s\Z", $timestamp + 1800);
+
+        // 3. Build filter and orderby parameters
+        $queryParams = [
+            '$filter' => "start/dateTime ge '$startDateTime' and start/dateTime le '$endDateTime' and contains(subject, '$escapedTitle')",
+            '$orderby' => 'start/dateTime'
+        ];
+
+        // 4. Build full request URL
+        $requestUrl = 'https://graph.microsoft.com/v1.0/users/' . rawurlencode($userPrincipalName) . '/events?' . http_build_query($queryParams);
+
+        $events = $appClient->createCollectionRequest('GET', $requestUrl)
+                            ->setReturnType(Model\Event::class)
+                            ->setPageSize(50)
+                            ->execute();
+    
+        return $events;
+    }
+    
+
+    /*
+        ----------------------
+        SEARCH EVENT
+        ----------------------
+        Request and return details: https://learn.microsoft.com/en-us/graph/api/calendar-list-events?view=graph-rest-1.0&tabs=http#example-3-using-filter-and-orderby-to-get-events-in-a-date-time-range-and-including-their-occurrences
+        ------
+    */
+    public static function getAllEvents($userPrincipalName, $timestamp) {
+        $token = static::getAppOnlyToken();
+        $graph = (new Graph())->setAccessToken($token);
+    
+        $startDateTime = gmdate("Y-m-d\TH:i:s\Z", $timestamp);
+    
+        $queryParams = [
+            '$filter' => "start/dateTime ge '$startDateTime'",
+            '$orderby' => 'start/dateTime',
+            '$top' => 100
+        ];
+    
+        $requestUrl = 'https://graph.microsoft.com/v1.0/users/' . rawurlencode($userPrincipalName) . '/events?' . http_build_query($queryParams);
+    
+        $allEvents = [];
+    
+        do {
+            // Fetch events as objects
+            $eventPage = $graph->createCollectionRequest('GET', $requestUrl)
+                               ->setReturnType(Event::class)
+                               ->execute();
+    
+            // Merge the events into the result
+            $allEvents = array_merge($allEvents, $eventPage);
+    
+            // Fetch raw response to inspect @odata.nextLink
+            $rawResponse = $graph->createRequest('GET', $requestUrl)
+                                 ->addHeaders(["ConsistencyLevel" => "eventual"])
+                                 ->execute();
+    
+            // Get the response body (which should already be an array)
+            $bodyData = $rawResponse->getBody();  // This should be an array now
+    
+            // Check for pagination and get nextLink
+            $nextLink = $bodyData['@odata.nextLink'] ?? null;
+    
+            // Update requestUrl to the nextLink if pagination exists
+            $requestUrl = $nextLink;
+    
+        } while ($nextLink);
+    
+        return $allEvents;
+    }
+    
 
 
 
