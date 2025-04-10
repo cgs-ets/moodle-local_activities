@@ -287,7 +287,7 @@ class utils_lib {
         return $students;
     }
 
-    public static function get_students_from_taglist($type, $taglistid) {
+    public static function get_students_from_taglist($taglistid) {
         global $DB;
 
         try {

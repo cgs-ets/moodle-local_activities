@@ -61,11 +61,6 @@ export function AddStudentsModal({opened, close, insert}: Props) {
     close()
   }
 
-  useEffect(() => {
-    console.log(selectedTaglist)
-  }, [selectedTaglist])
-
-
   return (
     <Modal 
       opened={opened} 
