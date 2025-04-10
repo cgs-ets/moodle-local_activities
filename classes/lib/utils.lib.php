@@ -482,9 +482,17 @@ class utils_lib {
                 'username' => $USER->username
             );
 
-            $taglists = $externalDB->get_records_sql($sql, $params);
+            $results = $externalDB->get_records_sql($sql, $params);
 
-            return array_values($taglists);
+            $taglists = [];
+            foreach ($results as $row) {
+                $taglists[] = (object) [
+                    "id" => $row->taglistsseq,
+                    "name" => $row->description,
+                ];
+            }
+
+            return $taglists;
 
         } catch (Exception $ex) {
             // Error.
