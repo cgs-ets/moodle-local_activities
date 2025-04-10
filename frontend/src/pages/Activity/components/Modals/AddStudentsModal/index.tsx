@@ -103,7 +103,7 @@ export function AddStudentsModal({opened, close, insert}: Props) {
             </Tabs.Panel>
           </Tabs>
           <Flex pt="sm" justify="end">
-            <Button onClick={insertAndClose} disabled={!students.length && !selectedCourses.length && !selectedGroups.length} type="submit" leftSection={<IconUsersPlus size="1rem" />} radius="xl" >Insert students</Button>
+            <Button onClick={insertAndClose} disabled={!students.length && !selectedCourses.length && !selectedGroups.length && !selectedTaglist} type="submit" leftSection={<IconUsersPlus size="1rem" />} radius="xl" >Insert students</Button>
           </Flex>
         </Box>
     </Modal>

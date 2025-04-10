@@ -306,8 +306,9 @@ class utils_lib {
             $rows = $externalDB->get_records_sql($sql, $params);
             $taglistusers = array_unique(array_column($rows, 'id'));
 
+            // Join on mdl_users to ensure they exist as students.
             list($insql, $params) = $DB->get_in_or_equal($taglistusers);
-            $sql = "SELECT DISTINCT u.id, u.username, u.firstname, u.lastname 
+            $sql = "SELECT u.username
                       FROM {user} u
                 INNER JOIN {user_info_data} ud ON ud.userid = u.id
                 INNER JOIN {user_info_field} uf ON uf.id = ud.fieldid
@@ -316,7 +317,17 @@ class utils_lib {
                        AND LOWER(ud.data) LIKE '%student%'
                        AND u.suspended = 0
                        AND u.deleted = 0";
-            $students = $DB->get_records_sql($sql, $params);
+            $usernames = $DB->get_records_sql($sql, $params);
+
+            // Convert usernames to students.
+            $students = array();
+            foreach($usernames as $r) {
+                $student = static::student_stub($r->username);
+                if (!$student) {
+                    continue;
+                }
+                $students[] = $student;
+            }
 
             return $students;
         } catch (Exception $ex) {
