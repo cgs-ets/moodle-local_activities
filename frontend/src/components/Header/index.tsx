@@ -1,11 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
-import { Container, Avatar, Menu, UnstyledButton, Group, Text, Box, Button, Anchor } from '@mantine/core';
-import { IconCalendarPlus, IconExternalLink, IconHome2, IconLogout, IconPlus } from '@tabler/icons-react';
+import { Container, Avatar, Menu, UnstyledButton, Group, Text, Box, Button, Anchor, ActionIcon, Modal, TextInput, Input } from '@mantine/core';
+import { IconCalendarPlus, IconExternalLink, IconHome2, IconLogout, IconPlus, IconSearch, IconX } from '@tabler/icons-react';
 import { useInterval } from "@mantine/hooks";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { fetchData, getConfig } from "../../utils";
 
 export function Header() {
+
+  const [searchOpened, setSearchOpened] = useState(false);
 
   const checkAuthStatus = async () => {
     const response = await fetchData({
@@ -36,6 +38,16 @@ export function Header() {
             </Link>
           </Group>
           <div className="flex items-center gap-4">
+
+            <ActionIcon
+              variant="transparent"
+              color="white"
+              className="mr-2 hidden"
+              onClick={() => setSearchOpened(!searchOpened)}
+            >
+              <IconSearch size={20} />
+            </ActionIcon>
+
             <Anchor className="text-gray-200 hover:no-underline mr-4 text-md font-normal" href="/">{getConfig().sitename}</Anchor>
 
             { !location.pathname.includes("/assessment") 
@@ -66,11 +78,40 @@ export function Header() {
           
         </Group>
       </div>
-      {false && getConfig().headerlogourl &&
-        <div className="hidden 3xl:block absolute left-0 top-0 h-[54px]">
-          <a href="/"><img className="h-full" src={getConfig().headerlogourl} /></a>
+
+      <Modal
+        opened={searchOpened} 
+        withCloseButton={false}
+        onClose={() => setSearchOpened(false)} 
+        size="xl"
+        styles={{
+          header: {
+            borderBottom: '0.0625rem solid #dee2e6',
+          },
+          title: {
+            fontWeight: 600,
+          },
+          body: {
+            padding: 0,
+          }
+        }}
+      >
+        <div className="flex border-b border-gray-200 relative">
+          <input
+            placeholder="Search" 
+            className="flex-1 px-4 py-4 outline-none text-lg"
+          />
+          <ActionIcon variant="transparent" color="gray" className="absolute right-4 top-1/2 -translate-y-1/2" onClick={() => setSearchOpened(false)}>
+            <IconX size={20} />
+          </ActionIcon>
         </div>
-      }
+        <div className="p-4 shadow-none rounded-none">
+          Enter search term
+        </div>
+      </Modal>
+
+          
+      
     </Box>
   </>
   );
