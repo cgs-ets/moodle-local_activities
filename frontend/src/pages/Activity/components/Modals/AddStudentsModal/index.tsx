@@ -19,7 +19,7 @@ export function AddStudentsModal({opened, close, insert}: Props) {
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedCourses, setSelectedCourses] = useState<number[]>([]);
   const [selectedGroups, setSelectedGroups] = useState<number[]>([]);
-  const [selectedTaglist, setSelectedTaglist] = useState<number>(0);
+  const [selectedTaglist, setSelectedTaglist] = useState<string>("");
 
   const insertAndClose = async () => {
     let studentObjects = [] as Student[];
@@ -57,7 +57,7 @@ export function AddStudentsModal({opened, close, insert}: Props) {
     setStudents([])
     setSelectedCourses([])
     setSelectedGroups([])
-    setSelectedTaglist(0)
+    setSelectedTaglist("")
     close()
   }
 

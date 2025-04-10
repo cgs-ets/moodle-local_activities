@@ -49,7 +49,7 @@ export type Student =
   }
 
 export type Taglist = {
-  id: number,
+  id: string,
   name: string,
 }
 

@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { Select } from '@mantine/core';
+import { Loader, Select } from '@mantine/core';
 import { Taglist } from "../types/types";
 import { fetchData } from "../utils";
 
 type Props = {
-  selectedId: number,
-  setSelectedId: (id: number) => void,
+  selectedId: string,
+  setSelectedId: (id: string) => void,
 }
 
 export function TagListSelector({selectedId, setSelectedId}: Props) {
@@ -23,31 +23,30 @@ export function TagListSelector({selectedId, setSelectedId}: Props) {
         methodname: 'local_activities-get_user_taglists',
       }
     })
-    setTaglists(response.data)
-    setIsLoading(false)
+    if (response.data && response.data.length) {
+      setTaglists(response.data);
+    }
+    setIsLoading(false);
   }
 
   const taglistOptions = () => {
-    if (!taglists) {
-      return []
-    }
-    return taglists.map((item) => ({value: item.id.toString(), label: item.name}))
+    return taglists.map((item) => ({ value: item.id, label: item.name }));
   }
-
 
   return (
     <>
       <Select
         label="User taglists"
+        leftSection={ isLoading ? <Loader size="1rem" /> : null}
         placeholder="Select taglist"
         data={taglistOptions()}
         value={selectedId.toString()}
         onChange={(value) => {
+          console.log("Selected Value:", value);  // Debug log
           if (value) {
-            console.log(value)
-            setSelectedId(parseInt(value))
+            setSelectedId(value);
           } else {
-            setSelectedId(0)
+            setSelectedId("");
           }
         }}
       />
