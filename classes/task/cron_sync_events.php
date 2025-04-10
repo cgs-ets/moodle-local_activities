@@ -146,10 +146,9 @@ class cron_sync_events extends \core\task\scheduled_task {
             // Get existing sync entries.
             $sql = "SELECT *
                 FROM {activities_cal_sync}
-                WHERE activityid = ?";
-            $externalevents = $DB->get_records_sql($sql, [$event->id]);
-
-
+                WHERE activityid = ?
+                AND activitytype = ?";
+            $externalevents = $DB->get_records_sql($sql, [$event->id, $event->activitytype == 'assessment' ? 'assessment' : 'activity']);
 
             // Update existing entries.
             foreach($externalevents as $externalevent) {
@@ -302,6 +301,7 @@ class cron_sync_events extends \core\task\scheduled_task {
                     $record->changekey = '';
                     $record->weblink = '';
                     $record->status = 0;
+                    $record->activitytype = $event->activitytype == 'assessment' ? 'assessment' : 'activity';
                     try {
                         $result = graph_lib::createEvent($destCal, $eventdata);
                         if ($result) {
@@ -372,26 +372,10 @@ class cron_sync_events extends \core\task\scheduled_task {
 
         $this->log("Cleaning up outlook events", 1);
 
-        // Look for events in outlook that match a Moodle activity, but are not linked to a Moodle activity. 
-        // First, only get events that start -1 month onwards.
-        $startdate = time() - (30 * 24 * 60 * 60);
-        $sql = "SELECT a.*, cs.* 
-                FROM {activities_cal_sync} cs
-                JOIN {activities} a ON cs.activityid = a.id
-                WHERE a.timesynclive > 0 
-                AND a.timesynclive < 1744243786
-                AND a.timestart > ?
-                AND a.deleted = 0";
-        $calevents = $DB->get_records_sql($sql, [$startdate]);
-
-        foreach ($calevents as $activity) {
-            // Look for events that start on this day in outlook with the same name.
-
-        }
-
-
         //$events = graph_lib::getAllEvents('cgs_calendar_ss@cgs.act.edu.au', 1744054200);
         //var_export(count($events));
         //var_export($events);
+
+        
     }
 }
