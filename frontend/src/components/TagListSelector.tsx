@@ -44,6 +44,7 @@ export function TagListSelector({selectedId, setSelectedId}: Props) {
         value={selectedId.toString()}
         onChange={(value) => {
           if (value) {
+            console.log(value)
             setSelectedId(parseInt(value))
           } else {
             setSelectedId(0)

@@ -1,6 +1,6 @@
 
 import { Box, Button, Flex, Modal, Tabs } from '@mantine/core';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { IconSchool, IconTag, IconUser, IconUsers, IconUsersPlus } from '@tabler/icons-react';
 import { Student } from '../../../../../types/types';
 import { StudentSelector } from '../../../../../components/StudentSelector';
@@ -60,6 +60,10 @@ export function AddStudentsModal({opened, close, insert}: Props) {
     setSelectedTaglist(0)
     close()
   }
+
+  useEffect(() => {
+    console.log(selectedTaglist)
+  }, [selectedTaglist])
 
 
   return (
