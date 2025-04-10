@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Loader, Select } from '@mantine/core';
+import { Loader, SegmentedControl, Select } from '@mantine/core';
 import { Taglist } from "../types/types";
 import { fetchData } from "../utils";
 
@@ -12,6 +12,8 @@ export function TagListSelector({selectedId, setSelectedId}: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [taglists, setTaglists] = useState<Taglist[]>([]);
   const [publicTaglists, setPublicTaglists] = useState<Taglist[]>([]);
+  const [type, setType] = useState<string>("user");
+
 
   useEffect(() => {
     loadTaglist()
@@ -46,38 +48,53 @@ export function TagListSelector({selectedId, setSelectedId}: Props) {
     return publicTaglists.map((item) => ({ value: item.id, label: item.name }));
   }
 
+  useEffect(() => {
+    setSelectedId("");
+  }, [type]);
+
   return (
     <>
-      <Select
-        label="User taglists"
-        leftSection={ isLoading ? <Loader size="1rem" /> : null}
-        placeholder="Select taglist"
-        data={taglistOptions()}
-        value={selectedId.toString()}
-        onChange={(value) => {
-          if (value) {
-            setSelectedId(value);
-          } else {
-            setSelectedId("");
-          }
-        }}
+      <SegmentedControl
+        value={type}
+        onChange={setType}
+        data={[
+          { label: 'User', value: 'user' },
+          { label: 'Public', value: 'public' },
+        ]}
+        className="mb-4"
       />
-
-      <Select
-        label="Public taglists"
-        className="mt-4"
-        leftSection={ isLoading ? <Loader size="1rem" /> : null}
-        placeholder="Select taglist"
-        data={publicTaglistOptions()}
-        value={selectedId.toString()}
-        onChange={(value) => {
-          if (value) {
-            setSelectedId(value);
-          } else {
-            setSelectedId("");
-          }
-        }}
-      />
+      {type === "user" && (
+        <Select
+          label=""
+          leftSection={ isLoading ? <Loader size="1rem" /> : null}
+          placeholder="Select taglist"
+          data={taglistOptions()}
+          value={selectedId.toString()}
+          onChange={(value) => {
+            if (value) {
+              setSelectedId(value);
+            } else {
+              setSelectedId("");
+            }
+          }}
+        />
+      )}
+      {type === "public" && (
+        <Select
+          label=""
+          leftSection={ isLoading ? <Loader size="1rem" /> : null}
+          placeholder="Select taglist"
+          data={publicTaglistOptions()}
+          value={selectedId.toString()}
+          onChange={(value) => {
+            if (value) {
+              setSelectedId(value);
+            } else {
+              setSelectedId("");
+            }
+          }}
+        />
+      )}
     </>
   );
 };
