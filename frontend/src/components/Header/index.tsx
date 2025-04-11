@@ -80,15 +80,15 @@ export function Header() {
   }
 
   const futureEvents = () => {
-    // Sort by timestart ascending
+    // An event is future if it's timestart OR timeend is after the current time
     const sortedResults = searchResults.sort((a: any, b: any) => dayjs.unix(a.timestart).diff(dayjs.unix(b.timestart)));
-    return sortedResults.filter((result: any) => dayjs.unix(result.timestart).isAfter(dayjs()));
+    return sortedResults.filter((result: any) => dayjs.unix(result.timestart).isAfter(dayjs()) || dayjs.unix(result.timeend).isAfter(dayjs()));
   }
 
   const pastEvents = () => {
-    // Sort by timestart descending
+    // An event is past if it's timestart AND timeend are before the current time
     const sortedResults = searchResults.sort((a: any, b: any) => dayjs.unix(b.timestart).diff(dayjs.unix(a.timestart)));
-    return sortedResults.filter((result: any) => dayjs.unix(result.timestart).isBefore(dayjs()));
+    return sortedResults.filter((result: any) => dayjs.unix(result.timestart).isBefore(dayjs()) && dayjs.unix(result.timeend).isBefore(dayjs()));
   }
 
   useEffect(() => {
