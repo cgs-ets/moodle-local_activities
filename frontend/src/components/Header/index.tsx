@@ -182,7 +182,7 @@ export function Header() {
                     </div>
                     <div className="flex items-center gap-2">
                       {result.status < statuses.approved && result.stepname && result.stepname != 'Calendar Approval' && <Pill color="gray.2" className="text-black capitalize">{result.stepname}</Pill>}
-                      <Pill className="capitalize">{result.campus}</Pill>
+                      {result.campus && <Pill className="capitalize">{result.campus}</Pill>}
                       <Pill className="capitalize">{result.activitytype}</Pill>
                       <Avatar size="sm" radius="xl" src={'/local/activities/avatar.php?username=' + result.staffincharge} />
                     </div>
