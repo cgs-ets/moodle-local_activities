@@ -1,13 +1,19 @@
 import { Link, useLocation } from "react-router-dom";
-import { Container, Avatar, Menu, UnstyledButton, Group, Text, Box, Button, Anchor, ActionIcon, Modal, TextInput, Input } from '@mantine/core';
+import { Container, Avatar, Menu, UnstyledButton, Group, Text, Box, Button, Anchor, ActionIcon, Modal, TextInput, Input, Table, Badge, Pill, Loader } from '@mantine/core';
 import { IconCalendarPlus, IconExternalLink, IconHome2, IconLogout, IconPlus, IconSearch, IconX } from '@tabler/icons-react';
 import { useInterval } from "@mantine/hooks";
 import { useEffect, useState } from "react";
-import { fetchData, getConfig } from "../../utils";
+import { fetchData, getConfig, statuses } from "../../utils";
+import useFetch from "../../hooks/useFetch";
+import dayjs from "dayjs";
+import { cn } from "../../utils/utils";
 
 export function Header() {
-
   const [searchOpened, setSearchOpened] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const api = useFetch()
 
   const checkAuthStatus = async () => {
     const response = await fetchData({
@@ -27,6 +33,48 @@ export function Header() {
 
   const location = useLocation();
 
+  const search = async () => {
+    setSearchLoading(true);
+    console.log('Searching...', searchQuery);
+    try {
+      // Call the search API
+      const res = await api.call({
+        query: {
+          methodname: 'local_activities-search',
+          query: searchQuery,
+        },
+      });
+
+      setSearchResults(res.data);
+      
+    } catch (error) {
+      console.error('Error during search:', error);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  // Debounce search function
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (searchQuery.length >= 2) {
+        search();
+      } else {
+        setSearchResults([]); // Clear results when query is empty
+      }
+    }, 500); // Delay in milliseconds
+
+    return () => {
+      clearTimeout(handler); // Clear timeout if query changes
+    };
+  }, [searchQuery]);
+
+  const clearAndCloseSearch = () => {
+    setSearchQuery('');
+    setSearchResults([]);
+    setSearchOpened(false);
+  }
+
   return (
   <>
     <Box bg={getConfig().headerbg}>
@@ -42,8 +90,8 @@ export function Header() {
             <ActionIcon
               variant="transparent"
               color="white"
-              className="mr-2 hidden"
-              onClick={() => setSearchOpened(!searchOpened)}
+              className="mr-2"
+              onClick={() => setSearchOpened(true)}
             >
               <IconSearch size={20} />
             </ActionIcon>
@@ -82,7 +130,7 @@ export function Header() {
       <Modal
         opened={searchOpened} 
         withCloseButton={false}
-        onClose={() => setSearchOpened(false)} 
+        onClose={() => clearAndCloseSearch()} 
         size="xl"
         styles={{
           header: {
@@ -100,14 +148,50 @@ export function Header() {
           <input
             placeholder="Search" 
             className="flex-1 px-4 py-4 outline-none text-lg"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
-          <ActionIcon variant="transparent" color="gray" className="absolute right-4 top-1/2 -translate-y-1/2" onClick={() => setSearchOpened(false)}>
-            <IconX size={20} />
-          </ActionIcon>
+          {searchResults.length && searchLoading ? (
+            <div className="absolute right-4 top-1/2 -translate-y-1/2">
+              <Loader size="sm" />
+            </div>
+          ) : (
+            <ActionIcon variant="transparent" color="gray" className="absolute right-4 top-1/2 -translate-y-1/2" onClick={() => clearAndCloseSearch()}>
+              <IconX size={20} />
+            </ActionIcon>
+          )}
         </div>
-        <div className="p-4 shadow-none rounded-none">
-          Enter search term
-        </div>
+        {!searchResults.length && searchLoading && (
+          <div className="p-4 text-center">
+            <Loader />
+          </div>
+        )}
+        {searchResults.length > 0 && (
+          <div>
+            {searchResults.map((result: any) => (
+              <Anchor href={`/local/activities/${result.id}`} className="!no-underline text-gray-800">
+                <div key={result.id} className={cn("px-4 py-2 border-b border-gray-200", result.status == statuses.approved ? "bg-[#d4edda]" : "bg-[#fff5eb]")}>
+                  <div className="flex items-center justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <div className={cn("size-2 rounded-full min-w-2 mt-1", result.status == statuses.approved ? "bg-[#4aa15d]" : "bg-[#ffa94d]")}></div>
+                        <Anchor href={`/local/activities/${result.id}`}>{result.activityname}</Anchor>
+                        
+                      </div>
+                      <span className="text-xs">{dayjs.unix(result.timestart).format('DD MMM YY HH:mm')} - {dayjs.unix(result.timeend).format('DD MMM YY HH:mm')}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {result.status < statuses.approved && result.stepname && result.stepname != 'Calendar Approval' && <Pill color="gray.2" className="text-black capitalize">{result.stepname}</Pill>}
+                      <Pill className="capitalize">{result.campus}</Pill>
+                      <Pill className="capitalize">{result.activitytype}</Pill>
+                      <Avatar size="sm" radius="xl" src={'/local/activities/avatar.php?username=' + result.staffincharge} />
+                    </div>
+                  </div>
+                </div>
+              </Anchor>
+            ))}
+          </div>
+        )}
       </Modal>
 
           

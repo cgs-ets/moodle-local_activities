@@ -131,4 +131,13 @@ trait utils_api {
         return utils_lib::get_students_from_taglist($id);
     }
 
+    /**
+     * Search
+     *
+     * @return array.
+     */
+    static public function search() {
+        $query = required_param('query', PARAM_RAW);
+        return utils_lib::search($query);
+    }
 }

@@ -579,4 +579,31 @@ class utils_lib {
             // Error.
         }
     }
+
+    public static function search($text) {
+        global $DB;
+
+        $sql = "SELECT id, status
+                  FROM mdl_activities
+                 WHERE deleted = 0
+                   AND (activityname LIKE ? OR staffincharge LIKE ? OR creator LIKE ?)";
+        $params = array();
+        $params[] = '%'.$text.'%';
+        $params[] = '%'.$text.'%';
+        $params[] = '%'.$text.'%';
+        //echo "<pre>"; var_export($sql); var_export($params); exit;
+
+        $records = $DB->get_records_sql($sql, $params);
+        $activities = array();
+        foreach ($records as $record) {
+            $activity = new Activity($record->id);
+            $exported = $activity->export();
+            if((!$exported->usercanedit) && $exported->status < static::ACTIVITY_STATUS_INREVIEW) {
+                continue;
+            }
+            $activities[] = $exported;
+        }
+
+        return $activities;
+    }
 }
