@@ -586,7 +586,8 @@ class utils_lib {
         $sql = "SELECT id, status
                   FROM mdl_activities
                  WHERE deleted = 0
-                   AND (LOWER(activityname) LIKE ? OR staffincharge LIKE ? OR creator LIKE ?)";
+                   AND (LOWER(activityname) LIKE ? OR staffincharge LIKE ? OR creator LIKE ?)
+                ORDER BY timestart ASC";
         $params = array();
         $params[] = '%'.strtolower($text).'%';
         $params[] = '%'.strtolower($text).'%';

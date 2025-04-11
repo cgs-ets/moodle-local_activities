@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { Container, Avatar, Menu, UnstyledButton, Group, Text, Box, Button, Anchor, ActionIcon, Modal, TextInput, Input, Table, Badge, Pill, Loader } from '@mantine/core';
-import { IconCalendarPlus, IconExternalLink, IconHome2, IconLogout, IconPlus, IconSearch, IconX } from '@tabler/icons-react';
+import { IconArrowLeft, IconCalendarPlus, IconExternalLink, IconHome2, IconLogout, IconPlus, IconSearch, IconX, IconLoader2 } from '@tabler/icons-react';
 import { useInterval } from "@mantine/hooks";
 import { useEffect, useState } from "react";
 import { fetchData, getConfig, statuses } from "../../utils";
@@ -13,6 +13,8 @@ export function Header() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [tab, setTab] = useState('future');
+
   const api = useFetch()
 
   const checkAuthStatus = async () => {
@@ -73,6 +75,18 @@ export function Header() {
     setSearchQuery('');
     setSearchResults([]);
     setSearchOpened(false);
+  }
+
+  const futureEvents = () => {
+    // Sort by timestart ascending
+    const sortedResults = searchResults.sort((a: any, b: any) => dayjs.unix(a.timestart).diff(dayjs.unix(b.timestart)));
+    return sortedResults.filter((result: any) => dayjs.unix(result.timestart).isAfter(dayjs()));
+  }
+
+  const pastEvents = () => {
+    // Sort by timestart descending
+    const sortedResults = searchResults.sort((a: any, b: any) => dayjs.unix(b.timestart).diff(dayjs.unix(a.timestart)));
+    return sortedResults.filter((result: any) => dayjs.unix(result.timestart).isBefore(dayjs()));
   }
 
   return (
@@ -151,24 +165,55 @@ export function Header() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-          {searchResults.length && searchLoading ? (
-            <div className="absolute right-4 top-1/2 -translate-y-1/2">
-              <Loader size="sm" />
-            </div>
-          ) : (
-            <ActionIcon variant="transparent" color="gray" className="absolute right-4 top-1/2 -translate-y-1/2" onClick={() => clearAndCloseSearch()}>
-              <IconX size={20} />
-            </ActionIcon>
-          )}
+          <ActionIcon variant="transparent" color="gray" className="absolute right-4 top-1/2 -translate-y-1/2" onClick={() => clearAndCloseSearch()}>
+            <IconX size={20} />
+          </ActionIcon>
         </div>
-        {!searchResults.length && searchLoading && (
-          <div className="p-4 text-center">
-            <Loader />
+
+
+        {searchLoading && (
+          <div className="px-4 h-12 flex items-center">
+            <Loader size="sm" />
           </div>
         )}
-        {searchResults.length > 0 && (
+
+
+        {/* Tabs */}
+        {!!searchResults.length && !searchLoading && (
+          <div className="pl-4 pr-5 h-12 flex items-center">
+            <div className="flex gap-2">
+              {futureEvents().length > 0 && 
+                <Button 
+                  radius="xl"
+                  variant="outline"
+                  size="compact-sm"
+                  className={`transition-colors ${tab === 'future' ? 'bg-blue-50 dark:bg-blue-500/20 border-blue-400 text-blue-600 dark:text-blue-400' : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                  onClick={() => setTab('future')}
+                >
+                  <span>Future </span>
+                  { futureEvents().length > 0 && !searchLoading && <span className="ml-1">({futureEvents().length})</span>}
+                </Button>
+              }
+              {pastEvents().length > 0 && 
+                <Button 
+                  radius="xl"
+                  variant="outline"
+                  size="compact-sm"
+                  className={`transition-colors ${tab === 'past' ? 'bg-blue-50 dark:bg-blue-500/20 border-blue-400 text-blue-600 dark:text-blue-400' : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                  onClick={() => setTab('past')}
+                >
+                  <span>Past </span>
+                  { pastEvents().length > 0 && !searchLoading && <span className="ml-1">({pastEvents().length})</span>}
+                </Button>
+              }
+            </div>
+          </div>
+        )}
+
+        {/* Results */}
+        {tab == 'future' && futureEvents().length > 0 && (
           <div>
-            {searchResults.map((result: any) => (
+            {futureEvents().map((result: any) => (
               <Anchor href={`/local/activities/${result.id}`} className="!no-underline text-gray-800">
                 <div key={result.id} className={cn("px-4 py-2 border-b border-gray-200", result.status == statuses.approved ? "bg-[#d4edda]" : "bg-[#fff5eb]")}>
                   <div className="flex items-center justify-between gap-2">
@@ -192,6 +237,35 @@ export function Header() {
             ))}
           </div>
         )}
+
+        {tab == 'past' && pastEvents().length > 0 && (
+          <div>
+            {pastEvents().map((result: any) => (
+              <Anchor href={`/local/activities/${result.id}`} className="!no-underline text-gray-800">
+                <div key={result.id} className={cn("px-4 py-2 border-b border-gray-200", result.status == statuses.approved ? "bg-[#d4edda]" : "bg-[#fff5eb]")}>
+                  <div className="flex items-center justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <div className={cn("size-2 rounded-full min-w-2 mt-1", result.status == statuses.approved ? "bg-[#4aa15d]" : "bg-[#ffa94d]")}></div>
+                        <Anchor href={`/local/activities/${result.id}`}>{result.activityname}</Anchor>
+                        
+                      </div>
+                      <span className="text-xs">{dayjs.unix(result.timestart).format('DD MMM YY HH:mm')} - {dayjs.unix(result.timeend).format('DD MMM YY HH:mm')}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {result.status < statuses.approved && result.stepname && result.stepname != 'Calendar Approval' && <Pill color="gray.2" className="text-black capitalize">{result.stepname}</Pill>}
+                      {result.campus && <Pill className="capitalize">{result.campus}</Pill>}
+                      <Pill className="capitalize">{result.activitytype}</Pill>
+                      <Avatar size="sm" radius="xl" src={'/local/activities/avatar.php?username=' + result.staffincharge} />
+                    </div>
+                  </div>
+                </div>
+              </Anchor>
+            ))}
+          </div>
+        )}
+
+
       </Modal>
 
           
