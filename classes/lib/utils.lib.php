@@ -586,11 +586,11 @@ class utils_lib {
         $sql = "SELECT id, status
                   FROM mdl_activities
                  WHERE deleted = 0
-                   AND (activityname LIKE ? OR staffincharge LIKE ? OR creator LIKE ?)";
+                   AND (LOWER(activityname) LIKE ? OR staffincharge LIKE ? OR creator LIKE ?)";
         $params = array();
-        $params[] = '%'.$text.'%';
-        $params[] = '%'.$text.'%';
-        $params[] = '%'.$text.'%';
+        $params[] = '%'.strtolower($text).'%';
+        $params[] = '%'.strtolower($text).'%';
+        $params[] = '%'.strtolower($text).'%';
         //echo "<pre>"; var_export($sql); var_export($params); exit;
 
         $records = $DB->get_records_sql($sql, $params);
