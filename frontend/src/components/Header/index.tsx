@@ -13,6 +13,7 @@ export function Header() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [tab, setTab] = useState('future');
 
   const api = useFetch()
@@ -59,6 +60,7 @@ export function Header() {
   // Debounce search function
   useEffect(() => {
     const handler = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
       if (searchQuery.length >= 2) {
         search();
       } else {
@@ -88,6 +90,14 @@ export function Header() {
     const sortedResults = searchResults.sort((a: any, b: any) => dayjs.unix(b.timestart).diff(dayjs.unix(a.timestart)));
     return sortedResults.filter((result: any) => dayjs.unix(result.timestart).isBefore(dayjs()));
   }
+
+  useEffect(() => {
+    if (futureEvents().length > 0) {
+      setTab('future');
+    } else if (pastEvents().length > 0) {
+      setTab('past');
+    }
+  }, [searchResults]);
 
   return (
   <>
@@ -177,6 +187,11 @@ export function Header() {
           </div>
         )}
 
+        {debouncedQuery.length > 2 && searchResults.length == 0 && !searchLoading && (
+          <div className="px-4 h-12 flex items-center">
+            <Text>No results found</Text>
+          </div>
+        )}
 
         {/* Tabs */}
         {!!searchResults.length && !searchLoading && (
