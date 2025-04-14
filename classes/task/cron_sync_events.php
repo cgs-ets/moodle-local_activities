@@ -466,9 +466,9 @@ class cron_sync_events extends \core\task\scheduled_task {
 
             if (empty($events)) {
                 // try to find the event in assessments.
-                $sql = "UPDATE {activities}
+                $sql = "UPDATE {activities_assessments}
                         SET timesynclive = 0
-                        WHERE activityname = ?
+                        WHERE name = ?
                         AND timestart = ?
                         AND timeend = ?"; 
                 $assessments = $DB->get_records_sql($sql, [$event->subject, $event->start_unix, $event->end_unix]);
