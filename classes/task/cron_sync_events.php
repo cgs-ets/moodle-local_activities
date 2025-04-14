@@ -42,13 +42,15 @@ class cron_sync_events extends \core\task\scheduled_task {
         $this->log_start("Looking for events that require sync (modified after last sync).");
         $sql = "SELECT *
                 FROM {activities}
-                WHERE timesynclive < timemodified"; 
+                WHERE timesynclive < timemodified
+                ORDER BY timestart ASC"; 
         $events = $DB->get_records_sql($sql);
 
         $this->log_start("Looking for assessments that require sync (modified after last sync).");
         $sql = "SELECT *
                 FROM {activities_assessments}
-                WHERE timesynclive < timemodified"; 
+                WHERE timesynclive < timemodified
+                ORDER BY timestart ASC"; 
         $rawassessments = $DB->get_records_sql($sql);
 
         // Loop through assessments and structure them like events.
@@ -321,8 +323,8 @@ class cron_sync_events extends \core\task\scheduled_task {
 
             $event->timesynclive = time();
             if ($error) {
-                $event->timesynclive = -1;
-                $this->log("There was an error during sync. Going to attempt to resync this again in the next run", 3);
+                //$event->timesynclive = -1;
+                //$this->log("There was an error during sync. Going to attempt to resync this again in the next run", 3);
             }
             if ($event->activitytype == 'assessment') {
                 $DB->execute('UPDATE {activities_assessments} SET timesynclive = ? WHERE id = ?', [$event->timesynclive, $event->id]);
@@ -331,7 +333,8 @@ class cron_sync_events extends \core\task\scheduled_task {
             }
 
         }
-        $this->log_finish("Finished syncing events.");  
+        $this->log_finish("Finished syncing events.");
+        $this->cleanup_duplicates();
     }
 
     private function make_public_categories($categories) {
@@ -364,6 +367,137 @@ class cron_sync_events extends \core\task\scheduled_task {
     
     public function can_run(): bool {
         return true;
+    }
+
+    
+    private function find_and_log_duplicates() {
+        global $DB;
+
+        $results = graph_lib::getAllEvents('cgs_calendar_ss@cgs.act.edu.au', 1741907042); //March 13, 2025
+    
+        // Array to store events by hash
+        $eventHashes = [];
+    
+        // Array to collect duplicates
+        $duplicates = [];
+    
+        foreach ($results as $event) {
+            $subject = $event->getSubject();
+            $start = $event->getStart()->getDateTime(); // string
+            $end = $event->getEnd()->getDateTime();     // string
+    
+            // Create a unique hash for comparison
+            $hash = md5($subject . '|' . $start . '|' . $end);
+    
+            if (!isset($eventHashes[$hash])) {
+                $eventHashes[$hash] = [$event];
+            } else {
+                // First time we see a duplicate, add the first one to the duplicates list
+                if (count($eventHashes[$hash]) === 1) {
+                    $duplicates[] = $eventHashes[$hash][0]; // original
+                }
+                $duplicates[] = $event; // current duplicate
+                $eventHashes[$hash][] = $event;
+            }
+        }
+
+        $DB->execute('DELETE FROM cgs.DuplicateCalendarEvents');
+        foreach ($duplicates as $event) {
+            $sql = "INSERT INTO cgs.DuplicateCalendarEvents (id, subject, start_unix, end_unix)
+            VALUES (?, ?, ?, ?)";
+
+            $startDateTime = $event->getStart()->getDateTime();
+            if (is_string($startDateTime)) {
+                $datetime = new \DateTime($startDateTime, new \DateTimeZone('UTC')); // Assuming UTC if no timezone info
+            } else if ($startDateTime instanceof \DateTime) {
+                $datetime = clone $startDateTime;
+            } else {
+                throw new Exception("Invalid date/time format");
+            }
+            $startUnix = $datetime->setTimezone(new \DateTimeZone('Australia/Sydney'))->getTimestamp();
+    
+            $endDateTime = $event->getEnd()->getDateTime();
+            if (is_string($endDateTime)) {
+                $datetime = new \DateTime($endDateTime, new \DateTimeZone('UTC')); // Assuming UTC if no timezone info
+            } else if ($endDateTime instanceof \DateTime) {
+                $datetime = clone $endDateTime;
+            } else {
+                throw new Exception("Invalid date/time format");
+            }
+            $endUnix = $datetime->setTimezone(new \DateTimeZone('Australia/Sydney'))->getTimestamp();
+
+            $DB->execute($sql, [
+                $event->getId(),
+                $event->getSubject(),
+                $startUnix,
+                $endUnix
+            ]);
+        }
+        //var_export($duplicates);
+        //exit;
+    }
+
+    private function cleanup_duplicates() {
+        global $DB;
+
+        $sql = "SELECT TOP 50 *
+                FROM cgs.DuplicateCalendarEvents
+                ORDER BY start_unix DESC"; 
+        $duplicates = $DB->get_records_sql($sql);
+
+        // Delete each duplicate
+        foreach ($duplicates as $event) {
+            try {
+                $this->log("Deleting event " . $event->subject . " | " . $event->start_unix);
+                $result = graph_lib::deleteEvent('cgs_calendar_ss@cgs.act.edu.au', $event->id);
+            } catch (\Exception $e) {
+                // Keep on processing.
+            }
+            
+            $DB->execute('DELETE FROM cgs.DuplicateCalendarEvents WHERE id = ?', [$event->id]);
+
+            // Try to find the event in activities.
+            $sql = "UPDATE {activities}
+                    SET timesynclive = 0
+                    WHERE activityname = ?
+                    AND timestart = ?
+                    AND timeend = ?"; 
+            $activities = $DB->get_records_sql($sql, [$event->subject, $event->start_unix, $event->end_unix]);
+
+            if (empty($events)) {
+                // try to find the event in assessments.
+                $sql = "UPDATE {activities}
+                        SET timesynclive = 0
+                        WHERE activityname = ?
+                        AND timestart = ?
+                        AND timeend = ?"; 
+                $assessments = $DB->get_records_sql($sql, [$event->subject, $event->start_unix, $event->end_unix]);
+            }
+
+            // try to find it via the cal sync table.
+            $sql = "UPDATE {activities}
+                    SET timesynclive = 0
+                    WHERE id IN (
+                        SELECT activityid
+                        FROM {activities_cal_sync}
+                        WHERE activitytype = 'activity' 
+                        AND externalid = ?
+                    )"; 
+            $DB->execute($sql, [$event->id]);
+
+            // try to find it via the cal sync table.
+            $sql = "UPDATE {activities_assessments}
+                    SET timesynclive = 0
+                    WHERE id IN (
+                        SELECT activityid
+                        FROM {activities_cal_sync}
+                        WHERE activitytype = 'assessment' 
+                        AND externalid = ?
+                    )"; 
+            $DB->execute($sql, [$event->id]);
+
+
+        }
     }
 
     
