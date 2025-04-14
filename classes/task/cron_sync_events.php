@@ -334,6 +334,7 @@ class cron_sync_events extends \core\task\scheduled_task {
 
         }
         $this->log_finish("Finished syncing events.");
+        //$this->find_and_log_duplicates();
         $this->cleanup_duplicates();
     }
 
@@ -373,7 +374,7 @@ class cron_sync_events extends \core\task\scheduled_task {
     private function find_and_log_duplicates() {
         global $DB;
 
-        $results = graph_lib::getAllEvents('cgs_calendar_ss@cgs.act.edu.au', 1741907042); //March 13, 2025
+        $results = graph_lib::getAllEvents('cgs_cal_planning@cgs.act.edu.au', 1741907042); //March 13, 2025
     
         // Array to store events by hash
         $eventHashes = [];
@@ -449,7 +450,7 @@ class cron_sync_events extends \core\task\scheduled_task {
         foreach ($duplicates as $event) {
             try {
                 $this->log("Deleting event " . $event->subject . " | " . $event->start_unix);
-                $result = graph_lib::deleteEvent('cgs_calendar_ss@cgs.act.edu.au', $event->id);
+                $result = graph_lib::deleteEvent('cgs_cal_planning@cgs.act.edu.au', $event->id);
             } catch (\Exception $e) {
                 // Keep on processing.
             }
