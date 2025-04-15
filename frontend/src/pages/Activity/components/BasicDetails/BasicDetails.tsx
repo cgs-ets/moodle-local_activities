@@ -237,6 +237,7 @@ export function BasicDetails() {
           <Text className="text-sm mb-1 text-gray-500">Information placed here will flow through to the staff and public calendars, please include a brief description, who is attending or is required to attend.</Text>
           <RichTextEditor 
             editor={editor}
+            classNames={{content: 'break-all'}}
             >
               {viewStateProps.editable &&
                 <RichTextEditor.Toolbar sticky className="ml-[1px]">
