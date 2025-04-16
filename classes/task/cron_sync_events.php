@@ -334,8 +334,8 @@ class cron_sync_events extends \core\task\scheduled_task {
 
         }
         $this->log_finish("Finished syncing events.");
-        //$this->find_and_log_duplicates();
-        $this->cleanup_duplicates();
+        $this->find_and_log_duplicates();
+        //$this->cleanup_duplicates();
     }
 
     private function make_public_categories($categories) {
@@ -374,7 +374,7 @@ class cron_sync_events extends \core\task\scheduled_task {
     private function find_and_log_duplicates() {
         global $DB;
 
-        $results = graph_lib::getAllEvents('cgs_cal_planning@cgs.act.edu.au', 1741907042); //March 13, 2025
+        $results = graph_lib::getAllEvents('cgs_cal_planning@cgs.act.edu.au', 1741907042, 'le'); //March 13, 2025
     
         // Array to store events by hash
         $eventHashes = [];

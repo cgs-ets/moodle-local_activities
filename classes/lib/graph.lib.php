@@ -280,14 +280,14 @@ class graph_lib {
         Request and return details: https://learn.microsoft.com/en-us/graph/api/calendar-list-events?view=graph-rest-1.0&tabs=http#example-3-using-filter-and-orderby-to-get-events-in-a-date-time-range-and-including-their-occurrences
         ------
     */
-    public static function getAllEvents($userPrincipalName, $timestamp) {
+    public static function getAllEvents($userPrincipalName, $timestamp, $compare = 'ge') {
         $token = static::getAppOnlyToken();
         $graph = (new Graph())->setAccessToken($token);
     
         $startDateTime = gmdate("Y-m-d\TH:i:s\Z", $timestamp);
     
         $queryParams = [
-            '$filter' => "start/dateTime ge '$startDateTime'",
+            '$filter' => "start/dateTime $compare '$startDateTime'",
             '$orderby' => 'start/dateTime',
             '$top' => 100
         ];
