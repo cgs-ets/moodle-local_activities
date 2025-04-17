@@ -1,6 +1,9 @@
 <?php
     require(__DIR__.'/../../config.php');
-    require_login();
+    // If url is /local/activities/public, then we do not require login.
+    if (!str_contains($_SERVER['REQUEST_URI'], '/local/activities/public') || isloggedin()) {
+        require_login();
+    }
     require_once __DIR__ . '/bootstrap.php';
     require_once(__DIR__.'/classes/lib/service.lib.php');
     require_once(__DIR__.'/classes/lib/utils.lib.php');
@@ -24,6 +27,7 @@
     
     $config->favicon = get_favicon('src/assets/favicon.png');
     $config->logo = get_logo('src/assets/logo.png');
+
 ?>
 <!DOCTYPE html>
 <html lang="en">

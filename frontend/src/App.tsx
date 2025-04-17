@@ -11,51 +11,16 @@ import { Permission } from "./pages/Permission/Permission";
 import { Assessment } from "./pages/Assessment/Assessment";
 import { Assessments } from "./pages/Assessment/Assessments";
 import { Preview } from "./pages/Preview/Preview";
-
+import { Public } from "./pages/Public/Public";
 
 
 function App() { 
-
-  /*const router = createBrowserRouter(
-    [
-      {
-        index: true, // Matches /
-        element: <Dashboard />
-      },
-      {
-        path: "new", // Matches /new
-        element: <EditActivity />,
-      },
-      {
-        path: "assessments", // Matches /assessments
-        element: <Assessments />,
-      },
-      {
-        path: "assessment", // Matches /assessment
-        element: <Assessment />,
-      },
-      {
-        path: "assessment/:id", // Matches /assessment/<number>
-        element: <Assessment />,
-      },
-      {
-        path: ":id", // Matches /<number>
-        element: <EditActivity />,
-      },
-      {
-        path: ":id/permission", // Matches /<number>/permission
-        element: <Permission />,
-      },
-    ],
-    {
-      basename: '/local/activities'
-    }
-  );*/
 
   const router = createBrowserRouter(
     [
       { path: "/", element: <Dashboard /> },
       { path: "/index.php", element: <Dashboard /> },
+      { path: "/public", element: <Public /> },
       { path: "new", element: <EditActivity /> },
       { path: "assessments", element: <Assessments /> },
       { path: "assessment", element: <Assessment /> },

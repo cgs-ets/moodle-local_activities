@@ -10,6 +10,10 @@ use \stdClass;
 
 class service_lib {
 
+    const PUBLIC_FUNCTIONS  = [
+        'get_public_calendar',
+    ];
+
     const PARENT_FUNCTIONS  = [
         'check_login',
         'get_activity_with_permission',
@@ -66,7 +70,7 @@ class service_lib {
             $function = static::service_function_info($function);
 
             // White list parent functions. For all other purposes, this is staff system.
-            if (!in_array($function->methodname, static::PARENT_FUNCTIONS)) {
+            if (!in_array($function->methodname, static::PARENT_FUNCTIONS) && !in_array($function->methodname, static::PUBLIC_FUNCTIONS)) {
                 utils_lib::require_staff();
             }
     
@@ -638,6 +642,10 @@ class service_lib {
      * @return string
      */
     public static function get_user_roles($username) {
+        // if user not logged in, then return empty array.
+        if (!isloggedin()) {
+            return [];
+        }
         $user = \core_user::get_user_by_username($username);
         profile_load_custom_fields($user);
         $campusroles = explode(',', strtolower($user->profile['CampusRoles']));

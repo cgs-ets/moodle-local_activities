@@ -689,6 +689,41 @@ class activities_lib {
         return $activities;
     }
 
+     /**
+     * Public events!
+     *
+     * @param array $args
+     * @return array
+     */
+    public static function get_for_public_calendar($args) {
+        global $DB;
+
+        $start = strtotime($args->scope->start . " 00:00:00");
+        $end = strtotime($args->scope->end . " 00:00:00");
+        $end += 86400; //add a day
+
+        // Get all public activities that are approved or in review and have pushpublic set to 1.
+        $sql = "SELECT id 
+                FROM mdl_activities
+                WHERE deleted = 0
+                AND displaypublic = 1
+                AND (status = " . static::ACTIVITY_STATUS_APPROVED . " OR (status = " . static::ACTIVITY_STATUS_INREVIEW . " AND pushpublic = 1))
+                AND (
+                    (timestart >= ? AND timestart <= ?) OR 
+                    (timeend >= ? AND timeend <= ?) OR
+                    (timestart < ? AND timeend > ?)
+                )
+                ORDER BY timestart ASC";
+        $records = $DB->get_records_sql($sql, [$start, $end, $start, $end, $start, $end]);
+        $activities = array();
+        foreach ($records as $record) {
+            $activity = new Activity($record->id);
+            $activities[] = $activity->export_minimal();
+        }
+
+        return $activities;
+    }
+
 
     /*
     * get_involvement
