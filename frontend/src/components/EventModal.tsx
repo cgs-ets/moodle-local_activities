@@ -2,18 +2,19 @@
 import { Avatar, Badge, Button, Flex, Modal, Text, UnstyledButton } from '@mantine/core';
 import { IconChecklist, IconSettings, IconUser } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
-import { Form } from '../../../stores/formStore';
-import { statuses } from '../../../utils';
+import { Form } from '../stores/formStore';
+import { statuses } from '../utils';
 import { ActivityDetails } from './ActivityDetails';
-import { cn } from '../../../utils/utils';
+import { cn } from '../utils/utils';
 
 type Props = {
   activity: Form|null;
   close: () => void;
   hideOpenButton?: boolean;
+  isPublic?: boolean;
 }
 
-export function EventModal({activity, close, hideOpenButton}: Props) {
+export function EventModal({activity, close, hideOpenButton, isPublic}: Props) {
   
   if (!activity) {
     return null
@@ -33,21 +34,26 @@ export function EventModal({activity, close, hideOpenButton}: Props) {
             <Modal.Header>
               <Modal.Title>
                 <div className='flex items-center gap-4'>
-                  <Text fz="xl" fw={600}>{activity.activityname}</Text>
-                  { activity.status == statuses.approved
-                    ? <Badge color='apprgreen.2' className='text-black normal-case'>Approved</Badge>
-                    : activity.status == statuses.saved 
+                  <Text fz="xl" fw={600} className="first-letter:uppercase">{activity.activityname}</Text>
+                  { !isPublic &&
+                    <>
+                      { activity.status == statuses.approved
+                        ? <Badge color='apprgreen.2' className='text-black normal-case'>Approved</Badge>
+                        : activity.status == statuses.saved 
                       ? <Badge color='gray.2' className='text-black normal-case'>Draft</Badge>
-                      : <Badge color='orange.1' className='text-black normal-case'>Pending - {activity.stepname}</Badge>
+                        : <Badge color='orange.1' className='text-black normal-case'>Pending - {activity.stepname}</Badge>
+                      }
+                    </>
                   }
                 </div>
               </Modal.Title>
               <Modal.CloseButton mt={-15} />
             </Modal.Header>
             <Modal.Body p={0}>
-              <ActivityDetails activity={activity} />
 
-              { activity.stupermissions && activity.stupermissions.length > 0 &&
+              <ActivityDetails activity={activity} isPublic={!!isPublic} />
+
+              { !isPublic && activity.stupermissions && activity.stupermissions.length > 0 &&
                 <div className='p-4 border-t flex items-center gap-2'>
                   <UnstyledButton component={Link} to={`/${activity.id}/permission`}>
                     <Avatar.Group className="cursor-pointer">
@@ -75,7 +81,7 @@ export function EventModal({activity, close, hideOpenButton}: Props) {
                 </div>
               }
 
-              { !hideOpenButton && 
+              { !hideOpenButton && !isPublic &&
                 <Flex className='mt-3 gap-2 justify-between p-3 pt-0'>
                   <div></div>
                   <Link to={"/" + activity.id}><Button radius="lg" size="compact-md" variant="filled" leftSection={<IconSettings className='size-4' />}>Open</Button></Link> 

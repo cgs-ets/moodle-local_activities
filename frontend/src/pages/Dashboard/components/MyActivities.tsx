@@ -7,7 +7,7 @@ import { getConfig, statuses } from '../../../utils';
 import { cn } from '../../../utils/utils';
 import { IconChecklist, IconUser } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
-import { EventModal } from './EventModal';
+import { EventModal } from '../../../components/EventModal';
 
 
 

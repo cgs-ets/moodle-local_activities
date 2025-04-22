@@ -4,7 +4,6 @@ import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
 import useFetch from "../../../hooks/useFetch";
 import { CalendarTease } from "./CalendarTease";
-import { EventModal } from "./EventModal";
 import { Form } from "../../../stores/formStore";
 import { useSearchParams } from "react-router-dom";
 import { FilterModal } from "./FilterModal";
@@ -12,7 +11,8 @@ import { useDisclosure } from "@mantine/hooks";
 import { User } from "../../../types/types";
 import { useFilterStore } from "../../../stores/filterStore";
 import { getTermFromMonth } from "../../../utils/utils";
-import { statuses } from "../../../utils";
+import { getConfig, statuses } from "../../../utils";
+import { EventModal } from "../../../components/EventModal";
 
 type MoYear = {
   month: string,
@@ -314,7 +314,7 @@ export function Calendar({setCaltype}: Props) {
           </table>
         </div>
         
-        <EventModal activity={selectedEvent} close={() => setSelectedEvent(null)} />
+        <EventModal activity={selectedEvent} close={() => setSelectedEvent(null)} hideOpenButton={!getConfig().roles?.includes("staff")} />
 
         <FilterModal opened={filterOpened} filters={filters} setFilters={setFilters} close={() => closeFilter()} />
 

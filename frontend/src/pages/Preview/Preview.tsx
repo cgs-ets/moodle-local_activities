@@ -2,8 +2,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import useFetch from "../../hooks/useFetch";
 import { useEffect, useState } from "react";
 import { Form } from "../../stores/formStore";
-import { EventModal } from "../Dashboard/components/EventModal";
 import { getConfig } from "../../utils";
+import { EventModal } from "../../components/EventModal";
 
 export function Preview() {
   let { id } = useParams();

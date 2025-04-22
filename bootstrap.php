@@ -15,10 +15,9 @@ function get_favicon(string $entry): string
 {
     $activitiesconfig = get_config('local_activities');
     if (!empty($activitiesconfig->favicon)) {
-        $favicon = 'data:image/x-icon;base64,' . $activitiesconfig->favicon;
+        $favicon = $activitiesconfig->favicon;
     } else {
         // Default activities favicon.
-
         $manifest = getManifest();
         $src = isDev($entry)
             ? HOST . PLUGIN_DIR . "/frontend/" . $entry

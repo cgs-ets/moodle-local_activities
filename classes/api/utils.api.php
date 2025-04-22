@@ -140,4 +140,14 @@ trait utils_api {
         $query = required_param('query', PARAM_RAW);
         return utils_lib::search($query);
     }
+
+    /**
+     * Search public
+     *
+     * @return array.
+     */
+    static public function search_public() {
+        $query = required_param('query', PARAM_RAW);
+        return utils_lib::search_public($query);
+    }
 }

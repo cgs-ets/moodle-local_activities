@@ -3,7 +3,6 @@ import { IconAdjustments, IconArrowNarrowLeft, IconArrowNarrowRight, IconCalenda
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
 import useFetch from "../../../hooks/useFetch";
-import { EventModal } from "./EventModal";
 import { Form } from "../../../stores/formStore";
 import { useSearchParams } from "react-router-dom";
 import { FilterModal } from "./FilterModal";
@@ -13,6 +12,7 @@ import { ListTease } from "./ListTease";
 import { User } from "../../../types/types";
 import { getMonthFromTerm, getTermFromMonth, isCalReviewer } from "../../../utils/utils";
 import { statuses } from "../../../utils";
+import { EventModal } from "../../../components/EventModal";
 
 type TermYear = {
   term: string,

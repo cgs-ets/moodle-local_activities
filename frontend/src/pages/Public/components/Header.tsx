@@ -6,6 +6,7 @@ import useFetch from "../../../hooks/useFetch";
 import dayjs from "dayjs";
 import { cn } from "../../../utils/utils";
 import { useEffect, useState } from "react";
+import { EventModal } from "../../../components/EventModal";
 
 export function Header() {
   const [searchOpened, setSearchOpened] = useState(false);
@@ -14,6 +15,7 @@ export function Header() {
   const [searchResults, setSearchResults] = useState([]);
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [tab, setTab] = useState('future');
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
   const api = useFetch()
 
@@ -26,10 +28,10 @@ export function Header() {
       // Call the search API
       const res = await api.call({
         query: {
-          methodname: 'local_activities-search',
+          methodname: 'local_activities-search_public',
           query: searchQuery,
         },
-      });
+      }, getConfig().wwwroot + '/local/activities/service-public.php')
 
       setSearchResults(res.data);
       
@@ -88,9 +90,9 @@ export function Header() {
       <div className="px-6">
         <Group h={54} justify="space-between">
           <Group gap="md">
-            <Link to="/" style={{ textDecoration: 'none' }}>
-              <Text className="text-lg font-semibold" c={getConfig().headerfg}>{getConfig().toolname}</Text>
-            </Link>
+            <a href="/" className="no-underline">
+              <Text className="text-lg font-semibold" c={getConfig().headerfg}>CGS Calendar</Text>
+            </a>
           </Group>
           <div className="flex items-center gap-4">
 
@@ -227,26 +229,21 @@ export function Header() {
         {tab == 'past' && pastEvents().length > 0 && (
           <div>
             {pastEvents().map((result: any) => (
-              <Anchor href={`/local/activities/${result.id}`} className="!no-underline text-gray-800">
-                <div key={result.id} className={cn("px-4 py-2 border-b border-gray-200", result.status == statuses.approved ? "bg-[#d4edda]" : "bg-[#fff5eb]")}>
+              <div className="!no-underline text-gray-800" onClick={() => setSelectedEvent(result)}>
+                <div key={result.id} className={cn("px-4 py-2 border-b border-gray-200")}>
                   <div className="flex items-center justify-between gap-2">
                     <div>
                       <div className="flex items-center gap-2">
-                        <div className={cn("size-2 rounded-full min-w-2 mt-1", result.status == statuses.approved ? "bg-[#4aa15d]" : "bg-[#ffa94d]")}></div>
-                        <Anchor href={`/local/activities/${result.id}`}>{result.activityname}</Anchor>
-                        
+                        <Anchor className="first-letter:capitalize" onClick={() => setSelectedEvent(result)}>{result.activityname}</Anchor>
                       </div>
                       <span className="text-xs">{dayjs.unix(result.timestart).format('DD MMM YY HH:mm')} - {dayjs.unix(result.timeend).format('DD MMM YY HH:mm')}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      {result.status < statuses.approved && result.stepname && result.stepname != 'Calendar Approval' && <Pill color="gray.2" className="text-black capitalize">{result.stepname}</Pill>}
                       {result.campus && <Pill className="capitalize">{result.campus}</Pill>}
-                      <Pill className="capitalize">{result.activitytype}</Pill>
-                      <Avatar size="sm" radius="xl" src={'/local/activities/avatar.php?username=' + result.staffincharge} />
                     </div>
                   </div>
                 </div>
-              </Anchor>
+              </div>
             ))}
           </div>
         )}
@@ -254,7 +251,9 @@ export function Header() {
 
       </Modal>
 
-          
+      <EventModal activity={selectedEvent} close={() => setSelectedEvent(null)} isPublic={true} />
+
+
       
     </Box>
   </>

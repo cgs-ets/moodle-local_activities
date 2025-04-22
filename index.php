@@ -25,7 +25,7 @@
     $config->loginUrl = (new moodle_url('/login/index.php'))->out();
     $config->logoutUrl = (new moodle_url('/login/logout.php', ['sesskey' => $config->sesskey]))->out();
     
-    $config->favicon = get_favicon('src/assets/favicon.png');
+    $config->favicon = get_favicon('src/assets/favicon.ico');
     $config->logo = get_logo('src/assets/logo.png');
 
 ?>

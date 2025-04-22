@@ -607,4 +607,32 @@ class utils_lib {
 
         return $activities;
     }
+
+
+    public static function search_public($text) {
+        global $DB;
+
+        $sql = "SELECT id, status
+                  FROM mdl_activities
+                 WHERE deleted = 0
+                   AND displaypublic = 1
+                   AND (status = " . activities_lib::ACTIVITY_STATUS_APPROVED . " OR (status = " . activities_lib::ACTIVITY_STATUS_INREVIEW . " AND pushpublic = 1))
+                   AND (LOWER(activityname) LIKE ? OR staffincharge LIKE ? OR creator LIKE ?)
+                ORDER BY timestart ASC";
+        $params = array();
+        $params[] = '%'.strtolower($text).'%';
+        $params[] = '%'.strtolower($text).'%';
+        $params[] = '%'.strtolower($text).'%';
+        //echo "<pre>"; var_export($sql); var_export($params); exit;
+
+        $records = $DB->get_records_sql($sql, $params);
+        $activities = array();
+        foreach ($records as $record) {
+            $activity = new Activity($record->id);
+            $exported = $activity->export_minimal();
+            $activities[] = $exported;
+        }
+
+        return $activities;
+    }
 }

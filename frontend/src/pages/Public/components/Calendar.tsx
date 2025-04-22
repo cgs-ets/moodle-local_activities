@@ -3,16 +3,15 @@ import { IconAdjustments, IconArrowNarrowLeft, IconArrowNarrowRight, IconCalenda
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
 import useFetch from "../../../hooks/useFetch";
-//import { EventModal } from "./EventModal";
 import { Form } from "../../../stores/formStore";
 import { useSearchParams } from "react-router-dom";
-//import { FilterModal } from "./FilterModal";
 import { useDisclosure } from "@mantine/hooks";
 import { User } from "../../../types/types";
 import { useFilterStore } from "../../../stores/filterStore";
 import { getTermFromMonth } from "../../../utils/utils";
 import { getConfig, statuses } from "../../../utils";
 import { CalendarTease } from "./CalendarTease";
+import { EventModal } from "../../../components/EventModal";
 
 type MoYear = {
   month: string,
@@ -210,7 +209,7 @@ export function Calendar({setCaltype}: Props) {
     <div>
 
       <div>
-        <div className="p-3 w-full flex justify-between items-center">
+        <div className="p-3 w-full flex justify-between items-center bg-gray-100 mb-8">
           <ActionIcon onClick={() => handleNav(-1)} variant="subtle" size="lg"><IconArrowNarrowLeft className="size-7" /></ActionIcon>
           
           <div className="text-xl font-semibold flex gap-2 items-center">
@@ -280,7 +279,7 @@ export function Calendar({setCaltype}: Props) {
         
         <div className="relative">
           <LoadingOverlay visible={loading} p={100} />
-          <table className="ev-calendar full-calendar">
+          <table className="ev-calendar full-calendar    m-auto max-w-screen-2xl">
             <thead>
               <tr className="days-names">
                 {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map((weekday) => <td key={weekday}>{weekday}</td>)}
@@ -314,7 +313,7 @@ export function Calendar({setCaltype}: Props) {
           </table>
         </div>
         
-        {/*<EventModal activity={selectedEvent} close={() => setSelectedEvent(null)} />*/}
+        <EventModal activity={selectedEvent} close={() => setSelectedEvent(null)} isPublic={true} />
 
         {/*<FilterModal opened={filterOpened} filters={filters} setFilters={setFilters} close={() => closeFilter()} />*/}
 
