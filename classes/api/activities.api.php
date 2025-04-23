@@ -36,8 +36,17 @@ trait activities_api {
         $id = required_param('id', PARAM_INT);
         return activities_lib::get_activity_with_permission($id);
     }
-    
 
+    /**
+     * Get activity for public activity page by id.
+     *
+     * @return array
+     */
+    static public function get_public_activity() {
+        $id = required_param('id', PARAM_INT);
+        return activities_lib::get_public_activity($id);
+    }
+    
     /**
      * Create/edit activity data from posted form.
      *

@@ -107,6 +107,29 @@ class activities_lib {
     }
 
     /**
+     * Get an activity for public calendar preview page
+     *
+     * @param int $id activity id
+     * @return array
+     */
+    public static function get_public_activity($id) {
+        global $USER;
+        $exported = null;
+        $activity = new Activity($id);
+
+        if ($activity->get('displaypublic') && 
+            ($activity->get('status') == static::ACTIVITY_STATUS_APPROVED || 
+             ($activity->get('status') == static::ACTIVITY_STATUS_INREVIEW && $activity->get('pushpublic'))
+            )
+        ) {
+            $exported = $activity->export_minimal();
+        }
+
+        return $exported;
+    }
+    
+
+    /**
      * Get and decorate the data.
      *
      * @param array $rec activity record

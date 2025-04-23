@@ -1,22 +1,21 @@
 
-import { Avatar, Badge, Button, Flex, Modal, Text, UnstyledButton } from '@mantine/core';
+import { Avatar, Button, Flex, Modal, Text, UnstyledButton } from '@mantine/core';
 import { IconChecklist, IconSettings, IconUser } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 import { Form } from '../stores/formStore';
-import { statuses } from '../utils';
 import { ActivityDetails } from './ActivityDetails';
 import { cn } from '../utils/utils';
 import DownloadIcalButton from './DownloadIcalButton';
-import { Header } from '../pages/Public/components/Header';
+import { Header as PublicHeader } from '../pages/Public/components/Header';
+import { Header as PrivateHeader } from '../components/Header';
 
 type Props = {
   activity: Form|null;
-  close: () => void;
   hideOpenButton?: boolean;
   isPublic?: boolean;
 }
 
-export function EventModal({activity, close, hideOpenButton, isPublic}: Props) {
+export function EventPreview({activity, hideOpenButton, isPublic}: Props) {
   
   if (!activity) {
     return null
@@ -24,41 +23,35 @@ export function EventModal({activity, close, hideOpenButton, isPublic}: Props) {
 
   return (
     <>
+      { isPublic
+        ? <PublicHeader />
+        : <PrivateHeader />
+      }
+
       <Modal.Root 
         opened={true} 
-        onClose={() => {
-          close()
-        }} 
+        onClose={() => {}} 
         size="xl"
         styles={{
           content: {
-            marginTop: '40px',
+            marginTop: '55px',
           },
+          inner: {
+            zIndex: 1,
+          }
         }}
       >
-        <Modal.Overlay />
+  
         <Modal.Content pos="relative" mih={200}>
           <>
             <Modal.Header>
-              <Modal.Title>
-                <div className='flex items-center gap-4'>
+              <Modal.Title className='w-full'>
+                <div className='flex items-center justify-between gap-4'>
                   <Text fz="xl" fw={600} className="first-letter:uppercase">{activity.activityname}</Text>
-
-                  { !isPublic &&
-                    <>
-                      { activity.status == statuses.approved
-                        ? <Badge color='apprgreen.2' className='text-black normal-case'>Approved</Badge>
-                        : activity.status == statuses.saved 
-                      ? <Badge color='gray.2' className='text-black normal-case'>Draft</Badge>
-                        : <Badge color='orange.1' className='text-black normal-case'>Pending - {activity.stepname}</Badge>
-                      }
-                    </>
-                  }
-
                   <DownloadIcalButton events={[activity]} isPublic={!!isPublic} />
                 </div>
               </Modal.Title>
-              <Modal.CloseButton mt={-15} />
+
             </Modal.Header>
             <Modal.Body p={0}>
 
@@ -92,7 +85,7 @@ export function EventModal({activity, close, hideOpenButton, isPublic}: Props) {
                 </div>
               }
 
-              { !hideOpenButton && !isPublic &&
+              { !hideOpenButton &&
                 <Flex className='mt-3 gap-2 justify-between p-3 pt-0'>
                   <div></div>
                   <Link to={"/" + activity.id}><Button radius="lg" size="compact-md" variant="filled" leftSection={<IconSettings className='size-4' />}>Open</Button></Link> 

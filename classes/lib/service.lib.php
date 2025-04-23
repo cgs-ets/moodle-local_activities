@@ -13,6 +13,7 @@ class service_lib {
     const PUBLIC_FUNCTIONS  = [
         'get_public_calendar',
         'search_public',
+        'get_public_activity',
     ];
 
     const PARENT_FUNCTIONS  = [

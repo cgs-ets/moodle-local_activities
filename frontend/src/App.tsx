@@ -12,6 +12,7 @@ import { Assessment } from "./pages/Assessment/Assessment";
 import { Assessments } from "./pages/Assessment/Assessments";
 import { Preview } from "./pages/Preview/Preview";
 import { Public } from "./pages/Public/Public";
+import { PublicSingle } from "./pages/Public/PublicSingle";
 
 
 function App() { 
@@ -21,6 +22,7 @@ function App() {
       { path: "/", element: <Dashboard /> },
       { path: "/index.php", element: <Dashboard /> },
       { path: "/public", element: <Public /> },
+      { path: "/public/:id", element: <PublicSingle /> },
       { path: "new", element: <EditActivity /> },
       { path: "assessments", element: <Assessments /> },
       { path: "assessment", element: <Assessment /> },
