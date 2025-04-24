@@ -134,8 +134,8 @@ export function Calendar({setCaltype}: Props) {
   const goToToday = () => {
     setSearchParams(params => {
       params.set("year", dayjs().format("YYYY"));
-      params.set("month", dayjs().format("MM"));
-      params.set("term", getTermFromMonth(dayjs().format("MM"), dayjs().format("YYYY")).toString());
+      params.set("month", dayjs().format("M"));
+      params.set("term", getTermFromMonth(dayjs().format("M"), dayjs().format("YYYY")).toString());
       return params;
     });
   }

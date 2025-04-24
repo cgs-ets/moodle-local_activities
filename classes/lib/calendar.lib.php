@@ -381,7 +381,11 @@ class calendar_lib {
         
         //$events = Events::get($events_args);
         //var_export($events_args); exit;
-		$events = activities_lib::get_for_staff_calendar(json_decode(json_encode($events_args, JSON_FORCE_OBJECT)));
+        if (isset($args['access']) && $args['access'] == 'public') {
+            $events = activities_lib::get_for_public_calendar(json_decode(json_encode($events_args, JSON_FORCE_OBJECT)));
+        } else {
+            $events = activities_lib::get_for_staff_calendar(json_decode(json_encode($events_args, JSON_FORCE_OBJECT)));
+        }
 
 		if (empty($events)) {
 			return $events_array;

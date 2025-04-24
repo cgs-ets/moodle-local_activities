@@ -39,21 +39,7 @@ export function Calendar({setCaltype}: Props) {
   
   const getCalendarAPI = useFetch()
 
-  const [calendar, setCalendar] = useState<any>({
-    cells: []
-  })
-
-  const [selectedEvent, setSelectedEvent] = useState<Form|null>(null)
-
-  // If search params change, update the date.
-  useEffect(() => {
-    setDate({
-      month: searchParams.get('month') || dayjs().format("M"), 
-      year: searchParams.get('year') || dayjs().format("YYYY"), 
-    })
-  }, [searchParams]);
-
-
+  
   // If the date changes, get calendar.
   useEffect(() => {
     if (date && date.month && date.year) {
@@ -76,6 +62,20 @@ export function Calendar({setCaltype}: Props) {
     setCalendar(adapted)
     stopLoading()
   }
+
+  const [calendar, setCalendar] = useState<any>({
+    cells: []
+  })
+
+  const [selectedEvent, setSelectedEvent] = useState<Form|null>(null)
+
+  // If search params change, update the date.
+  useEffect(() => {
+    setDate({
+      month: searchParams.get('month') || dayjs().format("M"), 
+      year: searchParams.get('year') || dayjs().format("YYYY"), 
+    })
+  }, [searchParams]);
 
   const splitCells = (cells: Record<string, any>) => {
     const keys = Object.keys(cells);
@@ -135,8 +135,8 @@ export function Calendar({setCaltype}: Props) {
   const goToToday = () => {
     setSearchParams(params => {
       params.set("year", dayjs().format("YYYY"));
-      params.set("month", dayjs().format("MM"));
-      params.set("term", getTermFromMonth(dayjs().format("MM"), dayjs().format("YYYY")).toString());
+      params.set("month", dayjs().format("M"));
+      params.set("term", getTermFromMonth(dayjs().format("M"), dayjs().format("YYYY")).toString());
       return params;
     });
   }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Container, Grid } from "@mantine/core";
-//import { List } from "./components/List";
+import { List } from "./components/List";
 import { useSearchParams } from "react-router-dom";
 import { Calendar } from "./components/Calendar";
 import { Header } from "./components/Header";
@@ -37,7 +37,7 @@ export function Public() {
               <Grid.Col span={{ base: 12, lg: 9 }} className="border-r min-h-screen bg-white pb-6">
                 { caltype == 'calendar'
                   ? <Calendar setCaltype={setCaltype} />
-                  : <div>List</div>
+                  : <List setCaltype={setCaltype} />
                 }
             </Grid.Col>
           </Grid>
