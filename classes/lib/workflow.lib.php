@@ -36,7 +36,7 @@ class workflow_lib extends \local_activities\local_activities_config {
         
         $config = get_config('local_activities');
         if (empty($config->dbhost ?? '') || empty($config->dbuser ?? '') || empty($config->dbname ?? '')) {
-            return null;
+            return [];
         }
         try {
             $externalDB = \moodle_database::get_driver_instance($config->dbtype, 'native', true);
@@ -102,16 +102,16 @@ class workflow_lib extends \local_activities\local_activities_config {
             switch ($campus) {
                 case 'senior': {
                     // Senior School - 1st approver.
-                    //$approvals[] = static::get_approval_clone('senior_hod', 1, $activityid);
+                    $approvals[] = static::get_approval_clone('senior_hod', 1, $activityid);
 
                     // Senior School - 2nd approver.
-                    $approvals[] = static::get_approval_clone('senior_ra', 1, $activityid);
+                    $approvals[] = static::get_approval_clone('senior_ra', 2, $activityid);
 
                     // Senior School - 3st approver.
-                    $approvals[] = static::get_approval_clone('senior_admin', 2, $activityid);
+                    $approvals[] = static::get_approval_clone('senior_admin', 3, $activityid);
 
                     // Senior School - 4th approver.
-                    $approvals[] = static::get_approval_clone('senior_hoss', 3, $activityid);
+                    $approvals[] = static::get_approval_clone('senior_hoss', 4, $activityid);
                     break;
                 }
                 case 'primary': {
@@ -880,10 +880,12 @@ class workflow_lib extends \local_activities\local_activities_config {
             if (isset($type['fromsqlproc']) && $type['fromsqlproc']) {
                 // Run the SQL proc to get the approvers.
                 $approvers = static::get_approvers_from_proc($code);
-                foreach ($approvers as $approver) {
-                    if ($approver['username'] == $username) {
-                        $types[] = $code;
-                        break;
+                if (is_array($approvers)) {
+                    foreach ($approvers as $approver) {
+                        if ($approver['username'] == $username) {
+                            $types[] = $code;
+                            break;
+                        }
                     }
                 }
             }

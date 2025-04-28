@@ -16,6 +16,8 @@ export function Approval({
   activityid: number,
 }) {
 
+  console.log("approval", approval)
+
   if (!approval) {
     return null
   }
@@ -132,7 +134,11 @@ export function Approval({
           ? "bg-[#d4edda]" 
           : approval.skip == '1' 
             ? "bg-gray-200" 
-            : approval.status == "0" ? "bg-[#ffe8cc]" : ""
+            : approval.status == "0" 
+              ? approval.canapprove
+                ? "border-b border-orange-500 bg-[#ffc885]"
+                : "bg-[#ffe8cc]" 
+              : "",
         )
       }
     >
@@ -142,14 +148,14 @@ export function Approval({
           ? approval.nominated
             ? <div className="flex gap-1 items-center">
                 <Avatar onClick={open} className="cursor-pointer" alt="Nominated approver" title="Nominated approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.nominated} radius="xl"><IconUser /></Avatar> 
-                {approval.description}
+                {approval.approvers[approval.nominated].fullname} ({approval.description})
                 <ActionIcon variant="transparent"><IconPencil onClick={() => unsetNominated(approval.id)} className="size-4" /></ActionIcon>
               </div>
             : <div className="flex gap-2 items-center">
                 <Select
                   size="xs"
                   placeholder={approval.description}
-                  value={approval.tempnominated ? approval.tempnominated : approval.nominated}
+                  value={approval.tempnominated ? approval.tempnominated : approval.currentnominated}
                   onChange={(value) => updateNominated(approval.id, value)}
                   data={Object.keys(approval.approvers).map((a: any) => ({value: approval.approvers[a].username, label: approval.approvers[a].fullname}))}
                   className="flex-1"
@@ -189,6 +195,12 @@ export function Approval({
           <Switch
             checked={approval.status == "1"}
             onChange={(event) => onApprove(approval.id, event.currentTarget.checked)}
+            styles={{
+              track: {
+                backgroundColor: approval.status == "1" ? "#ffc885" : "#dee2e6",
+                border: '1px solid #eeb774',
+              },
+            }}
           />
         }
       </div>
