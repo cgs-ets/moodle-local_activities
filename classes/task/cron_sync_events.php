@@ -334,7 +334,7 @@ class cron_sync_events extends \core\task\scheduled_task {
 
         }
         $this->log_finish("Finished syncing events.");
-        $this->find_and_log_duplicates();
+        //$this->find_and_log_duplicates();
         //$this->cleanup_duplicates();
     }
 
