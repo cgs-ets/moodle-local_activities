@@ -197,7 +197,7 @@ export function Approval({
             onChange={(event) => onApprove(approval.id, event.currentTarget.checked)}
             styles={{
               track: {
-                backgroundColor: approval.status == "1" ? "#ffc885" : "#dee2e6",
+                //backgroundColor: approval.status == "1" ? "#ffc885" : "#dee2e6",
                 border: '1px solid #eeb774',
               },
             }}
