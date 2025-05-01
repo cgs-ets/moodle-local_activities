@@ -561,6 +561,20 @@ class Activity {
         // Check if this activity is linked to an assessment.
         $assessmentid = $DB->get_field('activities_assessments', 'id', array('activityid' => $this->data->id));
 
+        // If permissions are enabled, check if a permission email has been sent yet.
+        $permissionsent = false;
+        if ($this->data->permissions == 1) {
+            $sql = "SELECT 1
+                    FROM {activities_emails}
+                    WHERE activityid = ?
+                    AND includes LIKE '%permissions%'";
+            $params = array($this->data->id);   
+            $permissionemail = $DB->get_record_sql($sql, $params);
+            if ($permissionemail) {
+                $permissionsent = true;
+            }
+        }
+
     	return [
             'manageurl' => $manageurl->out(false),
             'permissionsurl' => $permissionsurl->out(false),
@@ -580,6 +594,7 @@ class Activity {
             'endreadabletime' => $endreadabletime,
             //'isallday' => ( date('H:i', $this->data->timestart) == '00:00' && date('H:i', $this->data->timeend) == '23:59'),
             'assessmentid' => $assessmentid,
+            'permissionsent' => $permissionsent,
 	    ];
     }
 

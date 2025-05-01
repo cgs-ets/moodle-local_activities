@@ -1,7 +1,7 @@
 
 import { Box, Button, Flex, Modal, Text, Textarea, Transition } from '@mantine/core';
 import { useStateStore } from '../../../../stores/stateStore';
-import { useFormStore } from '../../../../stores/formStore';
+import { Form, useFormStore } from '../../../../stores/formStore';
 import { IconCheck, IconMail, IconMailOpened, IconSend } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import { useAjax } from '../../../../hooks/useAjax';
@@ -16,6 +16,7 @@ export function PermissionsEmailModal({opened, close} : {opened: boolean, close:
   const [submitResponse, submitError, submitLoading, submitAjax, setSubmitData] = useAjax(); // destructure state and fetch function
   const [showSuccess, setShowSuccess] = useState(false)
   const {start, clear} = useTimeout(() => close(), 3000);
+  const setFormData = useFormStore((state) => state.setState)
 
   const changesWarning = (
     <div className='p-5 text-base'>You must save changes to student list before you may send messages.</div>
@@ -47,6 +48,7 @@ export function PermissionsEmailModal({opened, close} : {opened: boolean, close:
     if (!submitError && submitResponse) {
       setShowSuccess(true)
       start()
+      setFormData({permissionsent: true} as Form)
     }
   }, [submitResponse])
 

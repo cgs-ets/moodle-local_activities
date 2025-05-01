@@ -28,19 +28,19 @@ const DownloadIcalButton: React.FC<DownloadIcalButtonProps> = ({ events, isPubli
     // Basic iCal headers
     let icalContent = [
       'BEGIN:VCALENDAR',
-      'PRODID:https://calendar.cgs.act.edu.au',
+      `PRODID:${getConfig().wwwroot}/local/activities/public`,
       'VERSION:2.0',
       'METHOD:PUBLISH',
       'BEGIN:VTIMEZONE',
       'TZID:AUS Eastern Standard Time',
       'BEGIN:STANDARD',
-      'DTSTART:16010401T030000',
+      `DTSTART:${formatUnixTimestampToIcal(Math.floor(Date.now() / 1000))}`, //Today's date
       'RRULE:FREQ=YEARLY;BYDAY=1SU;BYMONTH=4',
       'TZOFFSETFROM:+1100',
       'TZOFFSETTO:+1000',
       'END:STANDARD',
       'BEGIN:DAYLIGHT',
-      'DTSTART:16011007T020000',
+      `DTSTART:${formatUnixTimestampToIcal(Math.floor(Date.now() / 1000))}`, //Today's date
       'RRULE:FREQ=YEARLY;BYDAY=1SU;BYMONTH=10',
       'TZOFFSETFROM:+1000',
       'TZOFFSETTO:+1100',
@@ -50,17 +50,20 @@ const DownloadIcalButton: React.FC<DownloadIcalButtonProps> = ({ events, isPubli
 
     // Add events
     events.forEach((event: Form) => {
+      const description = stripHtml(event.description ?? '')
+      const url = `${getConfig().wwwroot}/local/activities${isPublic ? '/public' : ''}/${event.id}`;
+
       icalContent += '\r\n' + [
         'BEGIN:VEVENT',
-        `UID:${event.id}@calendar.cgs.act.edu.au`,
+        `UID:${url}`,
         `DTSTART;TZID="AUS Eastern Standard Time":${formatUnixTimestampToIcal(event.timestart)}`,
         `DTEND;TZID="AUS Eastern Standard Time":${formatUnixTimestampToIcal(event.timeend)}`,
         `DTSTAMP:${formatUnixTimestampToIcal(Math.floor(Date.now() / 1000))}`,
         'PRIORITY:5',
         'SEQUENCE:0',
         `SUMMARY;LANGUAGE=en-au:${event.activityname.trim()}`,
-        `URL:${ isPublic ? `${getConfig().wwwroot}/local/activities/public/${event.id}` : `${getConfig().wwwroot}/local/activities/${event.id}`}`,
-        `DESCRIPTION:View more at: ${ isPublic ? `${getConfig().wwwroot}/local/activities/public/${event.id}` : `${getConfig().wwwroot}/local/activities/${event.id}`}`,
+        `URL:${url}`,
+        `DESCRIPTION:${description} \\n\\nView more at: ${url}`,
         `CATEGORIES:${ JSON.parse(event.areasjson ?? '[]')?.map((area: string) => area).join(',') }`,
         `LOCATION:${event.location ? event.location.trim() : ''}`,
         'END:VEVENT',
@@ -70,6 +73,12 @@ const DownloadIcalButton: React.FC<DownloadIcalButtonProps> = ({ events, isPubli
     icalContent += '\r\nEND:VCALENDAR';
     return icalContent;
   };
+
+  const stripHtml = (html: string) => {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    return div.textContent || div.innerText || '';
+  }
 
   const handleDownload = (): void => {
     const icalContent = generateIcalContent();

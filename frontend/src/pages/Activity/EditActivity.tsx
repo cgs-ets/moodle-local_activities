@@ -121,6 +121,7 @@ export function EditActivity() {
       permissions: !!Number(fetchResponse.data.permissions),
       permissionsinitial: !!Number(fetchResponse.data.permissions),
       isallday: !!Number(fetchResponse.data.isallday),
+      permissionsent: fetchResponse.data.permissionsent || false,
       // Move these into existing
       existingriskassessment: fetchResponse.data.riskassessment,
       existingattachments: fetchResponse.data.attachments,

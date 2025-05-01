@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Container, Grid } from "@mantine/core";
+import { Button, Container, Grid } from "@mantine/core";
 import { List } from "./components/List";
 import { useSearchParams } from "react-router-dom";
 import { Calendar } from "./components/Calendar";
@@ -13,8 +13,9 @@ export function Public() {
   }, []);
 
   const defaultCalType = 'calendar'
-
+  const defaultCategories = [] as string[]
   const [caltype, setCaltype] = useState<string>(searchParams.get('type') || defaultCalType)
+  const [categories, setCategories] = useState<string[]>(searchParams.get('categories')?.split(',') || defaultCategories as string[])
 
   useEffect(() => {
     if (!searchParams.get('type') && caltype == defaultCalType) {
@@ -30,14 +31,14 @@ export function Public() {
 
   return (
     <>
-      <Header />
+      <Header calType={caltype} />
       <div className="page-wrapper">
         <Container size="xl" className="w-full max-w-full p-0">
           <Grid grow gutter={0}>
               <Grid.Col span={{ base: 12, lg: 9 }} className="border-r min-h-screen bg-white pb-6">
                 { caltype == 'calendar'
-                  ? <Calendar setCaltype={setCaltype} />
-                  : <List setCaltype={setCaltype} />
+                  ? <Calendar setCaltype={setCaltype} defaultCategories={categories} />
+                  : <List setCaltype={setCaltype} defaultCategories={categories} />
                 }
             </Grid.Col>
           </Grid>

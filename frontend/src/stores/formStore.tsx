@@ -29,6 +29,7 @@ export type Form = {
   permissionstype: string;
   permissionslimit: string;
   permissionsdueby: number;
+  permissionsent: boolean;
 
   riskassessment: string;
   existingriskassessment: FileData[];
@@ -90,6 +91,7 @@ const defaults: Form = {
   permissionstype: '',
   permissionslimit: '',
   permissionsdueby: dayjs().unix(),
+  permissionsent: false,
 
   riskassessment: '',
   existingriskassessment: [],

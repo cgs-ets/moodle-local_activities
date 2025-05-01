@@ -21,9 +21,10 @@ type TermYear = {
 
 type Props = {
   setCaltype: (caltype: string) => void,
+  defaultCategories: string[],
 }
 
-export function List({setCaltype}: Props) {
+export function List({setCaltype, defaultCategories}: Props) {
 
   const [searchParams, setSearchParams] = useSearchParams();
 

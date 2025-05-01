@@ -13,6 +13,7 @@ type Email = {
 export function EmailHistory() {
   const activityid = useFormStore((state) => state.id)
   const status = useFormStore((state) => state.status)
+  const permissionsent = useFormStore((state) => state.permissionsent)
   const [emails, setEmails] = useState<any[]>([])
   const [fetchResponse, fetchError, fetchLoading, fetchAjax, setFetchedData] = useAjax(); // destructure state and fetch function
   const [selectedEmail, setSelectedEmail] = useState<Email|null>(null)
@@ -50,6 +51,14 @@ export function EmailHistory() {
         </Card.Section>
         <Card.Section withBorder pos="relative" className=''>
             <LoadingOverlay visible={fetchLoading} />
+
+            { permissionsent &&
+              <div className="px-4 py-2 border-b border-gray-200 bg-green-50">
+                <Text className="text-sm">Permission requests have been sent.</Text>
+              </div>
+            }
+
+
             { !!emails.length &&
               <div className='flex gap-1 px-4 py-2'>
                   <div className='flex-1 font-semibold'>Date</div>

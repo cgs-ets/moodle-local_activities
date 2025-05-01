@@ -12,6 +12,7 @@ import { getTermFromMonth } from "../../../utils/utils";
 import { getConfig, statuses } from "../../../utils";
 import { CalendarTease } from "./CalendarTease";
 import { EventModal } from "../../../components/EventModal";
+import { FilterModal } from "./FilterModal";
 
 type MoYear = {
   month: string,
@@ -20,9 +21,10 @@ type MoYear = {
 
 type Props = {
   setCaltype: (caltype: string) => void,
+  defaultCategories: string[],
 }
 
-export function Calendar({setCaltype}: Props) {
+export function Calendar({setCaltype, defaultCategories}: Props) {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const filters = useFilterStore((state) => state)
@@ -46,6 +48,11 @@ export function Calendar({setCaltype}: Props) {
       getCalendar(date)
     }
   }, [date]);
+
+  // Add filters from search param.
+  useEffect(() => {
+    setFilters({...filters, categories: defaultCategories})
+  }, [defaultCategories])
 
   const getCalendar = async (date: MoYear) => {
     startLoading()
@@ -143,7 +150,6 @@ export function Calendar({setCaltype}: Props) {
 
   const filteredCalendar = useMemo(() => {
     if (!calendar || !filters) return calendar;
-    const filterStaff = filters.staff.map((u: string) => JSON.parse(u).un)
   
     const filteredCells = calendar.cells.map((week: any) =>
       week.map((day: any) => {
@@ -163,31 +169,8 @@ export function Calendar({setCaltype}: Props) {
             filters.categories.length === 0 || 
             filters.categories.some((cat) => eventCategories.includes(cat));
 
-          const matchesType =
-            filters.types.length === 0 || 
-            filters.types.includes(event.activitytype);
 
-            
-          const matchesCampus =
-            filters.campus.length === 0 || 
-            filters.campus.includes(event.campus);
-
-          const matchesStatus =
-            filters.status.length === 0 || 
-            filters.status.includes(event.status.toString());
-
-          const eventStaff = [event.staffincharge, ...JSON.parse(event.planningstaffjson).map((u: User) => u.un), ...JSON.parse(event.accompanyingstaffjson).map((u: User) => u.un)]
-          const uniqueEventStaff = [...new Set(eventStaff.filter(item => item.trim() !== ""))];
-          const matchesStaff =
-            filterStaff.length === 0 || 
-            filterStaff.some((staff) => uniqueEventStaff.includes(staff));
-
-          const matchesReviewStep = filters.reviewstep.length === 0 ||
-            ( event.status == statuses.inreview && 
-              filters.reviewstep.some((step) => event.stepname.indexOf(step) > -1)
-            ); 
-
-          if (matchesName && matchesCategory && matchesType && matchesCampus && matchesStatus && matchesStaff && matchesReviewStep) {
+          if (matchesName && matchesCategory) {
             filteredEvents[eventId] = event;
           }
         }
@@ -201,7 +184,7 @@ export function Calendar({setCaltype}: Props) {
 
 
   const hasFilters = () => {
-    return filters.categories.length || filters.types.length || filters.campus.length || filters.status.length || filters.staff.length || filters.name.length || filters.reviewstep.length
+    return filters.categories.length || filters.name.length
   }
 
 
@@ -209,7 +192,7 @@ export function Calendar({setCaltype}: Props) {
     <div>
 
       <div>
-        <div className="p-3 w-full flex justify-between items-center bg-gray-100 mb-8">
+        <div className="p-3 w-full flex justify-between items-center bg-gray-100 2xl:mb-8">
           <ActionIcon onClick={() => handleNav(-1)} variant="subtle" size="lg"><IconArrowNarrowLeft className="size-7" /></ActionIcon>
           
           <div className="text-xl font-semibold flex gap-2 items-center">
@@ -315,7 +298,7 @@ export function Calendar({setCaltype}: Props) {
         
         <EventModal activity={selectedEvent} close={() => setSelectedEvent(null)} isPublic={true} />
 
-        {/*<FilterModal opened={filterOpened} filters={filters} setFilters={setFilters} close={() => closeFilter()} />*/}
+        <FilterModal opened={filterOpened} filters={filters} setFilters={setFilters} close={() => closeFilter()} />
 
       </div>
     </div>

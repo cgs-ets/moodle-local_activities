@@ -17,6 +17,7 @@ export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
   const permissions = useFormStore((state) => state.permissions)
   const permissionslimit = useFormStore((state) => state.permissionslimit)
   const permissionsdueby = useFormStore((state) => state.permissionsdueby)
+  const permissionsent = useFormStore((state) => state.permissionsent)
   const studentlist = useFormStore((state) => state.studentlist)
   const setState = useFormStore((state) => state.setState)
   const config = getConfig()
@@ -178,6 +179,15 @@ export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
                     </Paper>
                   </div>
                 }
+
+                { !permissionsent &&
+                  <div className="p-4 border-t border-gray-300 bg-[#ffe8cc]">
+                    <Text className="text-md font-semibold text-black">Permission requests have not been sent yet!</Text>
+                    <Text className="text-sm text-gray-500">You can send them now by clicking the button above.</Text>
+                  </div>
+                }
+
+
               </>
             }
           </>

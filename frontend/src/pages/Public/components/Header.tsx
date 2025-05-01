@@ -1,6 +1,5 @@
-import { Link, useLocation } from "react-router-dom";
 import { Avatar, Group, Text, Box, Button, Anchor, ActionIcon, Modal, Loader, Pill } from '@mantine/core';
-import { IconPlus, IconSearch, IconX } from '@tabler/icons-react';
+import { IconSearch, IconX } from '@tabler/icons-react';
 import { getConfig, statuses } from "../../../utils";
 import useFetch from "../../../hooks/useFetch";
 import dayjs from "dayjs";
@@ -8,7 +7,7 @@ import { cn } from "../../../utils/utils";
 import { useEffect, useState } from "react";
 import { EventModal } from "../../../components/EventModal";
 
-export function Header() {
+export function Header({calType}: {calType: string}) {
   const [searchOpened, setSearchOpened] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -18,8 +17,6 @@ export function Header() {
   const [selectedEvent, setSelectedEvent] = useState(null);
 
   const api = useFetch()
-
-  const location = useLocation();
 
   const search = async () => {
     setSearchLoading(true);
@@ -96,6 +93,12 @@ export function Header() {
           </Group>
           <div className="flex items-center gap-4">
 
+            {false && <Anchor className="text-gray-200 hover:no-underline mr-4 text-md font-normal" href="/">{getConfig().sitename}</Anchor>}
+
+            <Anchor href={`/local/activities/public?type=${calType}`} className="text-white hover:no-underline mr-4 text-md font-semibold">All</Anchor> 
+            <Anchor href={`/local/activities/public?type=${calType}&categories=Primary+School`} className="text-white hover:no-underline mr-4 text-md font-semibold">Primary School</Anchor> 
+            <Anchor href={`/local/activities/public?type=${calType}&categories=Senior+School`} className="text-white hover:no-underline mr-4 text-md font-semibold">Senior School</Anchor> 
+
             <ActionIcon
               variant="transparent"
               color="white"
@@ -104,20 +107,6 @@ export function Header() {
             >
               <IconSearch size={20} />
             </ActionIcon>
-
-            <Anchor className="text-gray-200 hover:no-underline mr-4 text-md font-normal" href="/">{getConfig().sitename}</Anchor>
-
-            { !location.pathname.includes("/assessment") 
-              ? getConfig().roles.includes('staff') && <Anchor href="/local/activities/assessments" className="text-white hover:no-underline mr-4 text-md font-semibold">Assessments</Anchor> 
-              : <Anchor href="/local/activities" className="text-white hover:no-underline mr-4 text-md font-semibold">Activities</Anchor>
-            }
-
-            { getConfig().roles?.includes('staff') 
-              ? location.pathname.includes("/assessment") 
-                ? <Button component={Link} to={"/assessment"} size="compact-md" radius="lg" color="blue" leftSection={<IconPlus size={20} />}>Assessment</Button> 
-                : <Button component={Link} to={"/new"} size="compact-md" radius="lg" color="blue" leftSection={<IconPlus size={20} />}>Create new</Button> 
-              : null
-            }
             
           </div>
           
