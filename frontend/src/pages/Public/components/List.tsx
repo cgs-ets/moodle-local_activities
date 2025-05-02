@@ -280,7 +280,7 @@ export function List() {
         <Card className="ev-calendar list-calendar rounded-none" p={0}>
 
           { !!filteredList.days.current.length && date.term == currterm.toString() && date.year == dayjs().format("YYYY") &&
-            <div className="px-4 py-3 border-t">
+            <div className="px-4 py-3">
               <span className="font-semibold text-gray-500 text-sm uppercase tracking-wider">Currently on</span>
             </div>
           }
