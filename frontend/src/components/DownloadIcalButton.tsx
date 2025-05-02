@@ -28,7 +28,7 @@ const DownloadIcalButton: React.FC<DownloadIcalButtonProps> = ({ events, isPubli
     // Basic iCal headers
     let icalContent = [
       'BEGIN:VCALENDAR',
-      `PRODID:${getConfig().wwwroot}/local/activities/public`,
+      `PRODID:${getConfig().wwwroot}/local/activities/public.php`,
       'VERSION:2.0',
       'METHOD:PUBLISH',
       'BEGIN:VTIMEZONE',
@@ -51,7 +51,7 @@ const DownloadIcalButton: React.FC<DownloadIcalButtonProps> = ({ events, isPubli
     // Add events
     events.forEach((event: Form) => {
       const description = stripHtml(event.description ?? '')
-      const url = `${getConfig().wwwroot}/local/activities${isPublic ? '/public' : ''}/${event.id}`;
+      const url = `${getConfig().wwwroot}/local/activities${isPublic ? '/public.php' : ''}/${event.id}`;
 
       icalContent += '\r\n' + [
         'BEGIN:VEVENT',

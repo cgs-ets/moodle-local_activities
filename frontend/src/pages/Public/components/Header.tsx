@@ -93,7 +93,7 @@ export function Header() {
       <div className="px-6">
         <Group h={54} justify="space-between">
           <Group gap="md">
-            <a href={getConfig().wwwroot + '/local/activities/public'} className="no-underline">
+            <a href={getConfig().wwwroot + '/local/activities/public.php'} className="no-underline">
               <Text className="text-lg font-semibold" c={getConfig().headerfg}>CGS Calendar</Text>
             </a>
           </Group>
