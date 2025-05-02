@@ -6,9 +6,9 @@
         require_login();
     }
 
-    require_once __DIR__ . '/bootstrap.php';
-    require_once(__DIR__.'/classes/lib/service.lib.php');
-    require_once(__DIR__.'/classes/lib/utils.lib.php');
+    require_once __DIR__ . '/../bootstrap.php';
+    require_once(__DIR__.'/../classes/lib/service.lib.php');
+    require_once(__DIR__.'/../classes/lib/utils.lib.php');
 
     $activitiesconfig = get_config('local_activities');
     $config = new \stdClass();
