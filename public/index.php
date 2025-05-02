@@ -1,5 +1,5 @@
 <?php
-    require(__DIR__.'/../../config.php');
+    require(__DIR__.'/../../../config.php');
 
     // If url is /local/activities/public, then we do not require login.
     if (!str_contains($_SERVER['REQUEST_URI'], '/local/activities/public') || isloggedin()) {
