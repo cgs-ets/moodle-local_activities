@@ -72,7 +72,7 @@ export function ActivityDetails({activity, isPublic}: {activity: Form, isPublic:
           {!!planning.length &&
             <Card.Section pos="relative" className='m-0 border-b  flex items-center gap-1 px-4 py-2'>
               <div className='w-36 font-bold'>Planning staff</div>
-              <div className='flex gap-2 items-center'> 
+              <div className='flex gap-2 items-center flex-wrap'> 
                 { planning.map((staff: User) => 
                   <Badge variant='filled' key={staff.un} pl={0} size="lg" h={28} color="gray.2" radius="xl" leftSection={
                       <Avatar size="sm" radius="xl" src={'/local/activities/avatar.php?username=' + staff.un}><IconUser /></Avatar>
@@ -88,7 +88,7 @@ export function ActivityDetails({activity, isPublic}: {activity: Form, isPublic:
           {!!accompanying.length &&
             <Card.Section pos="relative" className='m-0 border-b  flex items-center gap-1 px-4 py-2'>
               <div className='w-36 font-bold'>Accompanying staff</div>
-              <div className='flex gap-2 items-center'> 
+              <div className='flex gap-2 items-center flex-wrap'> 
                 { accompanying.map((staff: User) => 
                   <Badge variant='filled' key={staff.un} pl={0} size="lg" h={28} color="gray.2" radius="xl" leftSection={
                     <Avatar size="sm" radius="xl" src={'/local/activities/avatar.php?username=' + staff.un}><IconUser /></Avatar>
