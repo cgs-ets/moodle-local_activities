@@ -8,9 +8,8 @@ import { useSearchParams } from "react-router-dom";
 import { useDisclosure } from "@mantine/hooks";
 import { useFilterStore } from "../../../stores/filterStore";
 import { ListTease } from "./ListTease";
-import { User } from "../../../types/types";
-import { getMonthFromTerm, getTermFromMonth, isCalReviewer } from "../../../utils/utils";
-import { getConfig, statuses } from "../../../utils";
+import { getMonthFromTerm, getTermFromMonth } from "../../../utils/utils";
+import { getConfig } from "../../../utils";
 import { EventModal } from "../../../components/EventModal";
 import { useCalViewStore } from "../../../stores/calViewStore";
 import { FilterModal } from "./FilterModal";
@@ -155,31 +154,8 @@ export function List() {
           filters.categories.length === 0 ||
           filters.categories.some((cat) => eventCategories.includes(cat));
   
-        const matchesType =
-          filters.types.length === 0 || 
-          filters.types.includes(event.activitytype);
-
-        const matchesCampus =
-          filters.campus.length === 0 || 
-          filters.campus.includes(event.campus);
-  
-        const matchesStatus =
-          filters.status.length === 0 || 
-          filters.status.includes(event.status.toString());
-
-  
-        const eventStaff = [event.staffincharge, ...JSON.parse(event.planningstaffjson).map((u: User) => u.un), ...JSON.parse(event.accompanyingstaffjson).map((u: User) => u.un)]
-        const uniqueEventStaff = [...new Set(eventStaff.filter(item => item.trim() !== ""))];
-        const matchesStaff =
-          filterStaff.length === 0 || 
-          filterStaff.some((staff) => uniqueEventStaff.includes(staff));
-
-        const matchesReviewStep = filters.reviewstep.length === 0 ||
-          ( event.status == statuses.inreview && 
-            filters.reviewstep.some((step) => event.stepname.indexOf(step) > -1)
-          );
-
-        return matchesName && matchesCategory && matchesType && matchesCampus && matchesStatus && matchesStaff && matchesReviewStep;
+       
+        return matchesName && matchesCategory;
 
       });
       return { ...day, events: filteredEvents, events_count: filteredEvents.length };
@@ -260,7 +236,7 @@ export function List() {
             />
 
 
-            <div className="ml-2 flex items-center gap-2 ">
+            <div className="ml-2 flex items-center gap-2">
               <Button onClick={goToToday} variant="light" aria-label="Go to today" title="Go to today" className="h-8" size="compact-md">Today</Button>
               { hasFilters() 
                 ? <div className="flex">
@@ -290,7 +266,7 @@ export function List() {
 
 
 
-      <div className="relative">
+      <div className="relative mt-6 m-auto max-w-screen-xl">
         
         { filteredList.days.current.length
           ? <LoadingOverlay visible={loading} />
@@ -316,12 +292,6 @@ export function List() {
                 { day.date_key == dayjs().format("YYYY-MM-DD")
                   ? <Text className="font-semibold text-lg">Started today</Text>
                   : <Text className="font-semibold text-lg">Started on {dayjs.unix(Number(day.date)).format("D MMM")}</Text>
-                }
-                { isCalReviewer() && 
-                  <div className="text-gray-500 flex items-center text-center">
-                    <div className="w-20"><Text className="text-sm">Approved</Text></div>
-                    <div className="w-20"><Text className="text-sm">Public Now</Text></div>
-                  </div>
                 }
               </div>
               
@@ -350,12 +320,6 @@ export function List() {
                 { day.date_key == dayjs().format("YYYY-MM-DD")
                   ? <Text className="font-semibold text-xl">Today</Text>
                   : <Text className="font-semibold text-lg">{dayjs.unix(Number(day.date)).format("ddd, D MMM YYYY")}</Text>
-                }
-                { isCalReviewer() && 
-                  <div className="text-gray-500 flex items-center text-center">
-                    <div className="w-20"><Text className="text-sm">Approved</Text></div>
-                    <div className="w-20"><Text className="text-sm">Public Now</Text></div>
-                  </div>
                 }
               </div>
               <ul>
