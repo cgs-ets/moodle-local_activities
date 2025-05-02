@@ -65,7 +65,7 @@ export function EventModal({activity, close, hideOpenButton, isPublic}: Props) {
               <ActivityDetails activity={activity} isPublic={!!isPublic} />
 
               { !isPublic && activity.stupermissions && activity.stupermissions.length > 0 &&
-                <div className='p-4 border-t flex items-center gap-2'>
+                <div className='p-4 border-t flex items-center gap-2 mb-3'>
                   <UnstyledButton component={Link} to={`/${activity.id}/permission`}>
                     <Avatar.Group className="cursor-pointer">
                       {activity.stupermissions.map((permission: any) => {
@@ -93,7 +93,7 @@ export function EventModal({activity, close, hideOpenButton, isPublic}: Props) {
               }
 
               { !hideOpenButton && !isPublic &&
-                <Flex className='mt-3 gap-2 justify-between p-3 pt-0'>
+                <Flex className='gap-2 justify-between p-3 pt-0'>
                   <div></div>
                   <Link to={"/" + activity.id}><Button radius="lg" size="compact-md" variant="filled" leftSection={<IconSettings className='size-4' />}>Open</Button></Link> 
                 </Flex>

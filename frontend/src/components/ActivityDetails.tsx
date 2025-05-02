@@ -117,7 +117,7 @@ export function ActivityDetails({activity, isPublic}: {activity: Form, isPublic:
       }
 
       { !!activity.description.length &&
-        <Card.Section pos="relative" className='m-0 px-4 py-2 border-b'>
+        <Card.Section pos="relative" className='m-0 px-4 py-2 border-b mb-3'>
           <div className='font-bold mb-2'>Description</div>
           <div dangerouslySetInnerHTML={ {__html: activity.description || ''} }></div>
         </Card.Section>
