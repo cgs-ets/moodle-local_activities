@@ -12,6 +12,8 @@ import { User } from "../../../types/types";
 import { getMonthFromTerm, getTermFromMonth, isCalReviewer } from "../../../utils/utils";
 import { getConfig, statuses } from "../../../utils";
 import { EventModal } from "../../../components/EventModal";
+import { useCalViewStore } from "../../../stores/calViewStore";
+import { FilterModal } from "./FilterModal";
 
 type TermYear = {
   term: string,
@@ -19,17 +21,15 @@ type TermYear = {
 }
 
 
-type Props = {
-  setCaltype: (caltype: string) => void,
-  defaultCategories: string[],
-}
 
-export function List({setCaltype, defaultCategories}: Props) {
+export function List() {
 
   const [searchParams, setSearchParams] = useSearchParams();
 
   const filters = useFilterStore((state) => state)
   const setFilters = useFilterStore((state) => (state.setState))
+  const calView = useCalViewStore((state) => state)
+  const setCalView = useCalViewStore((state) => (state.setState))
   const reset = useFilterStore((state) => (state.reset))
   const [loading, {open: startLoading, close: stopLoading}] = useDisclosure(true)
   const [filterOpened, {close: closeFilter, open: openFilter}] = useDisclosure(false)
@@ -76,6 +76,7 @@ export function List({setCaltype, defaultCategories}: Props) {
   useEffect(() => {
     if (date && date.term && date.year) {
       getList(date)
+      setCalView({...calView, term: date.term, year: date.year})
     }
   }, [date]);
 
@@ -217,18 +218,19 @@ export function List({setCaltype, defaultCategories}: Props) {
     getList(date, !showPast)
   }
 
+
   return (
     <div>
    
-        <div className="p-3 w-full flex justify-between items-center">
+        <div className="p-3 w-full flex justify-between items-center border-b">
           <ActionIcon onClick={() => handleNav(-1)} variant="subtle" size="lg"><IconArrowNarrowLeft className="size-7" /></ActionIcon>
 
           <div className="text-xl font-semibold flex gap-2 items-center">
             <div className="mr-2 flex items-center gap-2">
-              <ActionIcon onClick={() => setCaltype('calendar')} variant="light" aria-label="Calendar view" title="Calendar view" className="size-8"  >
+              <ActionIcon onClick={() => setCalView({...calView, type: 'calendar'})} variant="light" aria-label="Calendar view" title="Calendar view" className="size-8"  >
                 <IconCalendarWeek stroke={1.5} />
               </ActionIcon>
-              <ActionIcon onClick={() => setCaltype('list')} variant="light" aria-label="List view" title="List view" className="size-8"  >
+              <ActionIcon onClick={() => setCalView({...calView, type: 'list'})} variant="light" aria-label="List view" title="List view" className="size-8"  >
                 <IconListDetails stroke={1.5} />
               </ActionIcon>
             </div>
@@ -310,7 +312,7 @@ export function List({setCaltype, defaultCategories}: Props) {
           { filteredList.days?.current.map((day: any, i: number) => (
             !!day.events.length &&
             <div key={day.date_key} className="ev-calendar-item ev-calendar-item-current">
-              <div className="flex justify-between px-4 py-2 border-t">
+              <div className="flex justify-between px-4 py-2">
                 { day.date_key == dayjs().format("YYYY-MM-DD")
                   ? <Text className="font-semibold text-lg">Started today</Text>
                   : <Text className="font-semibold text-lg">Started on {dayjs.unix(Number(day.date)).format("D MMM")}</Text>
@@ -344,7 +346,7 @@ export function List({setCaltype, defaultCategories}: Props) {
           { filteredList.days.upcoming.map((day: any, i: number) => (
             !!day.events.length &&
             <div key={day.date_key} className="ev-calendar-item ev-calendar-item-current">
-              <div className={`flex justify-between px-4 py-2 border-t ${day.date_key == dayjs().format("YYYY-MM-DD") ? 'bg-blue-50 border-y border-blue-500' : ''}`}>
+              <div className={`flex justify-between px-4 py-2 ${day.date_key == dayjs().format("YYYY-MM-DD") ? 'bg-blue-50 border-y border-blue-500' : ''}`}>
                 { day.date_key == dayjs().format("YYYY-MM-DD")
                   ? <Text className="font-semibold text-xl">Today</Text>
                   : <Text className="font-semibold text-lg">{dayjs.unix(Number(day.date)).format("ddd, D MMM YYYY")}</Text>
@@ -371,7 +373,7 @@ export function List({setCaltype, defaultCategories}: Props) {
 
       <EventModal activity={selectedEvent} close={() => setSelectedEvent(null)} isPublic={true} />
 
-      {/*<FilterModal opened={filterOpened} filters={filters} setFilters={setFilters} close={() => closeFilter()} />*/}
+      <FilterModal opened={filterOpened} filters={filters} setFilters={setFilters} close={() => closeFilter()} />
 
 
     </div>

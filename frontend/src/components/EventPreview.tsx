@@ -24,7 +24,7 @@ export function EventPreview({activity, hideOpenButton, isPublic}: Props) {
   return (
     <>
       { isPublic
-        ? <PublicHeader calType={'calendar'} />
+        ? <PublicHeader />
         : <PrivateHeader />
       }
 

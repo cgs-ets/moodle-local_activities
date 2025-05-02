@@ -13,22 +13,20 @@ import { getConfig, statuses } from "../../../utils";
 import { CalendarTease } from "./CalendarTease";
 import { EventModal } from "../../../components/EventModal";
 import { FilterModal } from "./FilterModal";
+import { useCalViewStore } from "../../../stores/calViewStore";
 
 type MoYear = {
   month: string,
   year: string,
 }
 
-type Props = {
-  setCaltype: (caltype: string) => void,
-  defaultCategories: string[],
-}
-
-export function Calendar({setCaltype, defaultCategories}: Props) {
+export function Calendar() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const filters = useFilterStore((state) => state)
   const setFilters = useFilterStore((state) => (state.setState))
+  const calView = useCalViewStore((state) => state)
+  const setCalView = useCalViewStore((state) => (state.setState))
   const reset = useFilterStore((state) => (state.reset))
   const [loading, {open: startLoading, close: stopLoading}] = useDisclosure(true)
 
@@ -41,18 +39,13 @@ export function Calendar({setCaltype, defaultCategories}: Props) {
   
   const getCalendarAPI = useFetch()
 
-  
   // If the date changes, get calendar.
   useEffect(() => {
     if (date && date.month && date.year) {
       getCalendar(date)
+      setCalView({...calView, month: date.month, year: date.year})
     }
   }, [date]);
-
-  // Add filters from search param.
-  useEffect(() => {
-    setFilters({...filters, categories: defaultCategories})
-  }, [defaultCategories])
 
   const getCalendar = async (date: MoYear) => {
     startLoading()
@@ -198,10 +191,10 @@ export function Calendar({setCaltype, defaultCategories}: Props) {
           <div className="text-xl font-semibold flex gap-2 items-center">
 
             <div className="mr-2 flex items-center gap-2">
-              <ActionIcon onClick={() => setCaltype('calendar')} variant="light" className="size-8"  >
+              <ActionIcon onClick={() => setCalView({...calView, type: 'calendar'})} variant="light" className="size-8"  >
                 <IconCalendarWeek stroke={1.5} />
               </ActionIcon>
-              <ActionIcon onClick={() => setCaltype('list')} variant="light" className="size-8"  >
+              <ActionIcon onClick={() => setCalView({...calView, type: 'list'})} variant="light" className="size-8"  >
                 <IconListDetails stroke={1.5} />
               </ActionIcon>
             </div>

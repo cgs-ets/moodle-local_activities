@@ -1,13 +1,16 @@
 import { Avatar, Group, Text, Box, Button, Anchor, ActionIcon, Modal, Loader, Pill } from '@mantine/core';
-import { IconSearch, IconX } from '@tabler/icons-react';
+import { IconExternalLink, IconSearch, IconX } from '@tabler/icons-react';
 import { getConfig, statuses } from "../../../utils";
 import useFetch from "../../../hooks/useFetch";
 import dayjs from "dayjs";
 import { cn } from "../../../utils/utils";
 import { useEffect, useState } from "react";
 import { EventModal } from "../../../components/EventModal";
+import { useSearchParams } from 'react-router-dom';
+import { useCalViewStore } from '../../../stores/calViewStore';
+import { useFilterStore } from '../../../stores/filterStore';
 
-export function Header({calType}: {calType: string}) {
+export function Header() {
   const [searchOpened, setSearchOpened] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -15,6 +18,9 @@ export function Header({calType}: {calType: string}) {
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [tab, setTab] = useState('future');
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const calView = useCalViewStore((state) => state)
+  const filters = useFilterStore((state) => state)
 
   const api = useFetch()
 
@@ -87,17 +93,12 @@ export function Header({calType}: {calType: string}) {
       <div className="px-6">
         <Group h={54} justify="space-between">
           <Group gap="md">
-            <a href={getConfig().wwwroot + '/local/activities'} className="no-underline">
+            <a href={getConfig().wwwroot + '/local/activities/public'} className="no-underline">
               <Text className="text-lg font-semibold" c={getConfig().headerfg}>CGS Calendar</Text>
             </a>
           </Group>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
 
-            {false && <Anchor className="text-gray-200 hover:no-underline mr-4 text-md font-normal" href="/">{getConfig().sitename}</Anchor>}
-
-            <Anchor href={`/local/activities/public?type=${calType}`} className="text-white hover:no-underline mr-4 text-md font-semibold">All</Anchor> 
-            <Anchor href={`/local/activities/public?type=${calType}&categories=Primary+School`} className="text-white hover:no-underline mr-4 text-md font-semibold">Primary School</Anchor> 
-            <Anchor href={`/local/activities/public?type=${calType}&categories=Senior+School`} className="text-white hover:no-underline mr-4 text-md font-semibold">Senior School</Anchor> 
 
             <ActionIcon
               variant="transparent"
@@ -107,6 +108,39 @@ export function Header({calType}: {calType: string}) {
             >
               <IconSearch size={20} />
             </ActionIcon>
+
+            <Anchor 
+              className={cn(
+                "flex items-center justify-center text-white hover:no-underline px-4 text-md font-semibold h-[54px]", 
+                searchParams.get('categories') == '' ? 'bg-[#59a5d7]' : ''
+              )}
+              onClick={() => setSearchParams({type: calView.type, categories: '', year: calView.year, month: calView.month, term: calView.term})}
+            >
+              All
+            </Anchor> 
+            <Anchor 
+              className={cn(
+                "flex items-center justify-center text-white hover:no-underline px-4 text-md font-semibold h-[54px]", 
+                searchParams.get('categories') == 'Primary School' && filters.categories.length <= 1 ? 'bg-[#59a5d7]' : ''
+              )}
+              onClick={() => setSearchParams({ categories: 'Primary School', type: calView.type, year: calView.year, month: calView.month, term: calView.term })}
+            >
+              Primary School
+            </Anchor> 
+            <Anchor 
+              className={cn(
+                "flex items-center justify-center text-white hover:no-underline px-4 text-md font-semibold h-[54px]", 
+                searchParams.get('categories') == 'Senior School' && filters.categories.length <= 1 ? 'bg-[#59a5d7]' : ''
+              )}
+              onClick={() => setSearchParams({ categories: 'Senior School', type: calView.type, year: calView.year, month: calView.month, term: calView.term })}
+            >
+              Senior School
+            </Anchor> 
+
+            
+            <Anchor className="text-gray-200 hover:no-underline ml-2 mr-4 text-md font-normal flex items-center gap-1" href="/">{getConfig().sitename}<IconExternalLink size={13} /></Anchor>
+
+
             
           </div>
           
