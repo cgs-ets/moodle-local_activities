@@ -21,10 +21,11 @@ function App() {
     [
       { path: "/", element: <Dashboard /> },
       { path: "/index.php", element: <Dashboard /> },
-      //{ path: "/public", element: <Public /> },
-      //{ path: "/public/:id", element: <PublicSingle /> },
-      { path: "/public.php", element: <Public /> },
-      { path: "/public.php/:id", element: <PublicSingle /> },
+
+      { path: "/public", element: <Public /> },
+      { path: "/public/index.php", element: <Public /> },
+      { path: "/public/:id", element: <PublicSingle /> },
+
       { path: "new", element: <EditActivity /> },
       { path: "assessments", element: <Assessments /> },
       { path: "assessment", element: <Assessment /> },

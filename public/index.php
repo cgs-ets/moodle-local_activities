@@ -2,7 +2,7 @@
     require(__DIR__.'/../../config.php');
 
     // If url is /local/activities/public, then we do not require login.
-    if (!str_contains($_SERVER['REQUEST_URI'], '/local/activities/public.php') || isloggedin()) {
+    if (!str_contains($_SERVER['REQUEST_URI'], '/local/activities/public') || isloggedin()) {
         require_login();
     }
 
@@ -20,12 +20,8 @@
     $config->headerbg = $activitiesconfig->headerbg;
     $config->headerfg = $activitiesconfig->headerfg;
     $config->headerlogourl = $activitiesconfig->headerlogourl;
-    $user = \local_activities\lib\utils_lib::user_stub($USER->username);
-    $config->user = $user;
-    $config->roles = \local_activities\lib\service_lib::get_user_roles($USER->username);
-    $config->calroles = \local_activities\lib\utils_lib::get_cal_roles($USER->username);
     $config->loginUrl = (new moodle_url('/login/index.php'))->out();
-    $config->logoutUrl = (new moodle_url('/login/logout.php', ['sesskey' => $config->sesskey]))->out();
+    $config->logoutUrl = '';
     $config->favicon = get_favicon('src/assets/favicon.ico');
     $config->logo = get_logo('src/assets/logo.png');
 
