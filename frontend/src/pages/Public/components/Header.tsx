@@ -225,26 +225,21 @@ export function Header() {
         {tab == 'future' && futureEvents().length > 0 && (
           <div>
             {futureEvents().map((result: any) => (
-              <Anchor href={`/local/activities/${result.id}`} className="!no-underline text-gray-800">
-                <div key={result.id} className={cn("px-4 py-2 border-b border-gray-200", result.status == statuses.approved ? "bg-[#d4edda]" : "bg-[#fff5eb]")}>
+              <div className="!no-underline text-gray-800" onClick={() => setSelectedEvent(result)}>
+                <div key={result.id} className={cn("px-4 py-2 border-b border-gray-200")}>
                   <div className="flex items-center justify-between gap-2">
                     <div>
                       <div className="flex items-center gap-2">
-                        <div className={cn("size-2 rounded-full min-w-2 mt-1", result.status == statuses.approved ? "bg-[#4aa15d]" : "bg-[#ffa94d]")}></div>
-                        <Anchor href={`/local/activities/${result.id}`}>{result.activityname}</Anchor>
-                        
+                        <Anchor className="first-letter:capitalize" onClick={() => setSelectedEvent(result)}>{result.activityname}</Anchor>
                       </div>
                       <span className="text-xs">{dayjs.unix(result.timestart).format('DD MMM YY HH:mm')} - {dayjs.unix(result.timeend).format('DD MMM YY HH:mm')}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      {result.status < statuses.approved && result.stepname && result.stepname != 'Calendar Approval' && <Pill color="gray.2" className="text-black capitalize">{result.stepname}</Pill>}
                       {result.campus && <Pill className="capitalize">{result.campus}</Pill>}
-                      <Pill className="capitalize">{result.activitytype}</Pill>
-                      <Avatar size="sm" radius="xl" src={'/local/activities/avatar.php?username=' + result.staffincharge} />
                     </div>
                   </div>
                 </div>
-              </Anchor>
+              </div>
             ))}
           </div>
         )}
