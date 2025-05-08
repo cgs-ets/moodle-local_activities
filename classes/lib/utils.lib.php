@@ -394,6 +394,10 @@ class utils_lib {
         return ob_get_clean();
     }*/
 
+
+
+    // This function is only called in generate_permissions and cron_emails_user, when permissions are needed.
+    // We need to ensure that mentors does not include parents that are not allowed to provide permissions.
     public static function get_user_mentors($userid) {
         global $DB;
 
@@ -408,11 +412,39 @@ class utils_lib {
             'menteeid' => $userid,
             'contextlevel' => CONTEXT_USER
         );
+
         if ($mentors = $DB->get_records_sql($mentorssql, $mentorsparams)) {
             $mentors = array_column($mentors, 'username');
         }
+
+        $disallowedparents = static::get_disallowed_parents($userid);
+        $mentors = array_diff($mentors, $disallowedparents);
+
+        var_export($disallowedparents); 
+        var_export($mentors); 
+        exit;
+        
         return $mentors;
     }
+
+
+    public static function get_disallowed_parents($userid) {
+        global $DB, $CFG;
+
+        $config = get_config('local_activities');
+        if (empty($config->getdisalloweduserssql)) {
+            return [];
+        }
+
+        $externalDB = \moodle_database::get_driver_instance($config->dbtype, 'native', true);
+        $externalDB->connect($config->dbhost, $config->dbuser, $config->dbpass, $config->dbname, '');
+
+        $sql = $config->getdisalloweduserssql;
+        $results = $externalDB->get_records_sql($sql);
+        return $results;
+    }
+
+
 
     public static function get_user_mentees($userid) {
         global $DB;

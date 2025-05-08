@@ -96,6 +96,7 @@ if ($hassiteconfig) {
     $settings->add(new admin_setting_configtext('local_activities/insertclassstaffsql', get_string('insertclassstaffsql', 'local_activities'), '', ''));
     $settings->add(new admin_setting_configtext('local_activities/insertclassstudentsql', get_string('insertclassstudentsql', 'local_activities'), '', ''));
     $settings->add(new admin_setting_configtext('local_activities/deleteclassstudentssql', get_string('deleteclassstudentssql', 'local_activities'), '', ''));
+    $settings->add(new admin_setting_configtext('local_activities/getdisalloweduserssql', get_string('getdisalloweduserssql', 'local_activities'), '', ''));
 
     $settings->add(new admin_setting_configtext('local_activities/getterminfosql', get_string('getterminfosql', 'local_activities'), '', ''));
 
