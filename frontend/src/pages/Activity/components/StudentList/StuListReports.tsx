@@ -45,7 +45,7 @@ export function StuListReports({opened, close}: Props) {
             </div>
           }
 
-          { cost && viewStateProps.editable &&
+          { !!cost &&
             <div className='border-b p-4'>
               <Text className="font-semibold inline">Chargesheet</Text>
               <div className='text-base'>

@@ -260,7 +260,7 @@ export function StudentListDIY() {
                           }
                           <Flex gap="sm">
                             <Button variant="light" onClick={openReports} size="compact-sm" radius="xl" leftSection={<IconReport size={14} />}>Reports</Button>
-                            { status == statuses.approved &&
+                            { viewStateProps.editable && status == statuses.approved &&
                               <Tooltip.Floating disabled={!haschanges} label="You must save changes before you may send messages.">
                                 <Button variant="filled" color={haschanges ? "gray.4" : undefined} onClick={() => (haschanges ? null : messageModalHandlers.open())} size="compact-sm" radius="xl" leftSection={<IconMail size={14} />}>Send a message</Button>
                               </Tooltip.Floating>
