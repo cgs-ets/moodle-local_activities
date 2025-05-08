@@ -248,24 +248,24 @@ export function StudentListDIY() {
                       
                       <div className="p-4">
                         <Group justify="space-between">
-                          <Flex gap="sm">
-                            <Button onClick={addStudentsModalHandlers.open} size="compact-sm" variant="light" radius="xl" leftSection={<IconPlus size={14} />} >Add students</Button>
-                            { Object.keys(rowSelection).length > 0 && 
-                              <>
-                                <Button onClick={removeStudents} variant="light" size="compact-sm" radius="xl" leftSection={<IconMinus size={14} />}>Remove</Button>
-                              </>
-                            }
-                          </Flex>
                           { viewStateProps.editable &&
                             <Flex gap="sm">
-                              <Button variant="light" onClick={openReports} size="compact-sm" radius="xl" leftSection={<IconReport size={14} />}>Reports</Button>
-                              { status == statuses.approved &&
-                                <Tooltip.Floating disabled={!haschanges} label="You must save changes before you may send messages.">
-                                  <Button variant="filled" color={haschanges ? "gray.4" : undefined} onClick={() => (haschanges ? null : messageModalHandlers.open())} size="compact-sm" radius="xl" leftSection={<IconMail size={14} />}>Send a message</Button>
-                                </Tooltip.Floating>
+                              <Button onClick={addStudentsModalHandlers.open} size="compact-sm" variant="light" radius="xl" leftSection={<IconPlus size={14} />} >Add students</Button>
+                              { Object.keys(rowSelection).length > 0 && 
+                                <>
+                                  <Button onClick={removeStudents} variant="light" size="compact-sm" radius="xl" leftSection={<IconMinus size={14} />}>Remove</Button>
+                                </>
                               }
                             </Flex>
                           }
+                          <Flex gap="sm">
+                            <Button variant="light" onClick={openReports} size="compact-sm" radius="xl" leftSection={<IconReport size={14} />}>Reports</Button>
+                            { status == statuses.approved &&
+                              <Tooltip.Floating disabled={!haschanges} label="You must save changes before you may send messages.">
+                                <Button variant="filled" color={haschanges ? "gray.4" : undefined} onClick={() => (haschanges ? null : messageModalHandlers.open())} size="compact-sm" radius="xl" leftSection={<IconMail size={14} />}>Send a message</Button>
+                              </Tooltip.Floating>
+                            }
+                          </Flex>
                         </Group>
                       </div>
                     </>
