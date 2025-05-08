@@ -37,6 +37,7 @@ $string['insertclassstaffsql'] = 'Insert class staff SQL';
 $string['insertclassstudentsql'] = 'Insert class student SQL';
 $string['deleteclassstudentssql'] = 'Delete class students SQL';
 $string['getterminfosql'] = 'Get term info SQL';
+$string['getdisalloweduserssql'] = 'Get disallowed users SQL';
 
 $string['cron_queue_permissions'] = 'Queue permissions for sending';
 $string['cron_send_permissions'] = 'Send permission notifications';

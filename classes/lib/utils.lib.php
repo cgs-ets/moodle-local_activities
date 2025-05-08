@@ -418,11 +418,8 @@ class utils_lib {
         }
 
         $disallowedparents = static::get_disallowed_parents($userid);
+        $disallowedparents = array_column($disallowedparents, 'userid');
         $mentors = array_diff($mentors, $disallowedparents);
-
-        var_export($disallowedparents); 
-        var_export($mentors); 
-        exit;
         
         return $mentors;
     }

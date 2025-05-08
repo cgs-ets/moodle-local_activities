@@ -237,17 +237,18 @@ export function StudentList() {
                         />
                       </div>
 
-                      { viewStateProps.editable &&
-                        <div className="p-4">
-                          <Group justify="space-between">
-                            <Flex gap="sm">
-                              <Button onClick={addStudentsModalHandlers.open} size="compact-sm" variant="light" radius="xl" leftSection={<IconPlus size={14} />} >Add students</Button>
-                              { Object.keys(rowSelection).length > 0 && 
-                                <>
-                                  <Button onClick={removeStudents} variant="light" size="compact-sm" radius="xl" leftSection={<IconMinus size={14} />}>Remove</Button>
-                                </>
-                              }
-                            </Flex>
+                    
+                      <div className="p-4">
+                        <Group justify="space-between">
+                          <Flex gap="sm">
+                            <Button onClick={addStudentsModalHandlers.open} size="compact-sm" variant="light" radius="xl" leftSection={<IconPlus size={14} />} >Add students</Button>
+                            { Object.keys(rowSelection).length > 0 && 
+                              <>
+                                <Button onClick={removeStudents} variant="light" size="compact-sm" radius="xl" leftSection={<IconMinus size={14} />}>Remove</Button>
+                              </>
+                            }
+                          </Flex>
+                          { viewStateProps.editable &&
                             <Flex gap="sm">
                               <Button variant="light" onClick={openReports} size="compact-sm" radius="xl" leftSection={<IconReport size={14} />}>Reports</Button>
                               { status == statuses.approved &&
@@ -256,11 +257,9 @@ export function StudentList() {
                                 </Tooltip.Floating>
                               }
                             </Flex>
-                            
-                          </Group>
-                        </div>
-                      }
-                      
+                          }
+                        </Group>
+                      </div>
 
                     </>
             )
