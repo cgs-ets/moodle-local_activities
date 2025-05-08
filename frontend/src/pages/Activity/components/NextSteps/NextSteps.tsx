@@ -58,6 +58,7 @@ export function NextSteps() {
           <Accordion.Panel>
             <Text size="sm">
               If your activity requires catering, please complete the <Anchor target="_blank" href="https://infiniti.canberragrammar.org.au/Infiniti/Produce/launch.aspx?id=db4a01bf-5152-46e3-b345-6a560946de3e&portal=1">Catering Request Form</Anchor>. 
+              For activities with boarders, please use the <Anchor target="_blank" href="https://infiniti.canberragrammar.org.au/Infiniti/Produce/launch.aspx?id=cd06206f-781e-4e37-8a02-30803481bfc0&portal=1">Boarders lunch order form</Anchor>.
             </Text>
           </Accordion.Panel>
         </Accordion.Item>
