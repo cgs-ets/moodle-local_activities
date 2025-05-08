@@ -418,7 +418,6 @@ class utils_lib {
         }
 
         $disallowedparents = static::get_disallowed_parents($userid);
-        $disallowedparents = array_column($disallowedparents, 'userid');
         $mentors = array_diff($mentors, $disallowedparents);
         
         return $mentors;
@@ -438,7 +437,7 @@ class utils_lib {
 
         $sql = $config->getdisalloweduserssql;
         $results = $externalDB->get_records_sql($sql);
-        return $results;
+        return array_column($results, 'userid');
     }
 
 
