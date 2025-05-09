@@ -646,7 +646,7 @@ class workflow_lib extends \local_activities\local_activities_config {
             $toUser->email = $email;
         }
         $fromUser = \core_user::get_noreply_user();
-        $fromUser->bccaddress = array(); //$fromUser->bccaddress = array("lms.archive@cgs.act.edu.au"); 
+        $fromUser->bccaddress = array("lms.archive@cgs.act.edu.au"); //$fromUser->bccaddress = array();
         $fromUser->bccaddress = array_merge($fromUser->bccaddress, $bccemails);
 
         $activity = new Activity($activityid);
