@@ -25,7 +25,7 @@ export default defineConfig({
     // tip: choose a different port per project to run them at the same time
     strictPort: true,
     port: 5133,
-    origin: 'http://127.0.0.1:5133',
+    origin: 'http://localhost:5133',
   },
   resolve: {
     alias: {

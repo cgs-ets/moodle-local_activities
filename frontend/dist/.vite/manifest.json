@@ -1,6 +1,6 @@
 {
   "index.html": {
-    "file": "assets/index-BL-H_v9T.js",
+    "file": "assets/index-CZD-KIrm.js",
     "name": "index",
     "src": "index.html",
     "isEntry": true,
@@ -8,6 +8,7 @@
       "assets/index-B7Z09hCx.css"
     ],
     "assets": [
+      "assets/logo-CHFg5r_I.png",
       "assets/Inter-Thin-B4o5siQk.woff2",
       "assets/Inter-ThinItalic-vq4GfdE-.woff2",
       "assets/Inter-ExtraLight-DDkcCnmI.woff2",
@@ -99,5 +100,9 @@
   "node_modules/inter-ui/web/Inter-ThinItalic.woff2": {
     "file": "assets/Inter-ThinItalic-vq4GfdE-.woff2",
     "src": "node_modules/inter-ui/web/Inter-ThinItalic.woff2"
+  },
+  "src/assets/logo.png": {
+    "file": "assets/logo-CHFg5r_I.png",
+    "src": "src/assets/logo.png"
   }
 }

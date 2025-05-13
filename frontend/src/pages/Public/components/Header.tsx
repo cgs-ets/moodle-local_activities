@@ -9,6 +9,7 @@ import { EventModal } from "../../../components/EventModal";
 import { useSearchParams } from 'react-router-dom';
 import { useCalViewStore } from '../../../stores/calViewStore';
 import { useFilterStore } from '../../../stores/filterStore';
+import logo from '../../../assets/logo.png';
 
 export function Header() {
   const [searchOpened, setSearchOpened] = useState(false);
@@ -93,7 +94,8 @@ export function Header() {
       <div className="px-6">
         <Group h={54} justify="space-between">
           <Group gap="md">
-            <a href={getConfig().wwwroot + '/local/activities/public/index.php'} className="no-underline">
+            <a href={getConfig().wwwroot + '/local/activities/public/index.php'} className="no-underline flex items-center gap-4">
+              <img src={logo} alt="CGS Calendar" className="h-8" />
               <Text className="text-lg font-semibold" c={getConfig().headerfg}>CGS Calendar</Text>
             </a>
           </Group>
