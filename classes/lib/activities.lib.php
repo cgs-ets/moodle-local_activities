@@ -1686,10 +1686,12 @@ class activities_lib {
         $activity = new Activity($activityid);
         if ($activity->get('permissions')) {
             $sql = "SELECT DISTINCT p.studentusername
-                      FROM {" . static::TABLE_ACTIVITY_PERMISSIONS . "} p
-                INNER JOIN {" . static::TABLE_ACTIVITY_STUDENTS . "} s ON p.studentusername = s.username
+                      FROM mdl_activities_permissions p
+                INNER JOIN mdl_activities_students s ON p.studentusername = s.username
+                INNER JOIN mdl_activities a on a.id = p.activityid
                      WHERE p.activityid = ?
                        AND p.response = 1
+                       AND a.deleted = 0
                        AND p.studentusername NOT IN ( 
                            SELECT studentusername
                              FROM mdl_excursions_permissions
