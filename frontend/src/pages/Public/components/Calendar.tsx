@@ -188,7 +188,7 @@ export function Calendar() {
         <div className="p-3 w-full flex justify-between items-center bg-gray-100 2xl:mb-8">
           <ActionIcon onClick={() => handleNav(-1)} variant="subtle" size="lg"><IconArrowNarrowLeft className="size-7" /></ActionIcon>
           
-          <div className="text-xl font-semibold flex gap-2 items-center">
+          <div className="text-xl font-semibold flex gap-2 items-center flex-wrap">
 
             <div className="mr-2 flex items-center gap-2">
               <ActionIcon onClick={() => setCalView({...calView, type: 'calendar'})} variant="light" className="size-8"  >

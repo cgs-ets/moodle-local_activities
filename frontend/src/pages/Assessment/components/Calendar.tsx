@@ -195,7 +195,7 @@ export function Calendar({setCaltype}: Props) {
         <div className="p-3 w-full flex justify-between items-center">
           <ActionIcon onClick={() => handleNav(-1)} variant="subtle" size="lg"><IconArrowNarrowLeft className="size-7" /></ActionIcon>
           
-          <div className="text-xl font-semibold flex gap-2 items-center">
+          <div className="text-xl font-semibold flex gap-2 items-center flex-wrap">
 
           <div className="flex mr-4">
               <Button color="dark" variant="light" aria-label="Filters" size="compact-md" leftSection={<IconChecklist size={20} />} className="h-8 rounded-r-none pointer-events-none">Assessments</Button>

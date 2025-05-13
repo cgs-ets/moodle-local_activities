@@ -1,6 +1,6 @@
-import { Avatar, Group, Text, Box, Button, Anchor, ActionIcon, Modal, Loader, Pill } from '@mantine/core';
-import { IconExternalLink, IconSearch, IconX } from '@tabler/icons-react';
-import { getConfig, statuses } from "../../../utils";
+import { Group, Text, Box, Button, Anchor, ActionIcon, Modal, Loader, Pill, Drawer } from '@mantine/core';
+import { IconExternalLink, IconMenu, IconSearch, IconX } from '@tabler/icons-react';
+import { getConfig } from "../../../utils";
 import useFetch from "../../../hooks/useFetch";
 import dayjs from "dayjs";
 import { cn } from "../../../utils/utils";
@@ -22,6 +22,7 @@ export function Header() {
   const [searchParams, setSearchParams] = useSearchParams();
   const calView = useCalViewStore((state) => state)
   const filters = useFilterStore((state) => state)
+  const [menuOpened, setMenuOpened] = useState(false);
 
   const api = useFetch()
 
@@ -99,9 +100,19 @@ export function Header() {
               <Text className="text-lg font-semibold" c={getConfig().headerfg}>CGS Calendar</Text>
             </a>
           </Group>
-          <div className="flex items-center gap-2">
 
 
+          <ActionIcon
+            variant="transparent"
+            color="white"
+            className="mr-2 md:hidden"
+            onClick={() => setMenuOpened(true)}
+          >
+            <IconMenu size={20} />
+          </ActionIcon>
+
+
+          <div className="items-center gap-2 hidden md:flex">
             <ActionIcon
               variant="transparent"
               color="white"
@@ -273,7 +284,51 @@ export function Header() {
 
       <EventModal activity={selectedEvent} close={() => setSelectedEvent(null)} isPublic={true} />
 
+      <Drawer position="right" opened={menuOpened} onClose={() => setMenuOpened(false)}>
+        <div className="flex flex-col gap-4">
+          <Button
+            variant='transparent'
+            color="black"
+            onClick={() => {setSearchOpened(true); setMenuOpened(false)}}
+            leftSection={<IconSearch size={20} />}
+            size="md"
+          >
+            Search
+          </Button>
 
+          <Anchor 
+            className={cn(
+              "flex items-center justify-center  hover:no-underline px-4 text-md font-semibold h-[54px]", 
+              searchParams.get('categories') == '' ? 'bg-[#59a5d7] text-white' : ''
+            )}
+            onClick={() => {setSearchParams({type: calView.type, categories: '', year: calView.year, month: calView.month, term: calView.term}); setMenuOpened(false)}}
+          >
+            All
+          </Anchor> 
+          <Anchor 
+            className={cn(
+              "flex items-center justify-center hover:no-underline px-4 text-md font-semibold h-[54px]", 
+              searchParams.get('categories') == 'Primary School' && filters.categories.length <= 1 ? 'bg-[#59a5d7] text-white' : ''
+            )}
+            onClick={() => {setSearchParams({ categories: 'Primary School', type: calView.type, year: calView.year, month: calView.month, term: calView.term }); setMenuOpened(false)}}
+          >
+            Primary School
+          </Anchor> 
+          <Anchor 
+            className={cn(
+              "flex items-center justify-center hover:no-underline px-4 text-md font-semibold h-[54px]", 
+              searchParams.get('categories') == 'Senior School' && filters.categories.length <= 1 ? 'bg-[#59a5d7] text-white' : ''
+            )}
+            onClick={() => {setSearchParams({ categories: 'Senior School', type: calView.type, year: calView.year, month: calView.month, term: calView.term }); setMenuOpened(false)}}
+          >
+            Senior School
+          </Anchor> 
+          <Anchor className="flex items-center justify-center hover:no-underline px-4 text-md font-semibold h-[54px] gap-1" href="/">
+            {getConfig().sitename} <IconExternalLink size={13} />
+          </Anchor>
+
+        </div>
+      </Drawer>
       
     </Box>
   </>
