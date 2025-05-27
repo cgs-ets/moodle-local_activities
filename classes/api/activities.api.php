@@ -166,6 +166,12 @@ trait activities_api {
         return activities_lib::get_by_involvement();
     }
 
+    /**
+     * Get events where user is involved.
+     */
+    static public function get_my_history() {
+        return activities_lib::get_history();
+    }
 
     /**
      * Delete an activity.

@@ -11,40 +11,40 @@ import { EventModal } from '../../../components/EventModal';
 
 
 
-export function MyActivities() {
-  const [involvement, setInvolvement] = useState<any[]>([])
+export function MyHistory() {
+  const [history, setHistory] = useState<any[]>([])
   const [selectedEvent, setSelectedEvent] = useState<Form|null>(null)
 
-  const getMyEvents = useFetch()
+  const getMyHistory = useFetch()
 
   useEffect(() => {
-    getEvents()
+    getHistory()
   }, []);
 
-  const getEvents = async () => {
-    const res = await getMyEvents.call({
+  const getHistory = async () => {
+    const res = await getMyHistory.call({
       query: {
-        methodname: 'local_activities-get_my_involvement',
+        methodname: 'local_activities-get_my_history',
       }
     })
     if (!res.data || res.data.error) {
       return
     }
-    setInvolvement(Object.keys(res.data).map((key) => res.data[key]) || [])
+    setHistory(Object.keys(res.data).map((key) => res.data[key]) || [])
   }
 
-  if (!involvement.length) {
+  if (!history.length) {
     return null
   }
  
   return (
     <div>
       <div className='border-b px-4 py-2 font-semibold bg-[#59a5d7] text-white'>
-        <span className="text-base">My upcoming activities</span>
+        <span className="text-base">Past activities</span>
       </div>
       <div className="bg-white">
         <div>  
-          { involvement.map((area, i) => {
+          { history.map((area, i) => {
            
             if (!area.events.length) {
               return null
@@ -109,6 +109,7 @@ export function MyActivities() {
         </div>
       </div>
       <EventModal hideOpenButton={!getConfig().roles?.includes("staff")} activity={selectedEvent} close={() => setSelectedEvent(null)} />
+
     </div>
   );
 }

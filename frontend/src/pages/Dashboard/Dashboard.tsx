@@ -7,6 +7,7 @@ import { List } from "./components/List";
 import { MyActivities } from "./components/MyActivities";
 import { useSearchParams } from "react-router-dom";
 import { TableView } from "./components/Table";
+import { MyHistory } from "./components/MyHistory";
 
 export function Dashboard() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -38,7 +39,7 @@ export function Dashboard() {
           { getConfig().roles?.includes("staff") 
             ? <Container size="xl" className="w-full max-w-full p-0">
                 <Grid grow gutter={0}>
-                  <Grid.Col span={{ base: 12, lg: 9 }} className="border-r bg-gray-100 pb-6">
+                  <Grid.Col span={{ base: 12, lg: 9 }} className="xborder-r bg-gray-100 pb-6">
                     { caltype == 'calendar'
                       ? <Calendar setCaltype={setCaltype} />
                       : caltype == 'list'
@@ -48,12 +49,11 @@ export function Dashboard() {
                   </Grid.Col>
                   { caltype != 'table' &&
                     <Grid.Col span={{ base: 12, lg: 3 }}>
-                      <div>
-                        <div className='bg-white border-b p-4'>
-                          <span className="text-base">My upcoming activities</span>
-                        </div>
+                      <div className="flex flex-col gap-0 max-h-[calc(100vh-54px)] overflow-y-auto">
                         <MyActivities />
+                        <MyHistory />
                       </div>
+                  
                     </Grid.Col>
                   }
                 </Grid>
