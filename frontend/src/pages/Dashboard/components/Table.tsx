@@ -418,7 +418,7 @@ export function TableView({setCaltype}: Props) {
               </TableHeader>
               
               <TableHeader 
-                sortKey="creator" 
+                sortKey="creatorsortname" 
                 currentSort={sortConfig} 
                 onClick={handleSort}
               >
@@ -426,7 +426,7 @@ export function TableView({setCaltype}: Props) {
               </TableHeader>
               
               <TableHeader 
-                sortKey="staffincharge" 
+                sortKey="staffinchargesortname" 
                 currentSort={sortConfig} 
                 onClick={handleSort}
               >
@@ -449,14 +449,14 @@ export function TableView({setCaltype}: Props) {
               {isCalReviewer() && (
                 <>
                   <TableHeader 
-                    sortKey="approved" 
+                    sortKey="status" 
                     currentSort={sortConfig} 
                     onClick={handleSort}
                   >
                     Approved
                   </TableHeader>
                   <TableHeader 
-                    sortKey="publicnow" 
+                    sortKey="pushpublic" 
                     currentSort={sortConfig} 
                     onClick={handleSort}
                   >
@@ -464,13 +464,9 @@ export function TableView({setCaltype}: Props) {
                   </TableHeader>
                 </>
               )}
-              <TableHeader 
-                sortKey="" 
-                currentSort={null} 
-                onClick={() => {}}
-              >
+              <Table.Th className="whitespace-nowrap min-w-max">
                 Actions
-              </TableHeader>
+              </Table.Th>
             </Table.Tr>
           </Table.Thead>
             <Table.Tbody>

@@ -27,7 +27,7 @@ export function TableRow({event, setSelectedEvent}: Props) {
             <Avatar size="xs" radius="xl" src={'/local/activities/avatar.php?username=' + event.creator.un}><IconUser /></Avatar>
           }
         >
-          <Text className="normal-case font-normal text-black text-sm">{event.creator.fn} {event.creator.ln}</Text>
+          <Text className="normal-case font-normal text-black text-sm">{event.creatorsortname}</Text>
         </Badge>
       </Table.Td>
     </Table.Tr>

@@ -79,7 +79,7 @@ export function TableRow({event}: Props) {
             <Avatar size="xs" radius="xl" src={'/local/activities/avatar.php?username=' + event.creatordata.un}><IconUser /></Avatar>
           }
         >
-          <Text className="normal-case font-normal text-black text-sm">{event.creatordata.fn} {event.creatordata.ln}</Text>
+          <Text className="normal-case font-normal text-black text-sm">{event.creatorsortname}</Text>
         </Badge>
       </Table.Td>
       <Table.Td className="whitespace-nowrap min-w-max">
@@ -87,7 +87,7 @@ export function TableRow({event}: Props) {
             <Avatar size="xs" radius="xl" src={'/local/activities/avatar.php?username=' + staffincharge.un}><IconUser /></Avatar>
           }
         >
-          <Text className="normal-case font-normal text-black text-sm">{staffincharge.fn} {staffincharge.ln}</Text>
+          <Text className="normal-case font-normal text-black text-sm">{event.staffinchargesortname}</Text>
         </Badge>
       </Table.Td>
       <Table.Td className="whitespace-nowrap min-w-max">

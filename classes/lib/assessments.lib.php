@@ -178,6 +178,7 @@ class assessments_lib {
         foreach ($records as $record) {
             $record->creatorid = $record->creator;
             $record->creator = utils_lib::user_stub($record->creator);
+            $record->creatorsortname = $record->creator->ln . ', ' . $record->creator->fn;
             $record->course = $DB->get_record('course', array('id' => $record->courseid));
             $record->coursefullname = $record->course->fullname;
             //$record->module = $DB->get_record('course_modules', array('id' => $record->cmid));

@@ -609,12 +609,17 @@ class Activity {
         
         $statushelper = activities_lib::status_helper($this->data->status);
 
+        $creatordata = utils_lib::user_stub($this->data->creator);
+        $staffincharge = json_decode($this->data->staffinchargejson);
+
     	return [
             'statushelper' => $statushelper,
             'timestart_sort' => date('Y-m-d H:i:s', $this->data->timestart),
             'timeend_sort' => date('Y-m-d H:i:s', $this->data->timeend),
             'timecreated_sort' => date('Y-m-d H:i:s', $this->data->timecreated),
-            'creatordata' => utils_lib::user_stub($this->data->creator),
+            'creatordata' => $creatordata,
+            'creatorsortname' => $creatordata->ln . ', ' . $creatordata->fn,
+            'staffinchargesortname' => $staffincharge ? $staffincharge->ln . ', ' . $staffincharge->fn : '',
 	    ];
     }
 

@@ -326,7 +326,7 @@ export function TableView({setCaltype}: Props) {
               </TableHeader>
               
               <TableHeader 
-                sortKey="creatorid" 
+                sortKey="creatorsortname" 
                 currentSort={sortConfig} 
                 onClick={handleSort}
               >
