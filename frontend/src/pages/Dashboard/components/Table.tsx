@@ -437,11 +437,6 @@ export function TableView({setCaltype}: Props) {
               {filteredEvents.map((event: any) => (
                 <>
                   <TableRow key={event.id} event={event} />
-                  <TableRow key={event.id+1000} event={event} />
-                  <TableRow key={event.id+1001} event={event} />
-                  <TableRow key={event.id+1002} event={event} />
-                  <TableRow key={event.id+1003} event={event} />
-                  <TableRow key={event.id+1004} event={event} />
                 </>
               ))}
             </Table.Tbody>

@@ -628,6 +628,7 @@ class assessments_lib {
 
         $events = assessments_lib::get_assessments(json_decode(json_encode($events_args, JSON_FORCE_OBJECT)));
 		$calendar_array['data'] = $events;
+        $calendar_array['pagination'] = array( 'previous' => $year-1, 'next' => $year+1);
 		return $calendar_array;
 	}
 

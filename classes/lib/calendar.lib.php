@@ -474,6 +474,7 @@ class calendar_lib {
 
         $events = activities_lib::get_for_staff_calendar(json_decode(json_encode($events_args, JSON_FORCE_OBJECT)));
 		$calendar_array['data'] = $events;
+        $calendar_array['pagination'] = array( 'previous' => $year-1, 'next' => $year+1);
 		return $calendar_array;
 	}
 
