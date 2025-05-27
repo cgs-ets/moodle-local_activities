@@ -9,15 +9,17 @@ import { FilterModal } from "./FilterModal";
 import { useDisclosure } from "@mantine/hooks";
 import { useFilterStore } from "../../../stores/filterStore";
 import { User } from "../../../types/types";
-import { getTermFromMonth, isCalReviewer } from "../../../utils/utils";
+import { getMonthFromTerm, getTermFromMonth, isCalReviewer } from "../../../utils/utils";
 import { getConfig, statuses } from "../../../utils";
 import { EventModal } from "../../../components/EventModal";
 import { TableRow } from "./TableRow";
 
 
-type Year = {
+type TermYear = {
+  term: string,
   year: string,
 }
+
 
 type Props = {
   setCaltype: (caltype: string) => void,
@@ -31,24 +33,38 @@ export function TableView({setCaltype}: Props) {
   const [loading, {open: startLoading, close: stopLoading}] = useDisclosure(true)
   const [filterOpened, {close: closeFilter, open: openFilter}] = useDisclosure(false)
   const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null);
-  const [date, setDate] = useState<Year>({
-    year: searchParams.get('year') || dayjs().format("YYYY"),
-  })
   const getDataAPI = useFetch()
   const [data, setData] = useState<any>({
     data: []
   })
   const [selectedEvent, setSelectedEvent] = useState<Form|null>(null)
-
   const tableContainerRef = useRef<HTMLDivElement>(null);
 
+
+  const currterm = dayjs().format("MM-DD") > '09-28' ? 4 
+    : dayjs().format("MM-DD") > '06-29' ? 3
+    : dayjs().format("MM-DD") > '04-13' ? 2
+    : 1
+  const initYear = searchParams.get('year') || dayjs().format("YYYY");
+  // If coming from calendar view, a certain month may have been in view. Get term based on that.
+  const initTerm = searchParams.get('term') 
+    ? searchParams.get('term') 
+    : searchParams.get('month')
+      ? getTermFromMonth(searchParams.get('month')!, initYear).toString()
+      : currterm.toString()
+
+  const [date, setDate] = useState<TermYear>({
+    term: initTerm!,
+    year: initYear,
+  })
+  
   // If search params change, update the date.
   useEffect(() => {
     setDate({
-      year: searchParams.get('year') || dayjs().format("YYYY"), 
+      term: searchParams.get('term') || currterm.toString(), 
+      year: searchParams.get('year') || initYear, 
     })
   }, [searchParams]);
-
 
   // If the date changes, get calendar.
   useEffect(() => {
@@ -57,13 +73,14 @@ export function TableView({setCaltype}: Props) {
     }
   }, [date]);
 
-  const getCalendar = async (date: Year) => {
+  const getCalendar = async (date: TermYear) => {
     startLoading()
     const res = await getDataAPI.call({
       query: {
         methodname: 'local_activities-get_cal',
-        type: 'data',
+        type: 'table',
         year: date.year,
+        term: date.term,
       }
     })
     setData(res.data)
@@ -75,26 +92,36 @@ export function TableView({setCaltype}: Props) {
   const handleNav = (direction: number) => {
     if (direction > 0) {
       setSearchParams(params => {
+        params.set("term", data.pagination.next.tm);
         params.set("year", data.pagination.next.yr);
-        params.set("term", getTermFromMonth(data.pagination.next.mo, data.pagination.next.yr).toString());
+        params.set("month", getMonthFromTerm(data.pagination.next.tm).toString());
         return params;
       });
     } else {
       setSearchParams(params => {
+        params.set("term", data.pagination.previous.tm);
         params.set("year", data.pagination.previous.yr);
-        params.set("term", getTermFromMonth(data.pagination.previous.mo, data.pagination.previous.yr).toString());
+        params.set("month", getMonthFromTerm(data.pagination.previous.tm).toString());
         return params;
       });
     }
   }
 
-
   const handleYearSelect = (year: string | null) => {
     setSearchParams(params => {
       const y = year || dayjs().format("YYYY")
       params.set("year", y);
-      params.set("month", '01');
+      params.set("month", getMonthFromTerm(date.term).toString());
       params.set("term", getTermFromMonth('01', y).toString());
+      return params;
+    });
+  }
+
+  const handleTermSelect = (term: string | null) => {
+    setSearchParams(params => {
+      params.set("year", date.year);
+      params.set("term", term || '1');
+      params.set("month", getMonthFromTerm(term || '1').toString());
       return params;
     });
   }
@@ -216,6 +243,7 @@ export function TableView({setCaltype}: Props) {
       left: 0,
       bottom: 0,
       top: 54,
+      right: 0,
     }}>
 
       <div>
@@ -236,6 +264,20 @@ export function TableView({setCaltype}: Props) {
                 <IconTable stroke={1.5} />
               </ActionIcon>
             </div>
+
+            <Select
+              placeholder="Term"
+              data={[
+                { value: '1', label: 'Term 1' },
+                { value: '2', label: 'Term 2' },
+                { value: '3', label: 'Term 3' },
+                { value: '4', label: 'Term 4' },
+              ]}
+              value={date.term} 
+              onChange={handleTermSelect} 
+              className="w-36"
+              size="md"
+            />
 
             <Select
               placeholder="Year"
@@ -272,13 +314,11 @@ export function TableView({setCaltype}: Props) {
       <div>
         <div 
           ref={tableContainerRef}
-          className="relative overflow-x-auto min-h-56"
+          className="relative overflow-x-auto min-h-[calc(100vh-120px)]"
           
         >
           <LoadingOverlay visible={loading} p={100} />
-          <Table 
-            className="min-w-full bg-white"
-          >
+          <Table className="min-w-full bg-white">
           <Table.Thead>
             <Table.Tr className="border-t border-gray-200">
               <TableHeader 

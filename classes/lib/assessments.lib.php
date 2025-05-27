@@ -140,8 +140,8 @@ class assessments_lib {
 		switch ($args['type']) {
             case 'list':
                 return self::getList($args);
-            case 'data':
-                return self::getData($args);
+            case 'table':
+                return self::getTable($args);
             default:
                 return self::getFull($args);
         }
@@ -604,9 +604,15 @@ class assessments_lib {
 
 
 
-    public static function getData( $args ) {
-		$calendar_array = array();
-		$calendar_array['data'] = array();
+    public static function getTable( $args ) {
+        $events_array = array();
+		$events_array['data'] = array();
+		$type = 'table';
+        $year_now = $year = date('Y');
+
+        if (isset($args['access']) && $args['access'] == 'public') {
+            return $events_array;
+        }
 
 		$year = "";
 		if( ! empty($args['year']) ){
@@ -615,10 +621,61 @@ class assessments_lib {
 		// Set default month and year if they were not provided
 		if( !( is_numeric($year) ) ){
 			$year = date('Y');
-		} 
+		}
 
-		$scope_datetime_start = new DateTime("{$year}-01-01");
-		$scope_datetime_end = new DateTime("{$year}-12-31");
+		$term_map = self::get_term_map( $year );
+
+		// Default term
+		$term_now = $term = 1;
+		if ( date($year . '-m-d') > $term_map[2]['start'] ) {
+			$term_now = $term = 2;
+		}
+		if ( date($year . '-m-d') > $term_map[3]['start'] ) {
+			$term_now = $term = 3;
+		}
+		if ( date($year . '-m-d') > $term_map[4]['start'] ) {
+			$term_now = $term = 4;
+		}
+
+		// Get term if provided
+		if( ! empty( $args['term'] ) ) {
+			if ( $args['term'] >= 1 && $args['term'] <= 4 ) {
+				$term = $args['term'];
+			}
+		}
+
+        //query the database for events in this time span
+		$scope_datetime_start = new DateTime($term_map[$term]['start']);
+		$scope_datetime_end = new DateTime($term_map[$term]['end']);
+
+		$term_last = $term-1;
+		$term_next = $term+1;
+		$year_last = $year; 
+		$year_next = $year;
+		
+		if ( $term == 1 ) { 
+		   $term_last = 4;
+		   $year_last = $year - 1;
+		} elseif ( $term == 4 ){
+			$term_next = 1;
+			$year_next = $year + 1; 
+		}
+
+        $previous = array('type'=>$args['type'], 'tm'=>$term_last, 'yr'=>$year_last);
+		$next = array('type'=>$args['type'], 'tm'=>$term_next, 'yr'=>$year_next);
+
+		$events_array['pagination'] = array( 'previous' => $previous, 'next' => $next);
+		$events_array['type'] = $type;
+		$events_array['term'] = $term;
+		$events_array['term_last'] = $term_last;
+		$events_array['term_next'] = $term_next;
+		$events_array['year'] = $year;
+		$events_array['year_last'] = $year_last;
+		$events_array['year_next'] = $year_next;
+		$events_array['curr_period'] = $year_now . $term_now;
+
+		//$scope_datetime_start = new DateTime("{$year}-01-01");
+		//$scope_datetime_end = new DateTime("{$year}-12-31");
 		$events_args = array (
 			'scope' => array( 
 				'start' => $scope_datetime_start->format('Y-m-d'), 
@@ -627,12 +684,31 @@ class assessments_lib {
 		);
 
         $events = assessments_lib::get_assessments(json_decode(json_encode($events_args, JSON_FORCE_OBJECT)));
-		$calendar_array['data'] = $events;
-        $calendar_array['pagination'] = array( 'previous' => $year-1, 'next' => $year+1);
-		return $calendar_array;
+		$events_array['data'] = $events;
+		return $events_array;
 	}
 
 
+    public static function get_term_map( $year ) {
+        return array(
+            1 => array(
+                'start' => $year . '-01-01',
+                'end' => $year . '-04-13',
+            ),
+            2 => array(
+                'start' => $year . '-04-14',
+                'end' => $year . '-06-29',
+            ),
+            3 => array(
+                'start' => $year . '-06-30',
+                'end' => $year . '-09-28',
+            ),
+            4 => array(
+                'start' => $year . '-09-29',
+                'end' => $year . '-12-31',
+            ),
+        );
+    }
 
 
 

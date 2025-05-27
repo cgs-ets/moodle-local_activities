@@ -38,7 +38,7 @@ export function Dashboard() {
           { getConfig().roles?.includes("staff") 
             ? <Container size="xl" className="w-full max-w-full p-0">
                 <Grid grow gutter={0}>
-                  <Grid.Col span={{ base: 12, lg: 9 }} className="border-r min-h-screen bg-gray-100 pb-6">
+                  <Grid.Col span={{ base: 12, lg: 9 }} className="border-r bg-gray-100 pb-6">
                     { caltype == 'calendar'
                       ? <Calendar setCaltype={setCaltype} />
                       : caltype == 'list'

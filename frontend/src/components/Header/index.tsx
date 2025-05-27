@@ -306,8 +306,8 @@ export function Header() {
         <div className="flex flex-col gap-4">
           <Anchor className="hover:no-underline mr-4 text-md font-normal flex items-center gap-1" href="/">{getConfig().sitename} <IconExternalLink size={13} /></Anchor>
           { !location.pathname.includes("/assessment") 
-            ? getConfig().roles.includes('staff') && <Anchor href="/local/activities/assessments" className=" hover:no-underline mr-4 text-md font-semibold">Assessments</Anchor> 
-            : <Anchor href="/local/activities" className="text-white hover:no-underline mr-4 text-md font-semibold">Activities</Anchor>
+            ? getConfig().roles.includes('staff') && <Anchor href="/local/activities/assessments" className="hover:no-underline mr-4 text-md font-semibold">Assessments</Anchor> 
+            : <Anchor href="/local/activities" className="hover:no-underline mr-4 text-md font-semibold">Activities</Anchor>
           }
           { getConfig().roles?.includes('staff') 
             ? location.pathname.includes("/assessment") 

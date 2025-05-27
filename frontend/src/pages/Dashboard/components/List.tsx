@@ -19,7 +19,6 @@ type TermYear = {
   year: string,
 }
 
-
 type Props = {
   setCaltype: (caltype: string) => void,
 }
@@ -107,7 +106,7 @@ export function List({setCaltype}: Props) {
       setSearchParams(params => {
         params.set("term", list.pagination.previous.tm);
         params.set("year", list.pagination.previous.yr);
-        params.set("month", getMonthFromTerm(list.pagination.next.tm).toString());
+        params.set("month", getMonthFromTerm(list.pagination.previous.tm).toString());
         return params;
       });
     }
