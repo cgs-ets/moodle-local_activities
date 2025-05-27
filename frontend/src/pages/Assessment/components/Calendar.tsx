@@ -1,5 +1,5 @@
 import { ActionIcon, Button, Card, LoadingOverlay, Select } from "@mantine/core";
-import { IconAdjustments, IconArrowNarrowLeft, IconArrowNarrowRight, IconCalendarDue, IconCalendarWeek, IconChecklist, IconListDetails, IconX } from "@tabler/icons-react";
+import { IconAdjustments, IconArrowNarrowLeft, IconArrowNarrowRight, IconCalendarDue, IconCalendarWeek, IconChecklist, IconListDetails, IconTable, IconX } from "@tabler/icons-react";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
 import useFetch from "../../../hooks/useFetch";
@@ -210,6 +210,9 @@ export function Calendar({setCaltype}: Props) {
               </ActionIcon>
               <ActionIcon onClick={() => setCaltype('list')} variant="light" className="size-8"  >
                 <IconListDetails stroke={1.5} />
+              </ActionIcon>
+              <ActionIcon onClick={() => setCaltype('table')} variant="light" className="size-8"  >
+                <IconTable stroke={1.5} />
               </ActionIcon>
             </div>
 

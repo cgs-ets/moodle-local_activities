@@ -15,6 +15,7 @@ export function CalendarSettings() {
   const [catsModalOpened, {open: openCatsModal, close: closeCatsModal}] = useDisclosure(false);
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
 
+
   const updateField = (name: string, value: any) => {
     if (viewStateProps.readOnly) {
       return
@@ -78,7 +79,7 @@ export function CalendarSettings() {
             { viewStateProps.editable &&
               <Button onClick={openCatsModal} size="compact-md" className="rounded-full mt-2" variant="light" rightSection={<IconCategoryFilled className="size-5" />}>{categories.length ? "Change" : "Select"}</Button>
             }
-          </div>
+         </div>
 
           {categories.length > 1 
             ? <div className="p-4 border-t">

@@ -5,6 +5,7 @@ import { Container } from "@mantine/core";
 import { useSearchParams } from "react-router-dom";
 import { List } from "./components/List";
 import { Calendar } from "./components/Calendar";
+import { TableView } from "./components/Table";
 
 export function Assessments() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -36,7 +37,9 @@ export function Assessments() {
             ? <Container size="xl" className="w-full max-w-full p-0">
                 { caltype == 'calendar'
                   ? <Calendar setCaltype={setCaltype} />
-                  : <List setCaltype={setCaltype} />
+                  : caltype == 'list'
+                        ? <List setCaltype={setCaltype} />
+                        : <TableView setCaltype={setCaltype} />
                 }
               </Container>
             :null

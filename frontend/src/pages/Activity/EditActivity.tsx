@@ -184,6 +184,8 @@ export function EditActivity() {
       loading: false,
     })
 
+    console.log('Form data', formData)
+
     let hasErrors = false
     let errors = {} as Errors
     for (let field in validationRules) {

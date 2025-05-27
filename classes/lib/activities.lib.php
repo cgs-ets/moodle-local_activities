@@ -259,6 +259,23 @@ class activities_lib {
 
             $activity->set('planningstaffjson', $data->planningstaffjson);
             $activity->set('accompanyingstaffjson', $data->accompanyingstaffjson);
+
+            // If categoriesjson is empty, set a default value based on campus.
+            $categoriesjson = json_decode($data->categoriesjson);
+            if (empty($categoriesjson)) {
+                switch ($data->campus) {
+                    case 'senior':
+                        $campusword = 'Senior School';
+                        break;
+                    case 'primary':
+                        $campusword = 'Primary School';
+                        break;
+                    default:
+                        $campusword = 'Whole School';
+                        break;
+                }
+                $data->categoriesjson = json_encode([$campusword]);
+            }
             
             $activity->set('categoriesjson', $data->categoriesjson);
             $areas = json_decode($data->categoriesjson);
@@ -1860,6 +1877,29 @@ class activities_lib {
         $statushelper->isapproved = ($status == static::ACTIVITY_STATUS_APPROVED);
         $statushelper->iscancelled = ($status == static::ACTIVITY_STATUS_CANCELLED);
         $statushelper->cansavedraft = $statushelper->isautosave || $statushelper->isdraft || $statushelper->iscancelled;
+
+        switch ($status) {
+            case static::ACTIVITY_STATUS_AUTOSAVE:
+                $statushelper->statusname = 'Autosave';
+                break;
+            case static::ACTIVITY_STATUS_DRAFT:
+                $statushelper->statusname = 'Draft';
+                break;
+            case static::ACTIVITY_STATUS_INREVIEW:
+                $statushelper->statusname = 'In Review';
+                break;
+            case static::ACTIVITY_STATUS_APPROVED:
+                $statushelper->statusname = 'Approved';
+                break;
+            case static::ACTIVITY_STATUS_CANCELLED:
+                $statushelper->statusname = 'Cancelled';
+                break;
+            default:
+                $statushelper->statusname = 'Unknown';
+                break;
+        }
+        
+   
         return $statushelper;
     }
 

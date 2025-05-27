@@ -1,5 +1,5 @@
 import { ActionIcon, Button, Card, Loader, LoadingOverlay, Select, Text } from "@mantine/core";
-import { IconAdjustments, IconArrowNarrowLeft, IconArrowNarrowRight, IconCalendarDue, IconCalendarWeek, IconEye, IconListDetails, IconRotateClockwise2, IconX } from "@tabler/icons-react";
+import { IconAdjustments, IconArrowNarrowLeft, IconArrowNarrowRight, IconCalendarDue, IconCalendarWeek, IconEye, IconListDetails, IconRotateClockwise2, IconTable, IconX } from "@tabler/icons-react";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
 import useFetch from "../../../hooks/useFetch";

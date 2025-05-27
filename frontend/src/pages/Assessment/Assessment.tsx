@@ -1,19 +1,20 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { getConfig } from "../../utils";
 import { useStateStore, ViewStateProps } from "../../stores/stateStore";
 import useFetch from "../../hooks/useFetch";
 import dayjs from "dayjs";
-import { useAjax } from "../../hooks/useAjax";
 import { Header } from "../../components/Header";
 import { cn } from "../../utils/utils";
-import { ActionIcon, Anchor, Box, Button, Card, Center, Checkbox, Container, Grid, Loader, NavLink, Select, Text, TextInput } from "@mantine/core";
+import { ActionIcon, Anchor, Avatar, Box, Button, Card, Center, Checkbox, Container, Group, Loader, Notification, NotificationProps, Select, Text, TextInput } from "@mantine/core";
 import { Footer } from "../../components/Footer";
 import { DateTimePicker } from "@mui/x-date-pickers";
-import { IconCloudUp, IconExternalLink, IconTrash, IconX } from "@tabler/icons-react";
+import { IconCheck, IconCloudUp, IconExternalLink, IconTrash, IconX } from "@tabler/icons-react";
 import { PageHeader } from "./components/PageHeader";
 import { ActivitiesSearchInput } from "./components/ActivitiesSearchInput";
 import { Form } from "../../stores/formStore";
+import { keyframes } from '@emotion/react';
+import { rem } from '@mantine/core';
 
 interface Module {
   value: string;
@@ -34,6 +35,11 @@ export interface AssessmentData {
   activityrequired: boolean;
   activityid: string;
   activityname: string;
+  creatordata: {
+    un: string;
+    fn: string;
+    ln: string;
+  };
 }
 
 export function Assessment() {
@@ -58,6 +64,11 @@ export function Assessment() {
     activityrequired: false,
     activityid: "",
     activityname: "",
+    creatordata: {
+      un: getConfig().username ?? "",
+      fn: getConfig().firstname ?? "",
+      ln: getConfig().lastname ?? "",
+    },
   }
   const [formData, setFormData] = useState<AssessmentData>(defaults)
   const [courses, setCourses] = useState([])
@@ -66,10 +77,21 @@ export function Assessment() {
   const [modulesLoading, setModulesLoading] = useState<boolean>(false)
   const [submitLoading, setSubmitLoading] = useState<boolean>(false)
   const manuallyEdited = useRef(false);
+  const [notification, setNotification] = useState<NotificationProps | null>(null)
+
+  // Define animations
+  const slideIn = keyframes`
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+  `;
+
+  const fadeOut = keyframes`
+  from { opacity: 1; }
+  to { opacity: 0; }
+  `;
 
   useEffect(() => {
     document.title = 'Manage Assessment'
-
     if (id && getConfig().roles?.includes("staff")) {
       getAssessment()
     }
@@ -188,6 +210,12 @@ export function Assessment() {
         if (goBack) {
           navigate('/assessments')
         }
+        setNotification({
+          icon: <IconCheck />,
+          color: "teal",
+          title: "Save successful!",
+          children: "You may continue to edit this assessment.",
+        })
       }
     } else {
       setError(response.exception?.message ?? "Error")
@@ -268,6 +296,16 @@ export function Assessment() {
       setError(response.exception?.message ?? "Error")
     }
   }
+
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => {
+        setNotification(null);
+      }, 3000); // Auto-close after 5 seconds
+  
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
 
   return (
     <>
@@ -373,7 +411,6 @@ export function Assessment() {
                               {formErrors.timeend ? <div className="text-red-600 text-xs mt-1">{formErrors.timeend}</div> : null}
                             </div>
                           </div>
-                          
 
                           <TextInput
                             placeholder=""
@@ -381,7 +418,15 @@ export function Assessment() {
                             value={formData.name ? formData.name : formData.module ? formData.module.label : ""}
                             onChange={(e) => updateField('name', e.target.value)}
                             readOnly={viewStateProps.readOnly}
-                          />                          
+                          />   
+
+                          <div>
+                            <div className="font-semibold mb-2">Created by</div>
+                            <Group key={formData.creatordata.un} gap="sm">
+                              <Avatar size="sm" radius="xl" src={'/local/activities/avatar.php?username=' + formData.creatordata.un} />
+                              <Text>{formData.creatordata.fn} {formData.creatordata.ln}</Text>
+                            </Group>
+                          </div>           
                           
                         </div>
                   </Card>
@@ -418,7 +463,6 @@ export function Assessment() {
                               onChange={(e) => updateField('activityrequired', e.target.checked)}
                               readOnly={viewStateProps.readOnly}
                             />
-
                             {formData.activityrequired && !viewStateProps.readOnly &&
                               <div className="flex gap-4 items-top">
                                 <ActivitiesSearchInput
@@ -441,14 +485,9 @@ export function Assessment() {
                               </div>
                             } 
                           </>
-                        
                       }
-
-                      
-
                     </div>
                   </Card>
-
                   <div className="flex gap-4 justify-between items-center">
                     <Button 
                       className="mt-4 px-3"
@@ -485,13 +524,24 @@ export function Assessment() {
                       </ActionIcon>
                     </div>
                   </div>
-
-
                 </Box>
               </div>
           </Container>
         </> : null
         }
+        {notification && (
+          <Notification 
+            {...notification}
+            onClose={() => setNotification(null)}
+            className="fixed bottom-0 right-0 m-4"
+            style={{
+              position: 'fixed',
+              bottom: rem(16),
+              right: rem(16),
+              animation: notification ? `${slideIn} 300ms ease-out` : undefined,
+            }}
+          />
+        )}
       </div>
       <Footer />
     </>

@@ -7,7 +7,6 @@ import { statuses } from '../utils';
 import { ActivityDetails } from './ActivityDetails';
 import { cn } from '../utils/utils';
 import DownloadIcalButton from './DownloadIcalButton';
-import { Header } from '../pages/Public/components/Header';
 
 type Props = {
   activity: Form|null;

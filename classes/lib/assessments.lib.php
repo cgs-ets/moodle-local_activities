@@ -32,6 +32,8 @@ class assessments_lib {
             $assessment->activityname = $DB->get_field('activities', 'activityname', array('id' => $assessment->activityid));
         }
 
+        $assessment->creatordata = utils_lib::user_stub($assessment->creator);
+
         return $assessment;
     }
 
@@ -138,6 +140,8 @@ class assessments_lib {
 		switch ($args['type']) {
             case 'list':
                 return self::getList($args);
+            case 'data':
+                return self::getData($args);
             default:
                 return self::getFull($args);
         }
@@ -172,8 +176,12 @@ class assessments_lib {
         $records = $DB->get_records_sql($sql, [$start, $end, $start, $end, $start, $end]);
         $assessments = array();
         foreach ($records as $record) {
+            $record->creatorid = $record->creator;
             $record->creator = utils_lib::user_stub($record->creator);
             $record->course = $DB->get_record('course', array('id' => $record->courseid));
+            $record->coursefullname = $record->course->fullname;
+            //$record->module = $DB->get_record('course_modules', array('id' => $record->cmid));
+            //$record->modulename = $record->module->name;
             $record->usercanedit = false;
             if ($record->creator == $USER->username || has_capability('moodle/site:config', \context_user::instance($USER->id))) {
                 $record->usercanedit = true;
@@ -589,6 +597,37 @@ class assessments_lib {
 		$calendar_array['cal_count'] = count($calendar_array['cells']);
 		$calendar_array['col_max'] = count($calendar_array['row_headers']);
 
+		return $calendar_array;
+	}
+
+
+
+
+
+    public static function getData( $args ) {
+		$calendar_array = array();
+		$calendar_array['data'] = array();
+
+		$year = "";
+		if( ! empty($args['year']) ){
+			$year = $args['year'];
+		}
+		// Set default month and year if they were not provided
+		if( !( is_numeric($year) ) ){
+			$year = date('Y');
+		} 
+
+		$scope_datetime_start = new DateTime("{$year}-01-01");
+		$scope_datetime_end = new DateTime("{$year}-12-31");
+		$events_args = array (
+			'scope' => array( 
+				'start' => $scope_datetime_start->format('Y-m-d'), 
+				'end' => $scope_datetime_end->format('Y-m-d')
+			),
+		);
+
+        $events = assessments_lib::get_assessments(json_decode(json_encode($events_args, JSON_FORCE_OBJECT)));
+		$calendar_array['data'] = $events;
 		return $calendar_array;
 	}
 

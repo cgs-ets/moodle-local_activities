@@ -1,5 +1,5 @@
 import { ActionIcon, Button, Card, Loader, LoadingOverlay, Select, Text } from "@mantine/core";
-import { IconAdjustments, IconArrowNarrowLeft, IconArrowNarrowRight, IconCalendarDue, IconCalendarWeek, IconEye, IconListDetails, IconRotateClockwise2, IconX } from "@tabler/icons-react";
+import { IconAdjustments, IconArrowNarrowLeft, IconArrowNarrowRight, IconCalendarDue, IconCalendarWeek, IconEye, IconListDetails, IconRotateClockwise2, IconTable, IconX } from "@tabler/icons-react";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
 import useFetch from "../../../hooks/useFetch";
@@ -11,7 +11,7 @@ import { useFilterStore } from "../../../stores/filterStore";
 import { ListTease } from "./ListTease";
 import { User } from "../../../types/types";
 import { getMonthFromTerm, getTermFromMonth, isCalReviewer } from "../../../utils/utils";
-import { statuses } from "../../../utils";
+import { getConfig, statuses } from "../../../utils";
 import { EventModal } from "../../../components/EventModal";
 
 type TermYear = {
@@ -222,7 +222,7 @@ export function List({setCaltype}: Props) {
     <div>
 
    
-        <div className="p-3 w-full flex justify-between items-center">
+        <div className="p-3 w-full flex justify-between items-center bg-white">
           <ActionIcon onClick={() => handleNav(-1)} variant="subtle" size="lg"><IconArrowNarrowLeft className="size-7" /></ActionIcon>
 
           <div className="text-xl font-semibold flex gap-2 items-center flex-wrap">
@@ -232,6 +232,9 @@ export function List({setCaltype}: Props) {
               </ActionIcon>
               <ActionIcon onClick={() => setCaltype('list')} variant="light" aria-label="List view" title="List view" className="size-8"  >
                 <IconListDetails stroke={1.5} />
+              </ActionIcon>
+              <ActionIcon onClick={() => setCaltype('table')} variant="light" className="size-8"  >
+                <IconTable stroke={1.5} />
               </ActionIcon>
             </div>
             <Select
@@ -321,6 +324,7 @@ export function List({setCaltype}: Props) {
                   <div className="text-gray-500 flex items-center text-center">
                     <div className="w-20"><Text className="text-sm">Approved</Text></div>
                     <div className="w-20"><Text className="text-sm">Public Now</Text></div>
+                    <div className="w-20"><Text className="text-sm">Created</Text></div>
                   </div>
                 }
               </div>
@@ -355,6 +359,7 @@ export function List({setCaltype}: Props) {
                   <div className="text-gray-500 flex items-center text-center">
                     <div className="w-20"><Text className="text-sm">Approved</Text></div>
                     <div className="w-20"><Text className="text-sm">Public Now</Text></div>
+                    <div className="w-20"><Text className="text-sm">Created</Text></div>
                   </div>
                 }
               </div>
@@ -371,7 +376,7 @@ export function List({setCaltype}: Props) {
       </div>
 
 
-      <EventModal activity={selectedEvent} close={() => setSelectedEvent(null)} />
+      <EventModal activity={selectedEvent} close={() => setSelectedEvent(null)} hideOpenButton={!getConfig().roles?.includes("staff")} />
 
       <FilterModal opened={filterOpened} filters={filters} setFilters={setFilters} close={() => closeFilter()} />
 

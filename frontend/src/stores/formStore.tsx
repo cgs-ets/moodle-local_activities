@@ -202,6 +202,9 @@ const useFormValidationStore = create<FormValidationStore>((set) => ({
     timestart: [
       (value: string, formData: Form) => (Number(value) == formData.timeend || Number(value) > formData.timeend ? 'End time must be greater than start time. ' : null),
     ],
+    /*categories: [
+      (value: string[], formData: Form) => (value.length ? null : 'At least one category is required. '),
+    ],*/
   },
   setFormErrors: (errors) => set({ formErrors: errors }),
   reset: () => set({formErrors: {}}),

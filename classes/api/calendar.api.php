@@ -30,6 +30,9 @@ trait calendar_api {
 
     static public function get_public_calendar() {
         $type = required_param('type', PARAM_RAW);
+        if ($type != 'full' && $type != 'list') { // Only full and list are supported for public calendar
+            return [];
+        }
         $month = optional_param('month', '', PARAM_ALPHANUMEXT);
         $year = optional_param('year', '', PARAM_ALPHANUMEXT);
         $term = optional_param('term', '', PARAM_ALPHANUMEXT);

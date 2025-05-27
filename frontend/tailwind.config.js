@@ -5,7 +5,11 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        appgreen: '#d4edda',
+      },
+    },
     screens: {
       'sm': '640px',
       // => @media (min-width: 640px) { ... }

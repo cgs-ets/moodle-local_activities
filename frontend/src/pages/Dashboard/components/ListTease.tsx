@@ -18,8 +18,6 @@ export function ListTease({celldate, event, setSelectedEvent}: Props) {
   const [approvedResponse, approvedError, approvedLoading, submitApprovedAjax, setApprovedData] = useAjax(); // destructure state and fetch function
   const [publicResponse, publicError, publicLoading, submitPublicAjax, setPublicData] = useAjax(); // destructure state and fetch function
   
-  console.log('displaypub', event.displaypublic)
-
   const showPublicNowOpt = () => {
     return isCalReviewer() && isActivity(event.activitytype) && Number(event.displaypublic) && !event.statushelper.isapproved
   }
@@ -30,7 +28,6 @@ export function ListTease({celldate, event, setSelectedEvent}: Props) {
 
   const handlePublicNow = (value: boolean) => {
     setPublicNow(value)
-    // Send it
     submitPublicAjax({
       method: "POST", 
       body: {
@@ -45,7 +42,6 @@ export function ListTease({celldate, event, setSelectedEvent}: Props) {
 
   const handleReviewed = (value: boolean) => {
     setReviewed(value)
-    // Send it
     submitApprovedAjax({
       method: "POST", 
       body: {
@@ -94,7 +90,6 @@ export function ListTease({celldate, event, setSelectedEvent}: Props) {
       </Anchor>
       { isCalReviewer() &&
         <div className="text-gray-500 flex items-center px-4">
-
             <div className={cn("w-20 h-full flex items-center justify-center")}>
               <Checkbox
                 disabled={!showApproveOpt()}
@@ -102,13 +97,15 @@ export function ListTease({celldate, event, setSelectedEvent}: Props) {
                 onChange={(event) => handleReviewed(event.currentTarget.checked)}
               />
             </div>
-          
             <div className={cn("w-20 h-full flex items-center justify-center", publicNow ? "bg-[#d4edda]" : "")}>
               <Checkbox
                 disabled={!showPublicNowOpt()}
                 checked={publicNow}
                 onChange={(event) => handlePublicNow(event.currentTarget.checked)}
               />
+            </div>
+            <div className={cn("w-20 h-full flex items-center justify-center font-mono")}>
+              <span className="text-xs">{dayjs.unix(event.timestart).format("DD/MM/YYYY")}</span>
             </div>
         </div>
       }

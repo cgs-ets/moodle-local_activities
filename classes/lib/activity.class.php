@@ -580,6 +580,7 @@ class Activity {
             'permissionsurl' => $permissionsurl->out(false),
             'statushelper' => $statushelper,
             'iscreator' => $iscreator,
+            'creatordata' => utils_lib::user_stub($this->data->creator),
             'isapprover' => $isapprover,
             'isplanner' => $isplanner,
             'isaccompanying' => $isaccompanying,
@@ -592,7 +593,6 @@ class Activity {
             'isactivity' => $isactivity,
             'startreadabletime' => $startreadabletime,
             'endreadabletime' => $endreadabletime,
-            //'isallday' => ( date('H:i', $this->data->timestart) == '00:00' && date('H:i', $this->data->timeend) == '23:59'),
             'assessmentid' => $assessmentid,
             'permissionsent' => $permissionsent,
 	    ];
@@ -611,6 +611,10 @@ class Activity {
 
     	return [
             'statushelper' => $statushelper,
+            'timestart_sort' => date('Y-m-d H:i:s', $this->data->timestart),
+            'timeend_sort' => date('Y-m-d H:i:s', $this->data->timeend),
+            'timecreated_sort' => date('Y-m-d H:i:s', $this->data->timecreated),
+            'creatordata' => utils_lib::user_stub($this->data->creator),
 	    ];
     }
 

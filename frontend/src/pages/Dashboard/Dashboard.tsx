@@ -6,6 +6,7 @@ import { Calendar } from "./components/Calendar";
 import { List } from "./components/List";
 import { MyActivities } from "./components/MyActivities";
 import { useSearchParams } from "react-router-dom";
+import { TableView } from "./components/Table";
 
 export function Dashboard() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -37,20 +38,24 @@ export function Dashboard() {
           { getConfig().roles?.includes("staff") 
             ? <Container size="xl" className="w-full max-w-full p-0">
                 <Grid grow gutter={0}>
-                  <Grid.Col span={{ base: 12, lg: 9 }} className="border-r min-h-screen bg-white pb-6">
+                  <Grid.Col span={{ base: 12, lg: 9 }} className="border-r min-h-screen bg-gray-100 pb-6">
                     { caltype == 'calendar'
                       ? <Calendar setCaltype={setCaltype} />
-                      : <List setCaltype={setCaltype} />
+                      : caltype == 'list'
+                        ? <List setCaltype={setCaltype} />
+                        : <TableView setCaltype={setCaltype} />
                     }
                   </Grid.Col>
-                  <Grid.Col span={{ base: 12, lg: 3 }}>
-                    <div>
-                      <div className='bg-white border-b p-4'>
-                        <span className="text-base">My upcoming activities</span>
+                  { caltype != 'table' &&
+                    <Grid.Col span={{ base: 12, lg: 3 }}>
+                      <div>
+                        <div className='bg-white border-b p-4'>
+                          <span className="text-base">My upcoming activities</span>
+                        </div>
+                        <MyActivities />
                       </div>
-                      <MyActivities />
-                    </div>
-                  </Grid.Col>
+                    </Grid.Col>
+                  }
                 </Grid>
                 </Container>
             : <Container size="xl" className="p-4">
