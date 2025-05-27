@@ -102,7 +102,7 @@ export function Header() {
 
   return (
   <>
-    <Box bg={getConfig().headerbg}>
+    <Box bg={getConfig().headerbg} className="fixed w-full left-0 top-0 z-50">
       <div className="px-6">
         <Group h={54} justify="space-between">
 
@@ -321,6 +321,7 @@ export function Header() {
           
       
     </Box>
+    <div className="h-[54px]"></div>
   </>
   );
 }

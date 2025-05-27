@@ -271,3 +271,57 @@ body {
 .mantine-Loader-root::after {
   border-width: 2px;
 }
+
+
+
+
+
+
+
+
+
+
+/* Container for fixed scrollbar */
+.table-scroll-container {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 150px); /* Adjust based on your header height */
+  overflow-y: auto;
+}
+
+/* Table wrapper */
+.table-wrapper {
+  overflow-x: auto;
+  width: 100%;
+}
+
+/* Fixed scrollbar */
+.fixed-scrollbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 12px;
+  background-color: #f1f1f1;
+  z-index: 100;
+}
+
+.fixed-scrollbar-thumb {
+  position: absolute;
+  height: 100%;
+  background-color: #888;
+  border-radius: 6px;
+  cursor: grab;
+}
+
+.fixed-scrollbar-thumb:hover {
+  background-color: #555;
+}
+
+/* Make sure table headers stay visible */
+.table-wrapper thead th {
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 10;
+}

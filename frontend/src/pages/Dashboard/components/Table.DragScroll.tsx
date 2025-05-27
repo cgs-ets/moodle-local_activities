@@ -41,6 +41,10 @@ export function TableView({setCaltype}: Props) {
   const [selectedEvent, setSelectedEvent] = useState<Form|null>(null)
 
   const tableContainerRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+
 
   // If search params change, update the date.
   useEffect(() => {
@@ -185,6 +189,54 @@ export function TableView({setCaltype}: Props) {
     });
   };
 
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    // Only initiate drag if not clicking on a sortable header
+    const target = e.target as HTMLElement;
+    const isSortableHeader = target.closest('th')?.classList.contains('cursor-pointer');
+    
+    if (!isSortableHeader && tableContainerRef.current) {
+      setIsDragging(true);
+      setStartX(e.pageX - tableContainerRef.current.offsetLeft);
+      setScrollLeft(tableContainerRef.current.scrollLeft);
+      e.preventDefault(); // Prevent text selection during drag
+    }
+  };
+  
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !tableContainerRef.current) return;
+    
+    const x = e.pageX - tableContainerRef.current.offsetLeft;
+    const walk = (x - startX) * 2; // Scroll speed multiplier
+    tableContainerRef.current.scrollLeft = scrollLeft - walk;
+    e.preventDefault(); // Prevent default behavior during drag
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!tableContainerRef.current) return;
+    
+    setIsDragging(true);
+    setStartX(e.touches[0].pageX - tableContainerRef.current.offsetLeft);
+    setScrollLeft(tableContainerRef.current.scrollLeft);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !tableContainerRef.current) return;
+    
+    const x = e.touches[0].pageX - tableContainerRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    tableContainerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+
   type TableHeaderProps = {
     sortKey: string;
     currentSort: { key: string; direction: 'asc' | 'desc' } | null;
@@ -211,16 +263,10 @@ export function TableView({setCaltype}: Props) {
 
 
   return (
-    <div style={{
-      position: 'absolute',
-      left: 0,
-      bottom: 0,
-      top: 54,
-    }}>
+    <div>
 
       <div>
-        <div className="h-[66px]"></div>
-        <div className="fixed top-[54px] left-0 right-0 p-3 w-full flex justify-between items-center bg-white">
+        <div className="p-3 w-full flex justify-between items-center bg-white">
           <ActionIcon onClick={() => handleNav(-1)} variant="subtle" size="lg"><IconArrowNarrowLeft className="size-7" /></ActionIcon>
           
           <div className="text-xl font-semibold flex gap-2 items-center flex-wrap">
@@ -273,11 +319,22 @@ export function TableView({setCaltype}: Props) {
         <div 
           ref={tableContainerRef}
           className="relative overflow-x-auto min-h-56"
-          
+          onMouseDown={handleMouseDown}
+          onMouseLeave={() => setIsDragging(false)}
+          onMouseUp={() => setIsDragging(false)}
+          onMouseMove={handleMouseMove}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={() => setIsDragging(false)}
+          style={{ 
+            cursor: isDragging ? 'grabbing' : 'grab',
+            userSelect: isDragging ? 'none' : 'auto'
+          }}
         >
           <LoadingOverlay visible={loading} p={100} />
           <Table 
             className="min-w-full bg-white"
+            style={{ userSelect: isDragging ? 'none' : 'auto' }}
           >
           <Table.Thead>
             <Table.Tr className="border-t border-gray-200">
@@ -435,14 +492,7 @@ export function TableView({setCaltype}: Props) {
           </Table.Thead>
             <Table.Tbody>
               {filteredEvents.map((event: any) => (
-                <>
-                  <TableRow key={event.id} event={event} />
-                  <TableRow key={event.id+1000} event={event} />
-                  <TableRow key={event.id+1001} event={event} />
-                  <TableRow key={event.id+1002} event={event} />
-                  <TableRow key={event.id+1003} event={event} />
-                  <TableRow key={event.id+1004} event={event} />
-                </>
+                <TableRow key={event.id} event={event} />
               ))}
             </Table.Tbody>
           </Table>
