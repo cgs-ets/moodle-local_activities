@@ -12,7 +12,7 @@ import { EventModal } from '../../../components/EventModal';
 
 
 export function MyHistory() {
-  const [history, setHistory] = useState<any[]>([])
+  const [history, setHistory] = useState<any>({})
   const [selectedEvent, setSelectedEvent] = useState<Form|null>(null)
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
@@ -39,8 +39,7 @@ export function MyHistory() {
     if (!res.data || res.data.error) {
       return
     }
-    const data = Object.keys(res.data).map((key) => res.data[key]) || []
-    const hasSome = data.some((area: any) => area.events.length)
+    const hasSome = Object.values(res.data).some((area: any) => area.events.length)
     if (!hasSome) {
       setHasMore(false)
     }
@@ -48,22 +47,21 @@ export function MyHistory() {
 
     if (hasSome) {
       // Need to inject events into the correct area.
-      const newHistory: any[] = JSON.parse(JSON.stringify(history))
-      data.forEach((area: any) => {
-        newHistory.push({
-          ...area,
-          events: area.events.length ? area.events.map((event: any) => ({...event, area: area.heading})) : []
-        })
+      const newHistory = JSON.parse(JSON.stringify(history))
+      Object.keys(res.data).forEach((area: any) => {
+        if (!newHistory[area]) {
+          newHistory[area] = {
+            heading: res.data[area].heading,
+            events: []
+          }
+        }
+        newHistory[area].events = [...newHistory[area].events, ...res.data[area].events.map((event: any) => ({...event, area: res.data[area].heading}))]
       })
       setHistory(newHistory)
     }
 
   }
 
-  if (!history.length) {
-    return null
-  }
- 
   return (
     <div>
       <div className='border-b px-4 py-2 font-semibold bg-[#59a5d7] text-white'>
@@ -71,14 +69,14 @@ export function MyHistory() {
       </div>
       <div className="bg-white">
         <div>  
-          { history.map((area, i) => {
-            if (!area.events.length) {
+          { Object.keys(history).map((area, i) => {
+            if (!history[area].events.length) {
               return null
             }
             return (
               <div key={i}>
-                {!!area.heading && <div className='font-semibold border-b py-2 px-4 bg-gray-100'>{area.heading}</div>}
-                { area.events?.map((event: any) =>
+                {!!history[area].heading && <div className='font-semibold border-b py-2 px-4 bg-gray-100'>{history[area].heading}</div>}
+                { history[area].events?.map((event: any) =>
                   <div key={event.id} className='flex justify-between items-center py-2 px-4 border-b'>
 
                     {/* The tease */}

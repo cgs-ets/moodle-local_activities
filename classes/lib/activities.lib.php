@@ -877,7 +877,7 @@ class activities_lib {
     public static function get_by_ids($ids, $status = null, $orderby = null, $period = null, $exported = true, $getall = true, $page = 1) { // Period is null, "past" or "future"
         global $DB, $CFG;
 
-        $perpage = 10;
+        $perpage = 8;
         $offset = ($page - 1) * $perpage;
 
         $activities = array();
