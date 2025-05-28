@@ -238,16 +238,8 @@ export function TableView({setCaltype}: Props) {
 
 
   return (
-    <div style={{
-      position: 'absolute',
-      left: 0,
-      bottom: 0,
-      top: 54,
-      right: 0,
-    }}>
-
+    <div>
       <div>
-        <div className="h-[66px]"></div>
         <div className="fixed top-[54px] left-0 right-0 p-3 w-full flex justify-between items-center bg-white">
           <ActionIcon onClick={() => handleNav(-1)} variant="subtle" size="lg"><IconArrowNarrowLeft className="size-7" /></ActionIcon>
           
@@ -314,8 +306,7 @@ export function TableView({setCaltype}: Props) {
       <div>
         <div 
           ref={tableContainerRef}
-          className="relative overflow-x-auto min-h-[calc(100vh-120px)]"
-          
+          className="fixed top-[120px] left-0 right-0 bottom-0 overflow-x-auto min-h-[calc(100vh-120px)]"
         >
           <LoadingOverlay visible={loading} p={100} />
           <Table className="min-w-full bg-white">
@@ -472,6 +463,16 @@ export function TableView({setCaltype}: Props) {
             <Table.Tbody>
               {filteredEvents.map((event: any) => (
                 <>
+                  <TableRow key={event.id} event={event} />
+                  <TableRow key={event.id} event={event} />
+                  <TableRow key={event.id} event={event} />
+                  <TableRow key={event.id} event={event} />
+                  <TableRow key={event.id} event={event} />
+                  <TableRow key={event.id} event={event} />
+                  <TableRow key={event.id} event={event} />
+                  <TableRow key={event.id} event={event} />
+                  <TableRow key={event.id} event={event} />
+                  <TableRow key={event.id} event={event} />
                   <TableRow key={event.id} event={event} />
                 </>
               ))}
