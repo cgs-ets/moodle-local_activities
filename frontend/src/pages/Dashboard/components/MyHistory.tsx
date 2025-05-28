@@ -42,6 +42,8 @@ export function MyHistory() {
     if (!res.data || res.data.error) {
       return
     }
+    console.log('res.data', res.data)
+
     const hasSome = Object.values(res.data).some((area: any) => area.events.length)
     if (!hasSome) {
       setHasMore(false)
@@ -63,8 +65,11 @@ export function MyHistory() {
       })
       setHistory(newHistory)
     }
-
   }
+
+  useEffect(() => {
+    console.log('history', history)
+  }, [history])
 
   return (
     <div>
