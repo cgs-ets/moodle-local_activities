@@ -1,5 +1,4 @@
 import dayjs from "dayjs";
-import { Form } from "../../../stores/formStore";
 import { cn, isActivity, isCalEntry, isCalReviewer } from "../../../utils/utils";
 import { useState } from "react";
 import { useAjax } from "../../../hooks/useAjax";
@@ -10,9 +9,11 @@ import { useNavigate } from "react-router-dom";
 
 type Props = {
   event: any,
+  setSelectedEvent: (event: any) => void,
+  selected: boolean,
 }
 
-export function TableRow({event}: Props) {
+export function TableRow({event, setSelectedEvent, selected}: Props) {
   const [publicNow, setPublicNow] = useState(!!Number(event.pushpublic));
   const [reviewed, setReviewed] = useState(event.statushelper.isapproved);
   const [approvedResponse, approvedError, approvedLoading, submitApprovedAjax, setApprovedData] = useAjax(); // destructure state and fetch function
@@ -60,7 +61,8 @@ export function TableRow({event}: Props) {
   return (
     <Table.Tr 
       key={event.id}
-      className={cn(reviewed ? "bg-appgreen" : "")}
+      className={cn(reviewed ? "bg-appgreen" : "", selected ? "border-b border-dashed border-blue-500" : "")}
+      onClick={() => setSelectedEvent(event)}
     >
       <Table.Td className="whitespace-nowrap min-w-max">{dayjs.unix(Number(event.timestart)).format("DD/MM/YYYY HH:mm")}</Table.Td>
       <Table.Td className="whitespace-nowrap min-w-max">{dayjs.unix(Number(event.timeend)).format("DD/MM/YYYY HH:mm")}</Table.Td>

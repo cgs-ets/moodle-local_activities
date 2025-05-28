@@ -87,7 +87,36 @@ export function TableView({setCaltype}: Props) {
     stopLoading()
   }
 
-  
+  useEffect(() => {
+    if (data.data.length > 0) {
+      markToday()
+    }
+  }, [data])
+
+  const goToToday = () => {
+    setSearchParams(params => {
+      params.set("year", dayjs().format("YYYY"));
+      params.set("term", currterm.toString());
+      params.set("month", getMonthFromTerm(currterm.toString()).toString());
+      params.delete("month");
+      return params;
+    });
+    markToday()
+  }
+
+  const markToday = () => {
+    // look through the events and set the selected event to the first one that is today.
+    const todayEvent = data.data.find((event: any) => dayjs(event.timestart).isSame(dayjs(), 'day'));
+    if (todayEvent) {
+      setSelectedEvent(todayEvent);
+    } else {
+      // Determine the closest event to today.
+      const closestEvent = data.data.reduce((prev: any, curr: any) => {
+        return (Math.abs(curr.timestart - dayjs().unix()) < Math.abs(prev.timestart - dayjs().unix()) ? curr : prev);
+      });
+      setSelectedEvent(closestEvent);
+    }
+  }
 
   const handleNav = (direction: number) => {
     if (direction > 0) {
@@ -284,6 +313,7 @@ export function TableView({setCaltype}: Props) {
             />
 
             <div className="ml-2 flex items-center gap-2 ">
+              <Button onClick={goToToday} variant="light" aria-label="Go to today" title="Go to today" className="h-8" size="compact-md">Today</Button>
               { hasFilters() 
                 ? <div className="flex">
                     <Button color="orange" onClick={() => openFilter()} variant="light" aria-label="Filters" size="compact-md" leftSection={<IconAdjustments size={20} />} className="h-8 rounded-r-none">Filters on</Button>
@@ -462,13 +492,15 @@ export function TableView({setCaltype}: Props) {
           </Table.Thead>
             <Table.Tbody>
               {filteredEvents.map((event: any) => (
-                <TableRow key={event.id} event={event} />
+                <TableRow key={event.id} event={event} setSelectedEvent={setSelectedEvent} selected={selectedEvent?.id === event.id} />
               ))}
             </Table.Tbody>
           </Table>
         </div>
         
-        <EventModal activity={selectedEvent} close={() => setSelectedEvent(null)} hideOpenButton={!getConfig().roles?.includes("staff")} />
+        { 
+        //<EventModal activity={selectedEvent} close={() => setSelectedEvent(null)} hideOpenButton={!getConfig().roles?.includes("staff")} /> 
+        }
 
         <FilterModal opened={filterOpened} filters={filters} setFilters={setFilters} close={() => closeFilter()} />
     </div>
