@@ -39,7 +39,7 @@ export function MyActivities() {
  
   return (
     <div>
-      <div className='border-b px-4 py-2 font-semibold bg-[#59a5d7] text-white'>
+      <div className='border-b px-4 py-2 font-semibold bg-gray-200 text-black'>
         <span className="text-base">My upcoming activities</span>
       </div>
       <div className="bg-white">

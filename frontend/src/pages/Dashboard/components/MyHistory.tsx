@@ -42,7 +42,6 @@ export function MyHistory() {
     if (!res.data || res.data.error) {
       return
     }
-    console.log('res.data', res.data)
 
     const hasSome = Object.values(res.data).some((area: any) => area.events.length)
     if (!hasSome) {
@@ -67,13 +66,9 @@ export function MyHistory() {
     }
   }
 
-  useEffect(() => {
-    console.log('history', history)
-  }, [history])
-
   return (
     <div>
-      <div className='border-b px-4 py-2 font-semibold bg-[#59a5d7] text-white'>
+      <div className='border-b px-4 py-2 font-semibold bg-gray-200 text-black'>
         <span className="text-base">Past activities</span>
       </div>
       <div className="bg-white">
