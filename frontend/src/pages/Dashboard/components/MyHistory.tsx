@@ -10,14 +10,17 @@ import { Link } from 'react-router-dom';
 import { EventModal } from '../../../components/EventModal';
 
 
+interface HistoryArea {
+  heading: string;
+  events: any[]; // Consider using a more specific type than 'any'
+}
 
 export function MyHistory() {
-  const [history, setHistory] = useState<any>({})
+  const [history, setHistory] = useState<Record<string, HistoryArea>>({});
   const [selectedEvent, setSelectedEvent] = useState<Form|null>(null)
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
   const [loading, setLoading] = useState(false)
-
   const getMyHistory = useFetch()
 
   useEffect(() => {
@@ -51,14 +54,12 @@ export function MyHistory() {
       Object.keys(res.data).forEach((area: any) => {
         if (!newHistory[area]) {
           newHistory[area] = {
-            heading: res.data[area].heading,
+            heading: res.data[area]?.heading || '',
             events: []
           }
         }
-        const newEvents = res.data[area].events || []
-        console.log('newEvents', newEvents)
-        console.log('newHistory', newHistory)
-        newHistory[area].events = [...newHistory[area].events, ...newEvents]
+        const newEvents = res.data[area]?.events || [];
+        newHistory[area].events = [...(newHistory[area].events || []), ...newEvents]
       })
       setHistory(newHistory)
     }
@@ -73,13 +74,13 @@ export function MyHistory() {
       <div className="bg-white">
         <div>  
           { Object.keys(history).map((area, i) => {
-            if (!history[area].events.length) {
+            if (!history[area]?.events?.length) {
               return null
             }
             return (
               <div key={i}>
-                {!!history[area].heading && <div className='font-semibold border-b py-2 px-4 bg-gray-100'>{history[area].heading}</div>}
-                { history[area].events?.map((event: any) =>
+                {!!history[area]?.heading && <div className='font-semibold border-b py-2 px-4 bg-gray-100'>{history[area].heading}</div>}
+                { history[area]?.events?.map((event: any) =>
                   <div key={event.id} className='flex justify-between items-center py-2 px-4 border-b'>
 
                     {/* The tease */}
