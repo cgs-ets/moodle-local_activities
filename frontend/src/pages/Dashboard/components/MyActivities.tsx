@@ -52,7 +52,7 @@ export function MyActivities() {
             return (
               <div key={i}>
                 {!!area.heading && <div className='font-semibold border-b py-2 px-4 bg-gray-100'>{area.heading}</div>}
-                { area.events.map((event: any) =>
+                { area.events?.map((event: any) =>
                   <div key={event.id} className='flex justify-between items-center py-2 px-4 border-b'>
 
                     {/* The tease */}

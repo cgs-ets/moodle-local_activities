@@ -52,7 +52,7 @@ export function MyHistory() {
       data.forEach((area: any) => {
         newHistory.push({
           ...area,
-          events: area.events.map((event: any) => ({...event, area: area.heading}))
+          events: area.events.length ? area.events.map((event: any) => ({...event, area: area.heading})) : []
         })
       })
       setHistory(newHistory)
@@ -78,7 +78,7 @@ export function MyHistory() {
             return (
               <div key={i}>
                 {!!area.heading && <div className='font-semibold border-b py-2 px-4 bg-gray-100'>{area.heading}</div>}
-                { area.events.map((event: any) =>
+                { area.events?.map((event: any) =>
                   <div key={event.id} className='flex justify-between items-center py-2 px-4 border-b'>
 
                     {/* The tease */}
