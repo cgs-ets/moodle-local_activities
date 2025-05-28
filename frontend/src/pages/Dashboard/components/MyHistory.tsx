@@ -55,8 +55,9 @@ export function MyHistory() {
             events: []
           }
         }
-        console.log('res.data[area]', res.data[area])
         const newEvents = res.data[area].events || []
+        console.log('newEvents', newEvents)
+        console.log('newHistory', newHistory)
         newHistory[area].events = [...newHistory[area].events, ...newEvents]
       })
       setHistory(newHistory)
