@@ -952,7 +952,7 @@ class activities_lib {
             $activities[$i] = static::minimise_record($activity);
         }
 
-        return array_filter($activities);
+        return array_filter(array_values($activities));
     }
 
     public static function get_for_parent($username, $period = null, $orderby = null, $getall = true, $page = 1) {
