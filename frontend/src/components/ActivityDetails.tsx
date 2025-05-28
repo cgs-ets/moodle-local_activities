@@ -40,7 +40,14 @@ export function ActivityDetails({activity, isPublic}: {activity: Form, isPublic:
       <Card.Section pos="relative" className='m-0 border-b  flex items-center gap-1 px-4 pb-2'>
         <div className='w-36 font-bold'>Time</div>
         <div className='text-base flex items-center gap-3'>
-          {dayjs.unix(Number(activity.timestart)).format("H:mmA, D MMM")} <IconArrowNarrowRight className='stroke-1' /> {dayjs.unix(Number(activity.timeend)).format("H:mmA, D MMM")}
+          { !!Number(activity.isallday)
+            ? dayjs.unix(Number(activity.timestart)).format("DDMM") == dayjs.unix(Number(activity.timeend)).format("DDMM") 
+              ? <div>All day {dayjs.unix(Number(activity.timestart)).format("DD MMM")}</div>
+              : <div>All day {dayjs.unix(Number(activity.timestart)).format("DD MMM")} - {dayjs.unix(Number(activity.timeend)).format("DD MMM")}</div>
+            : dayjs.unix(Number(activity.timestart)).format("DDMM") == dayjs.unix(Number(activity.timeend)).format("DDMM") 
+              ? <div>{dayjs.unix(Number(activity.timestart)).format("DD MMM h:mma ")} - {dayjs.unix(Number(activity.timeend)).format("h:mma")}</div>
+              : <div>{dayjs.unix(Number(activity.timestart)).format("DD MMM h:mma ")} - {dayjs.unix(Number(activity.timeend)).format("DD MMM h:mma")}</div>
+          }
         </div>
       </Card.Section>
 

@@ -18,7 +18,9 @@ export function CalendarTease({celldate, event, setSelectedEvent}: Props) {
             <span className={cn("size-2 rounded-full min-w-2 mt-1", event.status == statuses.approved ? "bg-[#4aa15d]" : "bg-[#ffa94d]")}></span>
             { dayjs.unix(celldate).format("YYYYMMDD") != dayjs.unix(event.timestart).format("YYYYMMDD")
               ? <span className="te-start-time">Cont.</span>
-              : <span className="te-start-time">{dayjs.unix(Number(event.timestart)).format("H:mm")}</span>
+              : !!Number(event.isallday)
+                ? <span className="te-start-time">All day</span>
+                : <span className="te-start-time">{dayjs.unix(Number(event.timestart)).format("H:mm")}</span>
             }
             <span className="te-title">{event.activityname}</span>
           </div>

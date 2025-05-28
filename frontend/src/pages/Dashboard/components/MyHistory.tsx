@@ -94,9 +94,13 @@ export function MyHistory() {
                         {event.activityname}
                       </div>
                       <div>
-                        { dayjs.unix(Number(event.timestart)).format("DDMM") == dayjs.unix(Number(event.timeend)).format("DDMM") 
-                          ? <div className='text-sm'>{dayjs.unix(Number(event.timestart)).format("DD MMM YYYY h:mma ")} - {dayjs.unix(Number(event.timeend)).format("h:mma")}</div>
-                          : <div className='text-sm'>{dayjs.unix(Number(event.timestart)).format("DD MMM YYYY h:mma ")} - {dayjs.unix(Number(event.timeend)).format("DD MMM h:mma")}</div>
+                        { !!Number(event.isallday)
+                          ? dayjs.unix(Number(event.timestart)).format("DDMM") == dayjs.unix(Number(event.timeend)).format("DDMM") 
+                            ? <div className='text-sm'>All day {dayjs.unix(Number(event.timestart)).format("DD MMM YYYY")}</div>
+                            : <div className='text-sm'>All day {dayjs.unix(Number(event.timestart)).format("DD MMM YYYY")} - {dayjs.unix(Number(event.timeend)).format("DD MMM")}</div>
+                          : dayjs.unix(Number(event.timestart)).format("DDMM") == dayjs.unix(Number(event.timeend)).format("DDMM") 
+                            ? <div className='text-sm'>{dayjs.unix(Number(event.timestart)).format("DD MMM YYYY h:mma ")} - {dayjs.unix(Number(event.timeend)).format("h:mma")}</div>
+                            : <div className='text-sm'>{dayjs.unix(Number(event.timestart)).format("DD MMM YYYYh:mma ")} - {dayjs.unix(Number(event.timeend)).format("DD MMM h:mma")}</div>
                         }
                       </div>
                     </div>

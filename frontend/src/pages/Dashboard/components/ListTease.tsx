@@ -54,6 +54,8 @@ export function ListTease({celldate, event, setSelectedEvent}: Props) {
     })
   }
 
+  const isInitialDay = dayjs.unix(celldate).format("YYYYMMDD") == dayjs.unix(event.timestart).format("YYYYMMDD")
+
 
   return (
     <div className={cn("relative border-t bg-gray-50 flex justify-between", reviewed ? "bg-[#d4edda]" : "")}>
@@ -65,7 +67,7 @@ export function ListTease({celldate, event, setSelectedEvent}: Props) {
         <div>
           { dayjs.unix(celldate).format("YYYYMMDD") != dayjs.unix(event.timestart).format("YYYYMMDD")
             ? <div className="te-start-time">Cont.</div>
-            : event.is_all_day
+            : !!Number(event.isallday)
               ? <div className="te-start-time">All Day:</div>
               : <div className="te-start-time">{dayjs.unix(Number(event.timestart)).format("H:mm")}</div>
           }
@@ -74,9 +76,12 @@ export function ListTease({celldate, event, setSelectedEvent}: Props) {
               <div className={cn("size-2 rounded-full min-w-2 mt-1", event.status == statuses.approved ? "bg-[#4aa15d]" : "bg-[#ffa94d]")}></div>
               {event.activityname}
             </div> 
-            { dayjs.unix(celldate).format("YYYYMMDD") == dayjs.unix(event.timeend).format("YYYYMMDD")
-              ? <span className="text-gray-500">Ends at {dayjs.unix(event.timeend).format("H:mm a")}</span>
-              : <span className="text-gray-500">Ends {dayjs.unix(event.timeend).format("D MMM")} at {dayjs.unix(event.timeend).format("H:mm a")}</span>
+            { 
+              !!Number(event.isallday)
+              ? ''
+              : dayjs.unix(celldate).format("YYYYMMDD") == dayjs.unix(event.timeend).format("YYYYMMDD")
+                ? <span className="text-gray-500">Ends at {dayjs.unix(event.timeend).format("H:mm a")}</span>
+                : <span className="text-gray-500">Ends {dayjs.unix(event.timeend).format("D MMM")} at {dayjs.unix(event.timeend).format("H:mm a")}</span>
             }
             {event.location && <span className="text-gray-500"> - {event.location}</span>}
           </div>
@@ -90,20 +95,28 @@ export function ListTease({celldate, event, setSelectedEvent}: Props) {
       </Anchor>
       { isCalReviewer() &&
         <div className="text-gray-500 flex items-center px-4">
-            <div className={cn("w-20 h-full flex items-center justify-center")}>
-              <Checkbox
-                disabled={!showApproveOpt()}
-                checked={reviewed}
-                onChange={(event) => handleReviewed(event.currentTarget.checked)}
-              />
-            </div>
-            <div className={cn("w-20 h-full flex items-center justify-center", publicNow ? "bg-[#d4edda]" : "")}>
-              <Checkbox
-                disabled={!showPublicNowOpt()}
-                checked={publicNow}
-                onChange={(event) => handlePublicNow(event.currentTarget.checked)}
-              />
-            </div>
+            { isInitialDay 
+              ? <>
+                  <div className={cn("w-20 h-full flex items-center justify-center")}>
+                    <Checkbox
+                      disabled={!showApproveOpt()}
+                      checked={reviewed}
+                      onChange={(event) => handleReviewed(event.currentTarget.checked)}
+                    />
+                  </div>
+                  <div className={cn("w-20 h-full flex items-center justify-center", publicNow ? "bg-[#d4edda]" : "")}>
+                    <Checkbox
+                      disabled={!showPublicNowOpt()}
+                      checked={publicNow}
+                      onChange={(event) => handlePublicNow(event.currentTarget.checked)}
+                    />
+                  </div>
+                </>
+              : <>
+                  <div className="w-20"></div>
+                  <div className="w-20"></div>
+                </>
+            }
             <div className={cn("w-20 h-full flex items-center justify-center font-mono")}>
               <span className="text-xs">{dayjs.unix(event.timestart).format("DD/MM/YYYY")}</span>
             </div>

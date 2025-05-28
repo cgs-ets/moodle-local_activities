@@ -51,24 +51,22 @@ export function BasicDetails() {
 
   const errors = useFormValidationStore((state) => state.formErrors)
 
-
-  // Update timeend when timestart changes
-  useEffect(() => {
-    if (!manuallyEdited.current && formData.timestart > formData.timeend) {
-      updateField('timeend', formData.timestart.toString());
-    }
-  }, [formData.timestart]);
-
   // Update timeend and timestart when isallday changes
   useEffect(() => {
+    let timeend = formData.timeend
+    if (formData.timestart > formData.timeend) {
+      timeend = formData.timestart
+    }
     if (formData.isallday) {
       // Update timestart to selected date with time 00:00:00
       const timestartMs = formData.timestart * 1000
+      const timeendMs = timeend * 1000
       updateField('timestart', dayjs(timestartMs ).startOf('day').unix());
       // Update timeend to selected date with time 23:59:59
-      updateField('timeend', dayjs(timestartMs ).endOf('day').unix());
+      timeend = dayjs(timeendMs ).endOf('day').unix()
     }
-  }, [formData.isallday]);
+    updateField('timeend', timeend);
+  }, [formData.isallday, formData.timestart, formData.timeend]);
 
   return (
     <Card withBorder className="overflow-visible rounded p-4 flex flex-col gap-6">

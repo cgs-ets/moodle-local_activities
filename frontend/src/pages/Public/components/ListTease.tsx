@@ -20,7 +20,7 @@ export function ListTease({celldate, event, setSelectedEvent}: Props) {
         <div>
           { dayjs.unix(celldate).format("YYYYMMDD") != dayjs.unix(event.timestart).format("YYYYMMDD")
             ? <div className="te-start-time">Cont.</div>
-            : event.is_all_day
+            : !!Number(event.isallday)
               ? <div className="te-start-time">All Day:</div>
               : <div className="te-start-time">{dayjs.unix(Number(event.timestart)).format("H:mm")}</div>
           }
@@ -28,9 +28,12 @@ export function ListTease({celldate, event, setSelectedEvent}: Props) {
             <div className="te-title flex items-center gap-2">
               {event.activityname}
             </div> 
-            { dayjs.unix(celldate).format("YYYYMMDD") == dayjs.unix(event.timeend).format("YYYYMMDD")
-              ? <span className="text-gray-500">Ends at {dayjs.unix(event.timeend).format("H:mm a")}</span>
-              : <span className="text-gray-500">Ends {dayjs.unix(event.timeend).format("D MMM")} at {dayjs.unix(event.timeend).format("H:mm a")}</span>
+            { 
+              !!Number(event.isallday)
+              ? ''
+              : dayjs.unix(celldate).format("YYYYMMDD") == dayjs.unix(event.timeend).format("YYYYMMDD")
+                ? <span className="text-gray-500">Ends at {dayjs.unix(event.timeend).format("H:mm a")}</span>
+                : <span className="text-gray-500">Ends {dayjs.unix(event.timeend).format("D MMM")} at {dayjs.unix(event.timeend).format("H:mm a")}</span>
             }
             {event.location && <span className="text-gray-500"> - {event.location}</span>}
           </div>

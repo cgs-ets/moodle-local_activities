@@ -14,7 +14,9 @@ export function CalendarTease({celldate, event, setSelectedEvent}: Props) {
           <div className="inline-flex gap-1">
             { dayjs.unix(celldate).format("YYYYMMDD") != dayjs.unix(event.timestart).format("YYYYMMDD")
               ? <span className="te-start-time">Cont.</span>
-              : <span className="te-start-time">{dayjs.unix(Number(event.timestart)).format("H:mm")}</span>
+              : !!Number(event.isallday)
+                ? <span className="te-start-time">All day</span>
+                : <span className="te-start-time">{dayjs.unix(Number(event.timestart)).format("H:mm")}</span>
             }
             <span className="te-title">{event.activityname}</span>
           </div>
