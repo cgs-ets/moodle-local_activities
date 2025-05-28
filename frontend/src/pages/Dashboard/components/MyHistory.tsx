@@ -48,7 +48,7 @@ export function MyHistory() {
 
     if (hasSome) {
       // Need to inject events into the correct area.
-      const newHistory: any[] = []
+      const newHistory: any[] = JSON.parse(JSON.stringify(history))
       data.forEach((area: any) => {
         newHistory.push({
           ...area,
@@ -93,8 +93,8 @@ export function MyHistory() {
                       </div>
                       <div>
                         { dayjs.unix(Number(event.timestart)).format("DDMM") == dayjs.unix(Number(event.timeend)).format("DDMM") 
-                          ? <div className='text-sm'>{dayjs.unix(Number(event.timestart)).format("DD MMM h:mma ")} - {dayjs.unix(Number(event.timeend)).format("h:mma")}</div>
-                          : <div className='text-sm'>{dayjs.unix(Number(event.timestart)).format("DD MMM h:mma ")} - {dayjs.unix(Number(event.timeend)).format("DD MMM h:mma")}</div>
+                          ? <div className='text-sm'>{dayjs.unix(Number(event.timestart)).format("DD MMM YYYY h:mma ")} - {dayjs.unix(Number(event.timeend)).format("h:mma")}</div>
+                          : <div className='text-sm'>{dayjs.unix(Number(event.timestart)).format("DD MMM YYYY h:mma ")} - {dayjs.unix(Number(event.timeend)).format("DD MMM h:mma")}</div>
                         }
                       </div>
                     </div>
