@@ -49,7 +49,7 @@ export function Dashboard() {
                   </Grid.Col>
                   { caltype != 'table' &&
                     <Grid.Col span={{ base: 12, lg: 3 }}>
-                      <div className="flex flex-col gap-0 max-h-[calc(100vh-54px)] overflow-y-auto">
+                      <div className="flex flex-col gap-0">
                         <MyActivities />
                         <MyHistory />
                       </div>

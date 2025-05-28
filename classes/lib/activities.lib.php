@@ -823,7 +823,7 @@ class activities_lib {
     /*
     * get_history
     */
-    public static function get_history() {
+    public static function get_history($page) {
         global $DB, $USER;
 
         // We need to find events where this user is:
@@ -857,25 +857,28 @@ class activities_lib {
         );
 
         // Student participant
-        $involvement['student']['events'] = static::get_for_student($USER->username, 'past', 'timestart DESC');
+        $involvement['student']['events'] = static::get_for_student($USER->username, 'past', 'timestart DESC', false, $page);
 
         // Parent of participating student
-        $involvement['parent']['events'] = static::get_for_parent($USER->username, 'past', 'timestart DESC');
+        $involvement['parent']['events'] = static::get_for_parent($USER->username, 'past', 'timestart DESC', false, $page);
 
         // Staff member in charge
-        $involvement['staff']['events'] = static::get_for_owner($USER->username, 'past', 'timestart DESC');
+        $involvement['staff']['events'] = static::get_for_owner($USER->username, 'past', 'timestart DESC', false, $page);
 
         // Planner
-        $involvement['planner']['events'] = static::get_for_plannner($USER->username, 'past', 'timestart DESC');
+        $involvement['planner']['events'] = static::get_for_plannner($USER->username, 'past', 'timestart DESC', false, $page);
 
         // Accompanying
-        $involvement['accompanying']['events'] = static::get_for_accompanying($USER->username, 'past', 'timestart DESC');
+        $involvement['accompanying']['events'] = static::get_for_accompanying($USER->username, 'past', 'timestart DESC', false, $page);
 
         return $involvement;
     }
 
-    public static function get_by_ids($ids, $status = null, $orderby = null, $period = null, $exported = true) { // Period is null, "past" or "future"
-        global $DB;
+    public static function get_by_ids($ids, $status = null, $orderby = null, $period = null, $exported = true, $getall = true, $page = 1) { // Period is null, "past" or "future"
+        global $DB, $CFG;
+
+        $perpage = 10;
+        $offset = ($page - 1) * $perpage;
 
         $activities = array();
 
@@ -904,6 +907,14 @@ class activities_lib {
             }
             $sql .= " ORDER BY " . $orderby;
 
+            if (!$getall) {
+                if ($CFG->dbtype === 'mysqli' || $CFG->dbtype === 'mariadb') {
+                    $sql .= " LIMIT $perpage OFFSET $offset";
+                } else {
+                    $sql .= " OFFSET $offset ROWS FETCH NEXT $perpage ROWS ONLY";
+                }
+            }
+
             $records = $DB->get_records_sql($sql, $inparams);
             $activities = array();
             foreach ($records as $record) {
@@ -919,7 +930,7 @@ class activities_lib {
         return $activities;
     }
 
-    public static function get_for_student($username, $period = null, $orderby = null) {
+    public static function get_for_student($username, $period = null, $orderby = null, $getall = true, $page = 1) {
         global $DB;
 
         $activities = array();
@@ -929,7 +940,7 @@ class activities_lib {
                  WHERE username = ?";
         $ids = $DB->get_records_sql($sql, array($username));
 
-        $activities = static::get_by_ids(array_column($ids, 'activityid'), static::ACTIVITY_STATUS_APPROVED, $orderby, $period); // Approved and future only.
+        $activities = static::get_by_ids(array_column($ids, 'activityid'), static::ACTIVITY_STATUS_APPROVED, $orderby, $period, true, $getall, $page); // Approved and future only.
         foreach ($activities as $i => $activity) {
             if ($activity->permissions) {
                 $attending = static::get_all_attending($activity->id);
@@ -944,7 +955,7 @@ class activities_lib {
         return array_filter($activities);
     }
 
-    public static function get_for_parent($username, $period = null, $orderby = null) {
+    public static function get_for_parent($username, $period = null, $orderby = null, $getall = true, $page = 1) {
         global $DB;
 
         $activities = array();
@@ -954,7 +965,7 @@ class activities_lib {
                  WHERE parentusername = ?";
         $ids = $DB->get_fieldset_sql($sql, array($username));
 
-        $activities = static::get_by_ids($ids, static::ACTIVITY_STATUS_APPROVED, $orderby, $period, false); // Approved and future only.
+        $activities = static::get_by_ids($ids, static::ACTIVITY_STATUS_APPROVED, $orderby, $period, false, $getall, $page); // Approved and future only.
 
         foreach ($activities as $i => $activity) {
             // Export the activity.
@@ -975,7 +986,7 @@ class activities_lib {
         return $activities;
     }
 
-    public static function get_for_owner($username, $period = null, $orderby = null) {
+    public static function get_for_owner($username, $period = null, $orderby = null, $getall = true, $page = 1) {
         global $DB;
 
         $activities = array();
@@ -985,12 +996,12 @@ class activities_lib {
                  WHERE staffincharge = ?";
         $ids = $DB->get_fieldset_sql($sql, array($username));
 
-        $activities = static::get_by_ids($ids, null, $orderby, $period); // All statuses and future only.
+        $activities = static::get_by_ids($ids, null, $orderby, $period, true, $getall, $page); // All statuses and future only.
 
         return $activities;
     }
 
-    public static function get_for_plannner($username, $period = null, $orderby = null) {
+    public static function get_for_plannner($username, $period = null, $orderby = null, $getall = true, $page = 1) {
         global $DB;
 
         // Get creator and planners.
@@ -1002,12 +1013,12 @@ class activities_lib {
                 AND usertype = 'planning'";
         $plannerids = $DB->get_fieldset_sql($sql, array($username));
 
-        $activities = static::get_by_ids($plannerids, null, $orderby, $period); // All statuses and future only.
+        $activities = static::get_by_ids($plannerids, null, $orderby, $period, true, $getall, $page); // All statuses and future only.
 
         return $activities;
     }
 
-    public static function get_for_accompanying($username, $period = null, $orderby = null) {
+    public static function get_for_accompanying($username, $period = null, $orderby = null, $getall = true, $page = 1) {
         global $DB;
 
         $activities = array();
@@ -1018,7 +1029,7 @@ class activities_lib {
                 AND usertype = 'accompany'";
         $ids = $DB->get_fieldset_sql($sql, array($username));
 
-        $activities = static::get_by_ids($ids, null, $orderby, $period); // All statuses and future only.
+        $activities = static::get_by_ids($ids, null, $orderby, $period, true, $getall, $page); // All statuses and future only.
 
         return $activities;
     }
