@@ -55,6 +55,7 @@ export function MyHistory() {
             events: []
           }
         }
+        console.log('res.data[area]', res.data[area])
         const newEvents = res.data[area].events ? res.data[area].events.map((event: any) => ({...event, area: res.data[area].heading})) : []
         newHistory[area].events = [...newHistory[area].events, ...newEvents]
       })
