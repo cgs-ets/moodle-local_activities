@@ -76,22 +76,8 @@ export function TableRow({event, setSelectedEvent, selected}: Props) {
       <Table.Td className="whitespace-nowrap min-w-max capitalize max-w-96 overflow-hidden text-ellipsis" title={event.transport}>{event.transport}</Table.Td>
       <Table.Td className="whitespace-nowrap min-w-max max-w-96 overflow-hidden text-ellipsis" title={event.cost}>{event.cost}</Table.Td>
       <Table.Td className="whitespace-nowrap min-w-max">{event.permissions == '1' ? "Yes" : "No"}</Table.Td>
-      <Table.Td className="whitespace-nowrap min-w-max">
-        <Badge className="min-w-max" variant='filled' key={event.creatordata.un} pl={0} size="sm" h={22} color="gray.2" radius="xl" leftSection={
-            <Avatar size="xs" radius="xl" src={'/local/activities/avatar.php?username=' + event.creatordata.un}><IconUser /></Avatar>
-          }
-        >
-          <Text className="normal-case font-normal text-black text-sm">{event.creatorsortname}</Text>
-        </Badge>
-      </Table.Td>
-      <Table.Td className="whitespace-nowrap min-w-max">
-        <Badge className="min-w-max" variant='filled' key={staffincharge.un} pl={0} size="sm" h={22} color="gray.2" radius="xl" leftSection={
-            <Avatar size="xs" radius="xl" src={'/local/activities/avatar.php?username=' + staffincharge.un}><IconUser /></Avatar>
-          }
-        >
-          <Text className="normal-case font-normal text-black text-sm">{event.staffinchargesortname}</Text>
-        </Badge>
-      </Table.Td>
+      <Table.Td className="whitespace-nowrap min-w-max">{event.creatorsortname}</Table.Td>
+      <Table.Td className="whitespace-nowrap min-w-max">{event.staffinchargesortname}</Table.Td>
       <Table.Td className="whitespace-nowrap min-w-max">
         <div className='flex flex-nowrap gap-2 min-w-max'>
           { JSON.parse(event.areasjson ?? '[]')?.slice(0, 3)?.map((area: string) => {
