@@ -3,7 +3,7 @@ import { Form } from "../../../stores/formStore";
 import { cn, isActivity, isCalEntry, isCalReviewer } from "../../../utils/utils";
 import { useState } from "react";
 import { useAjax } from "../../../hooks/useAjax";
-import { ActionIcon } from "@mantine/core";
+import { ActionIcon, Popover } from "@mantine/core";
 import { Avatar, Badge, Checkbox, Table, Text } from "@mantine/core";
 import { IconEdit, IconUser } from "@tabler/icons-react";
 import { useNavigate } from "react-router-dom";
@@ -65,14 +65,14 @@ export function TableRow({event}: Props) {
       <Table.Td className="whitespace-nowrap min-w-max">{dayjs.unix(Number(event.timestart)).format("DD/MM/YYYY HH:mm")}</Table.Td>
       <Table.Td className="whitespace-nowrap min-w-max">{dayjs.unix(Number(event.timeend)).format("DD/MM/YYYY HH:mm")}</Table.Td>
       <Table.Td className="whitespace-nowrap min-w-max">{dayjs.unix(Number(event.timecreated)).format("DD/MM/YYYY HH:mm")}</Table.Td>
-      <Table.Td className="whitespace-nowrap min-w-max">{event.activityname}</Table.Td>
+      <Table.Td className="whitespace-nowrap min-w-max max-w-96 overflow-hidden text-ellipsis" title={event.activityname}>{event.activityname}</Table.Td>
       <Table.Td className="whitespace-nowrap min-w-max">{event.statushelper.statusname}</Table.Td>
       <Table.Td className="whitespace-nowrap min-w-max">{event.statushelper.isapproved ? '' : event.stepname}</Table.Td>
       <Table.Td className="whitespace-nowrap min-w-max capitalize">{event.activitytype}</Table.Td>
       <Table.Td className="whitespace-nowrap min-w-max capitalize">{event.campus}</Table.Td>
-      <Table.Td className="whitespace-nowrap min-w-max capitalize">{event.location}</Table.Td>
-      <Table.Td className="whitespace-nowrap min-w-max capitalize">{event.transport}</Table.Td>
-      <Table.Td className="whitespace-nowrap min-w-max">{event.cost}</Table.Td>
+      <Table.Td className="whitespace-nowrap min-w-max capitalize max-w-96 overflow-hidden text-ellipsis" title={event.location}>{event.location}</Table.Td>
+      <Table.Td className="whitespace-nowrap min-w-max capitalize max-w-96 overflow-hidden text-ellipsis" title={event.transport}>{event.transport}</Table.Td>
+      <Table.Td className="whitespace-nowrap min-w-max max-w-96 overflow-hidden text-ellipsis" title={event.cost}>{event.cost}</Table.Td>
       <Table.Td className="whitespace-nowrap min-w-max">{event.permissions == '1' ? "Yes" : "No"}</Table.Td>
       <Table.Td className="whitespace-nowrap min-w-max">
         <Badge className="min-w-max" variant='filled' key={event.creatordata.un} pl={0} size="sm" h={22} color="gray.2" radius="xl" leftSection={
@@ -92,11 +92,26 @@ export function TableRow({event}: Props) {
       </Table.Td>
       <Table.Td className="whitespace-nowrap min-w-max">
         <div className='flex flex-nowrap gap-2 min-w-max'>
-          { JSON.parse(event.areasjson ?? '[]')?.map((area: string) => {
+          { JSON.parse(event.areasjson ?? '[]')?.slice(0, 3)?.map((area: string) => {
             return (
               <Badge key={area} variant='light'>{area}</Badge>
             )
           })}
+          { JSON.parse(event.areasjson ?? '[]')?.length > 3 && (
+            <Popover width={200} position="bottom" withArrow shadow="md">
+              <Popover.Target>
+                <Badge className="cursor-pointer" variant='light'>+{JSON.parse(event.areasjson ?? '[]').length - 3}</Badge>
+              </Popover.Target>
+              <Popover.Dropdown className="flex flex-wrap gap-2">
+                { JSON.parse(event.areasjson ?? '[]')?.slice(3)?.map((area: string) => {
+                  return (
+                    <Badge key={area} variant='light'>{area}</Badge>
+                  )
+                })}
+              </Popover.Dropdown>
+            </Popover>
+            
+          )}
         </div>
       </Table.Td>
       <Table.Td className="whitespace-nowrap min-w-max">{event.displaypublic == '1' ? "Yes" : "No"}</Table.Td>
