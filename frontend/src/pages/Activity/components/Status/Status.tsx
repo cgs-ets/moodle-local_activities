@@ -135,16 +135,11 @@ export function Status({
 
   const getExtraOptions = () => {
     let options = []
-    if ((activitytype == 'calendar' || activitytype == 'assessment') && status >= statuses.saved) {
-      options.push(<Menu.Item key={0} onMouseDown={() => updateStatus(0)} leftSection={<IconArrowMoveLeft size={14} />}>Return to draft</Menu.Item>)
-    }
 
-    if (isActivity(activitytype) && status > statuses.saved) {
+    if (status > statuses.saved) {
       options.push(<Menu.Item key={1} onMouseDown={() => updateStatus(1)} leftSection={<IconArrowMoveLeft size={14} />}>Return to draft</Menu.Item>)
     }
 
-    console.log('status', status)
-    console.log('statuses.saved', statuses.saved)
     if (status == statuses.saved) {
       options.push(<Menu.Item key={2} onMouseDown={() => handleDelete()} leftSection={<IconTrash size={14} />}>Delete</Menu.Item>)
     }
@@ -152,8 +147,6 @@ export function Status({
     return options
   }
 
-
-  
 
 
   return (

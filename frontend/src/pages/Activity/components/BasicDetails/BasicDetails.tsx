@@ -11,6 +11,7 @@ import { Form, useFormStore, useFormValidationStore } from "../../../../stores/f
 import { useStateStore } from "../../../../stores/stateStore";
 import { Link as NavLink } from "react-router-dom";
 import { ConflictsInline } from "../Conflicts/ConflictsInline";
+import { DatePickerInput } from "@mantine/dates";
 
 
 export function BasicDetails() {
@@ -53,12 +54,10 @@ export function BasicDetails() {
 
   // Update timeend when timestart changes
   useEffect(() => {
-    if (!manuallyEdited.current && !formData.isallday && formData.timestart > formData.timeend) {
-      console.log('forcing timeend to timestart', formData.timestart, formData.timeend)
+    if (!manuallyEdited.current && formData.timestart > formData.timeend) {
       updateField('timeend', formData.timestart.toString());
     }
   }, [formData.timestart]);
-
 
   // Update timeend and timestart when isallday changes
   useEffect(() => {
@@ -169,8 +168,40 @@ export function BasicDetails() {
             onChange={(e) => updateField('isallday', e.target.checked)}
             readOnly={viewStateProps.readOnly}
           />
-          {!formData.isallday &&
-            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+          {formData.isallday 
+          ? <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+              <div>
+                <DatePickerInput
+                  value={dayjs.unix(Number(formData.timestart)).toDate()} // Convert to Date
+                  dropdownType="modal"
+                  label="Start date"
+                  placeholder="Start date"
+                  onChange={(newValue) => {
+                    // Convert Date back to Unix timestamp string
+                    updateField('timestart', newValue ? dayjs(newValue).unix().toString() : "0");
+                  }}
+                  readOnly={viewStateProps.readOnly}
+                />
+              </div>
+              <div className="hidden sm:block">
+                <span>&nbsp;</span>
+                <IconArrowNarrowRight className="size-4" />
+              </div>
+              <div>
+                <DatePickerInput
+                  value={dayjs.unix(Number(formData.timeend)).toDate()} // Convert to Date
+                  dropdownType="modal"
+                  label="Start date"
+                  placeholder="Start date"
+                  onChange={(newValue) => {
+                    // Convert Date back to Unix timestamp string
+                    updateField('timeend', newValue ? dayjs(newValue).unix().toString() : "0");
+                  }}
+                  readOnly={viewStateProps.readOnly}
+                />
+              </div>
+            </div>
+          : <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
               <div>
                 <Text fz="sm" mb="5px" fw={500} c="#212529">Start time</Text>
                 <DateTimePicker 
