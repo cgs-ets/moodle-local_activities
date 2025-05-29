@@ -180,7 +180,9 @@ class assessments_lib {
             $record->creator = utils_lib::user_stub($record->creator);
             $record->creatorsortname = $record->creator->ln . ', ' . $record->creator->fn;
             $record->course = $DB->get_record('course', array('id' => $record->courseid));
-            $record->coursefullname = $record->course->fullname;
+            if ($record->course) {
+                $record->coursefullname = $record->course->fullname;
+            }
             //$record->module = $DB->get_record('course_modules', array('id' => $record->cmid));
             //$record->modulename = $record->module->name;
             $record->usercanedit = false;
