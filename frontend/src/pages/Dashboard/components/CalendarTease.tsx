@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Form } from "../../../stores/formStore";
 import { cn } from "../../../utils/utils";
 import { statuses } from "../../../utils";
+import { StatusDot } from "../../../components/StatusDot";
 
 type Props = {
   celldate: number,
@@ -15,7 +16,7 @@ export function CalendarTease({celldate, event, setSelectedEvent}: Props) {
     <li>
         <Anchor onClick={() => setSelectedEvent(event)} className="no-underline hover:no-underline pb-2" title={event.activityname}>
           <div className="inline-flex gap-1">
-            <span className={cn("size-2 rounded-full min-w-2 mt-1", event.status == statuses.approved ? "bg-[#4aa15d]" : "bg-[#ffa94d]")}></span>
+            <StatusDot status={event.status} />
             { dayjs.unix(celldate).format("YYYYMMDD") != dayjs.unix(event.timestart).format("YYYYMMDD")
               ? <span className="te-start-time">Cont.</span>
               : !!Number(event.isallday)

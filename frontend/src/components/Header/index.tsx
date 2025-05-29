@@ -7,6 +7,7 @@ import { fetchData, getConfig, statuses } from "../../utils";
 import useFetch from "../../hooks/useFetch";
 import dayjs from "dayjs";
 import { cn } from "../../utils/utils";
+import { StatusDot } from "../StatusDot";
 
 export function Header() {
   const [searchOpened, setSearchOpened] = useState(false);
@@ -251,7 +252,7 @@ export function Header() {
                   <div className="flex items-center justify-between gap-2">
                     <div>
                       <div className="flex items-center gap-2">
-                        <div className={cn("size-2 rounded-full min-w-2 mt-1", result.status == statuses.approved ? "bg-[#4aa15d]" : "bg-[#ffa94d]")}></div>
+                        <StatusDot status={result.status} />
                         <Anchor href={`/local/activities/${result.id}`}>{result.activityname}</Anchor>
                         
                       </div>
@@ -278,9 +279,8 @@ export function Header() {
                   <div className="flex items-center justify-between gap-2">
                     <div>
                       <div className="flex items-center gap-2">
-                        <div className={cn("size-2 rounded-full min-w-2 mt-1", result.status == statuses.approved ? "bg-[#4aa15d]" : "bg-[#ffa94d]")}></div>
+                        <StatusDot status={result.status} />
                         <Anchor href={`/local/activities/${result.id}`}>{result.activityname}</Anchor>
-                        
                       </div>
                       <span className="text-xs">{dayjs.unix(result.timestart).format('DD MMM YY HH:mm')} - {dayjs.unix(result.timeend).format('DD MMM YY HH:mm')}</span>
                     </div>

@@ -709,10 +709,15 @@ class activities_lib {
         $end = strtotime($args->scope->end . " 00:00:00");
         $end += 86400; //add a day
 
+        $statussql = "AND status >= " . static::ACTIVITY_STATUS_INREVIEW;
+        if (workflow_lib::is_cal_reviewer()) {
+            $statussql = "";
+        }
+
         $sql = "SELECT id 
                 FROM mdl_activities
                 WHERE deleted = 0
-                AND status >= " . static::ACTIVITY_STATUS_INREVIEW . "
+                $statussql
                 AND (
                     (timestart >= ? AND timestart <= ?) OR 
                     (timeend >= ? AND timeend <= ?) OR

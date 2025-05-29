@@ -8,6 +8,7 @@ import { cn } from '../../../utils/utils';
 import { IconChecklist, IconUser } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 import { EventModal } from '../../../components/EventModal';
+import { StatusDot } from '../../../components/StatusDot';
 
 
 interface HistoryArea {
@@ -86,11 +87,7 @@ export function MyHistory() {
                     {/* The tease */}
                     <div className='cursor-pointer w-full' onClick={() => setSelectedEvent(event)} >
                       <div className='flex items-center gap-2'>
-                        <div className={cn("size-2 rounded-full min-w-2", event.status == statuses.approved 
-                          ? "bg-[#4aa15d]" 
-                          : event.status == statuses.saved 
-                            ? "bg-gray-400"
-                            : "bg-[#ffa94d]")}></div>
+                        <StatusDot status={event.status} />
                         {event.activityname}
                       </div>
                       <div>

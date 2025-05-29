@@ -5,6 +5,7 @@ import { cn, isActivity, isCalEntry, isCalReviewer } from "../../../utils/utils"
 import { statuses } from "../../../utils";
 import { useState } from "react";
 import { useAjax } from "../../../hooks/useAjax";
+import { StatusDot } from "../../../components/StatusDot";
 
 type Props = {
   celldate: number,
@@ -73,7 +74,7 @@ export function ListTease({celldate, event, setSelectedEvent}: Props) {
           }
           <div className="te-deets">
             <div className="te-title flex items-center gap-2">
-              <div className={cn("size-2 rounded-full min-w-2 mt-1", event.status == statuses.approved ? "bg-[#4aa15d]" : "bg-[#ffa94d]")}></div>
+              <StatusDot status={event.status} />
               {event.activityname}
             </div> 
             { 
