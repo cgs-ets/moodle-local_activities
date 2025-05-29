@@ -189,8 +189,8 @@ export function BasicDetails() {
                 <DatePickerInput
                   value={dayjs.unix(Number(formData.timeend)).toDate()} // Convert to Date
                   dropdownType="modal"
-                  label="Start date"
-                  placeholder="Start date"
+                  label="End date"
+                  placeholder="End date"
                   onChange={(newValue) => {
                     // Convert Date back to Unix timestamp string
                     updateField('timeend', newValue ? dayjs(newValue).unix().toString() : "0");
