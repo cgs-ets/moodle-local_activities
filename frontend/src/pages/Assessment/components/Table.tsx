@@ -102,6 +102,9 @@ export function TableView({setCaltype}: Props) {
   }
 
   const markToday = () => {
+    if (searchParams.get('term') != currterm.toString()) {
+      return
+    }
     // look through the events and set the selected event to the first one that is today.
     const todayEvent = data.data.find((event: any) => dayjs(event.timestart).isSame(dayjs(), 'day'));
     if (todayEvent) {

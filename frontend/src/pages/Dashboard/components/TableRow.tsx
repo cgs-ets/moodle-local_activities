@@ -61,7 +61,7 @@ export function TableRow({event, setSelectedEvent, selected}: Props) {
   return (
     <Table.Tr 
       key={event.id}
-      className={cn(reviewed ? "bg-appgreen" : "", selected ? "border-b border-blue-500" : "")}
+      className={cn(reviewed ? "bg-appgreen" : "", selected ? "bg-blue-200" : "")}
       onClick={() => setSelectedEvent(event)}
     >
       <Table.Td className="whitespace-nowrap min-w-max">{dayjs.unix(Number(event.timestart)).format("DD/MM/YYYY HH:mm")}</Table.Td>

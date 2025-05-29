@@ -15,7 +15,7 @@ export function TableRow({event, setSelectedEvent, selected}: Props) {
   let navigate = useNavigate();
 
   return (
-    <Table.Tr onClick={() => setSelectedEvent(event)} key={event.id} className={cn(selected ? "border-b border-blue-500" : "")}>
+    <Table.Tr onClick={() => setSelectedEvent(event)} key={event.id} className={cn(selected ? "bg-blue-200" : "")}>
       <Table.Td className="whitespace-nowrap min-w-max">{dayjs.unix(Number(event.timestart)).format("DD/MM/YYYY HH:mm")}</Table.Td>
       <Table.Td className="whitespace-nowrap min-w-max">{dayjs.unix(Number(event.timeend)).format("DD/MM/YYYY HH:mm")}</Table.Td>
       <Table.Td className="whitespace-nowrap min-w-max capitalize">{event.coursefullname}</Table.Td>
