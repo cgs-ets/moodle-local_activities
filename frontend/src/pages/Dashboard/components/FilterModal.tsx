@@ -4,6 +4,7 @@ import { useDisclosure } from '@mantine/hooks';
 import {  IconCategoryFilled, IconFilterX, IconX } from '@tabler/icons-react';
 import { StaffSelector } from '../../Activity/components/StaffDetails/components/StaffSelector/StaffSelector';
 import { User } from '../../../types/types';
+import { isCalReviewer } from '../../../utils/utils';
 
 type Props = {
   opened: boolean;
@@ -64,6 +65,7 @@ export function FilterModal({opened, filters, setFilters, close}: Props) {
                   <div>
                     <Checkbox.Group value={filters.status} onChange={(values) => handleFilterChange('status', values)}>
                       <div className="flex flex-col gap-1">
+                        { isCalReviewer() && <Checkbox value="1" label="Draft" /> }
                         <Checkbox value="2" label="In review" />
                         <Checkbox value="3" label="Approved" />
                       </div>
