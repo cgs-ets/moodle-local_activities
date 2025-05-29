@@ -97,6 +97,9 @@ class Activity {
         $data = clone($this->data);
         $other = $this->get_other_values_minimal();
         $merged = (object) array_merge((array) $data, (array) $other);
+        if ($merged->statushelper->isapproved) {
+            $merged->stepname = '';
+        }
         return $merged;
     }
 
@@ -132,6 +135,10 @@ class Activity {
         }
         $other = $this->get_other_values($usercontext);
         $merged = (object) array_merge((array) $data, (array) $other);
+
+        if ($merged->statushelper->isapproved) {
+            $merged->stepname = '';
+        }
 
         return $merged;
     }
