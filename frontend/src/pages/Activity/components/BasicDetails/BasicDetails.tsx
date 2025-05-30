@@ -1,10 +1,10 @@
-import { useEffect, useRef } from "react";
-import { TextInput, Text, SegmentedControl, Card, Anchor, Alert, Button, Checkbox } from '@mantine/core';
+import { useEffect, useRef, useState } from "react";
+import { TextInput, Text, SegmentedControl, Card, Anchor, Alert, Button, Checkbox, Modal } from '@mantine/core';
 import { RichTextEditor, Link } from '@mantine/tiptap';
 import { Link as RouterLink } from 'react-router-dom';
 import { useEditor } from '@tiptap/react';
 import { StarterKit } from '@tiptap/starter-kit';
-import { IconArrowNarrowRight, IconExternalLink } from "@tabler/icons-react";
+import { IconArrowNarrowRight, IconCalendarEvent, IconCalendarRepeat, IconCalendarStats, IconExternalLink, IconRefreshDot, IconSettings, IconSquare } from "@tabler/icons-react";
 import { DateTimePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { Form, useFormStore, useFormValidationStore } from "../../../../stores/formStore";
@@ -12,6 +12,7 @@ import { useStateStore } from "../../../../stores/stateStore";
 import { Link as NavLink } from "react-router-dom";
 import { ConflictsInline } from "../Conflicts/ConflictsInline";
 import { DatePickerInput } from "@mantine/dates";
+import { RecurrenceModal } from "../../../../components/RecurrenceModal";
 
 
 export function BasicDetails() {
@@ -23,6 +24,7 @@ export function BasicDetails() {
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
   const assessmentid = useFormStore((state) => state.assessmentid)
   const manuallyEdited = useRef(false);
+  const [recurringModal, setRecurringModal] = useState(false);
 
   const updateField = (name: string, value: any) => {
     setState({
@@ -68,8 +70,16 @@ export function BasicDetails() {
     updateField('timeend', timeend);
   }, [formData.isallday, formData.timestart, formData.timeend]);
 
+  const enableRecurring = () => {
+    setState({
+      recurring: true
+    } as Form)
+    setRecurringModal(false)
+  }
+
   return (
-    <Card withBorder className="overflow-visible rounded p-4 flex flex-col gap-6">
+    <>
+      <Card withBorder className="overflow-visible rounded p-4 flex flex-col gap-6">
 
       <div className="flex flex-col gap-6">
         
@@ -242,6 +252,16 @@ export function BasicDetails() {
           }
           {errors.timestart ? <div className="text-red-600 text-sm mt-1">{errors.timestart}</div> : null}
 
+          <div className="mt-2 hidden">
+            {formData.recurring || viewStateProps.readOnly
+            ? <div className="flex gap-2 items-center">
+                <Checkbox label="Recurring" checked={formData.recurring} onChange={(e) => updateField('recurring', e.target.checked)} readOnly={viewStateProps.readOnly} />
+                <Button className="rounded-full" variant="light" color="blue" size="compact-sm" leftSection={<IconRefreshDot size={15} />} onClick={() => setRecurringModal(true)}>Edit Recurrence</Button>
+              </div>
+            : <Button className="rounded-full" variant="light" color="blue" size="compact-sm" leftSection={<IconRefreshDot size={15} />} onClick={() => setRecurringModal(true)}>Recurrence</Button>
+            }
+          </div>
+
           <ConflictsInline />
 
         </div>
@@ -330,5 +350,8 @@ export function BasicDetails() {
 
       </div>
     </Card>
+      
+    <RecurrenceModal opened={recurringModal} close={() => setRecurringModal(false)} enable={enableRecurring} />
+    </>
   );
 };

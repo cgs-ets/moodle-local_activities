@@ -2,7 +2,8 @@
 import dayjs from 'dayjs'
 import { create } from 'zustand'
 import { getConfig } from '../utils';
-import { FileData } from '../types/types';
+import { FileData, Recurrence } from '../types/types';
+
 
 export type Form = {
   id?: number,
@@ -59,6 +60,9 @@ export type Form = {
 
   stupermissions?: any[];
   isallday: boolean;
+
+  recurring: boolean;
+  recurrence: Recurrence;
 };
 
 type FormStore = Form & {
@@ -118,11 +122,41 @@ const defaults: Form = {
   
   stepname: '',
   isallday: false,
+  recurring: false,
+  recurrence: {
+    pattern: "Weekly",
+
+    dailyPattern: "Every",
+    dailyInterval: 1,
+
+    weeklyInterval: 1,
+    weeklyDays: ['Monday'],
+
+    monthlyPattern: "Day",
+    monthlyDay: 1,
+    monthlyInterval: 1,
+    monthlyNth: "First",
+    monthlyNthDay: "Monday",
+
+    yearlyInterval: 1,
+    yearlyPattern: "On",
+    yearlyNth: "First",
+    yearlyNthDay: "Monday",
+    yearlyNthMonth: "January",
+    yearlyMonth: "January",
+    yearlyMonthDay: 1,
+
+    range: "End after",
+    endBy: dayjs().unix().toString(),
+    endAfter: 10,
+  },
+
 };
 
 const useFormStore = create<FormStore>((set) => ({
   ...defaults,
   setState: (newState) => set(newState || defaults),
+  setRecurrence: (newRecurrence: Recurrence) => set({ recurrence: newRecurrence || defaults.recurrence }),
   reset: () => set(defaults),
 }))
 

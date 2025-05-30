@@ -53,3 +53,30 @@ export type Taglist = {
   name: string,
 }
 
+export type Recurrence = {
+  pattern: string;
+
+  dailyPattern: string;
+  dailyInterval: number;
+
+  weeklyInterval: number;
+  weeklyDays: string[];
+
+  monthlyPattern: string;
+  monthlyDay: number;
+  monthlyInterval: number;
+  monthlyNth: string;
+  monthlyNthDay: string;
+
+  yearlyInterval: number;
+  yearlyPattern: string;
+  yearlyNth: string;
+  yearlyNthDay: string;
+  yearlyNthMonth: string;
+  yearlyMonth: string;
+  yearlyMonthDay: number;
+
+  range: string;
+  endBy: string;
+  endAfter: number;
+}
