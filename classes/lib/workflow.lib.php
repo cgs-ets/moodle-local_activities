@@ -448,7 +448,11 @@ class workflow_lib extends \local_activities\local_activities_config {
         global $DB, $PAGE, $OUTPUT;
 
         $activity = new Activity($activityid);
-        if ($activity->get('status') == activities_lib::ACTIVITY_STATUS_DRAFT) {
+        // Check if draft.
+        // Check if the activity is actually an activity and not a calendar entry, as people often change it.
+        if ( $activity->get('status') == activities_lib::ACTIVITY_STATUS_DRAFT ||
+             !activities_lib::is_activity($activity->get('activitytype')) 
+        ) {
             // Activity is a draft! It has no workflow yet.
             return (object) array(
                 'status' => $activity->get('status'),

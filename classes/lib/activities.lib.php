@@ -246,6 +246,7 @@ class activities_lib {
             } else {
                 $activity->set('stepname', 'Calendar Approval');
             }
+            $activity->save();
 
             // Default staff in charge.
             if (empty($data->staffincharge)) {
@@ -259,6 +260,7 @@ class activities_lib {
 
             $activity->set('planningstaffjson', $data->planningstaffjson);
             $activity->set('accompanyingstaffjson', $data->accompanyingstaffjson);
+            $activity->save();
 
             // If categoriesjson is empty, set a default value based on campus.
             $categoriesjson = json_decode($data->categoriesjson);
@@ -289,7 +291,6 @@ class activities_lib {
             if (!count($areas) || in_array('CGS Board', $areas)) {
                 $activity->set('displaypublic', 0);
             }
-
             $activity->save();
 
             // Save RA.
