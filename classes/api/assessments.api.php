@@ -77,5 +77,16 @@ trait assessments_api {
         return assessments_lib::delete($args['id']);
     }
 
+    
+    /**
+     * Get a activity's student list.
+     *
+     * @return array
+     */
+    static public function get_assessment_students() {
+        $id = required_param('id', PARAM_INT);
+        return assessments_lib::get_assessment_students($id);
+    }
+
 
 }

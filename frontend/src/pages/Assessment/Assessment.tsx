@@ -15,6 +15,7 @@ import { ActivitiesSearchInput } from "./components/ActivitiesSearchInput";
 import { Form } from "../../stores/formStore";
 import { keyframes } from '@emotion/react';
 import { rem } from '@mantine/core';
+import { StudentList } from "./components/StudentList";
 
 interface Module {
   value: string;
@@ -40,6 +41,8 @@ export interface AssessmentData {
     fn: string;
     ln: string;
   };
+  rollrequired: boolean;
+  studentlist: any[];
 }
 
 export function Assessment() {
@@ -69,6 +72,8 @@ export function Assessment() {
       fn: getConfig().firstname ?? "",
       ln: getConfig().lastname ?? "",
     },
+    rollrequired: false,
+    studentlist: [],
   }
   const [formData, setFormData] = useState<AssessmentData>(defaults)
   const [courses, setCourses] = useState([])
@@ -431,7 +436,7 @@ export function Assessment() {
                         </div>
                   </Card>
                   <Card withBorder className="overflow-visible rounded p-4 flex flex-col gap-6">
-                    <div className="flex flex-col gap-2 pb-2">
+                    <div className="flex flex-col gap-2">
 
                       { !!Number(formData.activityid)
                         ? <>
@@ -464,7 +469,7 @@ export function Assessment() {
                               readOnly={viewStateProps.readOnly}
                             />
                             {formData.activityrequired && !viewStateProps.readOnly &&
-                              <div className="flex gap-4 items-top">
+                              <div className="flex gap-4 items-top pt-2">
                                 <ActivitiesSearchInput
                                   placeholder="Search activities"
                                   delay={300}
@@ -487,6 +492,31 @@ export function Assessment() {
                           </>
                       }
                     </div>
+
+
+
+
+
+
+                    {!formData.activityrequired && (
+                      <>
+                        <Checkbox
+                          label="Do you require a student roll?"
+                          checked={formData.rollrequired || false}  // Ensures it's always boolean
+                          onChange={(e) => updateField('rollrequired', e.target.checked)}
+                          readOnly={viewStateProps.readOnly}
+                        />
+                        {formData.rollrequired && !viewStateProps.readOnly &&
+                          <div className="flex gap-4 items-top pt-2">
+                            <StudentList id={Number(formData.id)} studentlist={formData.studentlist} setState={setFormData} />
+                          </div>
+                        } 
+                      </>
+                    )}
+
+
+
+
                   </Card>
                   <div className="flex gap-4 justify-between items-center">
                     <Button 

@@ -9,11 +9,13 @@ require_once(__DIR__.'/activity.class.php');
 require_once(__DIR__.'/utils.lib.php');
 require_once(__DIR__.'/service.lib.php');
 require_once(__DIR__.'/workflow.lib.php');
+require_once(__DIR__.'/recurrence.lib.php');
 
 use \local_activities\lib\Activity;
 use \local_activities\lib\utils_lib;
 use \local_activities\lib\service_lib;
 use \local_activities\lib\workflow_lib;
+use \local_activities\lib\recurrence_lib;
 
 /**
  * Activity lib
@@ -172,6 +174,7 @@ class activities_lib {
                 throw new \Exception("Submitted data is malformed.");
             }
 
+            // UPDATE
             if ($data->id > 0) {
                 if (!activity::exists($data->id)) {
                     return;
@@ -188,7 +191,9 @@ class activities_lib {
                     // If this is a calendar entry or assessment, there is no draft state. From the moment it's saved, it's 2 (in review) or 3 (approved)
                     $activity->set('status', max(static::ACTIVITY_STATUS_INREVIEW, $activity->get('status')));
                 }
-            } else {
+            }  
+            // CREATE
+            else {
                 // Can this user create an activity? Must be a Moodle Admin or Planning staff.
                 if (!utils_lib::has_capability_create_activity()) {
                     throw new \Exception("Permission denied.");
@@ -240,6 +245,7 @@ class activities_lib {
             $activity->set('absencesprocessed', 0);
             $activity->set('classrollprocessed', 0);
 
+            // Set stepname.
             if (static::is_activity($data->activitytype)) {
                 // Set stepname to empty, we'll figure that out when generating approvals.
                 $activity->set('stepname', '');
@@ -247,6 +253,19 @@ class activities_lib {
                 $activity->set('stepname', 'Calendar Approval');
             }
             $activity->save();
+
+            // Save recurring settings.
+            if ($data->recurringAcceptChanges) {
+                $activity->set('recurring', $data->recurring ? 1 : 0);
+                $activity->set('recurrence', $data->recurring ? json_encode($data->recurrence) : null);
+                $activity->save();
+                // If recurring, create the whole series of activities.
+                if ($data->recurring) {
+                    static::create_recurring_activities($activity->get('id'));
+                } else {
+                    static::delete_recurring_activities($activity->get('id'));
+                }
+            }
 
             // Default staff in charge.
             if (empty($data->staffincharge)) {
@@ -334,6 +353,8 @@ class activities_lib {
                 $DB->execute($sql, $params);
             }
 
+
+
         } catch (\Exception $e) {
             // Log and rethrow. 
             // https://stackoverflow.com/questions/5551668/what-are-the-best-practices-for-catching-and-re-throwing-exceptions
@@ -346,6 +367,54 @@ class activities_lib {
             'workflow' => $newstatusinfo->workflow,
         );
     }
+
+    public static function create_recurring_activities($activityid) {
+        global $DB;
+
+        $activity = new Activity($activityid);
+        $recurring = $activity->get('recurring');
+        $recurrence = $activity->get('recurrence');
+        // If no recurrence, or no recurrence master id, or the recurrence master id is not the same as the activity id, do nothing.
+        if (!$recurring || empty($recurrence)) {
+            return;
+        }
+        $recurrence = json_decode($recurrence);
+
+        // Delete the existing occurrences.
+        $DB->delete_records('activities_occurrences', array('activityid' => $activityid));
+
+        // Get the dates for the series of activities.
+        $recurrences = json_decode(json_encode(recurrence_lib::expand_dates($recurrence, $activity->get('timestart'), $activity->get('timeend'))));
+        if (empty($recurrences->dates)) {
+            return;
+        }
+        $dates = $recurrences->dates;
+
+        if (empty($dates)) {
+            return;
+        }
+
+        // If the first occurrence is a different date to the master activity, we need to update the master activity.
+        if ($dates[0]->start != $activity->get('timestart') || $dates[0]->end != $activity->get('timeend')) {
+            $activity->set('timestart', $dates[0]->start);
+            $activity->set('timeend', $dates[0]->end);
+            $activity->save();
+        }
+        
+        foreach ($dates as $occurrence) {
+            $record = new \stdClass();
+            $record->activityid = $activityid;
+            $record->timestart = $occurrence->start;
+            $record->timeend = $occurrence->end;
+            $DB->insert_record('activities_occurrences', $record);
+        }
+    }
+
+    public static function delete_recurring_activities($activityid) {
+        global $DB;
+        $DB->delete_records('activities_occurrences', array('activityid' => $activityid));
+    }
+
 
 
     /**
@@ -718,6 +787,7 @@ class activities_lib {
         $sql = "SELECT id 
                 FROM mdl_activities
                 WHERE deleted = 0
+                AND recurring = 0
                 $statussql
                 AND (
                     (timestart >= ? AND timestart <= ?) OR 
@@ -725,12 +795,50 @@ class activities_lib {
                     (timestart < ? AND timeend > ?)
                 )
                 ORDER BY timestart ASC";
-        $records = $DB->get_records_sql($sql, [$start, $end, $start, $end, $start, $end]);
+        $params = [$start, $end, $start, $end, $start, $end];
+        $records = $DB->get_records_sql($sql, $params);
         $activities = array();
+
+        // Add non-recurring activities
         foreach ($records as $record) {
             $activity = new Activity($record->id);
             $activities[] = $activity->export_minimal();
         }
+
+        // Query for occurrences of recurring activities (recurring = 1)
+        $sql = "SELECT ao.id, ao.activityid, ao.timestart, ao.timeend
+        FROM mdl_activities a
+        JOIN mdl_activities_occurrences ao ON ao.activityid = a.id
+        WHERE a.deleted = 0
+        AND a.recurring = 1
+        $statussql
+        AND (
+            (ao.timestart >= ? AND ao.timestart <= ?) OR 
+            (ao.timeend >= ? AND ao.timeend <= ?) OR
+            (ao.timestart < ? AND ao.timeend > ?)
+        )";
+
+        $occurrences = $DB->get_records_sql($sql, $params);
+
+        // Add occurrences as virtual activities with modified times
+        foreach ($occurrences as $occurrence) {
+            $activity = new Activity($occurrence->activityid);
+            $minimal = $activity->export_minimal();
+            
+            // Override the timestamps with the occurrence's times
+            $minimal->timestart = $occurrence->timestart;
+            $minimal->timeend = $occurrence->timeend;
+            
+            $minimal->is_occurrence = true;
+            $minimal->occurrenceid = $occurrence->id; // reference to parent
+            
+            $activities[] = $minimal;
+        }
+
+        // Sort all activities by start time
+        usort($activities, function($a, $b) {
+            return $a->timestart - $b->timestart;
+        });
 
         return $activities;
     }
@@ -748,24 +856,66 @@ class activities_lib {
         $end = strtotime($args->scope->end . " 00:00:00");
         $end += 86400; //add a day
 
-        // Get all public activities that are approved or in review and have pushpublic set to 1.
+        $status_condition = "(status = " . static::ACTIVITY_STATUS_APPROVED . " OR (status = " . static::ACTIVITY_STATUS_INREVIEW . " AND pushpublic = 1))";
+
+        // Get non-recurring public activities
         $sql = "SELECT id 
                 FROM mdl_activities
                 WHERE deleted = 0
+                AND recurring = 0
                 AND displaypublic = 1
-                AND (status = " . static::ACTIVITY_STATUS_APPROVED . " OR (status = " . static::ACTIVITY_STATUS_INREVIEW . " AND pushpublic = 1))
+                AND $status_condition
                 AND (
                     (timestart >= ? AND timestart <= ?) OR 
                     (timeend >= ? AND timeend <= ?) OR
                     (timestart < ? AND timeend > ?)
                 )
                 ORDER BY timestart ASC";
-        $records = $DB->get_records_sql($sql, [$start, $end, $start, $end, $start, $end]);
+        $params = [$start, $end, $start, $end, $start, $end];
+        $records = $DB->get_records_sql($sql, $params);
         $activities = array();
+
+        // Add non-recurring activities
         foreach ($records as $record) {
             $activity = new Activity($record->id);
             $activities[] = $activity->export_minimal();
         }
+
+        // Get occurrences of recurring public activities
+        $sql = "SELECT ao.id, ao.activityid, ao.timestart, ao.timeend
+                FROM mdl_activities a
+                JOIN mdl_activities_occurrences ao ON ao.activityid = a.id
+                WHERE a.deleted = 0
+                AND a.recurring = 1
+                AND a.displaypublic = 1
+                AND $status_condition
+                AND (
+                    (ao.timestart >= ? AND ao.timestart <= ?) OR 
+                    (ao.timeend >= ? AND ao.timeend <= ?) OR
+                    (ao.timestart < ? AND ao.timeend > ?)
+                )";
+
+        $occurrences = $DB->get_records_sql($sql, $params);
+
+        // Add occurrences as virtual activities with modified times
+        foreach ($occurrences as $occurrence) {
+        $activity = new Activity($occurrence->activityid);
+        $minimal = $activity->export_minimal();
+
+        // Override the timestamps with the occurrence's times
+        $minimal->timestart = $occurrence->timestart;
+        $minimal->timeend = $occurrence->timeend;
+
+        $minimal->is_occurrence = true;
+        $minimal->occurrenceid = $occurrence->id;
+
+        $activities[] = $minimal;
+        }
+
+        // Sort all activities by start time
+        usort($activities, function($a, $b) {
+        return $a->timestart - $b->timestart;
+        });
 
         return $activities;
     }
@@ -829,7 +979,7 @@ class activities_lib {
     /*
     * get_history
     */
-    public static function get_history($page) {
+    public static function get_history() {
         global $DB, $USER;
 
         // We need to find events where this user is:
@@ -863,24 +1013,24 @@ class activities_lib {
         );
 
         // Student participant
-        $involvement['student']['events'] = static::get_for_student($USER->username, 'past', 'timestart DESC', false, $page);
+        $involvement['student']['events'] = static::get_for_student($USER->username, 'past');
 
         // Parent of participating student
-        $involvement['parent']['events'] = static::get_for_parent($USER->username, 'past', 'timestart DESC', false, $page);
+        $involvement['parent']['events'] = static::get_for_parent($USER->username, 'past');
 
         // Staff member in charge
-        $involvement['staff']['events'] = static::get_for_owner($USER->username, 'past', 'timestart DESC', false, $page);
+        $involvement['staff']['events'] = static::get_for_owner($USER->username, 'past');
 
         // Planner
-        $involvement['planner']['events'] = static::get_for_plannner($USER->username, 'past', 'timestart DESC', false, $page);
+        $involvement['planner']['events'] = static::get_for_plannner($USER->username, 'past');
 
         // Accompanying
-        $involvement['accompanying']['events'] = static::get_for_accompanying($USER->username, 'past', 'timestart DESC', false, $page);
+        $involvement['accompanying']['events'] = static::get_for_accompanying($USER->username, 'past');
 
         return $involvement;
     }
 
-    public static function get_by_ids($ids, $status = null, $orderby = null, $period = null, $exported = true, $getall = true, $page = 1) { // Period is null, "past" or "future"
+    /*public static function get_by_ids($ids, $status = null, $orderby = null, $period = null, $exported = true, $getall = true, $page = 1) { // Period is null, "past" or "future"
         global $DB, $CFG;
 
         $perpage = 8;
@@ -934,9 +1084,106 @@ class activities_lib {
         }
 
         return $activities;
+    }*/
+
+    public static function get_by_ids($ids, $status = null, $period = null, $exported = true) {
+        global $DB, $CFG;
+    
+        $activities = array();
+    
+        if ($ids) {
+            $activityids = array_unique($ids);
+            list($insql, $inparams) = $DB->get_in_or_equal($activityids);
+            
+            // Base WHERE conditions - now properly qualified with table alias
+            $where = "WHERE a.id $insql AND a.deleted = 0";
+            
+            if ($status) {
+                $where .= " AND a.status = {$status}";
+            }
+    
+            // Time conditions for non-recurring activities
+            $timeCondition = "";
+            if ($period == 'past') {
+                $timeCondition = " AND a.timeend < " . time();
+            } elseif ($period == 'future') {
+                $timeCondition = " AND a.timeend >= " . time();
+            }
+    
+            // Get non-recurring activities
+            $sql = "SELECT *
+                    FROM {" . static::TABLE . "} a
+                    $where
+                    AND a.recurring = 0
+                    $timeCondition";
+    
+            $records = $DB->get_records_sql($sql, $inparams);
+            foreach ($records as $record) {
+                $activity = new Activity($record->id);
+                if ($exported) {
+                    $activities[] = $activity->export_minimal();
+                } else {
+                    $activities[] = $activity;
+                }
+            }
+    
+            // Get occurrences of recurring activities
+            $sql = "SELECT ao.id as occurrenceid, ao.timestart as occurrence_start, ao.timeend as occurrence_end, a.*
+                    FROM {" . static::TABLE . "} a
+                    JOIN mdl_activities_occurrences ao ON ao.activityid = a.id
+                    $where
+                    AND a.recurring = 1";
+    
+            // Add time conditions for occurrences
+            if ($period == 'past') {
+                $sql .= " AND ao.timeend < " . time();
+            } elseif ($period == 'future') {
+                $sql .= " AND ao.timeend >= " . time();
+            }
+    
+            $occurrences = $DB->get_records_sql($sql, $inparams);
+            foreach ($occurrences as $occurrence) {
+                $activity = new Activity($occurrence->id);
+                if ($exported) {
+                    $minimal = $activity->export_minimal();
+                    // Override timestamps with occurrence times
+                    $minimal->timestart = $occurrence->occurrence_start;
+                    $minimal->timeend = $occurrence->occurrence_end;
+                    $minimal->is_occurrence = true;
+                    $minimal->occurrenceid = $occurrence->occurrenceid;
+                    $activities[] = $minimal;
+                } else {
+                    // For non-exported objects, we need to modify the timestamps
+                    $activity->set('timestart', $occurrence->occurrence_start);
+                    $activity->set('timeend', $occurrence->occurrence_end);
+                    $activity->set('is_occurrence', true);
+                    $activity->set('occurrenceid', $occurrence->occurrenceid);
+                    $activities[] = $activity;
+                }
+            }
+    
+            if ($period == 'past') {
+                // Past events: most recent first (descending)
+                usort($activities, function($a, $b) use ($exported) {
+                    $aTime = $exported ? $a->timestart : $a->timestart;
+                    $bTime = $exported ? $b->timestart : $b->timestart;
+                    return $bTime - $aTime; // Note: reversed for descending order
+                });
+            } else {
+                // Future events: chronological order (ascending)
+                usort($activities, function($a, $b) use ($exported) {
+                    $aTime = $exported ? $a->timestart : $a->timestart;
+                    $bTime = $exported ? $b->timestart : $b->timestart;
+                    return $aTime - $bTime;
+                });
+            }
+            
+        }
+    
+        return $activities;
     }
 
-    public static function get_for_student($username, $period = null, $orderby = null, $getall = true, $page = 1) {
+    public static function get_for_student($username, $period = null) {
         global $DB;
 
         $activities = array();
@@ -946,7 +1193,7 @@ class activities_lib {
                  WHERE username = ?";
         $ids = $DB->get_records_sql($sql, array($username));
 
-        $activities = static::get_by_ids(array_column($ids, 'activityid'), static::ACTIVITY_STATUS_APPROVED, $orderby, $period, true, $getall, $page); // Approved and future only.
+        $activities = static::get_by_ids(array_column($ids, 'activityid'), static::ACTIVITY_STATUS_APPROVED, $period); // Approved and future only.
         foreach ($activities as $i => $activity) {
             if ($activity->permissions) {
                 $attending = static::get_all_attending($activity->id);
@@ -961,7 +1208,7 @@ class activities_lib {
         return array_filter(array_values($activities));
     }
 
-    public static function get_for_parent($username, $period = null, $orderby = null, $getall = true, $page = 1) {
+    public static function get_for_parent($username, $period = null) {
         global $DB;
 
         $activities = array();
@@ -971,7 +1218,7 @@ class activities_lib {
                  WHERE parentusername = ?";
         $ids = $DB->get_fieldset_sql($sql, array($username));
 
-        $activities = static::get_by_ids($ids, static::ACTIVITY_STATUS_APPROVED, $orderby, $period, false, $getall, $page); // Approved and future only.
+        $activities = static::get_by_ids($ids, static::ACTIVITY_STATUS_APPROVED, $period); // Approved and future only.
 
         foreach ($activities as $i => $activity) {
             // Export the activity.
@@ -992,7 +1239,7 @@ class activities_lib {
         return $activities;
     }
 
-    public static function get_for_owner($username, $period = null, $orderby = null, $getall = true, $page = 1) {
+    public static function get_for_owner($username, $period = null) {
         global $DB;
 
         $activities = array();
@@ -1002,12 +1249,12 @@ class activities_lib {
                  WHERE staffincharge = ?";
         $ids = $DB->get_fieldset_sql($sql, array($username));
 
-        $activities = static::get_by_ids($ids, null, $orderby, $period, true, $getall, $page); // All statuses and future only.
+        $activities = static::get_by_ids($ids, null, $period); // All statuses and future only.
 
         return $activities;
     }
 
-    public static function get_for_plannner($username, $period = null, $orderby = null, $getall = true, $page = 1) {
+    public static function get_for_plannner($username, $period = null) {
         global $DB;
 
         // Get creator and planners.
@@ -1019,12 +1266,12 @@ class activities_lib {
                 AND usertype = 'planning'";
         $plannerids = $DB->get_fieldset_sql($sql, array($username));
 
-        $activities = static::get_by_ids($plannerids, null, $orderby, $period, true, $getall, $page); // All statuses and future only.
+        $activities = static::get_by_ids($plannerids, null, $period); // All statuses and future only.
 
         return $activities;
     }
 
-    public static function get_for_accompanying($username, $period = null, $orderby = null, $getall = true, $page = 1) {
+    public static function get_for_accompanying($username, $period = null) {
         global $DB;
 
         $activities = array();
@@ -1035,260 +1282,11 @@ class activities_lib {
                 AND usertype = 'accompany'";
         $ids = $DB->get_fieldset_sql($sql, array($username));
 
-        $activities = static::get_by_ids($ids, null, $orderby, $period, true, $getall, $page); // All statuses and future only.
+        $activities = static::get_by_ids($ids, null, $period); // All statuses and future only.
 
         return $activities;
     }
 
-
-    /*
-    public static function get_for_user($username) {
-        global $DB;
-
-        $sql = "SELECT * 
-                    ,case
-                        when status = 0 OR status = 1 then 1
-                        else 0
-                    end as isdraft
-                    ,case
-                        when timeend < " . time() . " then 1
-                        else 0
-                    end as ispastevent
-                  FROM {" . static::TABLE . "}
-                 WHERE deleted = 0
-                   AND username = ?
-              ORDER BY isdraft DESC, ispastevent ASC, timestart DESC";
-        $params = array($username);
-
-        $records = $DB->get_records_sql($sql, $params);
-        $activities = array();
-        foreach ($records as $record) {
-            $activities[] = new static($record->id, $record);
-        }
-
-        return $activities;
-    }
-
-
-    
-
-
-    public static function get_for_auditor($username) {
-        global $DB;
-
-        $user = \core_user::get_user_by_username($username);
-        
-        if ( ! has_capability('local/excursions:audit', \context_system::instance(), null, false)) {
-            return array();
-        }
-
-        $sql = "SELECT *
-                    ,case
-                        when status = 0 OR status = 1 then 1
-                        else 0
-                    end as isdraft
-                    ,case
-                        when timeend < " . time() . " then 1
-                        else 0
-                    end as ispastevent
-                  FROM {" . static::TABLE . "}
-                 WHERE deleted = 0
-                   AND ( timemodified > " . strtotime("-3 months") . " OR timeend >=  " . time() . " )
-                   AND status != " . static::ACTIVITY_STATUS_AUTOSAVE . "
-                   AND status != " . static::ACTIVITY_STATUS_DRAFT . "
-              ORDER BY isdraft DESC, ispastevent ASC, timestart DESC";
-        $records = $DB->get_records_sql($sql, array());
-        
-        $activities = array();
-        foreach ($records as $record) {
-            $activities[] = new static($record->id, $record);
-        }
-
-        return $activities;
-    }
-
-   
-
-    
-
-    
-    public static function get_for_primary($username) {
-        global $DB;
-
-        $activities = array();
-
-        // Check if the user is a primary school staff member.
-        $user = core_user::get_user_by_username($username);
-        profile_load_custom_fields($user);
-        $campusroles = strtolower($user->profile['CampusRoles']);
-        $userisps = false;
-        $primarycampuses = array(
-            'Primary School:Admin Staff',
-            'Primary Red Hill:Staff',
-            'Whole School:Admin Staff',
-            'Northside:Staff',
-            'Early Learning Centre:Staff',
-        );
-        foreach ($primarycampuses as $primarycampus) {
-            if (strpos($campusroles, strtolower($primarycampus)) !== false) {
-                $userisps = true;
-                break;
-            }
-        }
-
-        if ($userisps) {
-            // Get activities where campus is 'primary'.
-            $sql = "SELECT *
-                        ,case
-                            when timeend < " . time() . " then 1
-                            else 0
-                        end as ispastevent
-                      FROM {" . static::TABLE . "}
-                     WHERE deleted = 0
-                       AND ( timemodified > " . strtotime("-3 months") . " OR timeend >=  " . time() . " )
-                       AND status = 3
-                       AND campus = 'primary'
-                  ORDER BY ispastevent ASC, timestart DESC";
-
-            // If auditor...
-            if (has_capability('local/excursions:audit', \context_system::instance(), null, false)) {
-                $sql = "SELECT *
-                            ,case
-                                when timeend < " . time() . " then 1
-                                else 0
-                            end as ispastevent
-                        FROM {" . static::TABLE . "}
-                        WHERE deleted = 0
-                            AND ( timemodified > " . strtotime("-3 months") . " OR timeend >=  " . time() . " )
-                            AND status != " . static::ACTIVITY_STATUS_AUTOSAVE . "
-                            AND status != " . static::ACTIVITY_STATUS_DRAFT . "
-                            AND campus = 'primary'
-                        ORDER BY ispastevent ASC, timestart DESC";
-            }
-            $records = $DB->get_records_sql($sql);
-
-            $activities = array();
-            foreach ($records as $record) {
-                $activities[] = new static($record->id, $record);
-            }
-        }
-
-        return $activities;
-    }
-
-    public static function get_for_senior($username) {
-        global $DB;
-
-        $activities = array();
-
-        // Check if the user is a primary school staff member.
-        $user = core_user::get_user_by_username($username);
-        profile_load_custom_fields($user);
-        $campusroles = strtolower($user->profile['CampusRoles']);
-        $userisss = false;
-        $seniorcampuses = array(
-            'Senior School:Staff',
-            'Whole School:Admin Staff',
-        );
-        foreach ($seniorcampuses as $seniorcampus) {
-            if (strpos($campusroles, strtolower($seniorcampus)) !== false) {
-                $userisss = true;
-                break;
-            }
-        }
-
-        if ($userisss) {
-            // Get activities where campus is 'senior'.
-            $sql = "SELECT *
-                        ,case
-                            when timeend < " . time() . " then 1
-                            else 0
-                        end as ispastevent
-                      FROM {" . static::TABLE . "}
-                     WHERE deleted = 0
-                       AND ( timemodified > " . strtotime("-3 months") . " OR timeend >=  " . time() . " )
-                       AND status = 3
-                       AND campus = 'senior'
-                  ORDER BY ispastevent ASC, timestart DESC";
-            // If auditor...
-            if (has_capability('local/excursions:audit', \context_system::instance(), null, false)) {
-                $sql = "SELECT *
-                            ,case
-                                when timeend < " . time() . " then 1
-                                else 0
-                            end as ispastevent
-                        FROM {" . static::TABLE . "}
-                        WHERE deleted = 0
-                            AND ( timemodified > " . strtotime("-3 months") . " OR timeend >=  " . time() . " )
-                            AND status != " . static::ACTIVITY_STATUS_AUTOSAVE . "
-                            AND status != " . static::ACTIVITY_STATUS_DRAFT . "
-                            AND campus = 'senior'
-                        ORDER BY ispastevent ASC, timestart DESC";
-            }
-            $records = $DB->get_records_sql($sql);
-            $activities = array();
-            foreach ($records as $record) {
-                $activities[] = new static($record->id, $record);
-            }
-        }
-
-        return $activities;
-    }
-
-    
-
-    public static function get_for_approver($username, $sortby = '') {
-        global $DB;
-
-        $activities = array();
-
-        $approvertypes = static::get_approver_types($username);
-        if ($approvertypes) {
-            // The user has approver types. Check if any activities need this approval.
-            list($insql, $inparams) = $DB->get_in_or_equal($approvertypes);
-            $sql = "SELECT id, activityid, type
-                      FROM mdl_activity_approvals
-                     WHERE type $insql
-                       AND invalidated = 0
-                       AND skip = 0";
-            $approvals = $DB->get_records_sql($sql, $inparams);
-            $approvals = workflow_lib::filter_approvals_with_prerequisites($approvals);
-            $orderby = '';
-            if ($sortby == 'created') {
-                $orderby = 'timecreated DESC';
-            }
-            if ($sortby == 'start') {
-                $orderby = 'timestart ASC';
-            }
-            $activities = static::get_by_ids(array_column($approvals, 'activityid'), null, $orderby); 
-        }
-
-        return $activities;
-    }
-
-    public static function get_for_accompanying($username) {
-        global $DB;
-
-        $activities = array();
-
-        $sql = "SELECT id, activityid
-                  FROM {" . static::TABLE_ACTIVITY_STAFF. "} 
-                 WHERE username = ?";
-        $staff = $DB->get_records_sql($sql, array($username));
-        $accompanyingids = array_column($staff, 'activityid');
-
-        $sql = "SELECT id
-                  FROM {" . static::TABLE. "} 
-                 WHERE staffincharge = ?
-                 AND ( timemodified > " . strtotime("-3 months") . " OR timeend >=  " . time() . " )
-                 ";
-        $staff = $DB->get_records_sql($sql, array($username));
-        $staffinchargeids = array_column($staff, 'id');
-
-        $activities = static::get_by_ids(array_merge($accompanyingids, $staffinchargeids));
-
-        return $activities;
-    }*/
 
     public static function get_for_absences($now, $startlimit, $endlimit) {
         global $DB;
@@ -1298,20 +1296,52 @@ class activities_lib {
         // - be unprocessed since the last change.
         // - start within the next two weeks ($startlimit) OR
         // - currently running OR
-        // - ended within the past 7 days ($endlimit)  OR
+        // - ended within the past 7 days ($endlimit) 
+
+        // Get non-recurring activities
         $sql = "SELECT id
-                  FROM {" . static::TABLE . "}
-                 WHERE absencesprocessed = 0
-                   AND (
+                FROM {" . static::TABLE . "}
+                WHERE absencesprocessed = 0
+                AND recurring = 0
+                AND (
                     (timestart <= {$startlimit} AND timestart >= {$now}) OR
                     (timestart <= {$now} AND timeend >= {$now}) OR
                     (timeend >= {$endlimit} AND timeend <= {$now})
-                   )
-                   AND status = " . static::ACTIVITY_STATUS_APPROVED;
+                )
+                AND status = " . static::ACTIVITY_STATUS_APPROVED;
+
         $records = $DB->get_records_sql($sql, null);
         $activities = array();
+        
+        // Process non-recurring activities
         foreach ($records as $record) {
             $activities[] = new Activity($record->id);
+        }
+
+        // Get occurrences of recurring activities
+        $sql = "SELECT ao.id, ao.timestart, ao.timeend, a.id as activityid
+                FROM {" . static::TABLE . "} a
+                JOIN mdl_activities_occurrences ao ON ao.activityid = a.id
+                WHERE a.absencesprocessed = 0
+                AND a.recurring = 1
+                AND (
+                    (ao.timestart <= {$startlimit} AND ao.timestart >= {$now}) OR
+                    (ao.timestart <= {$now} AND ao.timeend >= {$now}) OR
+                    (ao.timeend >= {$endlimit} AND ao.timeend <= {$now})
+                )
+                AND a.status = " . static::ACTIVITY_STATUS_APPROVED;
+
+        $occurrences = $DB->get_records_sql($sql);
+
+        // Process recurring activity occurrences
+        foreach ($occurrences as $occurrence) {
+            $activity = new Activity($occurrence->activityid);
+            // Update timestamps to the occurrence's times
+            $activity->timestart = $occurrence->timestart;
+            $activity->timeend = $occurrence->timeend;
+            $activity->is_occurrence = true;
+            $activity->occurrenceid = $occurrence->id;
+            $activities[] = $activity;
         }
         
         return $activities;
@@ -1319,28 +1349,60 @@ class activities_lib {
 
     public static function get_for_roll_creation($now, $startlimit) {
         global $DB;
-
+    
         // Activies must:
         // - be approved.
         // - be unprocessed since the last change.
         // - start within the next x days ($startlimit) OR
-        // - currently running OR
+        // - currently running
+
+        // Get non-recurring activities
         $sql = "SELECT id
-                  FROM {" . static::TABLE . "}
-                 WHERE classrollprocessed = 0
-                   AND (
+                FROM {" . static::TABLE . "}
+                WHERE classrollprocessed = 0
+                AND recurring = 0
+                AND (
                     (timestart <= {$startlimit} AND timestart >= {$now}) OR
                     (timestart <= {$now} AND timeend >= {$now})
-                   )
-                   AND status = " . static::ACTIVITY_STATUS_APPROVED;
-        $records = $DB->get_records_sql($sql, null);
+                )
+                AND status = " . static::ACTIVITY_STATUS_APPROVED;
+    
+        $records = $DB->get_records_sql($sql);
         $activities = array();
+        
+        // Process non-recurring activities
         foreach ($records as $record) {
             $activities[] = new Activity($record->id);
+        }
+    
+        // Get occurrences of recurring activities
+        $sql = "SELECT ao.id, ao.timestart, ao.timeend, a.id as activityid
+                FROM {" . static::TABLE . "} a
+                JOIN mdl_activities_occurrences ao ON ao.activityid = a.id
+                WHERE a.classrollprocessed = 0
+                AND a.recurring = 1
+                AND (
+                    (ao.timestart <= {$startlimit} AND ao.timestart >= {$now}) OR
+                    (ao.timestart <= {$now} AND ao.timeend >= {$now})
+                )
+                AND a.status = " . static::ACTIVITY_STATUS_APPROVED;
+    
+        $occurrences = $DB->get_records_sql($sql);
+    
+        // Process recurring activity occurrences
+        foreach ($occurrences as $occurrence) {
+            $activity = new Activity($occurrence->activityid);
+            // Update timestamps to the occurrence's times
+            $activity->timestart = $occurrence->timestart;
+            $activity->timeend = $occurrence->timeend;
+            $activity->is_occurrence = true;
+            $activity->occurrenceid = $occurrence->id;
+            $activities[] = $activity;
         }
         
         return $activities;
     }
+
 
     public static function get_for_attendance_reminders() {
         global $DB;
@@ -1384,78 +1446,6 @@ class activities_lib {
         
         return $activities;
     }
-
-    
-/*
-    public static function get_notices($activityid, $approvals) {
-        global $DB;
-
-        $notices = array();
-
-        // Check to see if activity has existing absences.
-        foreach ($approvals as $approval) {
-            // There is only a small window when this is available to avoid deletion of new absences.
-            // If it is an "admin" approval and user can approve it, and the approval is still 0 and it is not skipped.
-            if (strpos($approval->type, 'admin') !== false && 
-                isset($approval->canapprove) &&
-                $approval->status == 0 &&
-                $approval->skip == 0 ) {
-
-                $config = get_config('local_activities');
-                if ($config->checkabsencesql && $config->dbhost) {
-                    $externalDB = \moodle_database::get_driver_instance($config->dbtype, 'native', true);
-                    $externalDB->connect($config->dbhost, $config->dbuser, $config->dbpass, $config->dbname, '');
-                    $sql = $config->checkabsencesql . ' :username, :leavingdate, :returningdate, :comment';
-                    $params = array(
-                        'username' => '*',
-                        'leavingdate' => '1800-01-01',
-                        'returningdate' =>  '9999-01-01',
-                        'comment' => '#ID-' . $activityid,
-                    );
-                    $absenceevents = $externalDB->get_field_sql($sql, $params);
-                    if ($absenceevents) {
-                        $notices[] = array(
-                            'text' => 'Absences exist for previous dates which have since changed in the form. New absences will be added if this activity is approved. Click the icon to delete previous absences created for this activity. Ignore this notice to retain previous absences.', 
-                            'action' => 'action-delete-absences',
-                            'description' => 'Delete previous absences',
-                            'icon' => '<i class="fa fa-trash-o" aria-hidden="true"></i>',
-                        );
-                    }
-                }
-                // Don't need to do any more checking.
-                break;
-            }
-        }
-
-        return $notices;
-    }
-
-
-    public static function delete_existing_absences($activityid) {
-
-        if (! (is_int($activityid) && $activityid > 0) ) {
-            return false;
-        }
-
-        // Some basic security - check if user is an approver in this activity.
-        $isapprover = workflow_lib::is_approver_of_activity($activityid);
-
-        $config = get_config('local_activities');
-        $externalDB = \moodle_database::get_driver_instance($config->dbtype, 'native', true);
-        $externalDB->connect($config->dbhost, $config->dbuser, $config->dbpass, $config->dbname, '');
-        $sql = $config->deleteabsencessql . ' :leavingdate, :returningdate, :comment, :studentscsv';
-        $params = array(
-            'leavingdate' => '1800-01-01',
-            'returningdate' =>  '9999-01-01',
-            'comment' => '#ID-' . $activityid,
-            'studentscsv' => '0',
-        );
-        $externalDB->execute($sql, $params);
-        return true;
-
-    }
-
-*/ 
 
 
     /**
@@ -1732,42 +1722,6 @@ class activities_lib {
         $result = service_lib::email_to_user($toUser, $USER, $subject, '', $messageHtml, '', '', true);
     }
 
-/*
-    public static function get_messagehistory($activityid) {
-        global $DB;
-
-        $activity = new static($activityid);
-        if (empty($activity)) {
-            return [];
-        }
-
-        $sql = "SELECT *
-                  FROM {" . static::TABLE_ACTIVITY_PERMISSIONS_SEND . "}
-                 WHERE activityid = ?
-              ORDER BY timecreated DESC";
-        $params = array($activityid);
-        $messagehistory = $DB->get_records_sql($sql, $params);
-
-        return $messagehistory;
-    }
-
-
-
-    public static function get_all_permissions($activityid) {
-        global $USER, $DB;
-
-        $sql = "SELECT DISTINCT p.*
-                  FROM {" . static::TABLE_ACTIVITY_PERMISSIONS . "} p
-            INNER JOIN {" . static::TABLE_ACTIVITY_STUDENTS . "} s ON p.studentusername = s.username
-                 WHERE p.activityid = ?
-              ORDER BY p.timecreated DESC";
-        $params = array($activityid);
-        $permissions = $DB->get_records_sql($sql, $params);
-
-        return $permissions;
-    }
-*/
-
     /*
     * A "no" response means the student is not attending, even if another parent response "yes"
     */
@@ -1817,22 +1771,6 @@ class activities_lib {
         return $permissions;
     }
 
-    /*
-    public static function get_student_permissions($activityid, $studentusername) {
-        global $DB;
-
-        $sql = "SELECT DISTINCT p.*
-                  FROM {" . static::TABLE_ACTIVITY_PERMISSIONS . "} p
-            INNER JOIN {" . static::TABLE_ACTIVITY_STUDENTS . "} s ON p.studentusername = s.username
-                 WHERE p.activityid = ?
-                   AND p.studentusername = ?
-              ORDER BY p.timecreated DESC";
-        $params = array($activityid, $studentusername);
-        $permissions = $DB->get_records_sql($sql, $params);
-
-        return $permissions;
-    }
-    */
 
     public static function get_students_by_response($activityid, $response) {
         global $DB;

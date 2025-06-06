@@ -55,7 +55,10 @@ export function StaffDetails() {
               />
               <div>
                 <Text fz="sm" mb="5px" fw={500} c="#212529">Non-school participants</Text>
-                <Textarea readOnly={viewStateProps.readOnly} value={otherparticipants} onChange={(event) => setState({['otherparticipants']: event.currentTarget.value} as Form)}/>
+                {viewStateProps.readOnly
+                  ? <div>{otherparticipants}</div>
+                  : <Textarea readOnly={viewStateProps.readOnly} value={otherparticipants} onChange={(event) => setState({['otherparticipants']: event.currentTarget.value} as Form)}/>
+                }
               </div>
             </>
           }

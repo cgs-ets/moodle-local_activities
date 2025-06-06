@@ -144,12 +144,7 @@ class cron_create_classes extends \core\task\scheduled_task {
                         'returningdate' => $activityend,
                     );
                     $seqnums = $externalDB->get_records_sql($sql, $params); // Returns staffscheduleseq, subjectclassesseq.
-                    var_export($seqnums); exit;
-
-
-
-
-                    
+                    //var_export($seqnums); exit;
                     $seqnums =  array_pop($seqnums);
                     $this->log("The sequence nums (staffscheduleseq, subjectclassesseq): " . json_encode($seqnums), 2);
 

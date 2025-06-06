@@ -19,8 +19,6 @@ interface HistoryArea {
 export function MyHistory() {
   const [history, setHistory] = useState<Record<string, HistoryArea>>({});
   const [selectedEvent, setSelectedEvent] = useState<Form|null>(null)
-  const [page, setPage] = useState(1)
-  const [hasMore, setHasMore] = useState(true)
   const [loading, setLoading] = useState(false)
   const getMyHistory = useFetch()
 
@@ -28,43 +26,32 @@ export function MyHistory() {
     getHistory()
   }, []);
 
-  useEffect(() => {
-    getHistory()
-  }, [page])
-
   const getHistory = async () => {
     setLoading(true)
     const res = await getMyHistory.call({
       query: {
         methodname: 'local_activities-get_my_history',
-        page: page,
       }
     })
     if (!res.data || res.data.error) {
       return
     }
 
-    const hasSome = Object.values(res.data).some((area: any) => area.events.length)
-    if (!hasSome) {
-      setHasMore(false)
-    }
     setLoading(false)
-
-    if (hasSome) {
-      // Need to inject events into the correct area.
-      const newHistory = JSON.parse(JSON.stringify(history))
-      Object.keys(res.data).forEach((area: any) => {
-        if (!newHistory[area]) {
-          newHistory[area] = {
-            heading: res.data[area]?.heading || '',
-            events: []
-          }
+    // Need to inject events into the correct area.
+    /*const newHistory = JSON.parse(JSON.stringify(history))
+    Object.keys(res.data).forEach((area: any) => {
+      if (!newHistory[area]) {
+        newHistory[area] = {
+          heading: res.data[area]?.heading || '',
+          events: []
         }
-        const newEvents = res.data[area]?.events || [];
-        newHistory[area].events = [...(newHistory[area].events || []), ...newEvents]
-      })
-      setHistory(newHistory)
-    }
+      }
+      const newEvents = res.data[area]?.events || [];
+      newHistory[area].events = [...(newHistory[area].events || []), ...newEvents]
+    })*/
+    setHistory(res.data)
+ 
   }
 
   return (
@@ -136,11 +123,6 @@ export function MyHistory() {
             )
           })} 
         </div>
-        { hasMore &&
-          <div className='flex justify-center py-4'>
-            <Button size="compact-md" variant='light' className="rounded-full" onClick={() => setPage(page + 1)} loading={loading}>Load more</Button>
-          </div>
-        }
       </div>
       <EventModal hideOpenButton={!getConfig().roles?.includes("staff")} activity={selectedEvent} close={() => setSelectedEvent(null)} />
 

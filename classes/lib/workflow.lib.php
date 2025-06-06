@@ -775,13 +775,13 @@ class workflow_lib extends \local_activities\local_activities_config {
         $result = service_lib::wrap_and_email_to_user($toUser, $fromUser, $subject, $messageHtml); 
     }
 
+
+    
     protected static function send_datachanged_emails($activityid, $fieldschanged) {
         global $PAGE;
 
-        $activity = new static($activityid);
-        $output = $PAGE->get_renderer('core');
-        $activityexporter = new activity_exporter($activity);
-        $activity = $activityexporter->export($output);
+        $activity = new Activity($activityid);
+        $exported = $activity->export();
         $activity->fieldschanged = array_values($fieldschanged); // Inject fields changed for emails.
         $activity->fieldschangedstring = json_encode($fieldschanged); // Inject fields changed for emails.
 
@@ -790,54 +790,52 @@ class workflow_lib extends \local_activities\local_activities_config {
         // Send to all approvers.
         $approvals = static::get_approvals($activityid);
         foreach ($approvals as $nextapproval) {
-            $approvers = static::WORKFLOW[$nextapproval->type]['approvers'];
+            // Get the approvers for this approval step.
+            $approvers = workflow_lib::WORKFLOW[$nextapproval->type]['approvers'];
             foreach($approvers as $approver) {
                 // Skip if approver does not want this notification.
-                if ((isset($approver['silent']) && $approver['silent']) || (isset($approver['notifications']) && !in_array('activitychanged', $approver['notifications']))) {
+                if (isset($approver['notifications']) && !in_array('activitychanged', $approver['notifications'])) {
                     continue;
                 }
+                // Skip if this step is selectable and approver is not the nominated one.
+                $isSelectable = isset(static::WORKFLOW[$nextapproval->type]['selectable']) && static::WORKFLOW[$nextapproval->type]['selectable'];
+                if ($isSelectable && $nextapproval->nominated !=$approver['username'] ) {
+                    continue;
+                }
+                $usercontext = \core_user::get_user_by_username($approver['username']);
+                $exported = $activity->export($usercontext);
                 if ($approver['contacts']) {
                     foreach ($approver['contacts'] as $email) {
-                        static::send_datachanged_email($activity, $approver['username'], $email);
+                        // Export each time as user context is needed to determine creator etc.
+                        static::send_datachanged_email($exported, $approver['username'], $email);
                         $recipients[] = $approver['username'];
                     }
                 } else {
                     if ( ! in_array($approver['username'], $recipients)) {
-                        static::send_datachanged_email($activity, $approver['username']);
+                        static::send_datachanged_email($exported, $approver['username']);
                         $recipients[] = $approver['username'];
                     }
                 }
             }
         }
 
-        // Send to accompanying staff.
-        $planningstaff = static::get_planning_staff($activityid);
-        foreach ($planningstaff as $staff) {
-            if ( ! in_array($staff->username, $recipients)) {
-                static::send_datachanged_email($activity, $staff->username);
-                $recipients[] = $staff->username;
-            }
-        }
-
-        // Send to accompanying staff.
-        $accompanyingstaff = static::get_accompanying_staff($activityid);
-        foreach ($accompanyingstaff as $staff) {
-            if ( ! in_array($staff->username, $recipients)) {
-                static::send_datachanged_email($activity, $staff->username);
-                $recipients[] = $staff->username;
+        // Send to staff in charge, planning staff and accompanying staff.
+        $allstaff = activities_lib::get_all_staff($activityid);
+        foreach ($allstaff as $staffun) {
+            if ( ! in_array($staffun, $recipients)) {
+                $usercontext = \core_user::get_user_by_username($staffun);
+                $exported = $activity->export($usercontext);
+                static::send_datachanged_email($exported, $staffun);
+                $recipients[] = $staffun;
             }
         }
 
         // Send to activity creator.
-        if ( ! in_array($activity->creator, $recipients)) {
-            static::send_datachanged_email($activity, $activity->creator);
-            $recipients[] = $activity->creator;
-        }
-
-        // Send to staff in charge.
-        if ( ! in_array($activity->staffincharge, $recipients)) {
-            static::send_datachanged_email($activity, $activity->staffincharge);
-            $recipients[] = $activity->staffincharge;
+        if ( ! in_array($activity->get('creator'), $recipients)) {
+            $usercontext = \core_user::get_user_by_username($activity->get('creator'));
+            $exported = $activity->export($usercontext);
+            static::send_datachanged_email($exported, $exported->creator);
+            $recipients[] = $exported->creator;
         }
     }
 
@@ -854,7 +852,7 @@ class workflow_lib extends \local_activities\local_activities_config {
         $fromUser->bccaddress = array(); //$fromUser->bccaddress = array("lms.archive@cgs.act.edu.au"); 
 
         $subject = "Activity information changed: " . $activity->activityname;
-        $messageHtml = $output->render_from_template('local_activities/email_datachanged_html', ['activity' => $activity]);
+        $messageHtml = $OUTPUT->render_from_template('local_activities/email_datachanged_html', ['activity' => $activity]);
         $result = service_lib::wrap_and_email_to_user($toUser, $fromUser, $subject, $messageHtml); 
     }
 

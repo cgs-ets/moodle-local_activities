@@ -170,8 +170,7 @@ trait activities_api {
      * Get events where user is involved.
      */
     static public function get_my_history() {
-        $page = required_param('page', PARAM_INT);
-        return activities_lib::get_history($page);
+        return activities_lib::get_history();
     }
 
     /**

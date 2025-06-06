@@ -27,6 +27,7 @@ import { NextSteps } from "./components/NextSteps/NextSteps";
 import { getConfig } from "../../utils";
 import useFetch from "../../hooks/useFetch";
 import { StudentListDIY } from "./components/StudentList/StudentListDIY";
+import { Series } from "./components/Series/Series";
 
 export function EditActivity() {
   let { id } = useParams();
@@ -48,6 +49,7 @@ export function EditActivity() {
   const updateViewStateProps = useStateStore((state) => (state.updateViewStateProps))
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
   const [searchParams, setSearchParams] = useSearchParams()
+  const occurrences = useFormStore((state) => state.occurrences)
 
   const resetForm = useFormStore((state) => (state.reset))
   const resetState = useStateStore((state) => (state.reset))
@@ -89,19 +91,18 @@ export function EditActivity() {
       setError(fetchResponse.exception?.message ?? "Error")
       return
     }
-    if (fetchResponse?.data?.usercanedit) {
-      // Allow editing.
-      updateViewStateProps({
-        readOnly: false,
-        editable: true,
-      } as ViewStateProps)
+
+    let editing = {
+      readOnly: true,
+      editable: false,
+    } as ViewStateProps
+
+    if (fetchResponse?.data?.usercanedit) { // && !fetchResponse?.data?.recurring) {
+      updateViewStateProps({...editing, editable: true, readOnly: false})
     } else {
-      // Do not allow editing.
-      updateViewStateProps({
-        readOnly: true,
-        editable: false,
-      } as ViewStateProps)
+      updateViewStateProps(editing)
     }
+
     document.title = fetchResponse.data.activityname
     const data = {
       ...fetchResponse.data,
@@ -127,6 +128,9 @@ export function EditActivity() {
       existingattachments: fetchResponse.data.attachments,
       attachments: "",
       riskassessment: "",
+      recurring: !!Number(fetchResponse.data.recurring),
+      recurrence: {...defaults.recurrence, ...JSON.parse(fetchResponse.data.recurrence || JSON.stringify(defaults.recurrence))},
+      occurences: fetchResponse.data.occurences,
     }
     // Merge into default values
     setFormData({...defaults, ...data})
@@ -178,13 +182,23 @@ export function EditActivity() {
     formData.staffinchargejson = JSON.stringify(formData.staffincharge.length ? formData.staffincharge[0] : '')
     formData.assessmentid = searchParams.get('assessment') || null
 
+    // If activity is new, accept recurring settings by default.
+    if (!id) {
+      formData.recurringAcceptChanges = true
+    } else {
+      // If the activity is not new, and the recurring switch has been turned off, and changes have not been accepted, turn the switch back on.
+      if (!formData.recurringAcceptChanges &&occurrences.datesReadable.length > 0 && !formData.recurring) {
+        // Undo the changes.
+        formData.recurring = true
+        setFormData({recurring: true} as Form)
+      }
+    }
+
     setSubmitData({
       response: null,
       error: false,
       loading: false,
     })
-
-    console.log('Form data', formData)
 
     let hasErrors = false
     let errors = {} as Errors
@@ -281,14 +295,15 @@ export function EditActivity() {
                           <Paperwork />
                         </>
                       }
-                      <Box visibleFrom="lg"><Status submitLoading={submitLoading} submitError={submitError} submitResponse={submitResponse} /></Box>
+                      <Box visibleFrom="lg">
+                        <Status submitLoading={submitLoading} submitError={submitError} submitResponse={submitResponse} />
+                      </Box>
                     </Box>
                   </Grid.Col>
                   <Grid.Col span={{ base: 12, lg: 4 }}>
                     <Status submitLoading={submitLoading} submitError={submitError} submitResponse={submitResponse} />
                     <Workflow activityid={Number(id || 0)} />
                     <NextSteps />
-                    { false && <Conflicts /> }
                     <CalendarFlow activityid={Number(id || 0)} />
                     <EmailHistory />
                     <Comments />

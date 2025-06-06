@@ -76,6 +76,8 @@ export type Recurrence = {
   yearlyMonth: string;
   yearlyMonthDay: number;
 
+  customDates: string[];
+
   range: string;
   endBy: string;
   endAfter: number;

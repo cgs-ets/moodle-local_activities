@@ -5,10 +5,12 @@ namespace local_activities\lib;
 require_once(__DIR__.'/../lib/activities.lib.php');
 require_once(__DIR__.'/../lib/service.lib.php');
 require_once(__DIR__.'/../lib/utils.lib.php');
+require_once(__DIR__.'/../lib/recurrence.lib.php');
 
 use \local_activities\lib\activities_lib;
 use \local_activities\lib\service_lib;
 use \local_activities\lib\utils_lib;
+use \local_activities\lib\recurrence_lib;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -91,7 +93,7 @@ class Activity {
         global $USER;
 
         if (!$this->get('id')) {
-            return static::defaults;
+            return (object) static::defaults;
         }
 
         $data = clone($this->data);
@@ -106,13 +108,13 @@ class Activity {
     /**
      * Decorate the model.
      *
-     * @return array
+     * @return object
      */
     public function export($usercontext = null) {
         global $USER;
 
         if (!$this->get('id')) {
-            return static::defaults;
+            return (object) static::defaults;
         }
 
         if (empty($usercontext)) {
@@ -582,7 +584,10 @@ class Activity {
             }
         }
 
-    	return [
+        // Get all the other activities in the series.
+        $occurrences = recurrence_lib::get_series($this->data->id);
+
+    	return (object) [
             'manageurl' => $manageurl->out(false),
             'permissionsurl' => $permissionsurl->out(false),
             'statushelper' => $statushelper,
@@ -602,6 +607,7 @@ class Activity {
             'endreadabletime' => $endreadabletime,
             'assessmentid' => $assessmentid,
             'permissionsent' => $permissionsent,
+            'occurrences' => $occurrences
 	    ];
     }
 

@@ -63,6 +63,11 @@ export type Form = {
 
   recurring: boolean;
   recurrence: Recurrence;
+  occurrences: {
+    dates: any[],
+    datesReadable: any[],
+  };
+  recurringAcceptChanges: boolean;
 };
 
 type FormStore = Form & {
@@ -146,11 +151,17 @@ const defaults: Form = {
     yearlyMonth: "January",
     yearlyMonthDay: 1,
 
+    customDates: [],
+
     range: "End after",
     endBy: dayjs().unix().toString(),
     endAfter: 10,
   },
-
+  occurrences: {
+    dates: [],
+    datesReadable: [],
+  },
+  recurringAcceptChanges: false,
 };
 
 const useFormStore = create<FormStore>((set) => ({
@@ -159,58 +170,6 @@ const useFormStore = create<FormStore>((set) => ({
   setRecurrence: (newRecurrence: Recurrence) => set({ recurrence: newRecurrence || defaults.recurrence }),
   reset: () => set(defaults),
 }))
-
-
-
-/*
-
-export type StaffDetails= {
-  planning: string[],
-  accompanying: string[],
-}
-
-type StaffDetailsStore = StaffDetails & {
-  setState: (newState: StaffDetails | null) => void,
-  reset: () => void,
-}
-
-const staffDefaults = {
-  planning: [],
-  accompanying: [],
-}
-
-const useStaffDetailsStore = create<StaffDetailsStore>((set) => ({
-  ...staffDefaults,
-  setState: (newState) => set(newState || staffDefaults),
-  reset: () => set(staffDefaults),
-}))
-
-*/
-
-
-/*
-export type StudentList= {
-  data: any[],
-  usernames: string[],
-}
-
-type StudentListStore = StudentList & {
-  setState: (newState: StudentList | null) => void,
-  reset: () => void,
-}
-
-const studentListInit = {
-  data: [],
-  usernames: [],
-}
-const useStudentListStore = create<StudentListStore>((set) => ({
-  ...studentListInit,
-  setState: (newState) => set(newState || studentListInit),
-  reset: () => set(studentListInit),
-}))
-*/
-
-
 
 
 

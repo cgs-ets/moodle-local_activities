@@ -1,18 +1,29 @@
 
-import { Button, Checkbox, Group, Modal, NumberInput, Select, Text } from '@mantine/core';
-import { DatePickerInput } from '@mantine/dates';
+import { Button, Checkbox, Group, Modal, NumberInput, Radio, Select, Stack, Text } from '@mantine/core';
+import { Calendar, DatePickerInput } from '@mantine/dates';
 import dayjs from 'dayjs';
 import { useFormStore } from '../stores/formStore';
-import { IconCheck, IconX } from '@tabler/icons-react';
+
 type Props = {
   opened: boolean;
   close: () => void;
   enable: () => void;
+  timestart: number;
+  timeend: number;
 }
 
-export function RecurrenceModal({opened, enable, close}: Props) {
+export function RecurrenceModal({opened, enable, close, timestart, timeend}: Props) {
   const recurrence = useFormStore((state) => state.recurrence);
   const setRecurrence = useFormStore((state) => state.setRecurrence);
+
+  const handleSelect = (date: string) => {
+    const isSelected = recurrence.customDates.some((s) => dayjs(date).isSame(s, 'date'));
+    if (isSelected) {
+      setRecurrence({...recurrence, customDates: recurrence.customDates.filter((d) => !dayjs(d).isSame(date, 'date'))});
+    } else {
+      setRecurrence({...recurrence, customDates: [...recurrence.customDates, date]});
+    }
+  };
 
   return (
     <>
@@ -42,17 +53,45 @@ export function RecurrenceModal({opened, enable, close}: Props) {
             <Modal.Body className='flex flex-col gap-4 p-0'>
 
 
+            <div className='flex flex-col gap-2 border-t p-4 pb-0'>
+              <strong>Time</strong>
+              { timestart === -1
+                ?
+                  <div className='flex gap-4 items-center'>
+                    <Text className="font-bold">All day</Text>
+                  </div>
+                :
+                  <div className='flex gap-4 items-center'>
+                    <Text className="font-bold">{dayjs.unix(timestart).format('HH:mm')}</Text>
+                    <Text>to</Text>
+                    <Text className="font-bold">{dayjs.unix(timeend).format('HH:mm')}</Text>
+                  </div>
+              }
+            </div>
 
-              <div className='flex flex-col gap-2 border-t p-4'>
+              <div className='flex flex-col gap-2 border-t p-4 pb-0'>
                 <strong>Pattern</strong>
 
                 <div className='flex gap-6 items-start'>
 
-                  <Select
-                    data={["Daily", "Weekly", "Monthly", "Yearly"]}
-                    value={recurrence.pattern}
-                    onChange={(value) => setRecurrence({...recurrence, pattern: value || ""})}
-                  />
+
+
+                  <div className="w-36 mt-2">
+                    <Radio.Group
+                      value={recurrence.pattern}
+                      onChange={(value) => setRecurrence({...recurrence, pattern: value || ""})}
+                      name="recurrencepattern"
+                    >
+                      <Stack gap="xs">
+                        <Radio value="Daily" label="Daily" />
+                        <Radio value="Weekly" label="Weekly" />
+                        <Radio value="Monthly" label="Monthly" />
+                        <Radio value="Yearly" label="Yearly" />
+                        <Radio value="Custom" label="Custom" />
+                      </Stack>
+                    </Radio.Group>
+                  </div>
+
 
                   {recurrence.pattern === "Daily" && (
                     <>
@@ -68,8 +107,9 @@ export function RecurrenceModal({opened, enable, close}: Props) {
                         <div className='flex gap-4 items-center'>
                           <NumberInput
                             value={recurrence.dailyInterval}
-                            onChange={(value) => setRecurrence({...recurrence, dailyInterval: Number(value) || 0})}
+                            onChange={(value) => setRecurrence({...recurrence, dailyInterval: Number(value) || 1})}
                             className='w-24'
+                            min={1}
                           />
                           <Text>day(s)</Text>
                         </div>
@@ -85,8 +125,9 @@ export function RecurrenceModal({opened, enable, close}: Props) {
                         Recur every 
                         <NumberInput
                           value={recurrence.weeklyInterval}
-                          onChange={(value) => setRecurrence({...recurrence, weeklyInterval: Number(value) || 0})}
+                          onChange={(value) => setRecurrence({...recurrence, weeklyInterval: Number(value) || 1})}
                           className='w-24'
+                          min={1}
                         />
                         <Text>week(s) on:</Text>
                       </div>
@@ -127,14 +168,16 @@ export function RecurrenceModal({opened, enable, close}: Props) {
                         <div className='flex gap-4 items-center'>
                           <NumberInput
                             value={recurrence.monthlyDay}
-                            onChange={(value) => setRecurrence({...recurrence, monthlyDay: Number(value) || 0})}
+                            onChange={(value) => setRecurrence({...recurrence, monthlyDay: Number(value) || 1})}
                             className='w-24'
+                            min={1}
                           />
                           <Text>of every</Text>
                           <NumberInput
                             value={recurrence.monthlyInterval}
-                            onChange={(value) => setRecurrence({...recurrence, monthlyInterval: Number(value) || 0})}
+                            onChange={(value) => setRecurrence({...recurrence, monthlyInterval: Number(value) || 1})}
                             className='w-24'
+                            min={1}
                           />
                           <Text>month(s)</Text>
                         </div>
@@ -160,8 +203,9 @@ export function RecurrenceModal({opened, enable, close}: Props) {
                             <Text>of every</Text>
                             <NumberInput
                               value={recurrence.monthlyInterval}
-                              onChange={(value) => setRecurrence({...recurrence, monthlyInterval: Number(value) || 0})}
+                              onChange={(value) => setRecurrence({...recurrence, monthlyInterval: Number(value) || 1})}
                               className='w-24'
+                              min={1}
                             />
                             <Text>month(s)</Text>
                           </div>
@@ -180,8 +224,9 @@ export function RecurrenceModal({opened, enable, close}: Props) {
                         <Text>Recur every</Text>
                         <NumberInput
                           value={recurrence.yearlyInterval}
-                          onChange={(value) => setRecurrence({...recurrence, yearlyInterval: Number(value) || 0})}
+                          onChange={(value) => setRecurrence({...recurrence, yearlyInterval: Number(value) || 1})}
                           className='w-24'
+                          min={1}
                         />
                         <Text>year(s)</Text>
                       </div>
@@ -208,8 +253,9 @@ export function RecurrenceModal({opened, enable, close}: Props) {
                             />
                             <NumberInput
                               value={recurrence.yearlyMonthDay}
-                              onChange={(value) => setRecurrence({...recurrence, yearlyMonthDay: Number(value) || 0})}
+                              onChange={(value) => setRecurrence({...recurrence, yearlyMonthDay: Number(value) || 1})}
                               className='w-24'
+                              min={1}
                             />
                           </div>
                         </>
@@ -248,45 +294,69 @@ export function RecurrenceModal({opened, enable, close}: Props) {
                     </div>
                   )}
 
-                </div>
-              </div>
 
-
-
-
-              <div className='flex flex-col gap-2 border-t p-4'>
-                <strong>Range</strong>
-
-                <div className='flex gap-4 items-center'>
-                  <Select
-                    data={["End by", "End after"]}
-                    value={recurrence.range}
-                    onChange={(value) => setRecurrence({...recurrence, range: value || ""})}
-                  />
-
-                  {recurrence.range === "End by" && (
-                    <DatePickerInput
-                      value={dayjs.unix(Number(recurrence.endBy)).toDate()} // Convert to Date
-                      dropdownType="modal"
-                      onChange={(newValue) => {
-                        setRecurrence({...recurrence, endBy: newValue ? dayjs(newValue).unix().toString() : "0"});
-                      }}
-                      className='w-44'
-                    />
-                  )}
-
-                  {recurrence.range === "End after" && (
-                    <>
-                      <NumberInput
-                        value={recurrence.endAfter}
-                        onChange={(value) => setRecurrence({...recurrence, endAfter: Number(value) || 0})}
-                        className='w-24'
+                  {recurrence.pattern === "Custom" && (
+                    <div className='flex flex-col gap-2'>
+                      <Calendar
+                        getDayProps={(date) => ({
+                          selected: recurrence.customDates.some((s) => dayjs(s).isSame(date, 'date')),
+                          onClick: () => handleSelect(dayjs(date).format('YYYY-MM-DD')),
+                        })}
                       />
-                      <Text>occurrences</Text>
-                    </>
+                    </div>
                   )}
+
                 </div>
               </div>
+
+
+
+              {recurrence.pattern !== "Custom" && (
+                <div className='flex flex-col gap-2 border-t p-4 pb-0'>
+                  <strong>Range</strong>
+
+                  <div className='flex gap-4 items-start mt-2'>
+
+                    <div className="w-36">
+                      <Radio.Group
+                        value={recurrence.range}
+                        onChange={(value) => setRecurrence({...recurrence, range: value || ""})}
+                        name="recurrencerange"
+                      >
+                        <Stack gap="xs">
+                          <Radio value="End by" label="End by" />
+                          <Radio value="End after" label="End after" />
+                        </Stack>
+                      </Radio.Group>
+                    </div>
+
+
+
+                    {recurrence.range === "End by" && (
+                      <DatePickerInput
+                        value={dayjs.unix(Number(recurrence.endBy)).toDate()} // Convert to Date
+                        dropdownType="modal"
+                        onChange={(newValue) => {
+                          setRecurrence({...recurrence, endBy: newValue ? dayjs(newValue).unix().toString() : "0"});
+                        }}
+                        className='w-44'
+                      />
+                    )}
+
+                    {recurrence.range === "End after" && (
+                      <>
+                        <NumberInput
+                          value={recurrence.endAfter}
+                          onChange={(value) => setRecurrence({...recurrence, endAfter: Number(value) || 1})}
+                          className='w-24'
+                          min={1}
+                        />
+                        <Text>occurrences</Text>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className='flex gap-2 p-4 border-t'>
                 <Button className="rounded-full" variant="filled" color="blue" size="compact-md" onClick={enable}>Update</Button>

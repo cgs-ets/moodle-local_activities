@@ -42,7 +42,7 @@ export function ConflictsInline() {
   
   return (
     !!conflicts.length
-    ? <div className="mt-2"> 
+    ? <div> 
         <Text fz="sm" mb="5px" fw={500} c="#212529">Conflicts</Text>
         <div className="flex">
           <Alert className={cn("p-0 m-0 inline-block shadow-none", status == statuses.approved ? "bg-gray-100" : "bg-[#f8d1b6]")} variant="light">
