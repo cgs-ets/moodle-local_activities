@@ -64,7 +64,7 @@ export function Assessment() {
     name: "",
     url: "",
     timestart: dayjs().unix().toString(),
-    timeend: dayjs().unix().toString(),
+    timeend: (dayjs().unix() + 3600).toString(), // Now plus 1 hour
     activityrequired: false,
     activityid: "",
     activityname: "",

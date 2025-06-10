@@ -90,7 +90,7 @@ const defaults: Form = {
   activitytype: 'excursion',
   location: '',
   timestart: dayjs().unix(),
-  timeend: dayjs().unix(),
+  timeend: dayjs().unix() + 3600, // Now plus 1 hour
   description: '',
   transport: '',
   cost: '',
