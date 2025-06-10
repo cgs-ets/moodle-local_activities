@@ -201,8 +201,8 @@ class recurrence_lib {
                     $recurrence->range == 'End after' && count($dates) >= $recurrence->endAfter) {
                     $finished = true;
                 }
-                // Max 30 occurrences
-                if (count($dates) >= 30) {
+                // Max 52 occurrences
+                if (count($dates) >= 52) {
                     $finished = true;
                 }
             }

@@ -955,6 +955,10 @@ class activities_lib {
                 'heading' => "Accompanying staff",
                 'events' => array(),
             ),
+            'approver' => array(
+                'heading' => "Approver",
+                'events' => array(),
+            ),
         );
 
         // Student participant
@@ -971,6 +975,9 @@ class activities_lib {
 
         // Accompanying
         $involvement['accompanying']['events'] = static::get_for_accompanying($USER->username, 'future');
+
+        // Approver
+        $involvement['approver']['events'] = static::get_for_approver($USER->username, 'future');
 
         return $involvement;
     }
@@ -1286,6 +1293,32 @@ class activities_lib {
 
         return $activities;
     }
+
+
+    public static function get_for_approver($username, $period = null) {
+        global $DB;
+
+        $activities = array();
+
+        $approvertypes = workflow_lib::get_approver_types($username);
+        if ($approvertypes) {
+            // The user has approver types. Check if any activities need this approval.
+            list($insql, $inparams) = $DB->get_in_or_equal($approvertypes);
+            $sql = "SELECT id, activityid, type
+                      FROM mdl_activities_approvals
+                     WHERE type $insql
+                       AND invalidated = 0
+                       AND skip = 0
+                       AND status = 0";
+            $approvals = $DB->get_records_sql($sql, $inparams);
+            $approvals = workflow_lib::filter_approvals_with_prerequisites($approvals);
+            $activities = static::get_by_ids(array_column($approvals, 'activityid'), null, $period); // All statuses and future only.
+        }
+
+        return $activities;
+    }
+
+
 
 
     public static function get_for_absences($now, $startlimit, $endlimit) {
