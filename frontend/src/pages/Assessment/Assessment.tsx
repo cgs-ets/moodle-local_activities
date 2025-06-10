@@ -282,8 +282,7 @@ export function Assessment() {
   // Update timeend when timestart changes
   useEffect(() => {
     if (!manuallyEdited.current) {
-      console.log(formData)
-      updateField('timeend', formData.timestart.toString());
+      updateField('timeend', (Number(formData.timestart) + 3600).toString());
     }
   }, [formData.timestart]);
 

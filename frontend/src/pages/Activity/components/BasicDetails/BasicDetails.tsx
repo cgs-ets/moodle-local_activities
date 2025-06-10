@@ -35,7 +35,6 @@ export function BasicDetails() {
   const [occurrence, setOccurrence] = useState<{start: string, end: string, id: number} | null>(null);
   const [notification, setNotification] = useState<NotificationProps | null>(null)
 
-
   const updateField = (name: string, value: any) => {
     if (viewStateProps.readOnly) {
       return
@@ -70,7 +69,7 @@ export function BasicDetails() {
   useEffect(() => {
     let timeend = formData.timeend
     if (formData.timestart > formData.timeend) {
-      timeend = formData.timestart
+      timeend = formData.timestart + 3600 // Plus 1 hour
     }
     if (formData.isallday) {
       // Update timestart to selected date with time 00:00:00
