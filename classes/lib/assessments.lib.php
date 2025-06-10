@@ -101,6 +101,9 @@ class assessments_lib {
 
     public static function get_modules($courseid) {
         global $DB;
+        if (!$courseid) {
+            return array();
+        }
 
         $modules = array();
 

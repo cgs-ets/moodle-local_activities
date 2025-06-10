@@ -54,7 +54,7 @@ export function Assessment() {
   const updateViewStateProps = useStateStore((state) => (state.updateViewStateProps))
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
   const [error, setError] = useState<string>("")
-  const formErrorDefaults = {name: '', cmid: '', timeend: ''};
+  const formErrorDefaults = {name: '', cmid: '', timeend: '', courseid: ''};
   const [formErrors, setFormErrors] = useState(formErrorDefaults)
   const defaults = {
     id: "",
@@ -115,6 +115,8 @@ export function Assessment() {
     return () => {
       // Clear everything when leaving.
       setFormData(defaults)
+      setCourses([])
+      setModules([])
     };
   }, [id]);
 
@@ -188,8 +190,10 @@ export function Assessment() {
     const errors = {
       name: formData.name.length ? '' : 'Required',
       cmid: formData.cmid.length ? '' : 'Required',
+      courseid: formData.courseid.length ? '' : 'Required',
       timeend: formData.timestart <= formData.timeend ? '' : 'End time must be same or after start time',
     };
+
     if (Object.values(errors).some(error => error !== '')) {
       setFormErrors(errors)
       return;
@@ -315,6 +319,10 @@ export function Assessment() {
     }
   }, [notification]);
 
+  useEffect(() => {
+    console.log('formData', formData)
+  }, [formData])
+
   return (
     <>
       <Header />
@@ -353,7 +361,7 @@ export function Assessment() {
                             allowDeselect={false}
                             leftSection={coursesLoading ? <Loader size="xs" /> : null}
                             searchable
-                            error={formErrors.name}
+                            error={formErrors.courseid}
                           />
 
                           <div>

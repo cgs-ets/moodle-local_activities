@@ -132,12 +132,12 @@ export function BasicDetails() {
   }, [savedtime])
 
   const recurringChanged = () => {
+    if (!formData.id) {
+      return true;
+    }
     // The activity has been recurring, but the recurring switch has been turned off, or the dates have changed.
-    if (formData.id && 
-      (
-        (formData.occurrences.datesReadable.length > 0 && !formData.recurring) || 
+    if ((formData.occurrences.datesReadable.length > 0 && !formData.recurring) || 
         (recurringDatesReadable.length > 0 && !arraysHaveSameElements(formData.occurrences.datesReadable, recurringDatesReadable))
-      )
     ) {
       return true;
     } else {
@@ -466,7 +466,7 @@ export function BasicDetails() {
             }
           </div>
 
-          {recurringChanged() &&
+          {!!formData.id &&recurringChanged() &&
             <Alert color="red" variant="light">
               <div className="flex flex-col gap-2">
                 <span>The recurrence settings have changed. Existing dates will be deleted and new dates will be created. Please accept the changes, or undo them.</span>
