@@ -69,7 +69,7 @@ export function BasicDetails() {
   useEffect(() => {
     let timeend = formData.timeend
     if (formData.timestart > formData.timeend) {
-      timeend = formData.timestart + 3600 // Plus 1 hour
+      timeend = Number(formData.timestart) + 3600 // Plus 1 hour
     }
     if (formData.isallday) {
       // Update timestart to selected date with time 00:00:00
