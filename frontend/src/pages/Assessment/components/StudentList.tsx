@@ -14,51 +14,26 @@ import { AddStudentsModal } from '../../Activity/components/Modals/AddStudentsMo
 type StudentListProps = {
   id: number;
   studentlist: any[];
-  setState: (state: any) => void;
+  setStudents: (students: Student[]) => void;
 }
 
-export function StudentList({id, studentlist, setState}: StudentListProps) {
+export function StudentList({id, studentlist, setStudents}: StudentListProps) {
 
-  const setStudentsLoaded = useStateStore((state) => (state.setStudentsLoaded))
   const [isOpenAddStudentsModal, addStudentsModalHandlers] = useDisclosure(false)
-  const savedtime = useStateStore((state) => (state.savedtime))
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
   const [rowSelection, setRowSelection] = useState({});
-
-
-  const [fetchResponse, fetchError, fetchLoading, fetchAjax] = useAjax(); // destructure state and fetch function
-  useEffect(() => {
-    if (id) {
-      console.log("get student list")
-      // Fetch student list for this activity.
-      fetchAjax({
-        query: {
-          methodname: 'local_activities-get_assessment_students',
-          id: id,
-        }
-      })
-    }
-  }, [id, savedtime])
-
-  useEffect(() => { 
-    if (fetchResponse && !fetchError) {
-      setState({['studentlist']: fetchResponse.data})
-      setStudentsLoaded()
-    }
-  }, [fetchResponse]);
-
 
   const insertStudents = (students: User[]) => {
     // Deduplicate.
     const newStudents = students.filter(student => !studentlist.map(u => u.un).includes(student.un))
-    setState({['studentlist']: [...studentlist, ...newStudents]})
+    setStudents([...studentlist, ...newStudents])
   }
 
   const removeStudents = () => {
     const selectedUsernames = Object.keys(rowSelection)
 
     const filtered = studentlist.filter(u => !selectedUsernames.includes(u.un))
-    setState({['studentlist']: filtered})
+    setStudents(filtered)
 
     setRowSelection({})
   }
@@ -124,7 +99,7 @@ export function StudentList({id, studentlist, setState}: StudentListProps) {
           </Group>
         </div>
 
-        { fetchLoading 
+        { false 
           ? <div className="p-4 border-t border-gray-300"><Loader size="sm" /></div>
           : (
               studentlist?.length == 0 

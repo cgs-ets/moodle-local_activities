@@ -34,6 +34,8 @@ class assessments_lib {
 
         $assessment->creatordata = utils_lib::user_stub($assessment->creator);
 
+        $assessment->studentlist = self::get_assessment_students($assessment->id);
+
         return $assessment;
     }
 
@@ -121,20 +123,77 @@ class assessments_lib {
     public static function save_from_data($data) {
         global $DB, $USER;
 
+        $data->activityrequired = $data->activityrequired ? 1 : 0;
+        $data->rollrequired = $data->rollrequired ? 1 : 0;
+        $data->timemodified = time();
         if ($data->id) {
-            $data->timemodified = time();
             $DB->update_record('activities_assessments', (object) $data);
         } else {
             $data->creator = $USER->username;
             $data->timecreated = time();
-            $data->timemodified = time();
             $data->id = $DB->insert_record('activities_assessments', (object) $data);
         }
+
+        // Sync the student list.
+        $studentusernames = array_map(function($u) {
+            return $u['un'];
+        }, $data->studentlist);
+        static::sync_students_from_data($data->id, $studentusernames);
 
         return array(
             'id' => $data->id,
         );
     }
+
+    /**
+     * Update assessment students.
+     *
+     * @param int $assessmentid
+     * @param array $studentusernames
+     * @return void
+     */   
+    public static function sync_students_from_data($assessmentid, $studentusernames) {
+        global $DB;
+
+        // Copy usernames into keys.
+        $newstudents = array_combine($studentusernames, $studentusernames);
+
+        // Load existing students.
+        $existingstudentrecs = static::get_assessment_students($assessmentid);
+        $existingstudents = array_column($existingstudentrecs, 'un');
+        $existingstudents = array_combine($existingstudents, $existingstudents);
+
+        // Skip over existing students.
+        foreach ($existingstudents as $existingun) {
+            if (in_array($existingun, $newstudents)) {
+                unset($newstudents[$existingun]);
+                unset($existingstudents[$existingun]);
+            }
+        }
+
+        // Process inserted students.
+        if (count($newstudents)) {
+            $newstudentdata = array_map(function($username) use ($assessmentid) {
+                $rec = new \stdClass();
+                $rec->assessmentid = $assessmentid;
+                $rec->username = $username;
+                return $rec;
+            }, $newstudents);
+            $DB->insert_records('activities_assessments_students', $newstudentdata);
+        }
+
+        // Process removed students.
+        if (count($existingstudents)) {
+            list($insql, $inparams) = $DB->get_in_or_equal($existingstudents);
+            $params = array_merge([$assessmentid], $inparams);
+            $sql = "DELETE FROM {activities_assessments_students} 
+            WHERE assessmentid = ? 
+            AND username $insql";
+            $DB->execute($sql, $params);
+        }
+    }
+
+
 
     public static function get_cal( $args ) {
 		switch ($args['type']) {
@@ -195,6 +254,14 @@ class assessments_lib {
         return $assessments;
     }
 
+    public static function get_assessment_students($id) {
+        global $DB;
+
+        $students = $DB->get_records('activities_assessments_students', array('assessmentid' => $id));
+        return array_values(array_map(function($student) {
+            return utils_lib::user_stub($student->username);
+        }, $students));
+    }
 
 
     public static function delete($id) {
@@ -713,6 +780,21 @@ class assessments_lib {
         );
     }
 
+
+
+    public static function get_for_roll_creation($now, $startlimit) {
+        global $DB;
+
+        $sql = "SELECT *
+                FROM {activities_assessments}
+                WHERE classrollprocessed = 0
+                AND (
+                    (timestart <= {$startlimit} AND timestart >= {$now}) OR
+                    (timestart <= {$now} AND timeend >= {$now})
+                )";
+    
+        return array_values($DB->get_records_sql($sql));
+    }
 
 
 }

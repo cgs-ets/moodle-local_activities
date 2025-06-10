@@ -74,5 +74,31 @@ function xmldb_local_activities_upgrade($oldversion) {
 
         upgrade_plugin_savepoint(true, 2025060600, 'local', 'activities');
     }
+
+    if ($oldversion < 2025061000) {
+        $table = new xmldb_table('activities_assessments');
+        $rollrequired = new xmldb_field('rollrequired', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, 0, null, 'activityid');
+        $activityrequired = new xmldb_field('activityrequired', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, 0, null, 'rollrequired');
+        $classrollprocessed = new xmldb_field('classrollprocessed', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, 0, null, 'activityrequired');
+        if (!$dbman->field_exists($table, $rollrequired)) {
+            $dbman->add_field($table, $rollrequired);
+        }
+        if (!$dbman->field_exists($table, $activityrequired)) {
+            $dbman->add_field($table, $activityrequired);
+        }
+        if (!$dbman->field_exists($table, $classrollprocessed)) {
+            $dbman->add_field($table, $classrollprocessed);
+        }
+
+        // Delete the isallday column from the activities_assessments table.
+        $table = new xmldb_table('activities_assessments');
+        $field = new xmldb_field('isallday', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, 0, null, 'activityid');
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+
+        upgrade_plugin_savepoint(true, 2025061000, 'local', 'activities');
+    }
+
     return true;
 }

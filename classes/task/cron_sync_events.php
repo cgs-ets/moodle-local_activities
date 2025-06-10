@@ -70,6 +70,7 @@ class cron_sync_events extends \core\task\scheduled_task {
                 'areasjson' => '["Assessment"]',
                 'colourcategory' => 'Assessment',
                 'description' => $assessment->url,
+                'isallday' => false,
             ];
         }
 

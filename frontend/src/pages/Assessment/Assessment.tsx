@@ -16,6 +16,7 @@ import { Form } from "../../stores/formStore";
 import { keyframes } from '@emotion/react';
 import { rem } from '@mantine/core';
 import { StudentList } from "./components/StudentList";
+import { User } from "../../types/types";
 
 interface Module {
   value: string;
@@ -148,6 +149,8 @@ export function Assessment() {
       timemodified: Number(fetchResponse.data.timemodified) ? fetchResponse.data.timemodified : dayjs().unix(),
       timestart: Number(fetchResponse.data.timestart) ? fetchResponse.data.timestart : dayjs().unix(),
       timeend: Number(fetchResponse.data.timeend) ? fetchResponse.data.timeend : dayjs().unix(),
+      activityrequired: !!Number(fetchResponse.data.activityrequired),
+      rollrequired: !!Number(fetchResponse.data.rollrequired),
     }
     setFormData({...data})
     updateField('module', modules.find((obj: Module) => obj.value === data.cmid))
@@ -279,6 +282,7 @@ export function Assessment() {
   // Update timeend when timestart changes
   useEffect(() => {
     if (!manuallyEdited.current) {
+      console.log(formData)
       updateField('timeend', formData.timestart.toString());
     }
   }, [formData.timestart]);
@@ -463,7 +467,7 @@ export function Assessment() {
                           </>
                         : <>
                             <Checkbox
-                              label="Do you require an excursion/incursion for this assessment?"
+                              label="Do you require an activity for this assessment?"
                               checked={formData.activityrequired || false}  // Ensures it's always boolean
                               onChange={(e) => updateField('activityrequired', e.target.checked)}
                               readOnly={viewStateProps.readOnly}
@@ -494,10 +498,6 @@ export function Assessment() {
                     </div>
 
 
-
-
-
-
                     {!formData.activityrequired && (
                       <>
                         <Checkbox
@@ -506,18 +506,18 @@ export function Assessment() {
                           onChange={(e) => updateField('rollrequired', e.target.checked)}
                           readOnly={viewStateProps.readOnly}
                         />
-                        {formData.rollrequired && !viewStateProps.readOnly &&
-                          <div className="flex gap-4 items-top pt-2">
-                            <StudentList id={Number(formData.id)} studentlist={formData.studentlist} setState={setFormData} />
-                          </div>
-                        } 
                       </>
                     )}
 
 
-
-
                   </Card>
+
+
+                  {!formData.activityrequired && formData.rollrequired &&
+                    <StudentList id={Number(formData.id)} studentlist={formData.studentlist} setStudents={(students: User[]) => updateField('studentlist', students)} />
+                  } 
+
+
                   <div className="flex gap-4 justify-between items-center">
                     <Button 
                       className="mt-4 px-3"
@@ -537,7 +537,7 @@ export function Assessment() {
                         type="submit" 
                         size="compact-sm" 
                         radius="xl" 
-                        loading={submitLoading}
+                        disabled={submitLoading}
                         onClick={() => handleSubmit(undefined, true)}
                       >
                         Save & return to list
@@ -547,7 +547,7 @@ export function Assessment() {
                         size="sm"
                         className="mt-4"
                         radius="xl" 
-                        loading={submitLoading}
+                        disabled={submitLoading}
                         onClick={() => handleDelete()}
                       >
                         <IconTrash className="size-5 text-red-500" />
