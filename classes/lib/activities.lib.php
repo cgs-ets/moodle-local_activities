@@ -404,6 +404,11 @@ class activities_lib {
             return;
         }
 
+        // Sort dates by start date.
+        usort($dates, function($a, $b) {
+            return $a->start - $b->start;
+        });
+
         // If the first occurrence is a different date to the master activity, we need to update the master activity.
         $newtimestart = 0;
         $newtimeend = 0;
