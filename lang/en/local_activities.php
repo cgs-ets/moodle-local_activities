@@ -30,6 +30,7 @@ $string['taglistuserssql'] = 'Taglist users SQL';
 $string['checkabsencesql'] = 'Check absence SQL';
 $string['createabsencesql'] = 'Create absence SQL';
 $string['deleteabsencessql'] = 'Delete absences SQL';
+$string['findabsencessql'] = 'Find absences SQL';
 $string['studentdatachecksql'] = 'Student Data Check SQL';
 $string['excursionconsentsql'] = 'Excursions consent SQL';
 $string['createclasssql'] = 'Create class SQL';

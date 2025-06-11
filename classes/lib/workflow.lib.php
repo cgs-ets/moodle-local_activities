@@ -782,8 +782,6 @@ class workflow_lib extends \local_activities\local_activities_config {
 
         $activity = new Activity($activityid);
         $exported = $activity->export();
-        $activity->fieldschanged = array_values($fieldschanged); // Inject fields changed for emails.
-        $activity->fieldschangedstring = json_encode($fieldschanged); // Inject fields changed for emails.
 
         $recipients = array();
 
@@ -804,6 +802,8 @@ class workflow_lib extends \local_activities\local_activities_config {
                 }
                 $usercontext = \core_user::get_user_by_username($approver['username']);
                 $exported = $activity->export($usercontext);
+                $exported->fieldschanged = array_values($fieldschanged); // Inject fields changed for emails.
+                $exported->fieldschangedstring = json_encode($fieldschanged); // Inject fields changed for emails.
                 if ($approver['contacts']) {
                     foreach ($approver['contacts'] as $email) {
                         // Export each time as user context is needed to determine creator etc.
@@ -825,6 +825,8 @@ class workflow_lib extends \local_activities\local_activities_config {
             if ( ! in_array($staffun, $recipients)) {
                 $usercontext = \core_user::get_user_by_username($staffun);
                 $exported = $activity->export($usercontext);
+                $exported->fieldschanged = array_values($fieldschanged); // Inject fields changed for emails.
+                $exported->fieldschangedstring = json_encode($fieldschanged); // Inject fields changed for emails.
                 static::send_datachanged_email($exported, $staffun);
                 $recipients[] = $staffun;
             }
@@ -834,6 +836,8 @@ class workflow_lib extends \local_activities\local_activities_config {
         if ( ! in_array($activity->get('creator'), $recipients)) {
             $usercontext = \core_user::get_user_by_username($activity->get('creator'));
             $exported = $activity->export($usercontext);
+            $exported->fieldschanged = array_values($fieldschanged); // Inject fields changed for emails.
+            $exported->fieldschangedstring = json_encode($fieldschanged); // Inject fields changed for emails.
             static::send_datachanged_email($exported, $exported->creator);
             $recipients[] = $exported->creator;
         }
