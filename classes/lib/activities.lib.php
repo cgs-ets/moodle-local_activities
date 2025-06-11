@@ -1389,10 +1389,10 @@ class activities_lib {
         foreach ($occurrences as $occurrence) {
             $activity = new Activity($occurrence->activityid);
             // Update timestamps to the occurrence's times
-            $activity->timestart = $occurrence->timestart;
-            $activity->timeend = $occurrence->timeend;
-            $activity->is_occurrence = true;
-            $activity->occurrenceid = $occurrence->id;
+            $activity->set('timestart', $occurrence->timestart);
+            $activity->set('timeend', $occurrence->timeend);
+            $activity->set('is_occurrence', true);
+            $activity->set('occurrenceid', $occurrence->id);
             $activities[] = $activity;
         }
         
@@ -1445,10 +1445,10 @@ class activities_lib {
         foreach ($occurrences as $occurrence) {
             $activity = new Activity($occurrence->activityid);
             // Update timestamps to the occurrence's times
-            $activity->timestart = $occurrence->timestart;
-            $activity->timeend = $occurrence->timeend;
-            $activity->is_occurrence = true;
-            $activity->occurrenceid = $occurrence->id;
+            $activity->set('timestart', $occurrence->timestart);
+            $activity->set('timeend', $occurrence->timeend);
+            $activity->set('is_occurrence', true);
+            $activity->set('occurrenceid', $occurrence->id);
             $activities[] = $activity;
         }
         
