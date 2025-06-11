@@ -264,7 +264,12 @@ class activities_lib {
                 $activity->save();
                 // If recurring, create the whole series of activities.
                 if ($data->recurring) {
-                    static::create_recurring_activities($activity->get('id'));
+                    $newdates = static::create_recurring_activities($activity->get('id'));
+                    $activity->set('timestart', $newdates['timestart']);
+                    $activity->set('timeend', $newdates['timeend']);
+                    $activity->save();
+                    $originalactivity->set('timestart', $newdates['timestart']);
+                    $originalactivity->set('timeend', $newdates['timeend']);
                 } else {
                     static::delete_recurring_activities($activity->get('id'));
                 }
@@ -398,10 +403,11 @@ class activities_lib {
         }
 
         // If the first occurrence is a different date to the master activity, we need to update the master activity.
+        $newtimestart = 0;
+        $newtimeend = 0;
         if ($dates[0]->start != $activity->get('timestart') || $dates[0]->end != $activity->get('timeend')) {
-            $activity->set('timestart', $dates[0]->start);
-            $activity->set('timeend', $dates[0]->end);
-            $activity->save();
+            $newtimestart = $dates[0]->start;
+            $newtimeend = $dates[0]->end;
         }
         
         foreach ($dates as $occurrence) {
@@ -411,6 +417,11 @@ class activities_lib {
             $record->timeend = $occurrence->end;
             $DB->insert_record('activities_occurrences', $record);
         }
+
+        return array(
+            'timestart' => $newtimestart,
+            'timeend' => $newtimeend,
+        );
     }
 
     public static function delete_recurring_activities($activityid) {
@@ -707,6 +718,13 @@ class activities_lib {
 
         $originalvars = (array) $originalactivity->get_data();
         $newvars = (array) $newactivity->get_data();
+
+        unset($originalvars['absencesprocessed']);
+        unset($newvars['absencesprocessed']);
+        unset($originalvars['remindersprocessed']);
+        unset($newvars['remindersprocessed']);
+        unset($originalvars['classrollprocessed']);
+        unset($newvars['classrollprocessed']);
 
         foreach ($originalvars as $key => $val) {
             if ($val != $newvars[$key]) {

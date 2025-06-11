@@ -145,7 +145,9 @@ class cron_create_absences extends \core\task\scheduled_task {
                 foreach ($activityabsences as $activityabsence) {
                     // Check if this absence is related to a real occurrence.
                     $start = strtotime($activityabsence->eventdatetime);
+
                     if (!in_array($start, array_column($occurrences, 'timestart'))) {
+                        $this->log("Start date: " . $start . " does not exist in occurrences: " . implode(', ', array_column($occurrences, 'timestart')));
                         $datesthatdonotexist[] = $activityabsence->eventdatetime;
                     }
                 }
