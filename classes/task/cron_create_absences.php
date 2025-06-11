@@ -139,6 +139,8 @@ class cron_create_absences extends \core\task\scheduled_task {
                     'activityid' => $activity->get('id'),
                 );
                 $activityabsences = $externalDB->get_records_sql($sql, $params);
+                $this->log("Activity absences: " . implode(', ', $activityabsences));
+
                 $datesthatdonotexist = array();
                 foreach ($activityabsences as $activityabsence) {
                     // Check if this absence is related to a real occurrence.
