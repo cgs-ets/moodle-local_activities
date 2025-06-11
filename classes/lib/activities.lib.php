@@ -265,11 +265,13 @@ class activities_lib {
                 // If recurring, create the whole series of activities.
                 if ($data->recurring) {
                     $newdates = static::create_recurring_activities($activity->get('id'));
-                    $activity->set('timestart', $newdates['timestart']);
-                    $activity->set('timeend', $newdates['timeend']);
-                    $activity->save();
-                    $originalactivity->set('timestart', $newdates['timestart']);
-                    $originalactivity->set('timeend', $newdates['timeend']);
+                    if ($newdates['timestart'] || $newdates['timeend']) {
+                        $activity->set('timestart', $newdates['timestart']);
+                        $activity->set('timeend', $newdates['timeend']);
+                        $activity->save();
+                        $originalactivity->set('timestart', $newdates['timestart']);
+                        $originalactivity->set('timeend', $newdates['timeend']);
+                    }
                 } else {
                     static::delete_recurring_activities($activity->get('id'));
                 }
