@@ -1,17 +1,16 @@
 import { useEffect, useState } from "react";
-import { Box, Container, Grid, Center, Text, Loader, Card, Anchor } from '@mantine/core';
+import { Box, Container, Grid, Center, Text, Loader, Card, Anchor, rem } from '@mantine/core';
 import { useParams } from "react-router-dom";
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
-import { useAjax } from '../../hooks/useAjax';
 import dayjs from "dayjs";
-import { useStateStore } from "../../stores/stateStore";
 import { defaults, useFormStore } from "../../stores/formStore";
 import { cn } from "../../utils/utils";
 import { PageHeader } from "../Activity/components/PageHeader";
 import { StuPermission } from "./Components/StuPermission";
 import { ActivityDetails } from "./Components/ActivityDetails";
 import useFetch from "../../hooks/useFetch";
+
 
 interface PermissionsHelper {
   activitystarted: boolean;
@@ -28,6 +27,7 @@ export function Permission() {
   const [permissions, setPermissions] = useState([])
   const [permissionshelper, setPermissionsHelper] = useState<PermissionsHelper|null>(null)
   const api = useFetch()
+
 
   useEffect(() => {
     document.title = 'Activity Permission'
@@ -65,6 +65,8 @@ export function Permission() {
   const expired = () => {
     return permissionshelper?.activitystarted || permissionshelper?.ispastdueby || permissionshelper?.ispastlimit
   }
+
+
 
   return (
     <>
@@ -139,6 +141,9 @@ export function Permission() {
             </> : null
         }
       </div>
+
+      
+      
       <Footer />
     </>
   )

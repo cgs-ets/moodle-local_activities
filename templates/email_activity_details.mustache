@@ -1,7 +1,19 @@
 
 <tr><td width="120"><strong>Activity name: </strong></td><td>{{activity.activityname}}</td></tr>
-<tr><td><strong>Start: </strong></td><td>{{activity.startreadabletime}}</td></tr>
-<tr><td><strong>End: </strong></td><td>{{activity.endreadabletime}}</td></tr>
+{{^activity.recurring}}
+  <tr><td><strong>Start: </strong></td><td>{{activity.startreadabletime}}</td></tr>
+  <tr><td><strong>End: </strong></td><td>{{activity.endreadabletime}}</td></tr>
+{{/activity.recurring}}
+{{#activity.recurring}}
+  <tr>
+    <td><strong>Dates: </strong></td>
+    <td>
+      {{#activity.occurrences.datesReadable}}
+        <div>{{start}} - {{end}}</div>
+      {{/activity.occurrences.datesReadable}}
+    </td>
+  </tr>
+{{/activity.recurring}}
 <tr><td><strong>Location: </strong></td><td>{{^activity.isactivity}}(Incursion) {{/activity.isactivity}}{{activity.location}}</td></tr>
 {{#activity.isactivity}}
   {{#activity.transport}}<tr><td><strong>Transport: </strong></td><td>{{activity.transport}}</td></tr>{{/activity.transport}}

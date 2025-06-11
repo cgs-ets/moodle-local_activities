@@ -24,7 +24,6 @@ export function Series({
         id: activityid,
       },
     });
-    console.log(response.data)
     if (!response.error) {
       setSeries(response.data)
     }

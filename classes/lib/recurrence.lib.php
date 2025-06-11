@@ -58,6 +58,8 @@ class recurrence_lib {
             $activity->set('recurrence', null);
             $activity->set('timesynclive', 0);
             $activity->set('timesyncplanning', 0);
+            $activity->set('absencesprocessed', 0);
+            $activity->set('classrollprocessed', 0);
             
             $activity->save();
 

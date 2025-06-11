@@ -34,6 +34,7 @@ export function BasicDetails() {
   const [occurrenceModal, setOccurrenceModal] = useState<'delete' | 'detach' | null>(null);
   const [occurrence, setOccurrence] = useState<{start: string, end: string, id: number} | null>(null);
   const [notification, setNotification] = useState<NotificationProps | null>(null)
+  const [initialRecurring, setInitialRecurring] = useState(formData.recurring)
 
   const updateField = (name: string, value: any) => {
     if (viewStateProps.readOnly) {
@@ -146,13 +147,24 @@ export function BasicDetails() {
   }
 
   const undoChanges = () => {
-    if (recurringChanged()) {
-      setState({
-        recurring: true
-      } as Form)
-      setRecurringDatesReadable([])
+    // If in the process of creating a new activity, discard the changes.
+    if (!formData.id || !initialRecurring) {
+      updateField('recurring', false)
+    } else {
+      // If the recurring dates have changed, clear them.
+      if (recurringChanged()) {
+        updateField('recurring', true)
+        updateField('recurringAcceptChanges', false)
+        setRecurringDatesReadable([])
+      }
     }
   }
+
+  useEffect(() => {
+    if (!formData.recurring) {
+      updateField('recurringAcceptChanges', false)
+    }
+  }, [formData.recurring])
 
   const arraysHaveSameElements = (arr1: {start: string, end: string}[], arr2: {start: string, end: string}[]) => {
     if (arr1.length !== arr2.length) return false;
@@ -469,11 +481,11 @@ export function BasicDetails() {
           {!!formData.id &&recurringChanged() &&
             <Alert color="red" variant="light">
               <div className="flex flex-col gap-2">
-                <span>The recurrence settings have changed. Existing dates will be deleted and new dates will be created. Please accept the changes, or undo them.</span>
+                <span>The recurrence settings have changed. Existing dates will be deleted and new dates will be created. Please accept the changes, or discard them.</span>
                 <div className="flex justify-between items-center">
                   <Checkbox label="Accept changes" checked={formData.recurringAcceptChanges} onChange={(event) => updateField('recurringAcceptChanges', event.currentTarget.checked)} />
                   <Button className="rounded-full" variant="light" color="blue" size="compact-sm" onClick={undoChanges}>
-                    Undo changes
+                    Discard changes
                   </Button>
                 </div>
               </div>

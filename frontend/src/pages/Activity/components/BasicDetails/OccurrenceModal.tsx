@@ -60,7 +60,7 @@ export function OccurrenceModal({opened, submit, close, occurrence, type}: Props
               </div>
 
               <div className='flex justify-between mt-2 mb-1'>
-                <Button className="rounded-full" variant="filled" color="orange.9" size="compact-md" onClick={submit}>Yes, {type}</Button>
+                <Button className="rounded-full" variant="filled" color="red.8" size="compact-md" onClick={submit}>Yes, {type}</Button>
                 <Button className="rounded-full" variant="filled" size="compact-md" onClick={close}>Cancel</Button>
               </div>
 

@@ -63,9 +63,7 @@ class Activity {
         'timesynclive' => 0,
         'timesyncplanning' => 0,
         'assessmentid' => 0,
-        //'isassessment' => 0,
-        //'courseid' => 0,
-        //'assessmenturl' => ''
+        'recurring' => 0,
     ];
 
 
@@ -627,9 +625,6 @@ class Activity {
 
     	return [
             'statushelper' => $statushelper,
-            'timestart_sort' => date('Y-m-d H:i:s', $this->data->timestart),
-            'timeend_sort' => date('Y-m-d H:i:s', $this->data->timeend),
-            'timecreated_sort' => date('Y-m-d H:i:s', $this->data->timecreated),
             'creatordata' => $creatordata,
             'creatorsortname' => $creatordata->ln . ', ' . $creatordata->fn,
             'staffinchargesortname' => $staffincharge ? $staffincharge->ln . ', ' . $staffincharge->fn : '',

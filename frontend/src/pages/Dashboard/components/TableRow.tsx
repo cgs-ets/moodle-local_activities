@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { cn, isActivity, isCalEntry, isCalReviewer } from "../../../utils/utils";
-import { useState } from "react";
+import { forwardRef, useState } from "react";
 import { useAjax } from "../../../hooks/useAjax";
 import { ActionIcon, Popover } from "@mantine/core";
 import { Avatar, Badge, Checkbox, Table, Text } from "@mantine/core";
@@ -13,11 +13,14 @@ type Props = {
   selected: boolean,
 }
 
-export function TableRow({event, setSelectedEvent, selected}: Props) {
+export const TableRow = forwardRef<HTMLTableRowElement, Props>(function TableRow(
+  { event, setSelectedEvent, selected }, 
+  ref
+) {
   const [publicNow, setPublicNow] = useState(!!Number(event.pushpublic));
   const [reviewed, setReviewed] = useState(event.statushelper.isapproved);
-  const [approvedResponse, approvedError, approvedLoading, submitApprovedAjax, setApprovedData] = useAjax(); // destructure state and fetch function
-  const [publicResponse, publicError, publicLoading, submitPublicAjax, setPublicData] = useAjax(); // destructure state and fetch function
+  const [approvedResponse, approvedError, approvedLoading, submitApprovedAjax, setApprovedData] = useAjax();
+  const [publicResponse, publicError, publicLoading, submitPublicAjax, setPublicData] = useAjax();
   const staffincharge = JSON.parse(event.staffinchargejson || '{}');
 
   const showPublicNowOpt = () => {
@@ -60,6 +63,7 @@ export function TableRow({event, setSelectedEvent, selected}: Props) {
 
   return (
     <Table.Tr 
+      ref={ref}
       key={event.id}
       className={cn(reviewed ? "bg-appgreen" : "", selected ? "bg-blue-200" : "")}
       onClick={() => setSelectedEvent(event)}
@@ -98,7 +102,6 @@ export function TableRow({event, setSelectedEvent, selected}: Props) {
                 })}
               </Popover.Dropdown>
             </Popover>
-            
           )}
         </div>
       </Table.Td>
@@ -143,4 +146,4 @@ export function TableRow({event, setSelectedEvent, selected}: Props) {
       </Table.Td>
     </Table.Tr>
   )
-}
+});

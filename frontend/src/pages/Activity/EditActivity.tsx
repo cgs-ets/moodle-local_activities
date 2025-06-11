@@ -243,7 +243,7 @@ export function EditActivity() {
     })
     setFormData({initialActivitytype: formData.initialActivitytype} as Form)
     setFormData({initialCampus: formData.campus} as Form)
-
+    setFormData({recurringAcceptChanges: false} as Form)
   }
 
   if (!getConfig().roles?.includes("staff")) {

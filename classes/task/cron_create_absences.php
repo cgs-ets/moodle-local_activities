@@ -129,6 +129,30 @@ class cron_create_absences extends \core\task\scheduled_task {
                 $this->log("Finished creating absences for activity " . $activity->get('id'));
             }
 
+
+            // Loop through all the activities again searching for any orphaned occurrences in Synergetic….
+            foreach ($activities as $activity) {
+                $this->log("Checking for orphaned occurrences for activity " . $activity->get('id'));
+                $occurrences = $DB->get_records('activities_occurrences', array('activityid' => $activity->get('id')));
+                $sql = $config->findabsencessql . ' :activityid';
+                $params = array(
+                    'activityid' => $activity->get('id'),
+                );
+                $activityabsences = $externalDB->get_records_sql($sql, $params);
+                $datesthatdonotexist = array();
+                foreach ($activityabsences as $activityabsence) {
+                    // Check if this absence is related to a real occurrence.
+                    $start = strtotime($activityabsence->eventdatetime);
+                    if (!in_array($start, array_column($occurrences, 'timestart'))) {
+                        $datesthatdonotexist[] = $activityabsence->eventdatetime;
+                    }
+                }
+                if (count($datesthatdonotexist) > 0) {
+                    $this->log("Orphaned occurrences found for activity " . $activity->get('id') . ". Dates that don't exist: " . implode(', ', $datesthatdonotexist));
+                }
+            }
+
+
         } catch (Exception $ex) {
             // Error.
         }

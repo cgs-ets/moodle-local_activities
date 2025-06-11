@@ -39,6 +39,7 @@ export function TableView({setCaltype}: Props) {
   })
   const [selectedEvent, setSelectedEvent] = useState<Form|null>(null)
   const tableContainerRef = useRef<HTMLDivElement>(null);
+  const highlightedRowRef = useRef<HTMLTableRowElement>(null);
 
 
   const currterm = dayjs().format("MM-DD") > '09-28' ? 4 
@@ -119,6 +120,16 @@ export function TableView({setCaltype}: Props) {
       });
       setSelectedEvent(closestEvent);
     }
+
+    // Scroll to the highlighted row after a brief delay to allow the state to update
+    setTimeout(() => {
+      if (highlightedRowRef.current && tableContainerRef.current) {
+        highlightedRowRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }
+    }, 100);
   }
 
   const handleNav = (direction: number) => {
@@ -210,13 +221,13 @@ export function TableView({setCaltype}: Props) {
     
         const valA = sortKey in a ? a[sortKey] : a[sortConfig.key];
         const valB = sortKey in b ? b[sortKey] : b[sortConfig.key];
-    
+
         if (valA == null) return 1;
         if (valB == null) return -1;
     
         const aValue = typeof valA === 'string' ? valA.toLowerCase() : valA;
         const bValue = typeof valB === 'string' ? valB.toLowerCase() : valB;
-    
+
         if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
         if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
         return 0;
@@ -253,7 +264,7 @@ export function TableView({setCaltype}: Props) {
   
   const TableHeader = ({ sortKey, currentSort, onClick, children }: TableHeaderProps) => (
     <Table.Th 
-      className="whitespace-nowrap min-w-max cursor-pointer" 
+      className="whitespace-nowrap min-w-max cursor-pointer sticky top-0 bg-slate-100 z-10" 
       onClick={(e) => {
         e.stopPropagation(); // Prevent drag initiation
         onClick(sortKey);
@@ -272,7 +283,7 @@ export function TableView({setCaltype}: Props) {
   return (
     <div>
       <div>
-        <div className="fixed top-[54px] left-0 right-0 p-3 w-full flex justify-between items-center bg-white">
+        <div className="fixed top-[54px] left-0 right-0 p-3 w-full flex justify-between items-center bg-white border-b border-gray-200">
           <ActionIcon onClick={() => handleNav(-1)} variant="subtle" size="lg"><IconArrowNarrowLeft className="size-7" /></ActionIcon>
           
           <div className="text-xl font-semibold flex gap-2 items-center flex-wrap">
@@ -339,12 +350,12 @@ export function TableView({setCaltype}: Props) {
       <div>
         <div 
           ref={tableContainerRef}
-          className="fixed top-[120px] left-0 right-0 bottom-0 overflow-x-auto min-h-[calc(100vh-120px)]"
+          className="fixed top-[121px] left-0 right-0 bottom-0 overflow-x-auto min-h-[calc(100vh-120px)]"
         >
           <LoadingOverlay visible={loading} p={100} />
           <Table className="min-w-full bg-white">
           <Table.Thead>
-            <Table.Tr className="border-t border-gray-200">
+            <Table.Tr>
               <TableHeader 
                 sortKey="timestart" 
                 currentSort={sortConfig} 
@@ -458,7 +469,7 @@ export function TableView({setCaltype}: Props) {
               </TableHeader>
               
               {/* Categories doesn't need sorting */}
-              <Table.Th className="whitespace-nowrap min-w-max">
+              <Table.Th className="whitespace-nowrap min-w-max sticky top-0 bg-slate-100 z-10">
                 Categories
               </Table.Th>
               
@@ -488,14 +499,20 @@ export function TableView({setCaltype}: Props) {
                   </TableHeader>
                 </>
               )}
-              <Table.Th className="whitespace-nowrap min-w-max">
+              <Table.Th className="whitespace-nowrap min-w-max sticky top-0 bg-slate-100 z-10">
                 Actions
               </Table.Th>
             </Table.Tr>
           </Table.Thead>
             <Table.Tbody>
               {filteredEvents.map((event: any) => (
-                <TableRow key={event.id} event={event} setSelectedEvent={setSelectedEvent} selected={selectedEvent?.id === event.id} />
+                <TableRow 
+                  key={`${event.id}-${event.occurrenceid}`} 
+                  event={event} 
+                  setSelectedEvent={setSelectedEvent} 
+                  selected={selectedEvent?.id === event.id} 
+                  ref={event.id === selectedEvent?.id ? highlightedRowRef : null}
+                />
               ))}
             </Table.Tbody>
           </Table>

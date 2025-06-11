@@ -91,6 +91,8 @@ if ($hassiteconfig) {
     $settings->add(new admin_setting_configtext('local_activities/studentdatachecksql', get_string('studentdatachecksql', 'local_activities'), '', ''));
     $settings->add(new admin_setting_configtext('local_activities/excursionconsentsql', get_string('excursionconsentsql', 'local_activities'), '', ''));
     $settings->add(new admin_setting_configtext('local_activities/deleteabsencessql', get_string('deleteabsencessql', 'local_activities'), '', ''));
+    $settings->add(new admin_setting_configtext('local_activities/findabsencessql', get_string('findabsencessql', 'local_activities'), '', ''));
+
 
     $settings->add(new admin_setting_configtext('local_activities/createclasssql', get_string('createclasssql', 'local_activities'), '', ''));
     $settings->add(new admin_setting_configtext('local_activities/insertclassstaffsql', get_string('insertclassstaffsql', 'local_activities'), '', ''));

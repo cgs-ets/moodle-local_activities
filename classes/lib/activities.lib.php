@@ -105,6 +105,8 @@ class activities_lib {
             'permissionshelper' => static::permissions_helper($activity),
             'status' => $exported->status,
             'stepname' => $exported->stepname,
+            'recurring' => $exported->recurring,
+            'occurrences' => recurrence_lib::get_series($id),
         ];
     }
 
@@ -150,6 +152,7 @@ class activities_lib {
             'description' => $rec->description,
             'statushelper' => $rec->statushelper,
             'status' => $rec->status,
+            'recurring' => $rec->recurring,
         ];
     }
 
@@ -807,16 +810,16 @@ class activities_lib {
 
         // Query for occurrences of recurring activities (recurring = 1)
         $sql = "SELECT ao.id, ao.activityid, ao.timestart, ao.timeend
-        FROM mdl_activities a
-        JOIN mdl_activities_occurrences ao ON ao.activityid = a.id
-        WHERE a.deleted = 0
-        AND a.recurring = 1
-        $statussql
-        AND (
-            (ao.timestart >= ? AND ao.timestart <= ?) OR 
-            (ao.timeend >= ? AND ao.timeend <= ?) OR
-            (ao.timestart < ? AND ao.timeend > ?)
-        )";
+                FROM mdl_activities a
+                JOIN mdl_activities_occurrences ao ON ao.activityid = a.id
+                WHERE a.deleted = 0
+                AND a.recurring = 1
+                $statussql
+                AND (
+                    (ao.timestart >= ? AND ao.timestart <= ?) OR 
+                    (ao.timeend >= ? AND ao.timeend <= ?) OR
+                    (ao.timestart < ? AND ao.timeend > ?)
+                )";
 
         $occurrences = $DB->get_records_sql($sql, $params);
 
@@ -1172,15 +1175,15 @@ class activities_lib {
             if ($period == 'past') {
                 // Past events: most recent first (descending)
                 usort($activities, function($a, $b) use ($exported) {
-                    $aTime = $exported ? $a->timestart : $a->timestart;
-                    $bTime = $exported ? $b->timestart : $b->timestart;
+                    $aTime = $exported ? $a->timestart : $a->get('timestart');
+                    $bTime = $exported ? $b->timestart : $b->get('timestart');
                     return $bTime - $aTime; // Note: reversed for descending order
                 });
             } else {
                 // Future events: chronological order (ascending)
                 usort($activities, function($a, $b) use ($exported) {
-                    $aTime = $exported ? $a->timestart : $a->timestart;
-                    $bTime = $exported ? $b->timestart : $b->timestart;
+                    $aTime = $exported ? $a->timestart : $a->get('timestart');
+                    $bTime = $exported ? $b->timestart : $b->get('timestart');
                     return $aTime - $bTime;
                 });
             }
@@ -1218,22 +1221,37 @@ class activities_lib {
     public static function get_for_parent($username, $period = null) {
         global $DB;
 
-        $activities = array();
 
         $sql = "SELECT activityid
                   FROM {" . static::TABLE_ACTIVITY_PERMISSIONS . "} 
                  WHERE parentusername = ?";
         $ids = $DB->get_fieldset_sql($sql, array($username));
 
-        $activities = static::get_by_ids($ids, static::ACTIVITY_STATUS_APPROVED, $period); // Approved and future only.
+        $raw = static::get_by_ids($ids, static::ACTIVITY_STATUS_APPROVED, $period, false); // Approved and future only.
 
-        foreach ($activities as $i => $activity) {
+        $activities = array();
+        
+        foreach ($raw as $i => $activity) {
             // Export the activity.
             $exported = $activity->export_minimal();
+
+            // Look through the other activities to see if this is the same activity.
+            $recurring = false;
+            foreach ($activities as $j => $otheractivity) {
+                if ($otheractivity['recurring'] == '1' && $otheractivity['id'] == $activity->get('id')) {
+                    $recurring = true;
+                    break;
+                }
+            }
+
+            // Add it to the list.
             $activities[$i] = static::minimise_record($exported);
-            if (!$activity->get('permissions')) {
+
+            // Skip if it's recurring or doesn't have permissions.
+            if ($recurring || !$activity->get('permissions')) {
                 continue;
             }
+            
             // Get the permissions for this parent.
             $permissions = static::get_parent_permissions($activity->get('id'), $username);
             foreach ($permissions as &$permission) {
@@ -1241,6 +1259,7 @@ class activities_lib {
             }
             $activities[$i]['stupermissions'] = array_values($permissions);
             $activities[$i]['permissionshelper'] = static::permissions_helper($activity);
+         
         }        
 
         return $activities;
@@ -1971,8 +1990,21 @@ class activities_lib {
 
         // Check if activity is started.
         $permissionshelper->activitystarted = false;
-        if (time() >= $activity->get('timestart')) {
-            $permissionshelper->activitystarted = true;
+        if ($activity->get('recurring') == 0) {
+            if (time() >= $activity->get('timestart')) {
+                $permissionshelper->activitystarted = true;
+            }
+        } else {
+            // Need to check if any of the occurrences are still in the future.
+            $sql = "SELECT id
+                    FROM mdl_activities_occurrences
+                    WHERE activityid = ?
+                    AND (timestart >= ? || timeend > ?)";
+            $params = array($activity->get('id'), time(), time());
+            $occurrences = $DB->get_records_sql($sql, $params);
+            if (count($occurrences) == 0) {
+                $permissionshelper->activitystarted = true;
+            }
         }
 
         return $permissionshelper;
