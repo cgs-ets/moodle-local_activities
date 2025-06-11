@@ -121,12 +121,16 @@ class cron_create_absences extends \core\task\scheduled_task {
                     'studentscsv' => implode(',', $attending),
                 );
                 $externalDB->execute($sql, $params);
-                //$this->log("Deletion complete", 2);
-
+                
                 // Mark as processed.
-                //$this->log("Setting absencesprocess to 1", 2);
-                $activity->set('absencesprocessed', 1);
-                $activity->save();
+                // We can't mark recurring entries as processed. This will prevent future occurrences from being synced.
+                // This will naturally create overhead, because absences will keep syncing for this activity throught the window.
+                // We need to add an absences processed against the occurrence.
+                // The other issue, if we save this for an occurrence, it ends up overwriting the timestart and timeend to the last occurrence dates, because they have been replaced out.
+                if (!$activity->get('recurring')) {
+                    $activity->set('absencesprocessed', 1);
+                    $activity->save();
+                }
                 $this->log("Finished creating absences for activity " . $activity->get('id'));
             }
 
