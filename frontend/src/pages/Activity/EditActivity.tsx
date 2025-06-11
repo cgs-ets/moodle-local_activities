@@ -160,6 +160,7 @@ export function EditActivity() {
       } else {
         setFormData({
           status: submitResponse.data.status,
+          ...(submitResponse.data.newdates ? {timestart: submitResponse.data.newdates.timestart, timeend: submitResponse.data.newdates.timeend} : {})
         } as Form)
         setApprovals(submitResponse.data.workflow)
         updateSavedTime()

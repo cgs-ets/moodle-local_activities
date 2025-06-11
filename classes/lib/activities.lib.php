@@ -223,6 +223,11 @@ class activities_lib {
                 $activity->save();
             }
 
+            /*var_export($data->timestart); 
+            var_export($originalactivity->get("timestart")); 
+            var_export($activity->get("timestart")); 
+            exit;*/
+
             // Save data.
             $newstatusinfo->status = $activity->get('status');
             $activity->set('activityname', $data->activityname);
@@ -258,6 +263,7 @@ class activities_lib {
             $activity->save();
 
             // Save recurring settings.
+            $newdates = null;
             if ($data->recurringAcceptChanges) {
                 $activity->set('recurring', $data->recurring ? 1 : 0);
                 $activity->set('recurrence', $data->recurring ? json_encode($data->recurrence) : null);
@@ -265,12 +271,12 @@ class activities_lib {
                 // If recurring, create the whole series of activities.
                 if ($data->recurring) {
                     $newdates = static::create_recurring_activities($activity->get('id'));
-                    if ($newdates['timestart'] || $newdates['timeend']) {
-                        $activity->set('timestart', $newdates['timestart']);
-                        $activity->set('timeend', $newdates['timeend']);
+                    if ($newdates) {
+                        $activity->set('timestart', $newdates->timestart);
+                        $activity->set('timeend', $newdates->timeend);
                         $activity->save();
-                        $originalactivity->set('timestart', $newdates['timestart']);
-                        $originalactivity->set('timeend', $newdates['timeend']);
+                        $originalactivity->set('timestart', $newdates->timestart);
+                        $originalactivity->set('timeend', $newdates->timeend);
                     }
                 } else {
                     static::delete_recurring_activities($activity->get('id'));
@@ -375,6 +381,7 @@ class activities_lib {
             'id' => $activity->get('id'),
             'status' => $newstatusinfo->status,
             'workflow' => $newstatusinfo->workflow,
+            'newdates' => $newdates,
         );
     }
 
@@ -410,11 +417,12 @@ class activities_lib {
         });
 
         // If the first occurrence is a different date to the master activity, we need to update the master activity.
-        $newtimestart = 0;
-        $newtimeend = 0;
+        $newdates = null;
         if ($dates[0]->start != $activity->get('timestart') || $dates[0]->end != $activity->get('timeend')) {
-            $newtimestart = $dates[0]->start;
-            $newtimeend = $dates[0]->end;
+            $newdates = (object) array(
+                'timestart' => $dates[0]->start,
+                'timeend' => $dates[0]->end,
+            );
         }
         
         foreach ($dates as $occurrence) {
@@ -425,10 +433,7 @@ class activities_lib {
             $DB->insert_record('activities_occurrences', $record);
         }
 
-        return array(
-            'timestart' => $newtimestart,
-            'timeend' => $newtimeend,
-        );
+        return $newdates;
     }
 
     public static function delete_recurring_activities($activityid) {
