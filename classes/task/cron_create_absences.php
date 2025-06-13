@@ -64,6 +64,10 @@ class cron_create_absences extends \core\task\scheduled_task {
             }
 
             foreach ($activities as $activity) {
+                if (empty($activity->get('id'))) {
+                    $this->log("Activity has no id. Skipping.", 2);
+                    continue;
+                }
                 $this->log("Creating absences for activity " . $activity->get('id'));
                 $activitystart = date('Y-m-d H:i', $activity->get('timestart'));
                 $activityend = date('Y-m-d H:i', $activity->get('timeend'));
