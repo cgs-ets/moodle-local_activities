@@ -234,8 +234,8 @@ class activities_lib {
             $activity->set('campus', $data->campus);
             $activity->set('activitytype', $data->activitytype);
             $activity->set('location', $data->location);
-            $activity->set('timestart', $data->timestart);
-            $activity->set('timeend', $data->timeend);
+            $activity->set('timestart', intval($data->timestart / 60) * 60); // Remove seconds.
+            $activity->set('timeend', intval($data->timeend / 60) * 60); // Remove seconds.
             $activity->set('description', $data->description);
             $activity->set('transport', $data->transport);
             $activity->set('cost', $data->cost);

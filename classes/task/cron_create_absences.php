@@ -139,24 +139,56 @@ class cron_create_absences extends \core\task\scheduled_task {
             foreach ($activities as $activity) {
                 $this->log("Checking for orphaned occurrences for activity " . $activity->get('id'));
                 $occurrences = $DB->get_records('activities_occurrences', array('activityid' => $activity->get('id')));
+                // Remove seconds (hangover from previous code that would add default seconds into timestamps)
+                foreach ($occurrences as &$occurrence) {
+                    $occurrence->timestart = intval($occurrence->timestart / 60) * 60;
+                    $occurrence->timeend = intval($occurrence->timeend / 60) * 60;
+                }
+                // Create readable versions.
+                $occurrencesreadable = array_map(function ($occurrence) {
+                    return [
+                        'timestart' => date('Y-m-d H:i', $occurrence->timestart),
+                        'timeend' => date('Y-m-d H:i', $occurrence->timeend),
+                    ];
+                }, $occurrences);
+
+                // Now find absences based upon the activity id.
                 $sql = $config->findabsencessql . ' :activityid';
                 $params = array(
                     'activityid' => $activity->get('id'),
                 );
-                $activityabsences = $externalDB->get_records_sql($sql, $params);
+                $absences = $externalDB->get_records_sql($sql, $params);
+                //var_export($absences);
 
-                $datesthatdonotexist = array();
-                foreach ($activityabsences as $activityabsence) {
+                $deleteOuts = array();
+                $deleteIns = array();
+                foreach ($absences as $absence) {
                     // Check if this absence is related to a real occurrence.
-                    $start = strtotime($activityabsence->eventdatetime);
-
-                    if (!in_array($start, array_column($occurrences, 'timestart'))) {
-                        $this->log("Start date: " . $start . " does not exist in occurrences: " . implode(', ', array_column($occurrences, 'timestart')));
-                        $datesthatdonotexist[] = $activityabsence->eventdatetime;
+                    if ($absence->schoolinoutstatus == 'OUT') {
+                        $start = strtotime($absence->eventdatetime);
+                        if (!in_array($start, array_column($occurrences, 'timestart'))) {
+                            $this->log($absence->id . " is marked OUT for this activity on: " . date('Y-m-d H:i', $start) . ", but this activty only starts on these dates: " . implode(', ', array_column($occurrencesreadable, 'timestart')));
+                            $deleteOuts[] = $absence->eventdatetime;
+                        }
+                    } else if ($absence->schoolinoutstatus == 'IN') {
+                        $end = strtotime($absence->eventdatetime);
+                        if (!in_array($end, array_column($occurrences, 'timeend'))) {
+                            $this->log($absence->id . " is marked IN for this activity on: " . date('Y-m-d H:i', $end) . ", but this activty only ends on these dates: " . implode(', ', array_column($occurrencesreadable, 'timeend')));
+                            $deleteIns[] = $absence->eventdatetime;
+                        }
                     }
                 }
-                if (count($datesthatdonotexist) > 0) {
-                    $this->log("Orphaned occurrences found for activity " . $activity->get('id') . ". Dates that don't exist: " . implode(', ', $datesthatdonotexist));
+
+                $deleteOuts = array_unique($deleteOuts);
+                $deleteIns = array_unique($deleteIns);
+
+                if (count($deleteOuts) > 0) {
+                    $this->log("Orphaned occurrences found for activity " . $activity->get('id') . ". Start times that don't exist: " . implode(', ', $deleteOuts));
+                    
+                }
+
+                if (count($deleteIns) > 0) {
+                    $this->log("Orphaned occurrences found for activity " . $activity->get('id') . ". Return times that don't exist: " . implode(', ', $deleteIns));
                 }
             }
 

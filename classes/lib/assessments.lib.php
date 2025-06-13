@@ -129,6 +129,8 @@ class assessments_lib {
         $data->activityrequired = $data->activityrequired ? 1 : 0;
         $data->rollrequired = $data->rollrequired ? 1 : 0;
         $data->timemodified = time();
+        $data->timestart = intval($data->timestart / 60) * 60; // Remove seconds.
+        $data->timeend = intval($data->timeend / 60) * 60; // Remove seconds.
         if ($data->id) {
             $DB->update_record('activities_assessments', (object) $data);
         } else {

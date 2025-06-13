@@ -201,6 +201,8 @@ class cron_sync_events extends \core\task\scheduled_task {
                     $eventdata->body = new \stdClass();
                     $eventdata->body->contentType = "HTML";
                     $eventdata->body->content = nl2br($event->description);
+                    // Append a link to the event in the body.
+                    $eventdata->body->content .= '<br><br><br><a href="' . $CFG->wwwroot . '/local/activities/view.php?id=' . $event->id . '">View in CAPMS</a>';
                     if (!empty($categories)) {
                         $eventdata->categories = $categories;
                     }
@@ -269,6 +271,8 @@ class cron_sync_events extends \core\task\scheduled_task {
                     $eventdata->body = new \stdClass();
                     $eventdata->body->contentType = "HTML";
                     $eventdata->body->content = nl2br($event->description);
+                    // Append a link to the event in the body.
+                    $eventdata->body->content .= '<br><br><br><a href="' . $CFG->wwwroot . '/local/activities/view.php?id=' . $event->id . '">View in CAPMS</a>';
                     if (!empty($categories)) {
                         $eventdata->categories = $categories;
                     }
@@ -299,7 +303,7 @@ class cron_sync_events extends \core\task\scheduled_task {
                     $record = new \stdClass();
                     $record->activityid = $event->id;
                     $record->calendar = $destCal;
-                    $record->timesynclive = time();
+                    $record->timesynced = time();
                     $record->externalid = '';
                     $record->changekey = '';
                     $record->weblink = '';
