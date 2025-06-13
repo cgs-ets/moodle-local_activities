@@ -1389,8 +1389,7 @@ class activities_lib {
                     (timestart <= {$startlimit} AND timestart >= {$now}) OR
                     (timestart <= {$now} AND timeend >= {$now}) OR
                     (timeend >= {$endlimit} AND timeend <= {$now})
-                )
-                AND status = " . static::ACTIVITY_STATUS_APPROVED;
+                )";
 
         $records = $DB->get_records_sql($sql, null);
         $activities = array();
@@ -1410,8 +1409,7 @@ class activities_lib {
                     (ao.timestart <= {$startlimit} AND ao.timestart >= {$now}) OR
                     (ao.timestart <= {$now} AND ao.timeend >= {$now}) OR
                     (ao.timeend >= {$endlimit} AND ao.timeend <= {$now})
-                )
-                AND a.status = " . static::ACTIVITY_STATUS_APPROVED;
+                )";
 
         $occurrences = $DB->get_records_sql($sql);
 
@@ -1446,8 +1444,7 @@ class activities_lib {
                 AND (
                     (timestart <= {$startlimit} AND timestart >= {$now}) OR
                     (timestart <= {$now} AND timeend >= {$now})
-                )
-                AND status = " . static::ACTIVITY_STATUS_APPROVED;
+                )";
     
         $records = $DB->get_records_sql($sql);
         $activities = array();
@@ -1466,8 +1463,7 @@ class activities_lib {
                 AND (
                     (ao.timestart <= {$startlimit} AND ao.timestart >= {$now}) OR
                     (ao.timestart <= {$now} AND ao.timeend >= {$now})
-                )
-                AND a.status = " . static::ACTIVITY_STATUS_APPROVED;
+                )";
     
         $occurrences = $DB->get_records_sql($sql);
     
@@ -1826,7 +1822,9 @@ class activities_lib {
                              FROM mdl_excursions_permissions
                             WHERE activityid = ?
                               AND response = 2
-                       )";
+                       )
+                       AND a.status = " . static::ACTIVITY_STATUS_APPROVED;
+
             $params = array($activityid, $activityid);
             $attending = $DB->get_records_sql($sql, $params);
             $attending = array_values(array_column($attending, 'studentusername'));
