@@ -21,6 +21,12 @@ class cron_create_absences extends \core\task\scheduled_task {
     // Use the logging trait to get some nice, juicy, logging.
     use \core\task\logging_trait;
 
+    
+    /**
+     * @var The current term info.
+     */
+    protected $appendix = '#ID-';
+
     /**
      * Get a descriptive name for this task (shown to admins).
      *
@@ -53,6 +59,9 @@ class cron_create_absences extends \core\task\scheduled_task {
             $externalDB = \moodle_database::get_driver_instance($config->dbtype, 'native', true);
             $externalDB->connect($config->dbhost, $config->dbuser, $config->dbpass, $config->dbname, '');
 
+            if ($CFG->wwwroot != 'https://connect.cgs.act.edu.au') {
+                $this->appendix = '#ID-UAT-';
+            }
 
             foreach ($activities as $activity) {
                 $this->log("Creating absences for activity " . $activity->get('id'));
@@ -74,7 +83,7 @@ class cron_create_absences extends \core\task\scheduled_task {
                         'username' => $student,
                         'leavingdate' => $activitystart,
                         'returningdate' => $activityend,
-                        'comment' => '#ID-' . $activity->get('id'),
+                        'comment' => $this->appendix . $activity->get('id'),
                     );
                     $absenceevents = $externalDB->get_field_sql($sql, $params);
                     if ($absenceevents) {
@@ -88,7 +97,7 @@ class cron_create_absences extends \core\task\scheduled_task {
                             'username' => $student,
                             'leavingdate' => $activitystart,
                             'returningdate' => $activityend,
-                            'comment' => '#ID-' . $activity->get('oldexcursionid'),
+                            'comment' => $this->appendix . $activity->get('oldexcursionid'),
                         );
                         $absenceevents = $externalDB->get_field_sql($sql, $params);
                         if ($absenceevents) {
@@ -105,7 +114,7 @@ class cron_create_absences extends \core\task\scheduled_task {
                         'leavingdate' => $activitystart,
                         'returningdate' => $activityend,
                         'staffincharge' => $activity->get('staffincharge'),
-                        'comment' => $activity->get('activityname') . ' #ID-' . $activity->get('id'),
+                        'comment' => $activity->get('activityname') . ' ' . $this->appendix . $activity->get('id'),
                     );
                     $externalDB->execute($sql, $params);
                 }
@@ -117,7 +126,7 @@ class cron_create_absences extends \core\task\scheduled_task {
                 $params = array(
                     'leavingdate' => $activitystart,
                     'returningdate' => $activityend,
-                    'comment' => '#ID-' . $activity->get('id'),
+                    'comment' => $this->appendix . $activity->get('id'),
                     'studentscsv' => implode(',', $attending),
                 );
                 $externalDB->execute($sql, $params);
@@ -135,15 +144,22 @@ class cron_create_absences extends \core\task\scheduled_task {
             }
 
 
-            // Loop through all the activities again searching for any orphaned occurrences in Synergetic….
+            // Loop through all the activities again searching for any orphaned occurrences in Synergetic…
+            $checked_activities = array();
             foreach ($activities as $activity) {
+                if (  in_array($activity->get('id'), $checked_activities)  ) {
+                    continue;
+                }
                 $this->log("Checking for orphaned occurrences for activity " . $activity->get('id'));
+                $checked_activities[] = $activity->get('id');
                 $occurrences = $DB->get_records('activities_occurrences', array('activityid' => $activity->get('id')));
+
                 // Remove seconds (hangover from previous code that would add default seconds into timestamps)
                 foreach ($occurrences as &$occurrence) {
                     $occurrence->timestart = intval($occurrence->timestart / 60) * 60;
                     $occurrence->timeend = intval($occurrence->timeend / 60) * 60;
                 }
+
                 // Create readable versions.
                 $occurrencesreadable = array_map(function ($occurrence) {
                     return [
@@ -184,11 +200,26 @@ class cron_create_absences extends \core\task\scheduled_task {
 
                 if (count($deleteOuts) > 0) {
                     $this->log("Orphaned occurrences found for activity " . $activity->get('id') . ". Start times that don't exist: " . implode(', ', $deleteOuts));
-                    
+                    // Delete orphaned occurrences.
+                    $sql = $config->deleteorphanedsql . ' :inout, :dates, :comment';
+                    $params = array(
+                        'inout' => 'OUT',
+                        'dates' => implode(',', $deleteOuts),
+                        'comment' => $this->appendix . $activity->get('id'),
+                    );
+                    $externalDB->execute($sql, $params);
                 }
 
                 if (count($deleteIns) > 0) {
                     $this->log("Orphaned occurrences found for activity " . $activity->get('id') . ". Return times that don't exist: " . implode(', ', $deleteIns));
+                    // Delete orphaned occurrences.
+                    $sql = $config->deleteorphanedsql . ' :inout, :dates, :comment';
+                    $params = array(
+                        'inout' => 'IN',
+                        'dates' => implode(',', $deleteIns),
+                        'comment' => $this->appendix . $activity->get('id'),
+                    );
+                    $externalDB->execute($sql, $params);
                 }
             }
 
