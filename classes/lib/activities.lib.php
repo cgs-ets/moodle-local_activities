@@ -1837,7 +1837,7 @@ class activities_lib {
             $attending = $DB->get_records_sql($sql, $params);
             $attending = array_values(array_column($attending, 'studentusername'));
         } else {
-            $attending = static::get_activities_students($activityid);
+            $attending = static::get_activities_students($activityid, static::ACTIVITY_STATUS_APPROVED);
             $attending = array_values(array_column($attending, 'username'));
         }
 
