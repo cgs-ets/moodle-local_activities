@@ -22,6 +22,12 @@ class cron_create_classes extends \core\task\scheduled_task {
     // Use the logging trait to get some nice, juicy, logging.
     use \core\task\logging_trait;
 
+        
+    /**
+     * @var Class code prefix.
+     */
+    protected $prefix = 'X';
+
     /**
      * @var The current term info.
      */
@@ -95,6 +101,10 @@ class cron_create_classes extends \core\task\scheduled_task {
             // Get term info.
             $currentterminfo = $this->externalDB->get_records_sql($config->getterminfosql);
             $this->currentterminfo =  array_pop($currentterminfo);
+
+            if ($CFG->wwwroot != 'https://connect.cgs.act.edu.au') {
+                $this->prefix = 'XUAT_';
+            }
 
             // Create class rolls for activities.
             foreach ($activities as $activity) {
@@ -197,7 +207,7 @@ class cron_create_classes extends \core\task\scheduled_task {
             $startDateTime = new \DateTime($activitystart);
             // Format the month and day as MMDD
             $monthDay = $startDateTime->format('md');
-            $classcode = 'X' . $activity->id . '_' . $monthDay;
+            $classcode = $this->prefix . $activity->id . '_' . $monthDay;
 
             // 1. Create the class.
             $this->log("Creating the class " . $classcode . ", with staff in charge " .  $activity->staffincharge . ", start time " .  $activitystart, 2 );
