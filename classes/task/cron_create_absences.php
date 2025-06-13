@@ -169,9 +169,9 @@ class cron_create_absences extends \core\task\scheduled_task {
                 }, $occurrences);
 
                 // Now find absences based upon the activity id.
-                $sql = $config->findabsencessql . ' :activityid';
+                $sql = $config->findabsencessql . ' :comment';
                 $params = array(
-                    'activityid' => $activity->get('id'),
+                    'comment' => $this->appendix . $activity->get('id'),
                 );
                 $absences = $externalDB->get_records_sql($sql, $params);
                 //var_export($absences);
