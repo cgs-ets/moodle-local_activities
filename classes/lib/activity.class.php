@@ -72,13 +72,13 @@ class Activity {
      *
      * @param int $id If set, this is the id of an existing record, used to load the data.
      */
-    public function __construct($id = 0) {
+    public function __construct($id = 0, $includeDeleted = false) {
         global $CFG;
 
         $this->data = (object) static::defaults;
 
         if ($id > 0) {
-            return $this->read($id);
+            return $this->read($id, $includeDeleted);
         }
     }
 
@@ -436,10 +436,16 @@ class Activity {
      * @param $id
      * @return static
      */
-    final public function read($id) {
+    final public function read($id, $includeDeleted = false) {
         global $DB;
 
-        $this->data = (object) $DB->get_record(static::TABLE, array('id' => $id, 'deleted' => 0), '*', IGNORE_MULTIPLE);
+        $params = array('id' => $id);
+
+        if (!$includeDeleted) {
+            $params['deleted'] = 0;
+        }
+
+        $this->data = (object) $DB->get_record(static::TABLE, $params, '*', IGNORE_MULTIPLE);
 
         return $this;
     }

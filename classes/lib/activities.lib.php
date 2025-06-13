@@ -1396,7 +1396,7 @@ class activities_lib {
         
         // Process non-recurring activities
         foreach ($records as $record) {
-            $activities[] = new Activity($record->id);
+            $activities[] = new Activity($record->id, true);
         }
 
         // Get occurrences of recurring activities
@@ -1415,7 +1415,7 @@ class activities_lib {
 
         // Process recurring activity occurrences
         foreach ($occurrences as $occurrence) {
-            $activity = new Activity($occurrence->activityid);
+            $activity = new Activity($occurrence->activityid, true);
             // Update timestamps to the occurrence's times
             $activity->set('timestart', $occurrence->timestart);
             $activity->set('timeend', $occurrence->timeend);
@@ -1451,7 +1451,7 @@ class activities_lib {
         
         // Process non-recurring activities
         foreach ($records as $record) {
-            $activities[] = new Activity($record->id);
+            $activities[] = new Activity($record->id, true);
         }
     
         // Get occurrences of recurring activities
@@ -1469,7 +1469,7 @@ class activities_lib {
     
         // Process recurring activity occurrences
         foreach ($occurrences as $occurrence) {
-            $activity = new Activity($occurrence->activityid);
+            $activity = new Activity($occurrence->activityid, true);
             // Update timestamps to the occurrence's times
             $activity->set('timestart', $occurrence->timestart);
             $activity->set('timeend', $occurrence->timeend);
