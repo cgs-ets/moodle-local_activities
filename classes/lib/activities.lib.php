@@ -1532,11 +1532,19 @@ class activities_lib {
     * @param int $postid.
     * @return array.
     */
-    public static function get_activities_students($activityid) {
+    public static function get_activities_students($activityid, $status = null) {
         global $DB;
+        
         $sql = "SELECT *
-                  FROM {" . static::TABLE_ACTIVITY_STUDENTS . "}
-                 WHERE activityid = ?";
+                  FROM {" . static::TABLE_ACTIVITY_STUDENTS . "} s
+                INNER JOIN {" . static::TABLE . "} a ON a.id = s.activityid
+                 WHERE s.activityid = ?
+        ";
+
+        if ($status) {
+            $sql .= " AND a.status = {$status}";
+        }
+
         $params = array($activityid);
         $students = $DB->get_records_sql($sql, $params);
         return $students;

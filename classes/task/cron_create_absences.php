@@ -64,10 +64,6 @@ class cron_create_absences extends \core\task\scheduled_task {
             }
 
             foreach ($activities as $activity) {
-                if (empty($activity->get('id'))) {
-                    $this->log("Activity has no id. Skipping.", 2);
-                    continue;
-                }
                 $this->log("Creating absences for activity " . $activity->get('id'));
                 $activitystart = date('Y-m-d H:i', $activity->get('timestart'));
                 $activityend = date('Y-m-d H:i', $activity->get('timeend'));
@@ -125,7 +121,7 @@ class cron_create_absences extends \core\task\scheduled_task {
 
                 // Delete absences for students no longer attending event.
                 $studentscsv = implode(',', $attending);
-                $this->log("Delete absences for students not in list: " . $studentscsv, 2);
+                $this->log("Delete absences for students not in the following list: " . $studentscsv, 2);
                 $sql = $config->deleteabsencessql . ' :leavingdate, :returningdate, :comment, :studentscsv';
                 $params = array(
                     'leavingdate' => $activitystart,
