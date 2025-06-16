@@ -451,16 +451,20 @@ export function BasicDetails() {
                             {formData.occurrences.datesReadable.map((date) => (
                               <div key={date.start} className="flex gap-2 items-center">
                                 <div>{date.start} - {date.end}</div>
-                                <Tooltip label="Detach" withArrow>
-                                  <Anchor onClick={() => {setOccurrence(date); setOccurrenceModal('detach')}} className="text-sm inline-flex gap-1">
-                                    <IconUnlink className="size-4 stroke-1" />
-                                  </Anchor>
-                                </Tooltip>
-                                <Tooltip label="Delete" withArrow>
-                                  <Anchor onClick={() => {setOccurrence(date); setOccurrenceModal('delete')}} className="text-sm inline-flex gap-1">
-                                    <IconX className="size-4 stroke-1" />
-                                  </Anchor>
-                                </Tooltip>
+                                {viewStateProps.editable &&
+                                  <>
+                                    <Tooltip label="Detach" withArrow>
+                                      <Anchor onClick={() => {setOccurrence(date); setOccurrenceModal('detach')}} className="text-sm inline-flex gap-1">
+                                        <IconUnlink className="size-4 stroke-1" />
+                                      </Anchor>
+                                    </Tooltip>
+                                    <Tooltip label="Delete" withArrow>
+                                      <Anchor onClick={() => {setOccurrence(date); setOccurrenceModal('delete')}} className="text-sm inline-flex gap-1">
+                                        <IconX className="size-4 stroke-1" />
+                                      </Anchor>
+                                    </Tooltip>
+                                  </>
+                                }
                               </div>
                             ))}
                           </div>

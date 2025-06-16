@@ -175,6 +175,9 @@ export function Assessment() {
   }
 
   const updateField = (name: string, value: any) => {
+    if (viewStateProps.readOnly) {
+      return
+    }
     setFormData(current => ({...current, [name]: value}))
   }
 

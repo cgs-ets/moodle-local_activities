@@ -297,7 +297,7 @@ export function List() {
               
               <div>
                 {day.events.map((event: any) => (
-                  <div key={event.id}>
+                  <div key={`${event.id}-${event.occurrenceid}`}>
                     <ListTease celldate={day.date} event={event} setSelectedEvent={setSelectedEvent}/>
                   </div>
                 ))}
@@ -324,7 +324,7 @@ export function List() {
               </div>
               <ul>
                 {day.events.map((event: any) => (
-                  <div key={event.id}>
+                  <div key={`${event.id}-${event.occurrenceid}`}>
                     <ListTease celldate={day.date} event={event} setSelectedEvent={setSelectedEvent}/>
                   </div>
                 ))}

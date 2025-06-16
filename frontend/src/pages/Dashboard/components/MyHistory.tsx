@@ -69,7 +69,7 @@ export function MyHistory() {
               <div key={i}>
                 {!!history[area]?.heading && <div className='font-semibold border-b py-2 px-4 bg-gray-100'>{history[area].heading}</div>}
                 { history[area]?.events?.map((event: any) =>
-                  <div key={event.id} className='flex justify-between items-center py-2 px-4 border-b'>
+                  <div key={`${event.id}-${event.occurrenceid}`} className='flex justify-between items-center py-2 px-4 border-b'>
 
                     {/* The tease */}
                     <div className='cursor-pointer w-full' onClick={() => setSelectedEvent(event)} >

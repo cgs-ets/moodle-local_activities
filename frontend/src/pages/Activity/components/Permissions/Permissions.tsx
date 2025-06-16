@@ -1,4 +1,4 @@
-import { Card, Flex, Text, Checkbox, NumberInput, Grid, Button, Group, Alert, Paper, Center, Tooltip, Popover } from '@mantine/core';
+import { Card, Flex, Text, Checkbox, NumberInput, Grid, Button, Group, Alert, Paper, Center, Tooltip, Popover, Switch } from '@mantine/core';
 import { IconChevronDown, IconChevronUp, IconCopy, IconHelpHexagon, IconMail, IconQuestionMark } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
 import { useClipboard } from 'use-clipboard-copy';
@@ -40,6 +40,9 @@ export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
   )
 
   const updateField = (name: string, value: any) => {
+    if (viewStateProps.readOnly) {
+      return
+    }
     setState({
       [name]: value
     } as Form)
@@ -99,7 +102,7 @@ export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
 
         <div className="p-4 border-t border-gray-300">
           <Flex direction="column" gap="lg" >
-            <Checkbox
+            <Switch
               label={permissionsLabel}
               checked={permissions}
               onChange={(e) => updateField('permissions', e.target.checked)}

@@ -517,10 +517,6 @@ export function TableView({setCaltype}: Props) {
             </Table.Tbody>
           </Table>
         </div>
-        
-        { 
-        //<EventModal activity={selectedEvent} close={() => setSelectedEvent(null)} hideOpenButton={!getConfig().roles?.includes("staff")} /> 
-        }
 
         <FilterModal opened={filterOpened} filters={filters} setFilters={setFilters} close={() => closeFilter()} />
     </div>
