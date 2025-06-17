@@ -153,7 +153,7 @@ class activities_lib {
             'statushelper' => $rec->statushelper,
             'status' => $rec->status,
             'recurring' => $rec->recurring,
-            'occurrenceid' => $rec->occurrenceid ? $rec->occurrenceid : 0,
+            'occurrenceid' => isset($rec->occurrenceid) ? $rec->occurrenceid : 0,
         ];
     }
 

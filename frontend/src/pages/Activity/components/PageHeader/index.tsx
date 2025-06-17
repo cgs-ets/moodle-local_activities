@@ -20,7 +20,7 @@ export function PageHeader() {
               <Text c="gray.6">Activity</Text>
             </Breadcrumbs>
             <h2 className="page-title">{name ? name : ( status == statuses.draft ? `New activity` : `Edit activity`) } </h2>
-            { viewStateProps.readOnly &&
+            { false && viewStateProps.readOnly &&
               <Badge className="absolute top-1 right-0" bg={"orange.1"}>
                 <span className="text-black">Read Only</span>
               </Badge>
