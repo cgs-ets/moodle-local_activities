@@ -54,7 +54,7 @@ export function Assessment() {
   const updateViewStateProps = useStateStore((state) => (state.updateViewStateProps))
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
   const [error, setError] = useState<string>("")
-  const formErrorDefaults = {name: '', cmid: '', timeend: '', courseid: ''};
+  const formErrorDefaults = {name: '', module: '', timeend: '', courseid: ''};
   const [formErrors, setFormErrors] = useState(formErrorDefaults)
   const defaults = {
     id: "",
@@ -179,6 +179,8 @@ export function Assessment() {
       return
     }
     setFormData(current => ({...current, [name]: value}))
+
+    setFormErrors(current => ({...current, [name]: ''}))
   }
 
   const navigate = useNavigate()
@@ -192,7 +194,7 @@ export function Assessment() {
     // Check for required fieds.
     const errors = {
       name: formData.name.length ? '' : 'Required',
-      cmid: formData.cmid.length ? '' : 'Required',
+      module: formData.cmid.length ? '' : 'Required',
       courseid: formData.courseid.length ? '' : 'Required',
       timeend: formData.timestart <= formData.timeend ? '' : 'End time must be same or after start time',
     };
@@ -377,7 +379,7 @@ export function Assessment() {
                               allowDeselect={false}
                               leftSection={modulesLoading ? <Loader size="xs" /> : null}
                               searchable
-                              error={formErrors.cmid}
+                              error={formErrors.module}
                             />
 
                             { !!formData.courseid && !!formData.module
