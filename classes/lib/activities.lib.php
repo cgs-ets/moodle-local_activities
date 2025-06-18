@@ -1555,7 +1555,7 @@ class activities_lib {
     public static function get_activities_students($activityid, $status = null) {
         global $DB;
         
-        $sql = "SELECT *
+        $sql = "SELECT s.*
                   FROM {" . static::TABLE_ACTIVITY_STUDENTS . "} s
                 INNER JOIN {" . static::TABLE . "} a ON a.id = s.activityid
                  WHERE s.activityid = ?

@@ -100,5 +100,19 @@ function xmldb_local_activities_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2025061000, 'local', 'activities');
     }
 
+    if ($oldversion < 2025061800) {
+        $table = new xmldb_table('activities_assessments');
+        $staffincharge = new xmldb_field('staffincharge', XMLDB_TYPE_CHAR, '100', null, XMLDB_NOTNULL, null, null, null, 'activityid');
+        $staffinchargejson = new xmldb_field('staffinchargejson', XMLDB_TYPE_TEXT, null, null, null, null, null, 'staffincharge');
+        if (!$dbman->field_exists($table, $staffincharge)) {
+            $dbman->add_field($table, $staffincharge);
+        }
+        if (!$dbman->field_exists($table, $staffinchargejson)) {
+            $dbman->add_field($table, $staffinchargejson);
+        }
+
+        upgrade_plugin_savepoint(true, 2025061800, 'local', 'activities');
+    }
+
     return true;
 }
