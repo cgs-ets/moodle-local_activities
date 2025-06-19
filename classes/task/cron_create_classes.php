@@ -81,7 +81,7 @@ class cron_create_classes extends \core\task\scheduled_task {
                 'timestart' => $assessment->timestart,
                 'timeend' => $assessment->timeend,
                 'campus' => 'senior',
-                'staffincharge' => $assessment->creator,
+                'staffincharge' => $assessment->staffinchargejson ? $assessment->staffincharge : $assessment->creator,
             ];
         }
 

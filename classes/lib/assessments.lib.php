@@ -34,6 +34,12 @@ class assessments_lib {
 
         $assessment->creatordata = utils_lib::user_stub($assessment->creator);
 
+        if ($assessment->staffincharge) {
+            $assessment->staffincharge = utils_lib::user_stub($assessment->staffincharge);
+        } else {
+            $assessment->staffincharge = utils_lib::user_stub($assessment->creator);
+        }
+
         $assessment->studentlist = self::get_assessment_students($assessment->id);
 
         return $assessment;
@@ -131,6 +137,9 @@ class assessments_lib {
         $data->timemodified = time();
         $data->timestart = intval($data->timestart / 60) * 60; // Remove seconds.
         $data->timeend = intval($data->timeend / 60) * 60; // Remove seconds.
+        $data->staffinchargejson = json_encode($data->staffincharge);
+        $data->staffincharge = $data->staffincharge['un'] ?? $USER->username;
+
         if ($data->id) {
             $DB->update_record('activities_assessments', (object) $data);
         } else {

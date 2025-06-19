@@ -17,6 +17,7 @@ import { keyframes } from '@emotion/react';
 import { rem } from '@mantine/core';
 import { StudentList } from "./components/StudentList";
 import { User } from "../../types/types";
+import { StaffSelector } from "../Activity/components/StaffDetails/components/StaffSelector/StaffSelector";
 
 interface Module {
   value: string;
@@ -44,6 +45,11 @@ export interface AssessmentData {
   };
   rollrequired: boolean;
   studentlist: any[];
+  staffincharge: {
+    un: string;
+    fn: string;
+    ln: string;
+  };
 }
 
 export function Assessment() {
@@ -69,13 +75,19 @@ export function Assessment() {
     activityid: "",
     activityname: "",
     creatordata: {
-      un: getConfig().username ?? "",
-      fn: getConfig().firstname ?? "",
-      ln: getConfig().lastname ?? "",
+      un: getConfig().user.un ?? "",
+      fn: getConfig().user.fn ?? "",
+      ln: getConfig().user.ln ?? "",
     },
     rollrequired: false,
     studentlist: [],
+    staffincharge: {
+      un: getConfig().user.un ?? "",
+      fn: getConfig().user.fn ?? "",
+      ln: getConfig().user.ln ?? "",
+    },
   }
+  console.log(getConfig())
   const [formData, setFormData] = useState<AssessmentData>(defaults)
   const [courses, setCourses] = useState([])
   const [modules, setModules] = useState<Module[]>([])
@@ -439,15 +451,27 @@ export function Assessment() {
                             value={formData.name ? formData.name : formData.module ? formData.module.label : ""}
                             onChange={(e) => updateField('name', e.target.value)}
                             readOnly={viewStateProps.readOnly}
-                          />   
+                          />
+                          
+                          <div>
+                            <StaffSelector 
+                              staff={formData.staffincharge ? [formData.staffincharge] : []} 
+                              setStaff={(value: any[]) => updateField('staffincharge', value[0])} 
+                              label="Teacher in charge"
+                              tip=""
+                              sublabel=""
+                              multiple={false} 
+                              readOnly={viewStateProps.readOnly} 
+                            />
+                          </div>     
 
                           <div>
                             <div className="font-semibold mb-2">Created by</div>
                             <Group key={formData.creatordata.un} gap="sm">
                               <Avatar size="sm" radius="xl" src={'/local/activities/avatar.php?username=' + formData.creatordata.un} />
-                              <Text>{formData.creatordata.fn} {formData.creatordata.ln}</Text>
+                              <Text className="text-sm">{formData.creatordata.fn} {formData.creatordata.ln}</Text>
                             </Group>
-                          </div>           
+                          </div>      
                           
                         </div>
                   </Card>
