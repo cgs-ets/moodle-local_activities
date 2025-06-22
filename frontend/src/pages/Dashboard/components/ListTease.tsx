@@ -123,7 +123,7 @@ export function ListTease({celldate, event, setSelectedEvent}: Props) {
                 </>
             }
             <div className={cn("w-20 h-full flex items-center justify-center font-mono")}>
-              <span className="text-xs">{dayjs.unix(event.timestart).format("DD/MM/YYYY")}</span>
+              <span className="text-xs">{dayjs.unix(event.timecreated).format("DD/MM/YYYY")}</span>
             </div>
         </div>
       }
