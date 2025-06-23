@@ -283,6 +283,7 @@ class assessments_lib {
 
         $assessment = static::get($id);
         $assessment->deleted = 1;
+        $assessment->timemodified = time();
         $DB->update_record('activities_assessments', $assessment);
         return 1;
     }

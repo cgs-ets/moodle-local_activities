@@ -1981,8 +1981,6 @@ class activities_lib {
 
         $originalactivity = new Activity($activityid);
         $activity = new Activity($activityid);
-        //$activity->set('deleted', 1);
-        //$activity->save();
         $activity->soft_delete();
 
        return 1;

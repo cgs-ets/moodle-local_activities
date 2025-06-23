@@ -86,8 +86,6 @@ class cron_create_classes extends \core\task\scheduled_task {
         }
 
 
-
-
         try {
 
             $config = get_config('local_activities');
@@ -136,7 +134,9 @@ class cron_create_classes extends \core\task\scheduled_task {
                 // Mark as processed.
                 $DB->execute("UPDATE {activities_assessments} SET classrollprocessed = 1 WHERE id = $assessment->id");
             }
-            
+
+            // Process deleted activities.
+            $this->process_deleted_activities();
 
         } catch (Exception $ex) {
             // Error.
@@ -282,6 +282,60 @@ class cron_create_classes extends \core\task\scheduled_task {
             $this->externalDB->execute($sql, $params);
         }
         $this->log("Finished creating class roll for activity " . $activity->id);
+    }
+
+
+    private function process_deleted_activities() {
+        global $DB;
+
+        $config = get_config('local_activities');
+
+        // Look for activities that have been deleted in the past 24 hours and remove the class roll.
+        $activities = $DB->get_records('activities', array('deleted' => 1, 'timemodified' => array('>', time() - 86400)));
+        foreach ($activities as $activity) {
+            $this->log("Processing deleted activity: " . $activity->id);
+            $activity = $activity->export();
+            $startDateTime = new \DateTime($activity->timestart);
+            $monthDay = $startDateTime->format('md');
+            $classcode = $this->prefix . $activity->id . '_' . $monthDay;
+            $sql = $config->deleteclassstudentssql . ' :fileyear, :filesemester, :classcampus, :classcode, :studentscsv';
+            $params = array(
+                'fileyear' => $this->currentterminfo->fileyear,
+                'filesemester' => $this->currentterminfo->filesemester,
+                'classcampus' => $activity->campus == 'senior' ? 'SEN' : 'PRI',
+                'classcode' => $classcode,
+                'studentscsv' => '', // Empty to remove all students from the class.
+            );
+            $this->externalDB->execute($sql, $params);
+        }
+        
+        // Look for assessments that have been deleted in the past 24 hours and remove the class roll.
+        $rawassessments = $DB->get_records('activities_assessments', array('deleted' => 1, 'timemodified' => array('>', time() - 86400)));
+        foreach ($rawassessments as $assessment) {
+            $assessment = (object) [
+                'id' => $assessment->id,
+                'activityname' => $assessment->name,
+                'timestart' => $assessment->timestart,
+                'timeend' => $assessment->timeend,
+                'campus' => 'senior',
+            ];
+            $startDateTime = new \DateTime($assessment->timestart);
+            $monthDay = $startDateTime->format('md');
+            $classcode = $this->prefix . $assessment->id . '_' . $monthDay;
+            $sql = $config->deleteclassstudentssql . ' :fileyear, :filesemester, :classcampus, :classcode, :studentscsv';
+            $params = array(
+                'fileyear' => $this->currentterminfo->fileyear,
+                'filesemester' => $this->currentterminfo->filesemester,
+                'classcampus' => $assessment->campus == 'senior' ? 'SEN' : 'PRI',
+                'classcode' => $classcode,
+                'studentscsv' => '', // Empty to remove all students from the class.
+            );
+            $this->externalDB->execute($sql, $params);
+        }
+
+
+
+
     }
 
 }
