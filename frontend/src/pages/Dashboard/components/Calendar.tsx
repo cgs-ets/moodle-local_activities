@@ -177,7 +177,7 @@ export function Calendar({setCaltype}: Props) {
             filters.status.length === 0 || 
             filters.status.includes(event.status.toString());
 
-          const eventStaff = [event.staffincharge, ...JSON.parse(event.planningstaffjson).map((u: User) => u.un), ...JSON.parse(event.accompanyingstaffjson).map((u: User) => u.un)]
+          const eventStaff = [event.staffincharge, ...JSON.parse(event.planningstaffjson || '[]').map((u: User) => u.un), ...JSON.parse(event.accompanyingstaffjson || '[]').map((u: User) => u.un)]
           const uniqueEventStaff = [...new Set(eventStaff.filter(item => item.trim() !== ""))];
           const matchesStaff =
             filterStaff.length === 0 || 
