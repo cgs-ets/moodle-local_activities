@@ -64,7 +64,7 @@ const DownloadIcalButton: React.FC<DownloadIcalButtonProps> = ({ events, isPubli
         `SUMMARY;LANGUAGE=en-au:${event.activityname.trim()}`,
         `URL:${url}`,
         `DESCRIPTION:${description} \\n\\nView more at: ${url}`,
-        `CATEGORIES:${ JSON.parse(event.areasjson ?? '[]')?.map((area: string) => area).join(',') }`,
+        `CATEGORIES:${ JSON.parse(event.areasjson || '[]')?.map((area: string) => area).join(',') }`,
         `LOCATION:${event.location ? event.location.trim() : ''}`,
         'END:VEVENT',
       ].join('\r\n');

@@ -110,11 +110,11 @@ export function ActivityDetails({activity, isPublic}: {activity: Form, isPublic:
         </>
       }
 
-      { JSON.parse(activity.areasjson ?? '[]').length > 0 &&
+      { JSON.parse(activity.areasjson || '[]').length > 0 &&
         <Card.Section pos="relative" className='m-0 border-b  flex items-start gap-1 px-4 py-2'>
           <div className='w-36 font-bold'>Categories</div>
           <div className='flex flex-wrap gap-2'>
-            { JSON.parse(activity.areasjson ?? '[]')?.map((area: string) => {
+            { JSON.parse(activity.areasjson || '[]')?.map((area: string) => {
               return (
                 <Badge key={area} variant='light'>{area}</Badge>
               )
