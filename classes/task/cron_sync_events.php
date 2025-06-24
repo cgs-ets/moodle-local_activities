@@ -40,11 +40,7 @@ class cron_sync_events extends \core\task\scheduled_task {
 
         // Get events that have been changed since last sync.
         $this->log_start("Looking for events that require sync (modified after last sync).");
-        $sql = "SELECT *
-                FROM {activities}
-                WHERE timesynclive < timemodified
-                ORDER BY timestart ASC"; 
-        $events = $DB->get_records_sql($sql);
+        $events = activities_lib::get_for_cal_sync();
 
         $this->log_start("Looking for assessments that require sync (modified after last sync).");
         $sql = "SELECT *
@@ -79,11 +75,10 @@ class cron_sync_events extends \core\task\scheduled_task {
         
         foreach ($all as $event) {
 
-            //if ($event->id != 9344) {
-            //    continue;
-            //}
-
             $sdt = date('Y-m-d H:i', $event->timestart);
+            if ($event->is_occurrence) {
+                $sdt .= ' (occurrence ' . $event->occurrenceid . ')';
+            }
             $this->log("Processing $event->activitytype $event->id: '$event->activityname', starting '$sdt'");
             $error = false;
 

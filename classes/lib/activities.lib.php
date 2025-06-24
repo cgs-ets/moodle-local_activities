@@ -1388,6 +1388,47 @@ class activities_lib {
     }
 
 
+    public static function get_for_cal_sync() {
+        global $DB;
+
+        // Get non-recurring activities
+        $sql = "SELECT *
+                FROM {activities}
+                WHERE timesynclive < timemodified
+                AND recurring = 0";
+        $records = $DB->get_records_sql($sql);
+        $activities = array();
+        
+        // Process non-recurring activities
+        foreach ($records as $record) {
+            $activity = new Activity($record->id, true);
+            $activities[] = $activity->export_minimal();
+        }
+
+        // Get occurrences of recurring activities
+        $sql = "SELECT ao.id, ao.timestart, ao.timeend, a.id as activityid
+                FROM {" . static::TABLE . "} a
+                JOIN mdl_activities_occurrences ao ON ao.activityid = a.id
+                WHERE a.timesynclive < a.timemodified
+                AND a.recurring = 1";
+
+        $occurrences = $DB->get_records_sql($sql);
+
+        // Process recurring activity occurrences
+        foreach ($occurrences as $occurrence) {
+            $activity = new Activity($occurrence->activityid, true);
+            $minimal = $activity->export_minimal();
+            // Update timestamps to the occurrence's times
+            $minimal->timestart = $occurrence->timestart;
+            $minimal->timeend = $occurrence->timeend;
+            $minimal->is_occurrence = true;
+            $minimal->occurrenceid = $occurrence->id;
+            $activities[] = $minimal;
+        }
+        
+        return $activities;
+    }
+
 
 
     public static function get_for_absences($now, $startlimit, $endlimit) {
