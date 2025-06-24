@@ -213,11 +213,11 @@ class cron_sync_events extends \core\task\scheduled_task {
                     $eventdata->showAs = $approved ? ($multiday ? 'free': 'busy') : 'tentative';
                     if ($event->isallday ||
                         (strpos($eventdata->start->dateTime, 'T00:00:00') !== false && strpos($eventdata->end->dateTime, 'T00:00:00') !== false) ||
-                        (strpos($eventdata->start->dateTime, 'T00:00:00') !== false && strpos($eventdata->end->dateTime, 'T23:59:59') !== false)
+                        (strpos($eventdata->start->dateTime, 'T00:00:00') !== false && strpos($eventdata->end->dateTime, 'T23:59') !== false)
                     ) {
                         $eventdata->isAllDay = true;
-                        // If the end time is 23:59:59, adjust it to 00:00:00 of the next day.
-                        if (strpos($eventdata->end->dateTime, 'T23:59:59') !== false) {
+                        // If the end time is 23:59, adjust it to 00:00:00 of the next day.
+                        if (strpos($eventdata->end->dateTime, 'T23:59') !== false) {
                             $endDate = new \DateTime($eventdata->end->dateTime);
                             $endDate->modify('+1 day');
                             $eventdata->end->dateTime = $endDate->format('Y-m-d\T00:00:00');
@@ -285,11 +285,11 @@ class cron_sync_events extends \core\task\scheduled_task {
                                         
                     if ($event->isallday ||
                         (strpos($eventdata->start->dateTime, 'T00:00:00') !== false && strpos($eventdata->end->dateTime, 'T00:00:00') !== false) ||
-                        (strpos($eventdata->start->dateTime, 'T00:00:00') !== false && strpos($eventdata->end->dateTime, 'T23:59:59') !== false)
+                        (strpos($eventdata->start->dateTime, 'T00:00:00') !== false && strpos($eventdata->end->dateTime, 'T23:59') !== false)
                     ) {
                         $eventdata->isAllDay = true;
-                        // If the end time is 23:59:59, adjust it to 00:00:00 of the next day.
-                        if (strpos($eventdata->end->dateTime, 'T23:59:59') !== false) {
+                        // If the end time is 23:59, adjust it to 00:00:00 of the next day.
+                        if (strpos($eventdata->end->dateTime, 'T23:59') !== false) {
                             $endDate = new \DateTime($eventdata->end->dateTime);
                             $endDate->modify('+1 day');
                             $eventdata->end->dateTime = $endDate->format('Y-m-d\T00:00:00');
