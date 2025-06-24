@@ -13,7 +13,7 @@ type Props = {
 }
 export function CalendarTease({celldate, event, setSelectedEvent}: Props) {
   return (
-    <li>
+    <li className={event.occurrenceid ? `act-${event.id}-${event.occurrenceid}` : `act-${event.id}`}>
         <Anchor onClick={() => setSelectedEvent(event)} className="no-underline hover:no-underline pb-2" title={event.activityname}>
           <div className="inline-flex gap-1">
             <StatusDot status={event.status} />
