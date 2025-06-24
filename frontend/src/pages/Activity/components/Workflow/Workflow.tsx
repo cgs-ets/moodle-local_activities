@@ -127,7 +127,9 @@ export function Workflow({
             
             
             <div className="px-4 py-2">
-              <span className="text-base">Workflow {status == statuses.draft || status == statuses.saved ? "(Not started)" : ""}</span>
+              <span className="text-base">
+                Workflow {expectNewWorkflow() ? "(Not started)" : ""}
+              </span>
             </div>
             
             <div className="relative flex flex-col border-t text-sm">

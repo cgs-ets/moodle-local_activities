@@ -18,6 +18,7 @@ export default defineConfig({
     //outDir: '../',
     // emit manifest so PHP can find the hashed files
     manifest: true,
+    sourcemap: true,
   },
   server: {
     // we need a strict port to match on PHP side
