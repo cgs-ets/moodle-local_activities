@@ -35,7 +35,7 @@ class cron_sync_events extends \core\task\scheduled_task {
      * Execute the scheduled task.
      */
     public function execute() {
-        global $DB;
+        global $DB, $CFG;
         $config = get_config('local_activities');
 
         // Get events that have been changed since last sync.
