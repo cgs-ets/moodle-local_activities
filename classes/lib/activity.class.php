@@ -577,13 +577,13 @@ class Activity {
         // If permissions are enabled, check if a permission email has been sent yet.
         $permissionsent = false;
         if ($this->data->permissions == 1) {
-            $sql = "SELECT 1
+            $sql = "SELECT *
                     FROM {activities_emails}
                     WHERE activityid = ?
                     AND includes LIKE '%permissions%'";
             $params = array($this->data->id);   
-            $permissionemail = $DB->get_record_sql($sql, $params);
-            if ($permissionemail) {
+            $permissionemails = $DB->get_records_sql($sql, $params);
+            if ($permissionemails) {
                 $permissionsent = true;
             }
         }

@@ -168,6 +168,16 @@ class cron_create_absences extends \core\task\scheduled_task {
                     ];
                 }, $occurrences);
 
+                // Add in the activity start and end time as an occurrnece to make sure we don't miss any absences.
+                $occurrences[] = (object) [
+                    'timestart' => intval($activity->get('timestart') / 60) * 60,
+                    'timeend' => intval($activity->get('timeend') / 60) * 60,
+                ];
+                $occurrencesreadable[] = [
+                    'timestart' => date('Y-m-d H:i', $activity->get('timestart')),
+                    'timeend' => date('Y-m-d H:i', $activity->get('timeend')),
+                ];
+
                 // Now find absences based upon the activity id.
                 $sql = $config->findabsencessql . ' :comment';
                 $params = array(

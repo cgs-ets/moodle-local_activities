@@ -37,7 +37,6 @@ class cron_emails_sys extends \core\task\scheduled_task {
             $data = json_decode($email->data);
             list($user, $from, $subject, $messagetext, $messagehtml, $attachments) = $data;
             $this->log("Sending email '$subject' to '$user->email'");
-            //$DB->execute("DELETE FROM {excursions_email_queue} WHERE id = $email->id");
             $now = time();
             $DB->execute("UPDATE {activities_sys_emails} SET timesent = $now WHERE id = $email->id");
             $result = service_lib::real_email_to_user($user, $from, $subject, $messagetext, $messagehtml, $attachments);

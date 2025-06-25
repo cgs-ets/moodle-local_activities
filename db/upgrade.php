@@ -114,5 +114,15 @@ function xmldb_local_activities_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2025061800, 'local', 'activities');
     }
 
+    if ($oldversion < 2025062500) {
+        $table = new xmldb_table('activities_cal_sync');
+        $field = new xmldb_field('occurrenceid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 0, null, 'activityid');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_plugin_savepoint(true, 2025062500, 'local', 'activities');
+    }
+
     return true;
 }

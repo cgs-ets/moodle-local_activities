@@ -142,11 +142,23 @@ class cron_sync_events extends \core\task\scheduled_task {
 
 
             // Get existing sync entries.
-            $sql = "SELECT *
-                FROM {activities_cal_sync}
-                WHERE activityid = ?
-                AND activitytype = ?";
-            $externalevents = $DB->get_records_sql($sql, [$event->id, $event->activitytype == 'assessment' ? 'assessment' : 'activity']);
+            if ($event->is_occurrence) {
+                $sql = "SELECT *
+                        FROM {activities_cal_sync}
+                        WHERE activityid = ?
+                        AND activitytype = ?
+                        AND occurrenceid = ?";
+                $params = [$event->id, $event->activitytype == 'assessment' ? 'assessment' : 'activity', $event->occurrenceid];
+            } else {
+                $sql = "SELECT *
+                        FROM {activities_cal_sync}
+                        WHERE activityid = ?
+                        AND activitytype = ?
+                        AND occurrenceid = 0";
+                $params = [$event->id, $event->activitytype == 'assessment' ? 'assessment' : 'activity'];
+            }
+
+            $externalevents = $DB->get_records_sql($sql, $params);
 
             // Update existing entries.
             foreach($externalevents as $externalevent) {

@@ -1888,7 +1888,7 @@ class activities_lib {
                        AND a.deleted = 0
                        AND p.studentusername NOT IN ( 
                            SELECT studentusername
-                             FROM mdl_excursions_permissions
+                             FROM mdl_activities_permissions
                             WHERE activityid = ?
                               AND response = 2
                        )

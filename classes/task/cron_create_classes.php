@@ -52,7 +52,7 @@ class cron_create_classes extends \core\task\scheduled_task {
      * Execute the scheduled task.
      */
     public function execute() {
-        global $DB;
+        global $DB, $CFG;
 
         // Find activities that need roll marking.
         $now = time();
@@ -150,7 +150,7 @@ class cron_create_classes extends \core\task\scheduled_task {
     private function create_class_roll($activity, $attending) {
         global $DB;
 
-
+        $config = get_config('local_activities');
         $this->log("Creating class roll for activity " . $activity->id);
         $activitystart = date('Y-m-d H:i', $activity->timestart);
         $activityend = date('Y-m-d H:i', $activity->timeend);
@@ -232,13 +232,14 @@ class cron_create_classes extends \core\task\scheduled_task {
                 'leavingdate' => $activitystart,
                 'returningdate' => $activityend,
             );
+            //var_export([$sql, $params]); exit;
             $seqnums = $this->externalDB->get_records_sql($sql, $params); // Returns staffscheduleseq, subjectclassesseq.
             //var_export($seqnums); exit;
             $seqnums =  array_pop($seqnums);
             $this->log("The sequence nums (staffscheduleseq, subjectclassesseq): " . json_encode($seqnums), 2);
 
             // 2. Insert the extra staff.
-            $extrastaff = $DB->get_records('excursions_staff', array('activityid' => $activity->id));
+            $extrastaff = $DB->get_records('activities_staff', array('activityid' => $activity->id));
             foreach ($extrastaff as $e) {
                 $this->log("Inserting extra class teacher: " . $e->username, 2);
                 $sql = $config->insertclassstaffsql . ' :fileyear, :filesemester, :classcampus, :classcode, :staffid';
@@ -291,7 +292,7 @@ class cron_create_classes extends \core\task\scheduled_task {
         $config = get_config('local_activities');
 
         // Look for activities that have been deleted in the past 24 hours and remove the class roll.
-        $activities = $DB->get_records('activities', array('deleted' => 1, 'timemodified' => array('>', time() - 86400)));
+        $activities = $DB->get_records_sql('SELECT * FROM {activities} WHERE deleted = 1 AND timemodified > ?', array(time() - 86400));
         foreach ($activities as $activity) {
             $this->log("Processing deleted activity: " . $activity->id);
             $activity = $activity->export();
@@ -310,7 +311,7 @@ class cron_create_classes extends \core\task\scheduled_task {
         }
         
         // Look for assessments that have been deleted in the past 24 hours and remove the class roll.
-        $rawassessments = $DB->get_records('activities_assessments', array('deleted' => 1, 'timemodified' => array('>', time() - 86400)));
+        $rawassessments = $DB->get_records_sql('SELECT * FROM {activities_assessments} WHERE deleted = 1 AND timemodified > ?', array(time() - 86400));
         foreach ($rawassessments as $assessment) {
             $assessment = (object) [
                 'id' => $assessment->id,
