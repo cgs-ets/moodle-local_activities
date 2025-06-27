@@ -242,37 +242,42 @@ class calendar_lib {
         } else {
             $events = activities_lib::get_for_staff_calendar(json_decode(json_encode($events_args, JSON_FORCE_OBJECT)));
         }
-		//var_export($events); exit;
 			
 		$eventful_days= array();
 		$eventful_days_count = array();
 		if($events) {
 			//Go through the events and slot them into the right d-m index
 			foreach($events as $event) {
-				$event_start_ts = $event->timestart;
-				$event_end_ts = $event->timeend;
-				$event_end_ts = $event_end_ts > $scope_datetime_end->format('U') ? $scope_datetime_end->format('U') : $event_end_ts;
-
-				while( $event_start_ts <= $event_end_ts ) { //we loop until the last day of our time-range, not the end date of the event, which could be in a year
-					//Ensure date is within event dates and also within the limits of events to show per day, if so add to eventful days array
-					$event_eventful_date = date('Y-m-d', $event_start_ts);
-					if( empty($eventful_days_count[$event_eventful_date]) || !$limit || $eventful_days_count[$event_eventful_date] < $limit ){
-						//now we know this is an event that'll be used, convert it to an object
-						if( empty($eventful_days[$event_eventful_date]) || !is_array($eventful_days[$event_eventful_date]) ) $eventful_days[$event_eventful_date] = array();
-						//add event to array with a corresponding timestamp for sorting of times including long and all-day events
-						$event_ts_marker = $event_start_ts;
-                        //$event_ts_marker = (int) strtotime($event_eventful_date.' '.$event->start_time);
-						while( !empty($eventful_days[$event_eventful_date][$event_ts_marker]) ){
-							$event_ts_marker++; //add a second
-						}
-						$eventful_days[$event_eventful_date][$event_ts_marker] = $event;
-					}
-					//count events for that day
-					$eventful_days_count[$event_eventful_date] = empty($eventful_days_count[$event_eventful_date]) ? 1 : $eventful_days_count[$event_eventful_date]+1;
-					$event_start_ts += (86400); //add a day
-				}
-			}
+                $event_start_ts = $event->timestart;
+                $event_end_ts = $event->timeend;
+                $event_end_ts = $event_end_ts > $scope_datetime_end->format('U') ? $scope_datetime_end->format('U') : $event_end_ts;            
+                // convert timestamps to date strings for safer looping
+                $event_start_date = date('Y-m-d', $event_start_ts);
+                $event_end_date = date('Y-m-d', $event_end_ts);
+            
+                $current_date = $event_start_date;
+                while (strtotime($current_date) <= strtotime($event_end_date)) { //we loop until the last day of our time-range, not the end date of the event, which could be in a year
+                    //Ensure date is within event dates and also within the limits of events to show per day, if so add to eventful days array
+                    $event_eventful_date = $current_date;
+                    if( empty($eventful_days_count[$event_eventful_date]) || !$limit || $eventful_days_count[$event_eventful_date] < $limit ){
+                        //now we know this is an event that'll be used, convert it to an object
+                        if( empty($eventful_days[$event_eventful_date]) || !is_array($eventful_days[$event_eventful_date]) ) $eventful_days[$event_eventful_date] = array();
+                        //add event to array with a corresponding timestamp for sorting of times including long and all-day events
+                        $event_ts_marker = strtotime($event_eventful_date); // use 00:00 time for the marker
+                        while( !empty($eventful_days[$event_eventful_date][$event_ts_marker]) ){
+                            $event_ts_marker++; //add a second
+                        }
+                        $eventful_days[$event_eventful_date][$event_ts_marker] = $event;
+                    }
+                    //count events for that day
+                    $eventful_days_count[$event_eventful_date] = empty($eventful_days_count[$event_eventful_date]) ? 1 : $eventful_days_count[$event_eventful_date]+1;
+            
+                    // move to the next day
+                    $current_date = date('Y-m-d', strtotime($current_date . ' +1 day'));
+                }
+            }
 		}
+
 		foreach($eventful_days as $day_key => $events) {
 			if( array_key_exists($day_key, $calendar_array['cells']) ){
 				$calendar_array['cells'][$day_key]['events_count'] = $eventful_days_count[$day_key];
@@ -401,7 +406,8 @@ class calendar_lib {
             $event_start_date = $event->timestart;
             $event_eventful_date = date('Y-m-d', $event_start_date);
 
-            $in_scope = strtotime($event_eventful_date) >= strtotime($scope_datetime_start->format('Y-m-d'));
+            $in_scope = $event->timestart >= strtotime($scope_datetime_start->format('Y-m-d'));// || $event->timeend >= strtotime($scope_datetime_start->format('Y-m-d'));
+            //var_export([$event->activityname, $in_scope]); exit;
             
             $past = $event->timeend < time() ? true : false;
 
@@ -415,6 +421,7 @@ class calendar_lib {
             }
 
             $currently_on = (!$past) && ($event->timestart < time()) ? true : false;
+            
             if( $currently_on ) {
                 $events_dates['current'][$event_eventful_date][] = $event;
             } else {
@@ -425,14 +432,16 @@ class calendar_lib {
 
             //if long events requested, add event to other dates too
             if( (!$currently_on) && $long_events && date('Y-m-d', $event->timeend) != date('Y-m-d', $event->timestart) ) {
-                $tomorrow = $event_start_date + 86400;
-                while( $tomorrow <= $event->timeend && $tomorrow <= strtotime($scope_datetime_end->format('Y-m-d h:i:s')) ){
-                    $event_eventful_date = date('Y-m-d', $tomorrow);
-                    $in_scope = strtotime($event_eventful_date) >= strtotime($scope_datetime_start->format('Y-m-d'));
+                $start_date = date('Y-m-d', $event->timestart);
+                $end_date = date('Y-m-d', min($event->timeend, $scope_datetime_end->format('U')));
+                $current_date = date('Y-m-d', strtotime($start_date . ' +1 day')); // start from the day *after* the event starts
+            
+                while (strtotime($current_date) <= strtotime($end_date)) {
+                    $in_scope = strtotime($current_date) >= strtotime($scope_datetime_start->format('Y-m-d'));
                     if ($in_scope) {
-                        $events_dates['upcoming'][$event_eventful_date][] = $event;
+                        $events_dates['upcoming'][$current_date][] = $event;
                     }
-                    $tomorrow = $tomorrow + 86400;
+                    $current_date = date('Y-m-d', strtotime($current_date . ' +1 day'));
                 }
             }
         }
