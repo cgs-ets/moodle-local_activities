@@ -105,15 +105,16 @@ class utils_lib {
             LOWER(REPLACE(u.firstname, '''', '')) LIKE ?
             OR LOWER(REPLACE(u.lastname, '''', '')) LIKE ?
             OR LOWER(REPLACE(u.username, '''', '')) LIKE ?
+            OR LOWER(REPLACE(CONCAT(u.firstname, ' ', u.lastname), '''', '')) LIKE ?
         )";
 
         $likesearch = "%" . strtolower(str_replace("'", "", $query)) . "%";
         $data = $DB->get_records_sql($sql, [$likesearch, $likesearch, $likesearch]);
 
-        $first10Elements = array_slice($data, 0, 10);
+        $first20Elements = array_slice($data, 0, 20);
 
         $students = [];
-        foreach ($first10Elements as $row) {
+        foreach ($first20Elements as $row) {
             $students[] = static::student_stub($row->username);
         }
         return $students;
