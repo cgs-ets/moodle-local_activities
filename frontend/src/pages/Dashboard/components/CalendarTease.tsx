@@ -16,7 +16,7 @@ export function CalendarTease({celldate, event, setSelectedEvent}: Props) {
             <StatusDot status={event.status} />
             { dayjs.unix(celldate).format("YYYYMMDD") != dayjs.unix(event.timestart).format("YYYYMMDD")
               ? dayjs.unix(celldate).format("YYYYMMDD") == dayjs.unix(event.timeend).format("YYYYMMDD")
-                ? dayjs.unix(Number(event.timeend)).format("H:mm") == "0:00" ? null :<span className="te-start-time">&lt;{dayjs.unix(Number(event.timeend)).format("H:mm")}</span>
+                ? <span className="te-start-time">&lt;{dayjs.unix(Number(event.timeend)).format("H:mm")}</span>
                 : <span className="te-start-time">Cont.</span>
               : !!Number(event.isallday)
                 ? <span className="te-start-time">All day</span>

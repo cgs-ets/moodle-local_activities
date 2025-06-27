@@ -250,10 +250,19 @@ class calendar_lib {
 			foreach($events as $event) {
                 $event_start_ts = $event->timestart;
                 $event_end_ts = $event->timeend;
-                $event_end_ts = $event_end_ts > $scope_datetime_end->format('U') ? $scope_datetime_end->format('U') : $event_end_ts;            
+                $event_end_ts = $event_end_ts > $scope_datetime_end->format('U') ? $scope_datetime_end->format('U') : $event_end_ts;
+            
                 // convert timestamps to date strings for safer looping
                 $event_start_date = date('Y-m-d', $event_start_ts);
                 $event_end_date = date('Y-m-d', $event_end_ts);
+            
+                // adjust end date if event ends exactly at midnight and spans multiple days
+                if (
+                    date('H:i:s', $event_end_ts) === '00:00:00' &&
+                    $event_start_date !== $event_end_date
+                ) {
+                    $event_end_date = date('Y-m-d', strtotime($event_end_date . ' -1 day'));
+                }
             
                 $current_date = $event_start_date;
                 while (strtotime($current_date) <= strtotime($event_end_date)) { //we loop until the last day of our time-range, not the end date of the event, which could be in a year
@@ -431,11 +440,23 @@ class calendar_lib {
             }
 
             //if long events requested, add event to other dates too
-            if( (!$currently_on) && $long_events && date('Y-m-d', $event->timeend) != date('Y-m-d', $event->timestart) ) {
+            if (
+                (!$currently_on) &&
+                $long_events &&
+                date('Y-m-d', $event->timeend) != date('Y-m-d', $event->timestart)
+            ) {
                 $start_date = date('Y-m-d', $event->timestart);
-                $end_date = date('Y-m-d', min($event->timeend, $scope_datetime_end->format('U')));
-                $current_date = date('Y-m-d', strtotime($start_date . ' +1 day')); // start from the day *after* the event starts
+                $end_ts = min($event->timeend, (clone $scope_datetime_end)->setTime(23, 59, 59)->format('U'));
             
+                // Default end_date
+                $end_date = date('Y-m-d', $end_ts);
+            
+                // If the event ends exactly at midnight AND the end timestamp is NOT the same calendar day as timestart
+                if (date('H:i:s', $end_ts) === '00:00:00' && strtotime($end_date) > strtotime($start_date)) {
+                    $end_date = date('Y-m-d', strtotime($end_date . ' -1 day'));
+                }
+            
+                $current_date = date('Y-m-d', strtotime($start_date . ' +1 day')); // skip start day if desired
                 while (strtotime($current_date) <= strtotime($end_date)) {
                     $in_scope = strtotime($current_date) >= strtotime($scope_datetime_start->format('Y-m-d'));
                     if ($in_scope) {
