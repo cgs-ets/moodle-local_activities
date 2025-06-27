@@ -109,7 +109,7 @@ class utils_lib {
         )";
 
         $likesearch = "%" . strtolower(str_replace("'", "", $query)) . "%";
-        $data = $DB->get_records_sql($sql, [$likesearch, $likesearch, $likesearch]);
+        $data = $DB->get_records_sql($sql, [$likesearch, $likesearch, $likesearch, $likesearch]);
 
         $first20Elements = array_slice($data, 0, 20);
 
