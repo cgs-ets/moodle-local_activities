@@ -105,7 +105,7 @@ class utils_lib {
             LOWER(REPLACE(u.firstname, '''', '')) LIKE ?
             OR LOWER(REPLACE(u.lastname, '''', '')) LIKE ?
             OR LOWER(REPLACE(u.username, '''', '')) LIKE ?
-            OR LOWER(REPLACE(CONCAT(u.firstname, ' ', u.lastname), '''', '')) LIKE ?
+            OR LOWER(REPLACE(CONCAT(u.firstname, u.lastname), '''', '')) LIKE ?
         )";
 
         $likesearch = "%" . strtolower(str_replace("'", "", $query)) . "%";
