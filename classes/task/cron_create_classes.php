@@ -112,10 +112,12 @@ class cron_create_classes extends \core\task\scheduled_task {
                     continue;
                 }
 
-                $this->create_class_roll($activity, $attending);
+                $success = $this->create_class_roll($activity, $attending);
 
                 // Mark as processed.
-                $DB->execute("UPDATE {activities} SET classrollprocessed = 1 WHERE id = $activity->id");
+                if ($success) {
+                    $DB->execute("UPDATE {activities} SET classrollprocessed = 1 WHERE id = $activity->id");
+                }
             }
 
 
@@ -129,10 +131,12 @@ class cron_create_classes extends \core\task\scheduled_task {
                     continue;
                 }
 
-                $this->create_class_roll($assessment, $attending);
+                $success = $this->create_class_roll($assessment, $attending);
 
                 // Mark as processed.
-                $DB->execute("UPDATE {activities_assessments} SET classrollprocessed = 1 WHERE id = $assessment->id");
+                if ($success) {
+                    $DB->execute("UPDATE {activities_assessments} SET classrollprocessed = 1 WHERE id = $assessment->id");
+                }
             }
 
             // Process deleted activities.
@@ -238,6 +242,11 @@ class cron_create_classes extends \core\task\scheduled_task {
             $seqnums =  array_pop($seqnums);
             $this->log("The sequence nums (staffscheduleseq, subjectclassesseq): " . json_encode($seqnums), 2);
 
+            if (empty($seqnums) || empty($seqnums->staffscheduleseq) || empty($seqnums->subjectclassesseq)) {
+                $this->log("No sequence nums found for activity " . $activity->id . ", skipping class creation.", 2);
+                return false;
+            }
+
             // 2. Insert the extra staff.
             $extrastaff = $DB->get_records('activities_staff', array('activityid' => $activity->id));
             foreach ($extrastaff as $e) {
@@ -283,6 +292,7 @@ class cron_create_classes extends \core\task\scheduled_task {
             $this->externalDB->execute($sql, $params);
         }
         $this->log("Finished creating class roll for activity " . $activity->id);
+        return true;
     }
 
 
