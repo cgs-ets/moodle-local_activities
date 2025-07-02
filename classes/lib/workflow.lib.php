@@ -407,7 +407,7 @@ class workflow_lib extends \local_activities\local_activities_config {
             return static::check_status($activityid, null, false, [], false);
         }
 
-        $activity = new static($activityid);
+        $activity = new Activity($activityid);
         // Update the approval.
         $sql = "UPDATE mdl_activities_approvals
                    SET nominated = ?, timemodified = ?

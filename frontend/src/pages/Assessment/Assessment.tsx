@@ -18,6 +18,7 @@ import { rem } from '@mantine/core';
 import { StudentList } from "./components/StudentList";
 import { User } from "../../types/types";
 import { StaffSelector } from "../Activity/components/StaffDetails/components/StaffSelector/StaffSelector";
+import { ConflictsInline } from "../Activity/components/Conflicts/ConflictsInline";
 
 interface Module {
   value: string;
@@ -444,6 +445,8 @@ export function Assessment() {
                               {formErrors.timeend ? <div className="text-red-600 text-xs mt-1">{formErrors.timeend}</div> : null}
                             </div>
                           </div>
+
+                          <ConflictsInline type="assessment" assessment={formData} />
 
                           <TextInput
                             placeholder=""

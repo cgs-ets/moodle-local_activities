@@ -10,7 +10,7 @@ use \local_activities\lib\activities_lib;
 
 class conflicts_lib {
 
-    public static function check_conflicts($activityid, $timestart, $timeend, $unix = false) {
+    public static function check_conflicts($activityid, $timestart, $timeend, $unix = false, $type = "activity") {
         global $DB;
 
         if (!$unix) {
@@ -23,47 +23,87 @@ class conflicts_lib {
             return [];
         }
 
-        return static::check_conflicts_for_single($activityid, $timestart, $timeend);
+        return static::check_conflicts_for_single($activityid, $timestart, $timeend, $type);
     }
 
-    public static function check_conflicts_for_single($activityid, $timestart, $timeend, $recurrenceid = -1) {
+    public static function check_conflicts_for_single($activityid, $timestart, $timeend, $type = "activity") {
         global $DB;
         $conflicts = array();
 
-        // Find approved activitys that intersect with this start and end time.
-        $sql = "SELECT * 
-                FROM {activities}
-                WHERE deleted = 0 
-                AND status > 1
-                AND (
-                    (timestart > ? AND timestart < ?) OR 
-                    (timeend > ? AND timeend < ?) OR 
-                    (timestart <= ? AND timeend >= ?) OR  
-                    (timestart >= ? AND timeend <= ?)
-                )
-        ";
-        $rawactivityconflicts = $DB->get_records_sql($sql, [$timestart, $timeend, $timestart, $timeend, $timestart, $timeend, $timestart, $timeend]);
-        foreach ($rawactivityconflicts as $activity) {
-            // Dont clash with self or another activity in the same series.
-            if ($activity->id == $activityid) {
-                continue;
+        //if ($type == "activity") {
+            // Find approved activitys that intersect with this start and end time.
+            $sql = "SELECT * 
+                    FROM {activities}
+                    WHERE deleted = 0 
+                    AND status > 1
+                    AND (
+                        (timestart > ? AND timestart < ?) OR 
+                        (timeend > ? AND timeend < ?) OR 
+                        (timestart <= ? AND timeend >= ?) OR  
+                        (timestart >= ? AND timeend <= ?)
+                    )
+            ";
+            $rawactivityconflicts = $DB->get_records_sql($sql, [$timestart, $timeend, $timestart, $timeend, $timestart, $timeend, $timestart, $timeend]);
+            foreach ($rawactivityconflicts as $activity) {
+                // Dont clash with self or another activity in the same series.
+                if ($activity->id == $activityid && $type == "activity") {
+                    continue;
+                }
+                $owner = json_decode($activity->staffinchargejson);
+                $areas = json_decode($activity->areasjson);
+                $conflicts[] =  (object) [
+                    'activityid' => $activity->id,
+                    'activityname' => $activity->activityname,
+                    'location' => $activity->location,
+                    'activitytype' => $activity->activitytype,
+                    'timestart' => date('g:ia', $activity->timestart),
+                    'datestart' => date('j M Y', $activity->timestart),
+                    'timeend' => date('g:ia', $activity->timeend),
+                    'dateend' => date('j M Y', $activity->timeend),
+                    'areas' => $areas,
+                    'owner' => $owner,
+                ];
             }
-            $owner = json_decode($activity->staffinchargejson);
-            $areas = json_decode($activity->areasjson);
-            $conflicts[] =  (object) [
-                'activityid' => $activity->id,
-                'activityname' => $activity->activityname,
-                'location' => $activity->location,
-                'activitytype' => $activity->activitytype,
-                'timestart' => date('g:ia', $activity->timestart),
-                'datestart' => date('j M Y', $activity->timestart),
-                'timeend' => date('g:ia', $activity->timeend),
-                'dateend' => date('j M Y', $activity->timeend),
-                'areas' => $areas,
-                'owner' => $owner,
-            ];
-        }
-        
+        //}
+
+        //if ($type == "assessment") {
+            // Find conflicts with assessments.
+            $sql = "SELECT * 
+                    FROM {activities_assessments}
+                    WHERE deleted = 0
+                    AND (
+                        (timestart > ? AND timestart < ?) OR 
+                        (timeend > ? AND timeend < ?) OR 
+                        (timestart <= ? AND timeend >= ?) OR  
+                        (timestart >= ? AND timeend <= ?)
+                    )
+            ";
+            $rawassessmentconflicts = $DB->get_records_sql($sql, [$timestart, $timeend, $timestart, $timeend, $timestart, $timeend, $timestart, $timeend]);
+            foreach ($rawassessmentconflicts as $assessment) {
+                // Dont clash with self or another activity in the same series.
+                if ($assessment->id == $activityid && $type == "assessment") {
+                    continue;
+                }
+                $owner = utils_lib::user_stub($assessment->creator);
+                if ($assessment->staffincharge) {
+                    $owner = utils_lib::user_stub($assessment->staffincharge);
+                }
+                $course = $DB->get_record('course', array('id' => $assessment->courseid));
+                $conflicts[] =  (object) [
+                    'assessmentid' => $assessment->id,
+                    'name' => $assessment->name,
+                    'course' => $course->fullname ?? "",
+                    'url' => $assessment->url,
+                    'activitytype' => 'assessment',
+                    'timestart' => date('g:ia', $assessment->timestart),
+                    'datestart' => date('j M Y', $assessment->timestart),
+                    'timeend' => date('g:ia', $assessment->timeend),
+                    'dateend' => date('j M Y', $assessment->timeend),
+                    'owner' => $owner,
+                ];
+            }
+        //}
+
         return $conflicts;
     }
 
@@ -75,7 +115,7 @@ class conflicts_lib {
             return [];
         }
 
-        $conflicts = static::check_conflicts_for_single($id, $activity->timestart, $activity->timeend);
+        $conflicts = static::check_conflicts_for_single($id, $activity->timestart, $activity->timeend, "activity");
         static::sync_conflicts($id, $conflicts);
         $html = static::generate_conflicts_html($conflicts, true, static::export_activity($activity));
  

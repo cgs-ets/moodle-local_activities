@@ -497,7 +497,7 @@ export function BasicDetails() {
           }
           
 
-          <ConflictsInline />
+          <ConflictsInline type="activity" />
 
 
           <div>

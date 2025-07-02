@@ -22,7 +22,8 @@ trait conflicts_api {
         $timestart = required_param('timestart', PARAM_RAW);
         $timeend = required_param('timeend', PARAM_RAW);
         $activityid = optional_param('activityid', 0, PARAM_INT);
-        return conflicts_lib::check_conflicts($activityid, $timestart, $timeend, true);
+        $type = optional_param('type', 'activity', PARAM_RAW);
+        return conflicts_lib::check_conflicts($activityid, $timestart, $timeend, true, $type);
     }
 
     /**
@@ -34,7 +35,8 @@ trait conflicts_api {
         $timestart = required_param('timestart', PARAM_RAW);
         $timeend = required_param('timeend', PARAM_RAW);
         $activityid = optional_param('activityid', 0, PARAM_INT);
-        $conflicts = conflicts_lib::check_conflicts($activityid, $timestart, $timeend, true);
+        $type = optional_param('type', 'activity', PARAM_RAW);
+        $conflicts = conflicts_lib::check_conflicts($activityid, $timestart, $timeend, true, $type);
         $html = conflicts_lib::generate_conflicts_html($conflicts);
         return (object) ['html' => $html, 'conflicts' => $conflicts];
     }
