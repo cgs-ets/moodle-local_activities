@@ -316,6 +316,7 @@ class cron_sync_events extends \core\task\scheduled_task {
                     $record->weblink = '';
                     $record->status = 0;
                     $record->activitytype = $event->activitytype == 'assessment' ? 'assessment' : 'activity';
+                    $record->occurrenceid = $event->is_occurrence ? $event->occurrenceid : 0;
                     try {
                         $result = graph_lib::createEvent($destCal, $eventdata);
                         if ($result) {
