@@ -263,26 +263,6 @@ class activities_lib {
             }
             $activity->save();
 
-            // Save recurring settings.
-            $newdates = null;
-            if ($data->recurringAcceptChanges) {
-                $activity->set('recurring', $data->recurring ? 1 : 0);
-                $activity->set('recurrence', $data->recurring ? json_encode($data->recurrence) : null);
-                $activity->save();
-                // If recurring, create the whole series of activities.
-                if ($data->recurring) {
-                    $newdates = static::create_recurring_activities($activity->get('id'));
-                    if ($newdates) {
-                        $activity->set('timestart', $newdates->timestart);
-                        $activity->set('timeend', $newdates->timeend);
-                        $activity->save();
-                        $originalactivity->set('timestart', $newdates->timestart);
-                        $originalactivity->set('timeend', $newdates->timeend);
-                    }
-                } else {
-                    static::delete_recurring_activities($activity->get('id'));
-                }
-            }
 
             // Default staff in charge.
             if (empty($data->staffincharge)) {
@@ -290,13 +270,20 @@ class activities_lib {
                 $activity->set('staffinchargejson', json_encode(utils_lib::user_stub($USER->username)));
             } else {
                 $staffincharge = (object) array_pop($data->staffincharge);
-                $activity->set('staffincharge', $staffincharge->un);
-                $activity->set('staffinchargejson', $data->staffinchargejson);
+                // If staffincharge is corrupt in some way, set it to the user.
+                if (!isset($staffincharge->un) || empty(\core_user::get_user_by_username($staffincharge->un))) {
+                    $activity->set('staffincharge', $USER->username);
+                    $activity->set('staffinchargejson', json_encode(utils_lib::user_stub($USER->username)));
+                } else {
+                    $activity->set('staffincharge', $staffincharge->un);
+                    $activity->set('staffinchargejson', $data->staffinchargejson);
+                }
             }
 
             $activity->set('planningstaffjson', $data->planningstaffjson);
             $activity->set('accompanyingstaffjson', $data->accompanyingstaffjson);
             $activity->save();
+
 
             // If categoriesjson is empty, set a default value based on campus.
             $categoriesjson = json_decode($data->categoriesjson);
@@ -349,6 +336,29 @@ class activities_lib {
                 return $u['un'];
             }, $data->studentlist);
             static::sync_students_from_data($activity->get('id'), $studentusernames);
+
+
+            // Save recurring settings.
+            $newdates = null;
+            if ($data->recurringAcceptChanges) {
+                $activity->set('recurring', $data->recurring ? 1 : 0);
+                $activity->set('recurrence', $data->recurring ? json_encode($data->recurrence) : null);
+                $activity->save();
+                // If recurring, create the whole series of activities.
+                if ($data->recurring) {
+                    $newdates = static::create_recurring_activities($activity->get('id'));
+                    if ($newdates) {
+                        $activity->set('timestart', $newdates->timestart);
+                        $activity->set('timeend', $newdates->timeend);
+                        $activity->save();
+                        $originalactivity->set('timestart', $newdates->timestart);
+                        $originalactivity->set('timeend', $newdates->timeend);
+                    }
+                } else {
+                    static::delete_recurring_activities($activity->get('id'));
+                }
+            }
+
 
             // Generate parent permissions based on student list.
             static::generate_permissions($data->id);
