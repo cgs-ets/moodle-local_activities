@@ -428,17 +428,30 @@ class utils_lib {
     public static function get_disallowed_parents($userid) {
         global $DB, $CFG;
 
-        $config = get_config('local_activities');
-        if (empty($config->getdisalloweduserssql)) {
-            return [];
+        $user = \core_user::get_user($userid);
+        if (empty($user)) {
+            return array();
         }
 
+        $disallowedparents = array();
+
+        $config = get_config('local_activities');
         $externalDB = \moodle_database::get_driver_instance($config->dbtype, 'native', true);
         $externalDB->connect($config->dbhost, $config->dbuser, $config->dbpass, $config->dbname, '');
 
-        $sql = $config->getdisalloweduserssql;
-        $results = $externalDB->get_records_sql($sql);
-        return array_column($results, 'userid');
+        // Get any blanked out users.
+        if (!empty($config->getdisalloweduserssql)) {
+            $results = $externalDB->get_records_sql($config->getdisalloweduserssql);
+            $disallowedparents = array_column($results, 'userid');
+        }
+
+        // Check liveswith flag.
+        $liveswithsql = "SELECT * FROM [CGS_Moodle].[cgs].[UVW_Mentors] WHERE StudentID = ? AND LivesWithFlag = 0";
+        $liveswithresults = $externalDB->get_records_sql($liveswithsql, array($user->username));
+        $doesnotlivewithparents = array_column($liveswithresults, 'ObserverID');
+        $disallowedparents = array_merge($disallowedparents, $doesnotlivewithparents);
+
+        return $disallowedparents;
     }
 
 
