@@ -82,7 +82,7 @@ class graph_lib {
             return $responseBody->access_token;
         } else {
             $error = isset($responseBody->error) ? $responseBody->error : $tokenResponse->getStatusCode();
-            throw new Exception('Token endpoint returned '.$error, 100);
+            throw new \Exception('Token endpoint returned '.$error, 100);
         }
     }
 
@@ -221,7 +221,7 @@ class graph_lib {
     */
     public static function deleteEvent($userPrincipalName, $id) {
         if (empty($id)) {
-            throw new \Exception("Event ID cannot be empty for update operation");
+            throw new \Exception("Event ID cannot be empty for delete operation");
         }
         
         $token = static::getAppOnlyToken();
