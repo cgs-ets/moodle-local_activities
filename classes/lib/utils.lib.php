@@ -425,13 +425,8 @@ class utils_lib {
     }
 
 
-    public static function get_disallowed_parents($userid) {
+    public static function get_disallowed_parents($userid, $multiple = 0) {
         global $DB, $CFG;
-
-        $user = \core_user::get_user($userid);
-        if (empty($user)) {
-            return array();
-        }
 
         $disallowedparents = array();
 
@@ -446,15 +441,30 @@ class utils_lib {
         }
 
         // Check liveswith flag.
-        $liveswithsql = "SELECT * FROM [CGS_Moodle].[cgs].[UVW_Mentors] WHERE StudentID = ? AND LivesWithFlag = 0";
-        $liveswithresults = $externalDB->get_records_sql($liveswithsql, array($user->username));
-        $doesnotlivewithparents = array_column($liveswithresults, 'ObserverID');
-        $disallowedparents = array_merge($disallowedparents, $doesnotlivewithparents);
+        if ($multiple) {
+            foreach ($userid as $id) {
+                $user = \core_user::get_user($id);
+                if (empty($user)) {
+                    continue;
+                }
+                $liveswithsql = "SELECT * FROM cgs.UVW_Mentors WHERE StudentID = ? AND LivesWithFlag = 0";
+                $liveswithresults = $externalDB->get_records_sql($liveswithsql, array($user->username));
+                $doesnotlivewithparents = array_column($liveswithresults, 'observerid');
+                $disallowedparents = array_merge($disallowedparents, $doesnotlivewithparents);
+            }
+        } else {
+            $user = \core_user::get_user($userid);
+            if (empty($user)) {
+                return array();
+            }
+            $liveswithsql = "SELECT * FROM cgs.UVW_Mentors WHERE StudentID = ? AND LivesWithFlag = 0";
+            $liveswithresults = $externalDB->get_records_sql($liveswithsql, array($user->username));
+            $doesnotlivewithparents = array_column($liveswithresults, 'observerid');
+            $disallowedparents = array_merge($disallowedparents, $doesnotlivewithparents);
+        }
 
         return $disallowedparents;
     }
-
-
 
     public static function get_user_mentees($userid) {
         global $DB;
@@ -493,8 +503,14 @@ class utils_lib {
         if ($mentors = $DB->get_records_sql($mentorssql, $inparams)) {
             $mentors = array_column($mentors, 'username');
         }
+
+        // Remove disallowed parents
+        $disallowedparents = static::get_disallowed_parents($userids, 1);
+        $mentors = array_diff($mentors, $disallowedparents);
+
         return $mentors;
     }
+    
 
     public static function get_userids($usernames) {
         global $DB;

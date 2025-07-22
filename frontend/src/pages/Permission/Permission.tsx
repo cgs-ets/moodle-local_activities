@@ -79,7 +79,7 @@ export function Permission() {
         { activityid && !permissions.length ?
           <Container size="xl">
             <Center h={300}>
-              <Text fw={600} fz="lg">You are not a parent of a participant in this activity...</Text>
+              <Text fw={600} fz="lg">Sorry, activity not found or you do not have access to this page.</Text>
             </Center>
           </Container> : null
         }
