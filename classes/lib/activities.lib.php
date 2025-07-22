@@ -1262,16 +1262,23 @@ class activities_lib {
     public static function get_for_parent($username, $period = null) {
         global $DB;
 
+        // Can't rely on this anymore, because parents without liveswith do not go into the permission table.
+        //$sql = "SELECT activityid
+        //          FROM {" . static::TABLE_ACTIVITY_PERMISSIONS . "} 
+        //         WHERE parentusername = ?";
+        //$ids = $DB->get_fieldset_sql($sql, array($username));
 
-        $sql = "SELECT activityid
-                  FROM {" . static::TABLE_ACTIVITY_PERMISSIONS . "} 
-                 WHERE parentusername = ?";
-        $ids = $DB->get_fieldset_sql($sql, array($username));
+        $user = \core_user::get_user_by_username($username);
+        $mentees = utils_lib::get_user_mentees($user->id);
 
+        list($insql, $inparams) = $DB->get_in_or_equal($mentees);
+        $sql = "SELECT DISTINCT activityid
+                  FROM {" . static::TABLE_ACTIVITY_STUDENTS . "} 
+                 WHERE username $insql";
+        $ids = $DB->get_fieldset_sql($sql, $inparams);
         $raw = static::get_by_ids($ids, static::ACTIVITY_STATUS_APPROVED, $period, false); // Approved and future only.
 
         $activities = array();
-        
         foreach ($raw as $i => $activity) {
             // Export the activity.
             $exported = $activity->export_minimal();
