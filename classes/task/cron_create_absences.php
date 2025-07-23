@@ -40,7 +40,7 @@ class cron_create_absences extends \core\task\scheduled_task {
      * Execute the scheduled task.
      */
     public function execute() {
-        global $DB;
+        global $DB, $CFG;
         // Find activities that need to be synced.
         $now = time();
         $plus14days = strtotime('+14 day', $now);
