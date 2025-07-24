@@ -1271,6 +1271,10 @@ class activities_lib {
         $user = \core_user::get_user_by_username($username);
         $mentees = utils_lib::get_user_mentees($user->id);
 
+        if (empty($mentees)) {
+            return array();
+        }
+
         list($insql, $inparams) = $DB->get_in_or_equal($mentees);
         $sql = "SELECT DISTINCT activityid
                   FROM {" . static::TABLE_ACTIVITY_STUDENTS . "} 
