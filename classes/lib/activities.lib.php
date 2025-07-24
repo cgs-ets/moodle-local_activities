@@ -1518,10 +1518,8 @@ class activities_lib {
     public static function get_for_sync_verification($date) {
         global $DB, $CFG;
 
-        utils_lib::require_staff();
-        
         // Confirm this is a staff member!
-        if (!utils_lib::has_capability_edit_activity(0)) {
+        if (!utils_lib::is_user_staff()) {
             throw new \Exception('Permission denied.');
         }
         
