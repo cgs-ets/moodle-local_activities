@@ -263,7 +263,6 @@ class activities_lib {
             }
             $activity->save();
 
-
             // Default staff in charge.
             if (empty($data->staffincharge)) {
                 $activity->set('staffincharge', $USER->username);
@@ -342,7 +341,7 @@ class activities_lib {
             $newdates = null;
             if ($data->recurringAcceptChanges) {
                 $activity->set('recurring', $data->recurring ? 1 : 0);
-                $activity->set('recurrence', $data->recurring ? json_encode($data->recurrence) : null);
+                $activity->set('recurrence', $data->recurring ? json_encode($data->recurrence) : '');
                 $activity->save();
                 // If recurring, create the whole series of activities.
                 if ($data->recurring) {
@@ -1520,14 +1519,14 @@ class activities_lib {
         
         $config = get_config('local_activities');
         if (empty($config->dbhost ?? '') || empty($config->dbuser ?? '') || empty($config->dbpass ?? '') || empty($config->dbname ?? '')) {
-            return array();
+            throw new \Exception('Missing database configuration for sync verification.');
         }
 
         try {
             $externalDB = \moodle_database::get_driver_instance($config->dbtype, 'native', true);
             $externalDB->connect($config->dbhost, $config->dbuser, $config->dbpass, $config->dbname, '');
         } catch (Exception $e) {
-            return array();
+            throw new \Exception('Failed to connect to external database for sync verification.');
         }
 
         // Get approved activities that have students and are on the specified date
@@ -1576,6 +1575,7 @@ class activities_lib {
                     'comment' => $appendix . $activity->id,
                 );
                 
+                $absenceexists = false;
                 $absenceexists = $externalDB->get_field_sql($sql, $params);
 
                 $student = utils_lib::user_stub($student);
@@ -1587,14 +1587,8 @@ class activities_lib {
                 );
             }
 
-            $result[] = array(
-                'id' => $activity->id,
-                'activityname' => $activity->activityname,
-                'timestart' => $activity->timestart,
-                'timeend' => $activity->timeend,
-                'staffincharge' => utils_lib::user_stub($activity->staffincharge),
-                'students' => $studentSyncStatus
-            );
+            $activity->students = $studentSyncStatus;
+            $result[] = $activity;
         }
 
         return $result;

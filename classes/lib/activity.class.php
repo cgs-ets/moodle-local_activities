@@ -64,6 +64,7 @@ class Activity {
         'timesyncplanning' => 0,
         'assessmentid' => 0,
         'recurring' => 0,
+        'recurrence' => '',
     ];
 
 
@@ -296,9 +297,6 @@ class Activity {
 
         // Merge into default values
         $data = (object) array_replace(static::defaults, (array) $data);
-        //var_export($data); exit;
-        //$this->validate_data();
-
         $id = $DB->insert_record(static::TABLE, $data);
 
         return $this->read($id);
@@ -316,7 +314,12 @@ class Activity {
             // Create new
             $this->data->id = $this->create()->data->id;
         } else {
-            $this->update();
+            try {
+                $this->update();
+            } catch (\Exception $e) {
+                var_export($e); exit;
+                //throw $e;
+            }
         }
 
         return $this->data->id;

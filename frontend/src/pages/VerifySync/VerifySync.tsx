@@ -101,16 +101,17 @@ export function VerifySync() {
           </Text>
           
           <Card withBorder mb="lg">
-            <Group justify="space-between" align="center">
-              <Text fw={500}>Select Date:</Text>
+            <div className="flex items-center gap-6">
+              <Text className="font-bold">Select Date</Text>
               <DatePickerInput
                 value={selectedDate}
                 onChange={setSelectedDate}
                 placeholder="Pick a date"
                 clearable={false}
                 valueFormat="DD/MM/YYYY"
+                className="w-48"
               />
-            </Group>
+            </div>
           </Card>
 
           {loading ? (
@@ -126,38 +127,28 @@ export function VerifySync() {
           ) : (
             <div className="space-y-4">
               {activities.map((activity) => (
-                <Card key={activity.id} withBorder>
-                  <Box mb="md">
-                    <Group justify="space-between" align="flex-start">
-
-                      <ActivityDetails activity={activity as Form} isPublic={false} />
-
-                  
-                      <Badge color="blue" variant="light">
-                        {activity.students.length} Students
-                      </Badge>
-                    </Group>
-                  </Box>
-
-                  <Box>
-                    <Text fw={500} mb="xs">Student Sync Status:</Text>
+                <Card key={activity.id} withBorder className="p-0">
+                  <Text className="first-letter:uppercase p-4 border-b mb-2" fz="xl" fw={600}>{activity.activityname}</Text>
+                  <ActivityDetails activity={activity as Form} isPublic={false} />
+                  <div className="p-4 border-t">
+                    <div className='font-bold mb-2'>Students</div>
                     <div className="space-y-2">
                       {activity.students.map((student, index) => (
                         <Group key={index} justify="space-between" className="p-2 bg-gray-50 rounded">
                           <Group gap="xs">
                             {getSyncIcon(student.synced)}
-                            <Badge variant='filled' pl={0} size="lg" h={28} color="gray.2" radius="xl" leftSection={
+                            <Badge variant="transparent" pl={0} size="lg" h={28} color="gray.2" radius="xl" leftSection={
                                 <Avatar size="sm" radius="xl" src={'/local/activities/avatar.php?username=' + student.un}><IconUser /></Avatar>
                               }
                             >
-                              <Text className="normal-case font-normal text-black text-sm">{student.fn} {student.ln} ({student.un})</Text>
+                              <Text className="ml-1 normal-case font-normal text-black text-sm">{student.fn} {student.ln} ({student.un})</Text>
                             </Badge>
                           </Group>
                           {getSyncBadge(student.synced)}
                         </Group>
                       ))}
                     </div>
-                  </Box>
+                  </div>
                 </Card>
               ))}
             </div>

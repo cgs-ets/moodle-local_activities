@@ -1,7 +1,7 @@
-import { Text, Card, Group, Avatar, Badge } from '@mantine/core';
+import { Text, Card, Avatar, Badge } from '@mantine/core';
 import dayjs from "dayjs";
 import { Form } from '../stores/formStore';
-import { IconArrowNarrowRight, IconUser } from '@tabler/icons-react';
+import { IconUser } from '@tabler/icons-react';
 import { User } from '../types/types';
 
 
