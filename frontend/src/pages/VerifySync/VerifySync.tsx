@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
-import { Container, Card, Text, Loader, Center, Title, Group, Badge, Avatar } from '@mantine/core';
+import { Container, Card, Text, Loader, Center, Title, Group, Badge, Avatar, Anchor, Button } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
-import { IconCheck, IconUser, IconX } from '@tabler/icons-react';
+import { IconCheck, IconExternalLink, IconSettings, IconUser, IconX } from '@tabler/icons-react';
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
 import dayjs from "dayjs";
 import useFetch from "../../hooks/useFetch";
 import { ActivityDetails } from "../../components/ActivityDetails";
 import { Form } from "../../stores/formStore";
+import { Link } from "react-router-dom";
 
 interface StudentSyncStatus {
   un: string;
@@ -133,7 +134,10 @@ export function VerifySync() {
             <div className="space-y-4">
               {activities.map((activity) => (
                 <Card key={activity.id} withBorder className="p-0">
-                  <Text className="first-letter:uppercase p-4 border-b mb-2" fz="xl" fw={600}>{activity.activityname}</Text>
+                  <div className="flex justify-between items-center gap-2 p-4 border-b mb-2">
+                    <a className="hover:no-underline" href={'/local/activities/' + activity.id} target="_blank"><Text className="first-letter:uppercase" fz="xl" fw={600}>{activity.activityname}</Text></a>
+                    <Button target="_blank" component={Link} to={`/${activity.id}`} size="compact-md" radius="lg" color="blue" leftSection={<IconExternalLink size={20} />}>Open</Button>
+                  </div>
                   <ActivityDetails activity={activity as Form} isPublic={false} />
                   <div className="p-4 border-t">
                     <div className='font-bold mb-2'>Students</div>
