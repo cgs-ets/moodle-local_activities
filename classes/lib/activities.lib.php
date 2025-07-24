@@ -1537,13 +1537,14 @@ class activities_lib {
         $sql = "SELECT DISTINCT a.id, a.activityname, a.timestart, a.timeend, a.staffincharge, a.recurring
                 FROM {" . static::TABLE . "} a
                 JOIN {activities_students} ast ON a.id = ast.activityid
-                WHERE a.status = 1 
+                WHERE a.status = :status 
                 AND a.recurring = 0
                 AND a.timestart >= :startofday 
                 AND a.timestart <= :endofday
                 ORDER BY a.timestart";
 
         $activities = $DB->get_records_sql($sql, array(
+            'status' => static::ACTIVITY_STATUS_APPROVED,
             'startofday' => $startofday,
             'endofday' => $endofday
         ));
@@ -1575,9 +1576,12 @@ class activities_lib {
                 );
                 
                 $absenceexists = $externalDB->get_field_sql($sql, $params);
-                
+
+                $student = utils_lib::user_stub($student);
                 $studentSyncStatus[] = array(
-                    'username' => $student,
+                    'un' => $student->un,
+                    'fn' => $student->fn,
+                    'ln' => $student->ln,
                     'synced' => !empty($absenceexists)
                 );
             }
@@ -1587,7 +1591,7 @@ class activities_lib {
                 'activityname' => $activity->activityname,
                 'timestart' => $activity->timestart,
                 'timeend' => $activity->timeend,
-                'staffincharge' => $activity->staffincharge,
+                'staffincharge' => utils_lib::user_stub($activity->staffincharge),
                 'students' => $studentSyncStatus
             );
         }

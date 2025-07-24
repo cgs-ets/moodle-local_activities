@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
-import { Box, Container, Card, Text, Loader, Center, Title, Group, Badge } from '@mantine/core';
+import { Box, Container, Card, Text, Loader, Center, Title, Group, Badge, Anchor, Avatar } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
-import { IconCheck, IconX } from '@tabler/icons-react';
+import { IconCheck, IconUser, IconX } from '@tabler/icons-react';
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
 import dayjs from "dayjs";
 import useFetch from "../../hooks/useFetch";
+import { User } from "../../types/types";
 
 interface StudentSyncStatus {
-  username: string;
+  un: string;
+  fn: string;
+  ln: string;
   synced: boolean;
 }
 
@@ -17,7 +20,7 @@ interface ActivitySyncData {
   activityname: string;
   timestart: number;
   timeend: number;
-  staffincharge: string;
+  staffincharge: User;
   students: StudentSyncStatus[];
 }
 
@@ -115,13 +118,18 @@ export function VerifySync() {
                   <Box mb="md">
                     <Group justify="space-between" align="flex-start">
                       <Box>
-                        <Title order={3} mb="xs">{activity.activityname}</Title>
+                        <Title order={4} mb="xs">
+                          <a target="_blank" href={`/local/activities/${activity.id}`}>{activity.activityname}</a>
+                        </Title>
                         <Text size="sm" c="dimmed">
-                          {dayjs.unix(activity.timestart).format("DD MMM YYYY h:mm A")} - {dayjs.unix(activity.timeend).format("h:mm A")}
+                          {dayjs.unix(activity.timestart).format("DD MMM YYYY h:mm A")} - {dayjs.unix(activity.timeend).format("DD MMM YYYY h:mm A")}
                         </Text>
-                        <Text size="sm" c="dimmed">
-                          Staff: {activity.staffincharge}
-                        </Text>
+                        <Badge variant='filled' pl={0} size="lg" h={28} color="gray.2" radius="xl" leftSection={
+                            <Avatar size="sm" radius="xl" src={'/local/activities/avatar.php?username=' + activity.staffincharge.un}><IconUser /></Avatar>
+                          }
+                        >
+                          <Text className="normal-case font-normal text-black text-sm">{activity.staffincharge.fn} {activity.staffincharge.ln} ({activity.staffincharge.un})</Text>
+                        </Badge>
                       </Box>
                       <Badge color="blue" variant="light">
                         {activity.students.length} Students
@@ -136,7 +144,12 @@ export function VerifySync() {
                         <Group key={index} justify="space-between" className="p-2 bg-gray-50 rounded">
                           <Group gap="xs">
                             {getSyncIcon(student.synced)}
-                            <Text size="sm">{student.username}</Text>
+                            <Badge variant='filled' pl={0} size="lg" h={28} color="gray.2" radius="xl" leftSection={
+                                <Avatar size="sm" radius="xl" src={'/local/activities/avatar.php?username=' + student.un}><IconUser /></Avatar>
+                              }
+                            >
+                              <Text className="normal-case font-normal text-black text-sm">{student.fn} {student.ln} ({student.un})</Text>
+                            </Badge>
                           </Group>
                           {getSyncBadge(student.synced)}
                         </Group>
