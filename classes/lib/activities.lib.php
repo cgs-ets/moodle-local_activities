@@ -1534,20 +1534,21 @@ class activities_lib {
         $startofday = strtotime('midnight', $date);
         $endofday = strtotime('tomorrow', $startofday) - 1;
         
-        $sql = "SELECT DISTINCT a.id, a.activityname, a.timestart, a.timeend, a.staffincharge, a.recurring
+        $sql = "SELECT DISTINCT a.id
                 FROM {" . static::TABLE . "} a
                 JOIN {activities_students} ast ON a.id = ast.activityid
                 WHERE a.status = :status 
                 AND a.recurring = 0
                 AND a.timestart >= :startofday 
-                AND a.timestart <= :endofday
-                ORDER BY a.timestart";
+                AND a.timestart <= :endofday";
 
         $activities = $DB->get_records_sql($sql, array(
             'status' => static::ACTIVITY_STATUS_APPROVED,
             'startofday' => $startofday,
             'endofday' => $endofday
         ));
+
+        $activities = static::get_by_ids(array_column($activities, 'id'), static::ACTIVITY_STATUS_APPROVED, null, true);
 
         $result = array();
         $appendix = ($CFG->wwwroot != 'https://connect.cgs.act.edu.au') ? '#ID-UAT-' : '#ID-';

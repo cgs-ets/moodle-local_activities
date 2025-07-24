@@ -7,6 +7,8 @@ import { Footer } from "../../components/Footer";
 import dayjs from "dayjs";
 import useFetch from "../../hooks/useFetch";
 import { User } from "../../types/types";
+import { ActivityDetails } from "../../components/ActivityDetails";
+import { Form } from "../../stores/formStore";
 
 interface StudentSyncStatus {
   un: string;
@@ -15,12 +17,8 @@ interface StudentSyncStatus {
   synced: boolean;
 }
 
-interface ActivitySyncData {
+interface ActivitySyncData extends Form {
   id: number;
-  activityname: string;
-  timestart: number;
-  timeend: number;
-  staffincharge: User;
   students: StudentSyncStatus[];
 }
 
@@ -86,7 +84,21 @@ export function VerifySync() {
       <Header />
       <div className="page-wrapper" style={{minHeight: 'calc(100vh - 154px)'}}>
         <Container size="xl" py="md">
-          <Title order={1} mb="lg">Verify Sync Status</Title>
+          <Title order={1} mb="lg">Absences sync verification</Title>
+
+          <Text mb="lg">
+            The following list shows all 
+            <strong>approved</strong> activities that have
+            <strong>students</strong> and that 
+            <strong>start on the selected date</strong>. 
+            Students that do not have <strong>permission</strong> are not included in the list.
+            <br />
+            <br />
+            <strong>Synced</strong> means that the student has an absence record for the activity.
+            <br />
+            <br />
+            <strong>Not Synced</strong> means that the student does not have an absence record for the activity.
+          </Text>
           
           <Card withBorder mb="lg">
             <Group justify="space-between" align="center">
@@ -117,20 +129,10 @@ export function VerifySync() {
                 <Card key={activity.id} withBorder>
                   <Box mb="md">
                     <Group justify="space-between" align="flex-start">
-                      <Box>
-                        <Title order={4} mb="xs">
-                          <a target="_blank" href={`/local/activities/${activity.id}`}>{activity.activityname}</a>
-                        </Title>
-                        <Text size="sm" c="dimmed">
-                          {dayjs.unix(activity.timestart).format("DD MMM YYYY h:mm A")} - {dayjs.unix(activity.timeend).format("DD MMM YYYY h:mm A")}
-                        </Text>
-                        <Badge variant='filled' pl={0} size="lg" h={28} color="gray.2" radius="xl" leftSection={
-                            <Avatar size="sm" radius="xl" src={'/local/activities/avatar.php?username=' + activity.staffincharge.un}><IconUser /></Avatar>
-                          }
-                        >
-                          <Text className="normal-case font-normal text-black text-sm">{activity.staffincharge.fn} {activity.staffincharge.ln} ({activity.staffincharge.un})</Text>
-                        </Badge>
-                      </Box>
+
+                      <ActivityDetails activity={activity as Form} isPublic={false} />
+
+                  
                       <Badge color="blue" variant="light">
                         {activity.students.length} Students
                       </Badge>
