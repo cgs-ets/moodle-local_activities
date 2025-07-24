@@ -16,6 +16,7 @@ use \local_activities\lib\utils_lib;
 use \local_activities\lib\service_lib;
 use \local_activities\lib\workflow_lib;
 use \local_activities\lib\recurrence_lib;
+use \moodle_exception;
 
 /**
  * Activity lib

@@ -90,6 +90,8 @@ class service_lib {
     
         } catch (\Exception $e) {       
             $exception = get_exception_info($e);
+            // Remove class name prefix (e.g. "Exception - ") if present
+            $exception->message = preg_replace('/^[^–-]+[-–]\s*/', '', $exception->message);
             unset($exception->a);
             $exception->backtrace = format_backtrace($exception->backtrace, true);
             if (!debugging('', DEBUG_DEVELOPER)) {

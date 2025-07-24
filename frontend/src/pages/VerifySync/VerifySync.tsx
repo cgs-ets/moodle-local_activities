@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import { Box, Container, Card, Text, Loader, Center, Title, Group, Badge, Anchor, Avatar } from '@mantine/core';
+import { Container, Card, Text, Loader, Center, Title, Group, Badge, Avatar } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
 import { IconCheck, IconUser, IconX } from '@tabler/icons-react';
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
 import dayjs from "dayjs";
 import useFetch from "../../hooks/useFetch";
-import { User } from "../../types/types";
 import { ActivityDetails } from "../../components/ActivityDetails";
 import { Form } from "../../stores/formStore";
 
@@ -26,6 +25,7 @@ export function VerifySync() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [activities, setActivities] = useState<ActivitySyncData[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const api = useFetch();
 
   useEffect(() => {
@@ -42,6 +42,7 @@ export function VerifySync() {
     if (!selectedDate) return;
     
     setLoading(true);
+    setError(null);
     try {
       const response = await api.call({
         query: {
@@ -54,10 +55,12 @@ export function VerifySync() {
         setActivities(response.data || []);
       } else {
         setActivities([]);
+        setError(response?.exception?.message || "Unknown error occurred.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching sync data:', error);
       setActivities([]);
+      setError(error?.message || "Failed to fetch sync data.");
     } finally {
       setLoading(false);
     }
@@ -87,15 +90,11 @@ export function VerifySync() {
           <Title order={1} mb="lg">Absences sync verification</Title>
 
           <Text mb="lg">
-            The following list shows all 
-            <strong>approved</strong> activities that have
-            <strong>students</strong> and that 
-            <strong>start on the selected date</strong>. 
-            Students that do not have <strong>permission</strong> are not included in the list.
+            The following list shows all <strong>approved</strong> activities that have <strong>students</strong> and that <strong>start on the selected date</strong>. 
             <br />
+            Students that do not have <strong>permission</strong> to attend are not included in the list.
             <br />
             <strong>Synced</strong> means that the student has an absence record for the activity.
-            <br />
             <br />
             <strong>Not Synced</strong> means that the student does not have an absence record for the activity.
           </Text>
@@ -118,6 +117,12 @@ export function VerifySync() {
             <Center h={200}>
               <Loader type="dots" />
             </Center>
+          ) : error ? (
+            <Card withBorder>
+              <Center h={200}>
+                <Text c="red">{error}</Text>
+              </Center>
+            </Card>
           ) : activities.length === 0 ? (
             <Card withBorder>
               <Center h={200}>
