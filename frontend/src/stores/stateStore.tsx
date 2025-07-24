@@ -72,6 +72,7 @@ const useStateStore = create<StateStore>((set, get) => ({
     })
   },
   updateHash: () => {
+    console.log("Updating hash")
     const hash = exportActivityHash()
     set((state: State) => {
       return { 
