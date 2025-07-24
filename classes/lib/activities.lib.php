@@ -1509,6 +1509,92 @@ class activities_lib {
         return $activities;
     }
 
+    /**
+     * Get approved activities with student lists for sync verification.
+     *
+     * @param int $date Unix timestamp for the date to check
+     * @return array Array of activities with student sync status
+     */
+    public static function get_for_sync_verification($date) {
+        global $DB, $CFG;
+        
+        $config = get_config('local_activities');
+        if (empty($config->dbhost ?? '') || empty($config->dbuser ?? '') || empty($config->dbpass ?? '') || empty($config->dbname ?? '')) {
+            return array();
+        }
+
+        try {
+            $externalDB = \moodle_database::get_driver_instance($config->dbtype, 'native', true);
+            $externalDB->connect($config->dbhost, $config->dbuser, $config->dbpass, $config->dbname, '');
+        } catch (Exception $e) {
+            return array();
+        }
+
+        // Get approved activities that have students and are on the specified date
+        $startofday = strtotime('midnight', $date);
+        $endofday = strtotime('tomorrow', $startofday) - 1;
+        
+        $sql = "SELECT DISTINCT a.id, a.activityname, a.timestart, a.timeend, a.staffincharge, a.recurring
+                FROM {" . static::TABLE . "} a
+                JOIN {activities_students} ast ON a.id = ast.activityid
+                WHERE a.status = 1 
+                AND a.recurring = 0
+                AND a.timestart >= :startofday 
+                AND a.timestart <= :endofday
+                ORDER BY a.timestart";
+
+        $activities = $DB->get_records_sql($sql, array(
+            'startofday' => $startofday,
+            'endofday' => $endofday
+        ));
+
+        $result = array();
+        $appendix = ($CFG->wwwroot != 'https://connect.cgs.act.edu.au') ? '#ID-UAT-' : '#ID-';
+
+        foreach ($activities as $activity) {
+            // Get students for this activity
+            $students = static::get_all_attending($activity->id);
+            
+            if (empty($students)) {
+                continue;
+            }
+
+            $activitystart = date('Y-m-d H:i', $activity->timestart);
+            $activityend = date('Y-m-d H:i', $activity->timeend);
+            
+            $studentSyncStatus = array();
+            
+            foreach ($students as $student) {
+                // Check if absence exists for this student and activity
+                $sql = $config->checkabsencesql . ' :username, :leavingdate, :returningdate, :comment';
+                $params = array(
+                    'username' => $student,
+                    'leavingdate' => $activitystart,
+                    'returningdate' => $activityend,
+                    'comment' => $appendix . $activity->id,
+                );
+                
+                $absenceexists = $externalDB->get_field_sql($sql, $params);
+                
+                $studentSyncStatus[] = array(
+                    'username' => $student,
+                    'synced' => !empty($absenceexists)
+                );
+            }
+
+            $result[] = array(
+                'id' => $activity->id,
+                'activityname' => $activity->activityname,
+                'timestart' => $activity->timestart,
+                'timeend' => $activity->timeend,
+                'staffincharge' => $activity->staffincharge,
+                'students' => $studentSyncStatus
+            );
+        }
+
+        return $result;
+    }
+
     public static function get_for_roll_creation($now, $startlimit) {
         global $DB;
     

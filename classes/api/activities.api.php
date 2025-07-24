@@ -183,4 +183,14 @@ trait activities_api {
         return activities_lib::soft_delete($data->id);
     }
 
+    /**
+     * Get activities for sync verification.
+     *
+     * @return array Array of activities with student sync status
+     */
+    static public function get_sync_verification() {
+        $date = required_param('date', PARAM_INT);
+        return activities_lib::get_for_sync_verification($date);
+    }
+
 }

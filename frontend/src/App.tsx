@@ -13,6 +13,7 @@ import { Assessments } from "./pages/Assessment/Assessments";
 import { Preview } from "./pages/Preview/Preview";
 import { Public } from "./pages/Public/Public";
 import { PublicSingle } from "./pages/Public/PublicSingle";
+import { VerifySync } from "./pages/VerifySync/VerifySync";
 
 
 function App() { 
@@ -32,6 +33,7 @@ function App() {
       { path: "assessment/:id", element: <Assessment /> },
       { path: ":id/permission", element: <Permission /> },
       { path: ":id/preview", element: <Preview /> },
+      { path: "verify-sync", element: <VerifySync /> },
       { path: ":id", element: <EditActivity /> },
     ],
     { basename: '/local/activities' }
