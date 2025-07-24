@@ -120,16 +120,21 @@ class cron_create_absences extends \core\task\scheduled_task {
                 }
 
                 // Delete absences for students no longer attending event.
-                $studentscsv = implode(',', $attending);
-                $this->log("Delete absences for students not in the following list: " . $studentscsv, 2);
-                $sql = $config->deleteabsencessql . ' :leavingdate, :returningdate, :comment, :studentscsv';
-                $params = array(
-                    'leavingdate' => $activitystart,
-                    'returningdate' => $activityend,
-                    'comment' => $this->appendix . $activity->get('id'),
-                    'studentscsv' => implode(',', $attending),
-                );
-                $externalDB->execute($sql, $params);
+                if (empty($attending)) {
+                    $this->log("No students attending activity " . $activity->get('id') . ". Skipping deletion of absences just incase something is amiss.", 2);
+                } else {
+                    $studentscsv = implode(',', $attending);
+                    $this->log("Delete absences for students not in the following list: " . $studentscsv, 2);
+                    $sql = $config->deleteabsencessql . ' :leavingdate, :returningdate, :comment, :studentscsv';
+                    $params = array(
+                        'leavingdate' => $activitystart,
+                        'returningdate' => $activityend,
+                        'comment' => $this->appendix . $activity->get('id'),
+                        'studentscsv' => implode(',', $attending),
+                    );
+                    $externalDB->execute($sql, $params);
+                }
+                
                 
                 // Mark as processed.
                 // We can't mark recurring entries as processed. This will prevent future occurrences from being synced.
@@ -153,6 +158,11 @@ class cron_create_absences extends \core\task\scheduled_task {
                 $this->log("Checking for orphaned occurrences for activity " . $activity->get('id'));
                 $checked_activities[] = $activity->get('id');
                 $occurrences = $DB->get_records('activities_occurrences', array('activityid' => $activity->get('id')));
+
+                if (empty($occurrences)) {
+                    $this->log("No occurrences found for activity " . $activity->get('id'));
+                    continue;
+                }
 
                 // Remove seconds (hangover from previous code that would add default seconds into timestamps)
                 foreach ($occurrences as &$occurrence) {
