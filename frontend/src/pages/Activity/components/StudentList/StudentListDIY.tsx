@@ -51,9 +51,11 @@ export function StudentListDIY() {
   useEffect(() => { 
     if (fetchResponse && !fetchError) {
       setState({['studentlist']: fetchResponse.data} as Form)
+    }
+    if (!fetchError) {
       setStudentsLoaded()
     }
-  }, [fetchResponse]);
+  }, [fetchResponse, fetchError]);
 
 
   const insertStudents = (students: User[]) => {

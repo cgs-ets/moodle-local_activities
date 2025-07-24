@@ -36,6 +36,7 @@ export function EditActivity() {
   const setFormData = useFormStore((state) => state.setState)
   const activityid = useFormStore((state) => state.id)
   const setFormLoaded = useStateStore((state) => (state.setFormLoaded))
+  const formLoaded = useStateStore((state) => (state.formloaded))
   const baselineHash = useStateStore((state) => (state.baselineHash))
   const resetHash = useStateStore((state) => (state.resetHash))
   const validationRules = useFormValidationStore((state) => state.rules)
@@ -136,8 +137,6 @@ export function EditActivity() {
     setFormData({...defaults, ...data})
     setFormLoaded()
   }
-
-
 
   const navigate = useNavigate()
 
