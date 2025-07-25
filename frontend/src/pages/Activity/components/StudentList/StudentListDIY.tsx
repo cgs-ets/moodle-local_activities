@@ -13,6 +13,7 @@ import { cn, isActivity } from '../../../../utils/utils';
 import { useAjax } from '../../../../hooks/useAjax';
 import { EmailModal } from '../EmailModal/EmailModal';
 import { StuListReports } from './StuListReports';
+import useFetch from '../../../../hooks/useFetch';
 
 
 export function StudentListDIY() {
@@ -30,33 +31,34 @@ export function StudentListDIY() {
   const [isOpenReports, {close: closeReports, open: openReports}] = useDisclosure(false);
   const savedtime = useStateStore((state) => (state.savedtime))
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
-  const [rowSelection, setRowSelection] = useState({});
+  const [rowSelection, setRowSelection] = useState({}); 
 
+  const api = useFetch()
 
-  const [fetchResponse, fetchError, fetchLoading, fetchAjax] = useAjax(); // destructure state and fetch function
-  useEffect(() => {
-    if (id) {
-      console.log("get student list")
-      // Fetch student list for this activity.
-      fetchAjax({
-        query: {
-          methodname: 'local_activities-get_students',
-          id: id,
-          withpermissions: true,
-        }
-      })
+  const getStudents = async () => {
+    console.log("get student list")
+    const fetchResponse = await api.call({
+      query: {
+        methodname: 'local_activities-get_students',
+        id: id,
+        withpermissions: true,
+      }
+    })
+    if (fetchResponse.error) {
+      return
     }
-  }, [id, savedtime])
 
-  useEffect(() => { 
-    if (fetchResponse && !fetchError) {
+    if (fetchResponse.data) {
       setState({['studentlist']: fetchResponse.data} as Form)
     }
-    if (!fetchError) {
-      setStudentsLoaded()
-    }
-  }, [fetchResponse, fetchError]);
+    setStudentsLoaded()
+  }
 
+  useEffect(() => {
+    if (id) {
+      getStudents()
+    }
+  }, [id, savedtime])
 
   const insertStudents = (students: User[]) => {
     // Deduplicate.
@@ -82,8 +84,6 @@ export function StudentListDIY() {
           : [studentColumn(showPermissions)]),
     [showPermissions]
   )
-
-
 
 
   //const allFilters = ['all', 'granted', 'denied', 'noresponse'];
@@ -173,7 +173,7 @@ export function StudentListDIY() {
             </Group>
           </div>
 
-          { fetchLoading 
+          { api.state.loading 
             ? <div className="p-4 border-t border-gray-300"><Loader size="sm" /></div>
             : (
                 studentlist?.length == 0 
