@@ -2366,7 +2366,7 @@ class activities_lib {
     }
    
 
-    public static function duplicate_activity($activityid) {
+    public static function duplicate_activity($activityid, $options) {
         global $DB;
 
         $activity = new Activity($activityid);
@@ -2378,14 +2378,18 @@ class activities_lib {
         $data->attachments = '';
         $data->planningstaff = json_decode($data->planningstaffjson);
         $data->accompanyingstaff = json_decode($data->accompanyingstaffjson);
-        $data->studentlist = json_decode($activity->get('studentsdata'));
+        $data->studentlist = [];
+        if ($options['studentlist']) {
+            $data->studentlist = json_decode($activity->get('studentsdata'));
+        }
         $data->recurringAcceptChanges = true;
+
         $result = (object) static::save_from_data($data);
 
         // Copy files...
         $fs = get_file_storage();
 
-        if ($files = $fs->get_area_files(1, 'local_activities', 'riskassessment', $activityid, "filename", true)) {
+        if ($options['riskassessment'] && $files = $fs->get_area_files(1, 'local_activities', 'riskassessment', $activityid, "filename", true)) {
             foreach ($files as $file) {
                 $newrecord = new \stdClass();
                 $newrecord->itemid = $result->id;
@@ -2393,7 +2397,7 @@ class activities_lib {
             }
         }
 
-        if ($files = $fs->get_area_files(1, 'local_excursions', 'ra', $data->oldexcursionid, "filename", true)) {
+        if ($options['riskassessment'] && $files = $fs->get_area_files(1, 'local_excursions', 'ra', $data->oldexcursionid, "filename", true)) {
             foreach ($files as $file) {
                 $newrecord = new \stdClass();
                 $newrecord->itemid = $result->id;
@@ -2403,7 +2407,7 @@ class activities_lib {
             }
         }
 
-        if ($files = $fs->get_area_files(1, 'local_activities', 'attachments', $activityid, "filename", true)) {
+        if ($options['attachments'] && $files = $fs->get_area_files(1, 'local_activities', 'attachments', $activityid, "filename", true)) {
             foreach ($files as $file) {
                 $newrecord = new \stdClass();
                 $newrecord->itemid = $result->id;
@@ -2411,7 +2415,7 @@ class activities_lib {
             }
         }
 
-        if ($files = $fs->get_area_files(1, 'local_excursions', 'attachments', $data->oldexcursionid, "filename", true)) {
+        if ($options['attachments'] && $files = $fs->get_area_files(1, 'local_excursions', 'attachments', $data->oldexcursionid, "filename", true)) {
             foreach ($files as $file) {
                 $newrecord = new \stdClass();
                 $newrecord->itemid = $result->id;

@@ -199,7 +199,7 @@ trait activities_api {
      * @return array containing activityid.
      */
     static public function duplicate_activity($args) { 
-        return activities_lib::duplicate_activity($args['id']);
+        return activities_lib::duplicate_activity($args['id'], $args['options']);
     }
 
 }
