@@ -1,5 +1,5 @@
 import { Card, Group, Button, Text, Menu, Loader, Transition, Box } from '@mantine/core';
-import { IconDots, IconCloudUp, IconCheckbox, IconArrowMoveLeft, IconCheck, IconTrash } from '@tabler/icons-react';
+import { IconDots, IconCloudUp, IconCheckbox, IconArrowMoveLeft, IconCheck, IconTrash, IconCopy } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import { useDisclosure, useTimeout } from '@mantine/hooks';
 import { statuses } from '../../../../utils';
@@ -9,6 +9,7 @@ import { Form, useFormStore } from '../../../../stores/formStore';
 import { useStateStore } from '../../../../stores/stateStore';
 import { entryStatus, excursionStatus, isActivity, isCalEntry } from '../../../../utils/utils';
 import { useWorkflowStore } from '../../../../stores/workflowStore';
+import useFetch from '../../../../hooks/useFetch';
 
 export function Status({
   submitLoading, 
@@ -32,10 +33,13 @@ export function Status({
   const hash = useStateStore((state) => (state.hash))
   const setFormData = useFormStore((state) => state.setState)
   const setApprovals = useWorkflowStore((state) => state.setApprovals)
+  const [error, setError] = useState<string | null>(null)
 
   const formloaded = useStateStore((state) => (state.formloaded))
   const studentsloaded = useStateStore((state) => (state.studentsloaded))
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
+
+  const api = useFetch()
 
   // When everything is loaded, set the baseline.
   useEffect(() => {
@@ -148,8 +152,31 @@ export function Status({
       options.push(<Menu.Item key={2} onMouseDown={() => handleDelete()} leftSection={<IconTrash size={14} />}>Delete</Menu.Item>)
     }
 
+    if (status >= statuses.saved) {
+      options.push(<Menu.Item key={3} onMouseDown={() => handleDuplicate()} leftSection={<IconCopy size={14} />}>Duplicate</Menu.Item>)
+    }
+
     return options
   }
+
+  const handleDuplicate = async () => {
+    console.log("duplicate")
+    const response = await api.call({
+      method: "POST",
+      body: {
+        methodname: 'local_activities-duplicate_activity',
+        args: {
+          id: id,
+        },
+      }
+    })
+    if (!response.error && response.data) {
+      window.open('/local/activities/' + response.data, '_blank')
+    } else {
+      setError(response.exception?.message ?? "Error")
+    }
+  }
+
 
 
 
@@ -170,7 +197,7 @@ export function Status({
       <div className="page-pretitle">Status</div>      
       <Text size="md" fw={500}>{ statusText() }</Text>
 
-      { submitLoading || pubLoading && <Loader size="sm" m="xs" pos="absolute" right={5} top={5} /> }
+      { submitLoading || pubLoading || api.state.loading && <Loader size="sm" m="xs" pos="absolute" right={5} top={5} /> }
       <Transition mounted={(!submitLoading && !submitError && !haschanges && saveComplete)} transition="fade" duration={500} timingFunction="ease">
         {(styles) => 
           <Box style={{ ...styles, position: 'absolute', top: 15,  right: 15 }}>
@@ -239,6 +266,12 @@ export function Status({
             : null
           }
         </Group>
+      }
+
+      { error &&
+        <Text c="red" size="sm" mt="xs">
+          { error }
+        </Text>
       }
         
     </Card>

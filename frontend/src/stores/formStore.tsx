@@ -27,7 +27,6 @@ export type Form = {
 
   permissions: boolean;
   permissionsinitial: boolean,
-  permissionstype: string;
   permissionslimit: string;
   permissionsdueby: number;
   permissionsent: boolean;
@@ -97,7 +96,6 @@ const defaults: Form = {
 
   permissions: false,
   permissionsinitial: false,
-  permissionstype: '',
   permissionslimit: '',
   permissionsdueby: dayjs().unix(),
   permissionsent: false,

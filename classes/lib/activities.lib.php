@@ -242,7 +242,6 @@ class activities_lib {
             $activity->set('transport', $data->transport);
             $activity->set('cost', $data->cost);
             $activity->set('permissions', $data->permissions);
-            $activity->set('permissionstype', $data->permissionstype);
             $activity->set('permissionslimit', $data->permissionslimit);
             $activity->set('permissionsdueby', $data->permissionsdueby);
             $activity->set('otherparticipants', $data->otherparticipants);
@@ -283,7 +282,6 @@ class activities_lib {
             $activity->set('planningstaffjson', $data->planningstaffjson);
             $activity->set('accompanyingstaffjson', $data->accompanyingstaffjson);
             $activity->save();
-
 
             // If categoriesjson is empty, set a default value based on campus.
             $categoriesjson = json_decode($data->categoriesjson);
@@ -330,13 +328,13 @@ class activities_lib {
             // Sync the staff lists.
             static::sync_staff_from_data($activity->get('id'), 'planning', $data->planningstaff);
             static::sync_staff_from_data($activity->get('id'), 'accompany', $data->accompanyingstaff);
-
+   
             // Sync the student list.
             $studentusernames = array_map(function($u) {
-                return $u['un'];
+                $u = (object) $u;
+                return $u->un;
             }, $data->studentlist);
             static::sync_students_from_data($activity->get('id'), $studentusernames);
-
 
             // Save recurring settings.
             $newdates = null;
@@ -359,7 +357,6 @@ class activities_lib {
                 }
             }
 
-
             // Generate parent permissions based on student list.
             static::generate_permissions($data->id);
 
@@ -379,8 +376,6 @@ class activities_lib {
                 $params = array($activity->get('id'), $data->assessmentid);
                 $DB->execute($sql, $params);
             }
-
-
 
         } catch (\Exception $e) {
             // Log and rethrow. 
@@ -473,7 +468,7 @@ class activities_lib {
         $existingstaffrecs = static::get_staff($activityid, $type, $fields = '*');
         $existingstaff = array_column($existingstaffrecs, "username");
         $existingstaff = array_combine($existingstaff, $existingstaff);
-
+        
         // Skip over existing staff.
         foreach ($existingstaff as $un) {
             if (array_key_exists($un, $newstaff)) {
@@ -485,9 +480,10 @@ class activities_lib {
         // Process inserted staff.
         if (count($newstaff)) {
             $newstaffdata = array_map(function($staff) use ($activityid, $type) {
+                $staff = (object) $staff;
                 $rec = new \stdClass();
                 $rec->activityid = $activityid;
-                $rec->username = $staff['un'];
+                $rec->username = $staff->un;
                 $rec->usertype = $type;
                 return $rec;
             }, $newstaff);
@@ -752,9 +748,6 @@ class activities_lib {
         foreach ($originalvars as $key => $val) {
             if ($val != $newvars[$key]) {
                 $label = $key;
-                if ($key == "permissionstype") {
-                    $label = 'Permission invite type';
-                }
                 if ($key == "permissionslimit") {
                     $label = 'Permissions limit';
                 }
@@ -2373,7 +2366,41 @@ class activities_lib {
     }
    
 
+    public static function duplicate_activity($activityid) {
+        global $DB;
 
+        $activity = new Activity($activityid);
+        $data = $activity->export();
+        $data->id = 0;
+        $data->staffincharge = [$data->staffincharge];
+        $data->riskassessment = '';
+        $data->attachments = '';
+        $data->planningstaff = json_decode($data->planningstaffjson);
+        $data->accompanyingstaff = json_decode($data->accompanyingstaffjson);
+        $data->studentlist = json_decode($data->studentlistjson);
+        $data->recurringAcceptChanges = true;
+        $result = (object) static::save_from_data($data);
+
+        // Copy files...
+        $fs = get_file_storage();
+        if ($files = $fs->get_area_files(1, 'local_activities', 'riskassessment', $activityid, "filename", true)) {
+            foreach ($files as $file) {
+                $newrecord = new \stdClass();
+                $newrecord->itemid = $result->id;
+                $fs->create_file_from_storedfile($newrecord, $file);
+            }
+        }
+
+        if ($files = $fs->get_area_files(1, 'local_activities', 'attachments', $activityid, "filename", true)) {
+            foreach ($files as $file) {
+                $newrecord = new \stdClass();
+                $newrecord->itemid = $result->id;
+                $fs->create_file_from_storedfile($newrecord, $file);
+            }
+        }
+
+        return $result->id;
+    }
 
 
 

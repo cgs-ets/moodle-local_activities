@@ -40,7 +40,6 @@ class Activity {
         'cost' => '',
         'status' => 0,
         'permissions' => 0,
-        'permissionstype' => '',
         'permissionslimit' => 0,
         'permissionsdueby' => 0,
         'deleted' => 0,

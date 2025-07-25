@@ -193,4 +193,13 @@ trait activities_api {
         return activities_lib::get_for_sync_verification($date);
     }
 
+    /**
+     * Duplicate an activity.
+     *
+     * @return array containing activityid.
+     */
+    static public function duplicate_activity($args) { 
+        return activities_lib::duplicate_activity($args['id']);
+    }
+
 }
