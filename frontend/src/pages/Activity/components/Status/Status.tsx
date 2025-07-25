@@ -286,7 +286,7 @@ export function Status({
         opened={duplicateOpened} 
         onClose={closeDuplicate} 
         title="Duplicate activity"
-        size="xl" 
+        size="lg" 
         styles={{
           header: {
             borderBottom: '0.0625rem solid #dee2e6',
@@ -303,7 +303,7 @@ export function Status({
        
             <div>
               <Text>A clone of this activity will be created, as a draft, with the following options:</Text>
-              <div className='mt-2'>
+              <div className='mt-4'>
                 {Object.entries(duplicateOptions).map(([key, value], index) => (
                   <div key={index}>
                     <Switch
