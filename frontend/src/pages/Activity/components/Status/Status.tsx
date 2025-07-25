@@ -177,6 +177,7 @@ export function Status({
         },
       }
     })
+    closeDuplicate()
     if (!response.error && response.data) {
       window.open('/local/activities/' + response.data, '_blank')
     } else {
@@ -319,7 +320,7 @@ export function Status({
             </div>
 
             <Flex className='mt-4 justify-end'>
-              <Button onClick={handleDuplicate} leftSection={<IconCopy size="1rem" />} radius="xl" >Duplicate</Button>
+              <Button onClick={handleDuplicate} leftSection={<IconCopy size="1rem" />} radius="xl" loading={api.state.loading}>Duplicate</Button>
             </Flex>
               
           </Box>
