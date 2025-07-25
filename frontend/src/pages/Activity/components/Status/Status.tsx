@@ -39,10 +39,13 @@ export function Status({
 
   // When everything is loaded, set the baseline.
   useEffect(() => {
+    console.log("baselineHash", formloaded, studentsloaded, isCalEntry(activitytype), isActivity(initialActivitytype))
+    console.log("initialActivityType", initialActivitytype)
+
     if (formloaded && (isCalEntry(activitytype) || (isActivity(initialActivitytype) && studentsloaded))) {
       baselineHash()
     }
-  }, [formloaded, studentsloaded])
+  }, [formloaded, studentsloaded, initialActivitytype, activitytype])
 
   // Whenever something changes, update the hash.
   useEffect(() => {

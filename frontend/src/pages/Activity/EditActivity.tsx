@@ -116,7 +116,7 @@ export function EditActivity() {
       accompanyingstaff: JSON.parse(fetchResponse.data.accompanyingstaffjson || '[]'),
       staffincharge: [JSON.parse(fetchResponse.data.staffinchargejson || null)].filter(item => item !== null),
       initialCampus: fetchResponse.data.campus,
-      initialActivityType: fetchResponse.data.activitytype,
+      initialActivitytype: fetchResponse.data.activitytype,
       displaypublic: !!Number(fetchResponse.data.displaypublic),
       pushpublic: !!Number(fetchResponse.data.pushpublic),
       // Convert to bool.
