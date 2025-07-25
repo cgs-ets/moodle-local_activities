@@ -24,7 +24,7 @@ export function Status({
   const formData = useFormStore()
   const status = useFormStore((state) => (state.status))
   const activitytype = useFormStore((state) => (state.activitytype))
-  const initialActivityType = useFormStore((state) => (state.initialActivityType))
+  const initialActivitytype = useFormStore((state) => (state.initialActivitytype))
   const assessmentid = useFormStore((state) => (state.assessmentid))
   const haschanges = useStateStore((state) => (state.haschanges))
   const updateHash = useStateStore((state) => (state.updateHash))
@@ -39,8 +39,7 @@ export function Status({
 
   // When everything is loaded, set the baseline.
   useEffect(() => {
-    console.log("baselineHash", formloaded, studentsloaded, isCalEntry(activitytype), isActivity(initialActivityType))
-    if (formloaded && (isCalEntry(activitytype) || (isActivity(initialActivityType) && studentsloaded))) {
+    if (formloaded && (isCalEntry(activitytype) || (isActivity(initialActivitytype) && studentsloaded))) {
       baselineHash()
     }
   }, [formloaded, studentsloaded])

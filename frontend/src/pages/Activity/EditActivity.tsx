@@ -116,7 +116,7 @@ export function EditActivity() {
       accompanyingstaff: JSON.parse(fetchResponse.data.accompanyingstaffjson || '[]'),
       staffincharge: [JSON.parse(fetchResponse.data.staffinchargejson || null)].filter(item => item !== null),
       initialCampus: fetchResponse.data.campus,
-      initialActivitytype: fetchResponse.data.activitytype,
+      initialActivityType: fetchResponse.data.activitytype,
       displaypublic: !!Number(fetchResponse.data.displaypublic),
       pushpublic: !!Number(fetchResponse.data.pushpublic),
       // Convert to bool.
@@ -132,6 +132,7 @@ export function EditActivity() {
       recurring: !!Number(fetchResponse.data.recurring),
       recurrence: {...defaults.recurrence, ...JSON.parse(fetchResponse.data.recurrence || JSON.stringify(defaults.recurrence))},
       occurences: fetchResponse.data.occurences,
+      recurringAcceptChanges: false,
     }
     // Merge into default values
     setFormData({...defaults, ...data})
@@ -241,7 +242,7 @@ export function EditActivity() {
         args: formData,
       }
     })
-    setFormData({initialActivitytype: formData.initialActivitytype} as Form)
+    setFormData({initialActivitytype: formData.activitytype} as Form)
     setFormData({initialCampus: formData.campus} as Form)
     setFormData({recurringAcceptChanges: false} as Form)
   }
