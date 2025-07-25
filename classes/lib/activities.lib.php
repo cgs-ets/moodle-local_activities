@@ -328,7 +328,7 @@ class activities_lib {
             // Sync the staff lists.
             static::sync_staff_from_data($activity->get('id'), 'planning', $data->planningstaff);
             static::sync_staff_from_data($activity->get('id'), 'accompany', $data->accompanyingstaff);
-   
+
             // Sync the student list.
             $studentusernames = array_map(function($u) {
                 $u = (object) $u;
@@ -690,7 +690,7 @@ class activities_lib {
 
 
 
-
+    // TODO: This is slow. Iterating through every student/mentor. Need to do in bulk.
     private static function generate_permissions($activityid) {
         global $DB, $USER;
 
@@ -2370,6 +2370,7 @@ class activities_lib {
         global $DB;
 
         $activity = new Activity($activityid);
+        $activity->load_studentsdata();
         $data = $activity->export();
         $data->id = 0;
         $data->staffincharge = [$data->staffincharge];
@@ -2377,16 +2378,27 @@ class activities_lib {
         $data->attachments = '';
         $data->planningstaff = json_decode($data->planningstaffjson);
         $data->accompanyingstaff = json_decode($data->accompanyingstaffjson);
-        $data->studentlist = json_decode($data->studentlistjson);
+        $data->studentlist = json_decode($activity->get('studentsdata'));
         $data->recurringAcceptChanges = true;
         $result = (object) static::save_from_data($data);
 
         // Copy files...
         $fs = get_file_storage();
+
         if ($files = $fs->get_area_files(1, 'local_activities', 'riskassessment', $activityid, "filename", true)) {
             foreach ($files as $file) {
                 $newrecord = new \stdClass();
                 $newrecord->itemid = $result->id;
+                $fs->create_file_from_storedfile($newrecord, $file);
+            }
+        }
+
+        if ($files = $fs->get_area_files(1, 'local_excursions', 'ra', $data->oldexcursionid, "filename", true)) {
+            foreach ($files as $file) {
+                $newrecord = new \stdClass();
+                $newrecord->itemid = $result->id;
+                $newrecord->component = 'local_activities';
+                $newrecord->filearea = 'riskassessment';
                 $fs->create_file_from_storedfile($newrecord, $file);
             }
         }
@@ -2399,24 +2411,16 @@ class activities_lib {
             }
         }
 
+        if ($files = $fs->get_area_files(1, 'local_excursions', 'attachments', $data->oldexcursionid, "filename", true)) {
+            foreach ($files as $file) {
+                $newrecord = new \stdClass();
+                $newrecord->itemid = $result->id;
+                $newrecord->component = 'local_activities';
+                $fs->create_file_from_storedfile($newrecord, $file);
+            }
+        }
+
         return $result->id;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }
