@@ -74,7 +74,8 @@ trait assessments_api {
     }
 
     static public function delete_assessment($args) {
-        return assessments_lib::delete($args['id']);
+        $data = (object) $args;
+        return assessments_lib::delete($data->id);
     }
 
     

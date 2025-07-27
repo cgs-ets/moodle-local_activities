@@ -279,9 +279,22 @@ class assessments_lib {
 
 
     public static function delete($id) {
-        global $DB;
+        global $DB, $USER;
 
-        $assessment = static::get($id);
+		$assessment = $DB->get_record('activities_assessments', array('id' => $id));
+        if (!$assessment) {
+            throw new \Exception("Assessment not found.");
+        }
+
+        $usercanedit = false;
+        if ($assessment->creator == $USER->username || has_capability('moodle/site:config', \context_user::instance($USER->id))) {
+            $usercanedit = true;
+        }
+
+		if (!$usercanedit) {
+            throw new \Exception("Permission denied.");
+		}
+
         $assessment->deleted = 1;
         $assessment->timemodified = time();
         $DB->update_record('activities_assessments', $assessment);
