@@ -14,6 +14,7 @@ import { Preview } from "./pages/Preview/Preview";
 import { Public } from "./pages/Public/Public";
 import { PublicSingle } from "./pages/Public/PublicSingle";
 import { VerifySync } from "./pages/VerifySync/VerifySync";
+import { Risk } from "./pages/Risk/Risk";
 
 
 function App() { 
@@ -34,7 +35,13 @@ function App() {
       { path: ":id/permission", element: <Permission /> },
       { path: ":id/preview", element: <Preview /> },
       { path: "verify-sync", element: <VerifySync /> },
+
+      { path: ":activityid/risk", element: <Risk /> },
+      { path: ":activityid/risk/:id", element: <Risk /> },
+
       { path: ":id", element: <EditActivity /> },
+
+
     ],
     { basename: '/local/activities' }
   );
