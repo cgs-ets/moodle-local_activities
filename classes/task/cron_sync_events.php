@@ -175,11 +175,15 @@ class cron_sync_events extends \core\task\scheduled_task {
                     try {
                         $this->log("Deleting existing entry in calendar $externalevent->calendar", 2);
                         $result = graph_lib::deleteEvent($externalevent->calendar, $externalevent->externalid);
+                        if ($result) {
+                            $this->log("Removing event $externalevent->eventid from sync table", 3);
+                            $DB->delete_records('activities_cal_sync', array('id' => $externalevent->id));
+                        }
                     } catch (\Exception $e) {
                         $this->log("Failed to delete event in calendar $externalevent->calendar: " . $e->getMessage(), 3);
+                        $externalevent->status = 3; // Mark as failed to delete.
+                        $DB->update_record('activities_cal_sync', $externalevent);
                     }
-                    $this->log("Removing event $externalevent->eventid from sync table", 3);
-                    $DB->delete_records('activities_cal_sync', array('id' => $externalevent->id));
                 } else {
                     $destCal = $destinationCalendars[$calIx];
                     // Entry in a valid destination calendar, update entry.
@@ -240,8 +244,10 @@ class cron_sync_events extends \core\task\scheduled_task {
                         unset($destinationCalendars[$calIx]);
                     } catch (\Exception $e) {
                         $this->log("Failed to update event in calendar $externalevent->calendar: " . $e->getMessage(), 3);
-                        $this->log("Cleaning event $externalevent->eventid from sync table", 3);
-                        $DB->delete_records('activities_cal_sync', array('id' => $externalevent->id));
+                        //$this->log("Cleaning event $externalevent->eventid from sync table", 3);
+                        //$DB->delete_records('activities_cal_sync', array('id' => $externalevent->id));
+                        $externalevent->status = 4; // Mark as failed to update.
+                        $DB->update_record('activities_cal_sync', $externalevent);
                         $error = true;
                     }
                 }
@@ -328,6 +334,7 @@ class cron_sync_events extends \core\task\scheduled_task {
                     } catch (\Exception $e) {
                         $this->log("Failed to insert event into calendar $externalevent->calendar: " . $e->getMessage(), 3);
                         $this->log(json_encode($eventdata), 3);
+                        $record->status = 5; // Mark as failed to create.
                         $error = true;
                     }
                     $id = $DB->insert_record('activities_cal_sync', $record);
