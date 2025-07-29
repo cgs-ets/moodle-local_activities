@@ -15,6 +15,7 @@ import { Public } from "./pages/Public/Public";
 import { PublicSingle } from "./pages/Public/PublicSingle";
 import { VerifySync } from "./pages/VerifySync/VerifySync";
 import { Risk } from "./pages/Risk/Risk";
+import { Settings } from "./pages/Risk/Settings";
 
 
 function App() { 
@@ -38,6 +39,7 @@ function App() {
 
       { path: ":activityid/risk", element: <Risk /> },
       { path: ":activityid/risk/:id", element: <Risk /> },
+      { path: "risk/settings", element: <Settings /> },
 
       { path: ":id", element: <EditActivity /> },
 

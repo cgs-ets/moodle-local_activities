@@ -674,4 +674,14 @@ class service_lib {
 
 
  
+    public static function cast_fields(&$records, $fieldsToCast) {
+        foreach ($records as &$record) {
+            foreach ($fieldsToCast as $field => $type) {
+                if (property_exists($record, $field)) {
+                    settype($record->$field, $type);
+                }
+            }
+        }
+    }
+
 }

@@ -124,5 +124,72 @@ function xmldb_local_activities_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2025062500, 'local', 'activities');
     }
 
+    if ($oldversion < 2025072900) {
+
+
+        // Define table activities_risks to be created.
+        $table = new xmldb_table('activities_risks');
+
+        // Adding fields to table activities_risks.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('hazard', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
+        $table->add_field('riskrating_before', XMLDB_TYPE_INTEGER, '3', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('controlmeasures', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
+        $table->add_field('riskrating_after', XMLDB_TYPE_INTEGER, '3', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('responsible_person', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('control_timing', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('risk_benefit', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('isstandard', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0');
+
+        // Adding keys to table activities_risks.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+
+        // Conditionally launch create table for activities_risks.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Define table activities_classifications to be created.
+        $table = new xmldb_table('activities_classifications');
+
+        // Adding fields to table activities_classifications.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('name', XMLDB_TYPE_CHAR, '100', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('sortorder', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 0);         
+
+        // Adding keys to table activities_classifications.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+
+        // Conditionally launch create table for activities_classifications.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+
+        // Define table activities_risk_classifications to be created.
+        $table = new xmldb_table('activities_risk_classifications');
+
+        // Adding fields to table activities_risk_classifications.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('riskid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('classificationid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+
+        // Adding keys to table activities_risk_classifications.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('fk_riskid', XMLDB_KEY_FOREIGN, ['riskid'], 'activities_risks', ['id']);
+        $table->add_key('fk_classificationid', XMLDB_KEY_FOREIGN, ['classificationid'], 'activities_classifications', ['id']);
+
+        // Adding indexes to table activities_risk_classifications.
+        $table->add_index('risk_classification_unique', XMLDB_INDEX_UNIQUE, ['riskid', 'classificationid']);
+
+        // Conditionally launch create table for activities_risk_classifications.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Activities savepoint reached.
+        upgrade_plugin_savepoint(true, 2025072900, 'local', 'activities');
+     }    
+
     return true;
 }

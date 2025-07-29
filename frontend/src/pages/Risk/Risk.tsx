@@ -40,6 +40,7 @@ export function Risk() {
   const formData = useFormStore()
   const setFormData = useFormStore((state) => state.setState)
   const api = useFetch()
+  const [loading, setLoading] = useState(true)
 
   const [riskOptions, setRiskOptions] = useState<RiskOptions>({
     ageRange: [],
@@ -81,6 +82,7 @@ export function Risk() {
 
 
   const getActivity = async () => {
+    setLoading(true)
     const fetchResponse = await api.call({
       query: {
         methodname: 'local_activities-get_activity',
@@ -97,6 +99,7 @@ export function Risk() {
       }
       setFormData({...defaults, ...data})
     }
+    setLoading(false)
   }
 
 
@@ -122,7 +125,16 @@ export function Risk() {
           ? <Center h={200} mx="auto"><Loader type="dots" /></Center> : null
         }
 
-        { !formData.usercanedit ?
+        {
+          loading &&
+          <Container size="xl">
+            <Center h={300}>
+              <Loader type="dots" />
+            </Center>
+          </Container>
+        }
+
+        { !loading && !formData.usercanedit ?
           <Container size="xl">
             <Center h={300}>
               <Text fw={600} fz="lg">Sorry, activity not found or you do not have access to this page.</Text>

@@ -5,7 +5,7 @@ import { Form } from '../../../stores/formStore';
 export function ActivityDetails({activity}: {activity: Form}) {
 
 
-  const staffincharge = JSON.parse(activity.staffinchargejson);
+  const staffincharge = JSON.parse(activity.staffinchargejson || '{}');
 
   return (
     <Card radius={0} className="p-0">
