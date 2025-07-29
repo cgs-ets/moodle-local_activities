@@ -41,6 +41,8 @@ function App() {
       { path: ":activityid/risk/:id", element: <Risk /> },
       { path: "risk/settings", element: <Settings /> },
 
+      
+
       { path: ":id", element: <EditActivity /> },
 
 
