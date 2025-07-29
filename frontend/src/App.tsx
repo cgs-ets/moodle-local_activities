@@ -16,6 +16,7 @@ import { PublicSingle } from "./pages/Public/PublicSingle";
 import { VerifySync } from "./pages/VerifySync/VerifySync";
 import { Risk } from "./pages/Risk/Risk";
 import { Settings } from "./pages/Risk/Settings";
+import { useSearchParams, Navigate } from "react-router-dom";
 
 
 function App() { 
@@ -29,6 +30,8 @@ function App() {
       { path: "/public/index.php", element: <Public /> },
       { path: "/public/:id", element: <PublicSingle /> },
 
+      { path: "/view.php", element: <LegacyViewRedirect />},
+
       { path: "new", element: <EditActivity /> },
       { path: "assessments", element: <Assessments /> },
       { path: "assessment", element: <Assessment /> },
@@ -40,8 +43,6 @@ function App() {
       { path: ":activityid/risk", element: <Risk /> },
       { path: ":activityid/risk/:id", element: <Risk /> },
       { path: "risk/settings", element: <Settings /> },
-
-      
 
       { path: ":id", element: <EditActivity /> },
 
@@ -58,6 +59,16 @@ function App() {
 
     </LocalizationProvider>
   );
+}
+
+
+function LegacyViewRedirect() {
+  const [searchParams] = useSearchParams();
+  const id = searchParams.get("id");
+
+  if (!id) return <div>Invalid legacy URL: missing ID</div>;
+
+  return <Navigate to={`/${id}`} replace />;
 }
 
 export default App
