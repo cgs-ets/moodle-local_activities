@@ -160,7 +160,7 @@ export function Status({
     }
 
     if (status >= statuses.saved) {
-      //options.push(<Menu.Item key={3} onMouseDown={() => openDuplicate()} leftSection={<IconCopy size={14} />}>Duplicate</Menu.Item>)
+      options.push(<Menu.Item key={3} onMouseDown={() => openDuplicate()} leftSection={<IconCopy size={14} />}>Duplicate</Menu.Item>)
     }
 
     return options
