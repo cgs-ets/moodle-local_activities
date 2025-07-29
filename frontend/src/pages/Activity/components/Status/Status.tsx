@@ -45,6 +45,7 @@ export function Status({
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
 
   const [duplicateOpened, { open: openDuplicate, close: closeDuplicate }] = useDisclosure(false);
+  const [toDraftOpened, { open: openToDraft, close: closeToDraft }] = useDisclosure(false);
 
   const api = useFetch()
 
@@ -152,7 +153,7 @@ export function Status({
     let options = []
 
     if (status > statuses.saved) {
-      options.push(<Menu.Item key={1} onMouseDown={() => updateStatus(1)} leftSection={<IconArrowMoveLeft size={14} />}>Return to draft</Menu.Item>)
+      options.push(<Menu.Item key={1} onMouseDown={() => openToDraft()} leftSection={<IconArrowMoveLeft size={14} />}>Return to draft</Menu.Item>)
     }
 
     if (status == statuses.saved) {
@@ -183,6 +184,11 @@ export function Status({
     } else {
       setError(response.exception?.message ?? "Error")
     }
+  }
+
+  const handleToDraft = () => {
+    closeToDraft()
+    updateStatus(1)
   }
 
   return (
@@ -321,6 +327,38 @@ export function Status({
 
             <Flex className='mt-4 justify-end'>
               <Button onClick={handleDuplicate} leftSection={<IconCopy size="1rem" />} radius="xl" loading={api.state.loading}>Duplicate</Button>
+            </Flex>
+              
+          </Box>
+      </Modal>
+
+
+      <Modal 
+        opened={toDraftOpened} 
+        onClose={closeToDraft} 
+        title="Return to draft"
+        size="lg" 
+        styles={{
+          header: {
+            borderBottom: '0.0625rem solid #dee2e6',
+          },
+          title: {
+            fontWeight: 600,
+          },
+          body: {
+            padding: 0,
+          }
+        }}
+        >
+          <Box className='p-4'>
+       
+            <div>
+              <Text>This will place the activity in draft mode. It will be removed from calendars and existing approvals will be invalidated. Are you sure you want to continue?</Text>
+            </div>
+
+            <Flex className='mt-4 justify-end gap-2'>
+              <Button size="compact-md" variant="light" onClick={closeToDraft} radius="xl" loading={api.state.loading}>Cancel</Button>
+              <Button size="compact-md" onClick={handleToDraft} leftSection={<IconArrowMoveLeft size="1rem" />} radius="xl" loading={api.state.loading}>Return to draft</Button>
             </Flex>
               
           </Box>
