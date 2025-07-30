@@ -189,7 +189,22 @@ function xmldb_local_activities_upgrade($oldversion) {
 
         // Activities savepoint reached.
         upgrade_plugin_savepoint(true, 2025072900, 'local', 'activities');
-     }    
+     }
+
+    if ($oldversion < 2025073000) {
+        $table = new xmldb_table('activities_classifications');
+        $field = new xmldb_field('icon', XMLDB_TYPE_TEXT, null, null, null, null, null, 'name');
+        $field2 = new xmldb_field('description', XMLDB_TYPE_TEXT, null, null, null, null, null, 'icon');
+        
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }   
+        if (!$dbman->field_exists($table, $field2)) {
+            $dbman->add_field($table, $field2);
+        }
+
+        upgrade_plugin_savepoint(true, 2025073000, 'local', 'activities');
+    }
 
     return true;
 }
