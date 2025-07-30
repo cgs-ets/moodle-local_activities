@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Box, Container, Center, Text, Loader, Card, Checkbox, Group } from '@mantine/core';
+import { Box, Container, Center, Text, Loader, Card, Checkbox, Group, Stack } from '@mantine/core';
 import { useParams } from "react-router-dom";
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
@@ -8,29 +8,18 @@ import { defaults, useFormStore } from "../../stores/formStore";
 import { ActivityDetails } from "./Components/ActivityDetails";
 import useFetch from "../../hooks/useFetch";
 import { PageHeader } from "./Components/PageHeader";
+import { SvgRenderer } from "../../components/SvgRenderer";
 
-interface RiskOptions {
-  ageRange: string[]
-  transport: boolean
-  localAreaWalk: boolean
-  volunteersAssisting: boolean
-  waterHazard: boolean
-  externalSwimmingPool: boolean
-  publicPlayground: boolean
-  sportsPhysicalActivity: boolean
-  powerkartRaceway: boolean
-  museumGallery: boolean
-  farmZoo: boolean
-  aviary: boolean
-  moviesTheatre: boolean
-  cookingSchool: boolean
-  vrLaserTag: boolean
-  golfCourse: boolean
-  treetopsRopes: boolean
-  fishing: boolean
-  waiverRequired: boolean
-  primarySchoolOvernight: boolean
-  overnightExcursion: boolean
+interface Classification {
+  id: number;
+  name: string;
+  sortorder: number;
+  icon: string;
+  description: string;
+}
+
+interface RiskAssessment {
+  selectedClassifications: number[];
 }
 
 export function Risk() {
@@ -41,29 +30,11 @@ export function Risk() {
   const setFormData = useFormStore((state) => state.setState)
   const api = useFetch()
   const [loading, setLoading] = useState(true)
+  const [classifications, setClassifications] = useState<Classification[]>([])
+  const [classificationsLoading, setClassificationsLoading] = useState(true)
 
-  const [riskOptions, setRiskOptions] = useState<RiskOptions>({
-    ageRange: [],
-    transport: false,
-    localAreaWalk: false,
-    volunteersAssisting: false,
-    waterHazard: false,
-    externalSwimmingPool: false,
-    publicPlayground: false,
-    sportsPhysicalActivity: false,
-    powerkartRaceway: false,
-    museumGallery: false,
-    farmZoo: false,
-    aviary: false,
-    moviesTheatre: false,
-    cookingSchool: false,
-    vrLaserTag: false,
-    golfCourse: false,
-    treetopsRopes: false,
-    fishing: false,
-    waiverRequired: false,
-    primarySchoolOvernight: false,
-    overnightExcursion: false,
+  const [riskAssessment, setRiskAssessment] = useState<RiskAssessment>({
+    selectedClassifications: []
   })
 
   document.title = 'Risk Assessment'
@@ -80,6 +51,28 @@ export function Risk() {
     }
   }, [id]);
 
+  useEffect(() => {
+    loadClassifications()
+  }, []);
+
+  const loadClassifications = async () => {
+    setClassificationsLoading(true)
+    try {
+      const response = await api.call({
+        query: {
+          methodname: 'local_activities-get_classifications'
+        }
+      })
+      
+      if (!response.error) {
+        setClassifications(response.data)
+      }
+    } catch (error) {
+      console.error('Error loading classifications:', error)
+    } finally {
+      setClassificationsLoading(false)
+    }
+  }
 
   const getActivity = async () => {
     setLoading(true)
@@ -102,7 +95,6 @@ export function Risk() {
     setLoading(false)
   }
 
-
   const getRiskAssessment = async () => {
     const fetchResponse = await api.call({
       query: {
@@ -113,7 +105,17 @@ export function Risk() {
   
     if (fetchResponse && !fetchResponse.error) {
       console.log(fetchResponse.data)
+      // TODO: Load existing risk assessment data if available
     }
+  }
+
+  const handleClassificationChange = (classificationId: number, checked: boolean) => {
+    setRiskAssessment(prev => ({
+      ...prev,
+      selectedClassifications: checked 
+        ? [...prev.selectedClassifications, classificationId]
+        : prev.selectedClassifications.filter(id => id !== classificationId)
+    }))
   }
 
   return (
@@ -154,182 +156,69 @@ export function Risk() {
 
                 <Box className="flex flex-col gap-4">
                   <Card withBorder className="">
-                    <Text fz="md">Participant age range</Text>
-                    <Checkbox.Group
-                      value={riskOptions.ageRange}
-                      onChange={(value) => setRiskOptions({...riskOptions, ageRange: value})}
-                    >
-                      <Group mt="xs">
-                        <Checkbox value="0-4" label="0-4" />
-                        <Checkbox value="5-12" label="5-12" />
-                        <Checkbox value="13+" label="13+" />
-                      </Group>
-                    </Checkbox.Group>
-
+                    <Text fz="md">What attributes of the activity are present?</Text>
                     
+                    {classificationsLoading ? (
+                      <div className="flex justify-center py-4">
+                        <Loader size="sm" />
+                      </div>
+                    ) : (
 
+                      <Checkbox.Group
+                        value={riskAssessment.selectedClassifications.map(id => id.toString())}
+                        onChange={(value) => setRiskAssessment({...riskAssessment, selectedClassifications: value.map(id => parseInt(id))})}
+                        label=""
+                        description="Select all that apply"
+                      >
+                        <Stack pt="md" gap="xs">
+                          {classifications.map((classification) => (
+                            <Checkbox.Card 
+                              radius="md" 
+                              value={classification.id.toString()} 
+                              key={classification.id}
+                              className="p-4"
+                            >
+                              <div className="flex items-start gap-4">
+                                <Checkbox.Indicator />
+                                <div className="flex flex-col gap-2">
+                                  <div className="flex items-center gap-2">
+                                    {classification.icon && (
+                                      <SvgRenderer svgString={classification.icon} />
+                                    )}
+                                    <Text className="font-semibold text-md">{classification.name}</Text>
+                                  </div>
+                                  <Text c="dimmed" fz="sm">{classification.description}</Text>
+                                </div>
+                              </div>
+                            </Checkbox.Card>
+                          ))}
+                        </Stack>
+                      </Checkbox.Group>
+                    )}
                   </Card>
                 </Box>
 
-                <Box className="flex flex-col gap-4">
-                  <Card withBorder className="">
-                    <Text fz="md">Select all that apply</Text>
-                    <div className="flex flex-col gap-2 mt-2">
-
-                      <Checkbox
-                        label="Transport - school or external bus"
-                        checked={riskOptions.transport}
-                        onChange={(event) => setRiskOptions({...riskOptions, transport: event.currentTarget.checked})}
-                      />
-
-                      <Checkbox
-                        label="Local area walk or bush school (no transport required)"
-                        checked={riskOptions.localAreaWalk}
-                        onChange={(event) => setRiskOptions({...riskOptions, localAreaWalk: event.currentTarget.checked})}
-                      />
-
-                      <Checkbox
-                        label="Volunteers assisting with supervision"
-                        checked={riskOptions.volunteersAssisting}
-                        onChange={(event) => setRiskOptions({...riskOptions, volunteersAssisting: event.currentTarget.checked})}
-                      />
-
-                      <Checkbox
-                        label="Water Hazard - Creek/River/Lake/Pond utilised for activity on in close vicinity"
-                        checked={riskOptions.waterHazard}
-                        onChange={(event) => setRiskOptions({...riskOptions, waterHazard: event.currentTarget.checked})}
-                      />
-
-                      <Checkbox
-                        label="External Swimming Pool or Aqua Park"
-                        checked={riskOptions.externalSwimmingPool}
-                        onChange={(event) => setRiskOptions({...riskOptions, externalSwimmingPool: event.currentTarget.checked})}
-                      />
-
-                      <Checkbox
-                        label="Use of Public Playground"
-                        checked={riskOptions.publicPlayground}
-                        onChange={(event) => setRiskOptions({...riskOptions, publicPlayground: event.currentTarget.checked})}
-                      />
-
-                      <Checkbox
-                        label="Sports & Physical Activity Participation"
-                        checked={riskOptions.sportsPhysicalActivity}
-                        onChange={(event) => setRiskOptions({...riskOptions, sportsPhysicalActivity: event.currentTarget.checked})}
-                      />
-
-                      <Checkbox
-                        label="Powerkart raceway"
-                        checked={riskOptions.powerkartRaceway}
-                        onChange={(event) => setRiskOptions({...riskOptions, powerkartRaceway: event.currentTarget.checked})}
-                      />
-
-                      <Checkbox
-                        label="Museum or Gallery Visit"
-                        checked={riskOptions.museumGallery}
-                        onChange={(event) => setRiskOptions({...riskOptions, museumGallery: event.currentTarget.checked})}
-                      />
-
-                      <Checkbox
-                        label="Farm or Zoo Visit"
-                        checked={riskOptions.farmZoo}
-                        onChange={(event) => setRiskOptions({...riskOptions, farmZoo: event.currentTarget.checked})}
-                      />
-
-                      <Checkbox
-                        label="Aviary Visit"
-                        checked={riskOptions.aviary}
-                        onChange={(event) => setRiskOptions({...riskOptions, aviary: event.currentTarget.checked})}
-                      />
-
-                      <Checkbox
-                        label="Movies/Theatre"
-                        checked={riskOptions.moviesTheatre}
-                        onChange={(event) => setRiskOptions({...riskOptions, moviesTheatre: event.currentTarget.checked})}
-                      />
-
-                      <Checkbox
-                        label="Cooking School"
-                        checked={riskOptions.cookingSchool}
-                        onChange={(event) => setRiskOptions({...riskOptions, cookingSchool: event.currentTarget.checked})}
-                      />
-
-                      <Checkbox
-                        label="VR/ Laser Tag / Arcades / Commercial Play Spaces"
-                        checked={riskOptions.vrLaserTag}
-                        onChange={(event) => setRiskOptions({...riskOptions, vrLaserTag: event.currentTarget.checked})}
-                      />
-
-                      <Checkbox
-                        label="Golf Course or Driving Range"
-                        checked={riskOptions.golfCourse}
-                        onChange={(event) => setRiskOptions({...riskOptions, golfCourse: event.currentTarget.checked})}
-                      />
-
-                      <Checkbox
-                        label="Treetops ropes course"
-                        checked={riskOptions.treetopsRopes}
-                        onChange={(event) => setRiskOptions({...riskOptions, treetopsRopes: event.currentTarget.checked})}
-                      />
-
-                      <Checkbox
-                        label="Fishing"
-                        checked={riskOptions.fishing}
-                        onChange={(event) => setRiskOptions({...riskOptions, fishing: event.currentTarget.checked})}
-                      />
-
-                      <Checkbox
-                        label="Waiver required for external organisation"
-                        checked={riskOptions.waiverRequired}
-                        onChange={(event) => setRiskOptions({...riskOptions, waiverRequired: event.currentTarget.checked})}
-                      />
-
-                      <Checkbox
-                        label="Primary School Overnight Outdoor Education Camp (with External Provider)"
-                        checked={riskOptions.primarySchoolOvernight}
-                        onChange={(event) => setRiskOptions({...riskOptions, primarySchoolOvernight: event.currentTarget.checked})}
-                      />
-
-                      <Checkbox
-                        label="Overnight Excursion with CGS Staff (no external provider)"
-                        checked={riskOptions.overnightExcursion}
-                        onChange={(event) => setRiskOptions({...riskOptions, overnightExcursion: event.currentTarget.checked})}
-                      />
-
-                    </div>
-                  </Card>
-                </Box>
-
-
-
-
-<div>
-Ok, so, I need to find out what kind of risk assessment this is to start. The beginning is AGE BASED.
-
-If the activity has students, I need to know how OLD they are, and base it off that.
-
-If he activity does not have students, I need to ask the user to select age ranges of the participants.
-
-For now, use campus based instead of age based.
-
-
-<pre>
-  {JSON.stringify(formData, null, 2)}
-</pre>
-
-</div>
-
-
-       
-
-
-
+                <div>
+                  <Text fz="sm" c="dimmed" mb="xs">Debug Information:</Text>
+                  <pre className="text-xs bg-gray-100 p-2 rounded">
+                    {JSON.stringify({
+                      formData: {
+                        activityname: formData.activityname,
+                        campus: formData.campus,
+                        studentlist: formData.studentlist?.length || 0
+                      },
+                      riskAssessment,
+                      selectedClassifications: riskAssessment.selectedClassifications.map(id => 
+                        classifications.find(c => c.id === id)?.name
+                      )
+                    }, null, 2)}
+                  </pre>
+                </div>
 
               </Container>
             </> : null
         }
         
-
 
       </div>
       <Footer />

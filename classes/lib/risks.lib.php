@@ -42,6 +42,10 @@ class risks_lib {
         }
         
         $records = $DB->get_records(static::TABLE_CLASSIFICATIONS, [], 'sortorder ASC, name ASC');
+        service_lib::cast_fields($records, [
+            'sortorder' => 'int',
+            'id' => 'int',
+        ]);
         return array_values($records);
     }
 
@@ -83,7 +87,7 @@ class risks_lib {
         if ($existing && (!isset($data->id) || $existing->id != $data->id)) {
             throw new \Exception("A classification with this name already exists.");
         }
-        
+
         if (isset($data->id) && $data->id) {
             // Update existing
             $DB->update_record(static::TABLE_CLASSIFICATIONS, $data);

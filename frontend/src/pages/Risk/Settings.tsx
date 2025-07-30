@@ -27,11 +27,14 @@ import { IconPlus, IconEdit, IconTrash, IconTag, IconAlertSquare, IconX, IconChe
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
 import useFetch from "../../hooks/useFetch";
+import { SvgRenderer } from "../../components/SvgRenderer";
 
 interface Classification {
   id: number;
   name: string;
   sortorder: number;
+  icon: string;
+  description: string;
 }
 
 interface Risk {
@@ -56,7 +59,7 @@ export function Settings() {
   // Classification modal state
   const [classificationModalOpen, setClassificationModalOpen] = useState(false);
   const [editingClassification, setEditingClassification] = useState<Classification | null>(null);
-  const [classificationForm, setClassificationForm] = useState({ name: '' });
+  const [classificationForm, setClassificationForm] = useState({ name: '', icon: '', description: '' });
   const [classificationError, setClassificationError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
@@ -126,10 +129,10 @@ export function Settings() {
   const openClassificationModal = (classification?: Classification) => {
     if (classification) {
       setEditingClassification(classification);
-      setClassificationForm({ name: classification.name });
+      setClassificationForm({ name: classification.name, icon: classification.icon, description: classification.description });
     } else {
       setEditingClassification(null);
-      setClassificationForm({ name: '' });
+      setClassificationForm({ name: '', icon: '', description: '' });
     }
     setClassificationError(null);
     setClassificationModalOpen(true);
@@ -673,7 +676,12 @@ export function Settings() {
                         <Table.Td>
                           <IconGripVertical size={16} color="#6c757d" style={{ cursor: 'grab' }} />
                         </Table.Td>
-                        <Table.Td>{classification.name}</Table.Td>
+                        <Table.Td>
+                          <div className="flex items-center gap-2">
+                            {classification.icon && <SvgRenderer svgString={classification.icon} />}
+                            <Text>{classification.name}</Text>
+                          </div>
+                        </Table.Td>
                         <Table.Td>
                           <Group gap="xs">
                             <ActionIcon 
@@ -717,6 +725,17 @@ export function Settings() {
               {classificationError}
             </Text>
           )}
+          
+          <Textarea
+            label="Icon"
+            placeholder="<svg..."
+            value={classificationForm.icon}
+            onChange={(e) => setClassificationForm({ ...classificationForm, icon: e.target.value })}
+            mb="md"
+            required
+            minRows={3}
+          />
+
           <TextInput
             label="Name"
             placeholder="e.g., 0-4 students"
@@ -725,6 +744,16 @@ export function Settings() {
             mb="md"
             required
           />
+
+          <Textarea
+            label="Description"
+            value={classificationForm.description}
+            onChange={(e) => setClassificationForm({ ...classificationForm, description: e.target.value })}
+            mb="md"
+            required
+            minRows={3}
+          />
+
           <Group justify="flex-end">
             <Button variant="light" onClick={() => setClassificationModalOpen(false)}>
               Cancel
