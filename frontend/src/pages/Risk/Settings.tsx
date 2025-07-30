@@ -678,7 +678,7 @@ export function Settings() {
                         </Table.Td>
                         <Table.Td>
                           <div className="flex items-center gap-2">
-                            {classification.icon && <SvgRenderer svgString={classification.icon} />}
+                            {classification.icon && <SvgRenderer svgString={classification.icon} className="w-6 h-6" />}
                             <Text>{classification.name}</Text>
                           </div>
                         </Table.Td>
@@ -732,8 +732,8 @@ export function Settings() {
             value={classificationForm.icon}
             onChange={(e) => setClassificationForm({ ...classificationForm, icon: e.target.value })}
             mb="md"
-            required
-            minRows={3}
+            autosize
+            minRows={2}
           />
 
           <TextInput
@@ -750,8 +750,8 @@ export function Settings() {
             value={classificationForm.description}
             onChange={(e) => setClassificationForm({ ...classificationForm, description: e.target.value })}
             mb="md"
-            required
-            minRows={3}
+            autosize
+            minRows={2}
           />
 
           <Group justify="flex-end">

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Box, Container, Center, Text, Loader, Card, Checkbox, Group, Stack } from '@mantine/core';
+import { Box, Container, Center, Text, Loader, Card, Checkbox, Group, Stack, Grid } from '@mantine/core';
 import { useParams } from "react-router-dom";
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
@@ -170,29 +170,30 @@ export function Risk() {
                         label=""
                         description="Select all that apply"
                       >
-                        <Stack pt="md" gap="xs">
+                        <Grid pt="md" gutter="md" columns={12}>
                           {classifications.map((classification) => (
-                            <Checkbox.Card 
-                              radius="md" 
-                              value={classification.id.toString()} 
-                              key={classification.id}
-                              className="p-4"
-                            >
-                              <div className="flex items-start gap-4">
-                                <Checkbox.Indicator />
-                                <div className="flex flex-col gap-2">
-                                  <div className="flex items-center gap-2">
-                                    {classification.icon && (
-                                      <SvgRenderer svgString={classification.icon} />
-                                    )}
-                                    <Text className="font-semibold text-md">{classification.name}</Text>
+                            <Grid.Col span={{ base: 12, sm: 6, md: 4, lg: 3 }} key={classification.id}>
+                              <Checkbox.Card 
+                                radius="md" 
+                                value={classification.id.toString()} 
+                                className="p-4 h-full flex items-start"
+                              >
+                                <div className="flex items-start gap-4">
+                                  <div className="pt-1">
+                                    <Checkbox.Indicator />
                                   </div>
-                                  <Text c="dimmed" fz="sm">{classification.description}</Text>
+                                  <div>
+                                    <div className="flex items-start gap-2">
+                                      {classification.icon && (<SvgRenderer svgString={classification.icon} className="w-6 h-6 flex-shrink-0" />)}
+                                      <Text className="font-semibold text-md">{classification.name}</Text>
+                                    </div>
+                                    <Text c="dimmed" fz="sm">{classification.description}</Text>
+                                  </div>
                                 </div>
-                              </div>
-                            </Checkbox.Card>
+                              </Checkbox.Card>
+                            </Grid.Col>
                           ))}
-                        </Stack>
+                        </Grid>
                       </Checkbox.Group>
                     )}
                   </Card>
