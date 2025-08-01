@@ -50,9 +50,16 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
         global $DB, $CFG;
         $config = get_config('local_activities');
 
-        // Set date range for reconciliation (1 day past to 60 days future)
-        $this->startDate = time() - (1 * 24 * 60 * 60); // 1 day ago
-        $this->endDate = time() + (60 * 24 * 60 * 60);  // 60 days from now
+        // For this task, make sure we are in Prod!
+        if ($CFG->wwwroot != 'https://connect.cgs.act.edu.au') {
+            $this->log("Not in Prod, skipping reconciliation", 1);
+            return;
+        }
+
+        // Start date shoulwd be midnight of the day before
+        $this->startDate = strtotime('yesterday midnight');
+        // End date should be midnight of the day after
+        $this->endDate = strtotime('tomorrow midnight');
 
         $this->log_start("Starting daily full reconciliation for date range: " . 
                         date('Y-m-d H:i:s', $this->startDate) . " to " . 
@@ -82,8 +89,6 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
             $outlookEvents = $this->get_outlook_events($calendar);
             $this->log("Found " . count($outlookEvents) . " events in Outlook calendar", 2);
 
-            exit;
-
             // Get all system events for the date range
             $this->log("Fetching system events for date range", 2);
             $systemEvents = $this->get_system_events($calendar);
@@ -92,6 +97,29 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
             // Create lookup arrays for comparison
             $outlookLookup = $this->create_outlook_lookup($outlookEvents);
             $systemLookup = $this->create_system_lookup($systemEvents);
+
+
+            $o = [];
+            foreach ($outlookEvents as $event) {
+                $subject = $event->getSubject();
+                $start = $event->getStart()->getDateTime();
+                $end = $event->getEnd()->getDateTime();
+                $o[] = array($subject, $start, $end);
+            }
+
+            $s = [];
+            foreach ($systemEvents as $event) {
+                $subject = $event->activityname;
+                $start = date('Y-m-d\TH:i:s', $event->timestart);
+                $end = date('Y-m-d\TH:i:s', $event->timeend);
+                $s[] = array($subject, $start, $end);
+            }
+        
+
+            var_export($o);
+            var_export($s);
+            exit;
+
 
             // Find events to delete (in Outlook but not in system)
             $this->log("Checking for events to delete from Outlook", 2);
