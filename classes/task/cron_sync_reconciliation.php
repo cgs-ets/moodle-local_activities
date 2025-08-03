@@ -157,20 +157,10 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
             $startDateTime = gmdate("Y-m-d\TH:i:s\Z", $this->startDate);
             $endDateTime = gmdate("Y-m-d\TH:i:s\Z", $this->endDate);
             
-            $events = graph_lib::getAllEvents($calendar, $this->startDate, 'ge');
+            // Use the optimized date range function instead of filtering after fetch
+            $events = graph_lib::getEventsByDateRange($calendar, $this->startDate, $this->endDate);
             
-            // Filter events to the exact date range
-            $filteredEvents = [];
-            foreach ($events as $event) {
-                $eventStart = $event->getStart()->getDateTime();
-                $eventStartTime = strtotime($eventStart);
-                
-                if ($eventStartTime >= $this->startDate && $eventStartTime <= $this->endDate) {
-                    $filteredEvents[] = $event;
-                }
-            }
-            
-            return $filteredEvents;
+            return $events;
         } catch (\Exception $e) {
             $this->log("Error fetching Outlook events: " . $e->getMessage(), 1);
             return [];

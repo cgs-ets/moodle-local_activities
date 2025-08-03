@@ -92,9 +92,15 @@ class graph_lib {
         $appClient = new Graph();
         $token = static::getAppOnlyToken();
         $appClient->setAccessToken($token);
-        $filter = '$filter=start/dateTime gt \'' . $fromdate . '\' and start/dateTime lt \'' . $todate . '\'';
-        $orderby = '$orderby=start/dateTime';
-        $requestUrl = '/users/' . $userPrincipalName . '/events?' . $filter.'&'.$orderby;
+        
+        $queryParams = [
+            '$filter' => "start/dateTime gt '$fromdate' and start/dateTime lt '$todate'",
+            '$orderby' => 'start/dateTime',
+            '$top' => 999,
+            '$select' => 'id,subject,start,end,location,body,isOnlineMeeting,onlineMeeting,recurrence,seriesMasterId,type,attendees,organizer,categories,importance,sensitivity,showAs,isCancelled,isAllDay,responseStatus,webLink,createdDateTime,lastModifiedDateTime'
+        ];
+        
+        $requestUrl = '/users/' . $userPrincipalName . '/events?' . http_build_query($queryParams);
 
         return $appClient->createCollectionRequest('GET', $requestUrl)
                          ->setReturnType(Model\Event::class)
@@ -275,51 +281,64 @@ class graph_lib {
 
     /*
         ----------------------
-        SEARCH EVENT
+        GET ALL EVENTS (OPTIMIZED)
         ----------------------
-        Request and return details: https://learn.microsoft.com/en-us/graph/api/calendar-list-events?view=graph-rest-1.0&tabs=http#example-3-using-filter-and-orderby-to-get-events-in-a-date-time-range-and-including-their-occurrences
+        Optimized version with proper pagination and date range filtering
         ------
     */
-    public static function getAllEvents($userPrincipalName, $timestamp, $compare = 'ge') {
+    public static function getAllEvents($userPrincipalName, $timestamp, $compare = 'ge', $endTimestamp = null) {
         $token = static::getAppOnlyToken();
         $graph = (new Graph())->setAccessToken($token);
     
         $startDateTime = gmdate("Y-m-d\TH:i:s\Z", $timestamp);
-    
+        
+        // Build filter with optional end date
+        $filter = "start/dateTime $compare '$startDateTime'";
+        if ($endTimestamp) {
+            $endDateTime = gmdate("Y-m-d\TH:i:s\Z", $endTimestamp);
+            $filter .= " and start/dateTime le '$endDateTime'";
+        }
+        
         $queryParams = [
-            '$filter' => "start/dateTime $compare '$startDateTime'",
+            '$filter' => $filter,
             '$orderby' => 'start/dateTime',
-            '$top' => 100
+            '$top' => 999, // Maximum page size for better performance
+            '$select' => 'id,subject,start,end,location,body,isOnlineMeeting,onlineMeeting,recurrence,seriesMasterId,type,attendees,organizer,categories,importance,sensitivity,showAs,isCancelled,isAllDay,responseStatus,webLink,createdDateTime,lastModifiedDateTime' // Only fetch needed fields
         ];
     
         $requestUrl = 'https://graph.microsoft.com/v1.0/users/' . rawurlencode($userPrincipalName) . '/events?' . http_build_query($queryParams);
     
         $allEvents = [];
+        $hasMorePages = true;
     
-        do {
-            // Fetch events as objects
-            $eventPage = $graph->createCollectionRequest('GET', $requestUrl)
-                               ->setReturnType(Event::class)
-                               ->execute();
+        while ($hasMorePages) {
+            try {
+                // Single API call with proper collection request
+                $eventPage = $graph->createCollectionRequest('GET', $requestUrl)
+                                   ->setReturnType(Event::class)
+                                   ->setPageSize(999)
+                                   ->execute();
     
-            // Merge the events into the result
-            $allEvents = array_merge($allEvents, $eventPage);
+                // Add events to result
+                $allEvents = array_merge($allEvents, $eventPage);
     
-            // Fetch raw response to inspect @odata.nextLink
-            $rawResponse = $graph->createRequest('GET', $requestUrl)
-                                 ->addHeaders(["ConsistencyLevel" => "eventual"])
-                                 ->execute();
-    
-            // Get the response body (which should already be an array)
-            $bodyData = $rawResponse->getBody();  // This should be an array now
-    
-            // Check for pagination and get nextLink
-            $nextLink = $bodyData['@odata.nextLink'] ?? null;
-    
-            // Update requestUrl to the nextLink if pagination exists
-            $requestUrl = $nextLink;
-    
-        } while ($nextLink);
+                // Check if there are more pages by looking at the response headers
+                $response = $graph->createRequest('GET', $requestUrl)->execute();
+                $responseBody = $response->getBody();
+                
+                // Check for nextLink in the response
+                if (isset($responseBody['@odata.nextLink'])) {
+                    $requestUrl = $responseBody['@odata.nextLink'];
+                } else {
+                    $hasMorePages = false;
+                }
+                
+            } catch (\Exception $e) {
+                // Log error and break to prevent infinite loops
+                error_log("Error fetching events from Graph API: " . $e->getMessage());
+                break;
+            }
+        }
     
         return $allEvents;
     }
@@ -352,6 +371,62 @@ class graph_lib {
         return $someEvents;
     }
 
+    /*
+        ----------------------
+        GET EVENTS BY DATE RANGE (OPTIMIZED)
+        ----------------------
+        Optimized function for fetching events within a specific date range
+        This is more efficient than getAllEvents when you know the end date
+        ------
+    */
+    public static function getEventsByDateRange($userPrincipalName, $startTimestamp, $endTimestamp) {
+        $token = static::getAppOnlyToken();
+        $graph = (new Graph())->setAccessToken($token);
+    
+        $startDateTime = gmdate("Y-m-d\TH:i:s\Z", $startTimestamp);
+        $endDateTime = gmdate("Y-m-d\TH:i:s\Z", $endTimestamp);
+        
+        $queryParams = [
+            '$filter' => "start/dateTime ge '$startDateTime' and start/dateTime le '$endDateTime'",
+            '$orderby' => 'start/dateTime',
+            '$top' => 999, // Maximum page size for better performance
+            '$select' => 'id,subject,start,end,location,body,isOnlineMeeting,onlineMeeting,recurrence,seriesMasterId,type,attendees,organizer,categories,importance,sensitivity,showAs,isCancelled,isAllDay,responseStatus,webLink,createdDateTime,lastModifiedDateTime'
+        ];
+    
+        $requestUrl = 'https://graph.microsoft.com/v1.0/users/' . rawurlencode($userPrincipalName) . '/events?' . http_build_query($queryParams);
+    
+        $allEvents = [];
+        $hasMorePages = true;
+    
+        while ($hasMorePages) {
+            try {
+                // Single API call with proper collection request
+                $eventPage = $graph->createCollectionRequest('GET', $requestUrl)
+                                   ->setReturnType(Event::class)
+                                   ->setPageSize(999)
+                                   ->execute();
+    
+                // Add events to result
+                $allEvents = array_merge($allEvents, $eventPage);
+    
+                // Check if there are more pages
+                $response = $graph->createRequest('GET', $requestUrl)->execute();
+                $responseBody = $response->getBody();
+                
+                if (isset($responseBody['@odata.nextLink'])) {
+                    $requestUrl = $responseBody['@odata.nextLink'];
+                } else {
+                    $hasMorePages = false;
+                }
+                
+            } catch (\Exception $e) {
+                error_log("Error fetching events from Graph API: " . $e->getMessage());
+                break;
+            }
+        }
+    
+        return $allEvents;
+    }
 
     
 }
