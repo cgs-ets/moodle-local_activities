@@ -99,42 +99,37 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
             $systemLookup = $this->create_system_lookup($systemEvents);
 
 
-            $o = [];
-            foreach ($outlookEvents as $event) {
-                $subject = $event->getSubject();
-                $start = $event->getStart()->getDateTime();
-                $end = $event->getEnd()->getDateTime();
-                $o[] = array($subject, $start, $end);
-            }
-
-            $s = [];
-            foreach ($systemEvents as $event) {
-                $subject = $event->activityname;
-                $start = date('Y-m-d\TH:i:s', $event->timestart);
-                $end = date('Y-m-d\TH:i:s', $event->timeend);
-                $s[] = array($subject, $start, $end);
-            }
-        
-
-            var_export($o);
-            var_export($s);
-            exit;
-
-
             // Find events to delete (in Outlook but not in system)
             $this->log("Checking for events to delete from Outlook", 2);
             $eventsToDelete = $this->find_events_to_delete($outlookLookup, $systemLookup);
             $this->log("Found " . count($eventsToDelete) . " events to delete from Outlook", 2);
+
+            $o = [];
+            foreach ($eventsToDelete as $outlookEvent) {
+                $o[] = array($outlookEvent->getSubject(), $outlookEvent->getStart()->getDateTime(), $outlookEvent->getEnd()->getDateTime());
+            }
+            echo "DELETE\n";
+            var_export($o);
 
             // Find events to create (in system but not in Outlook)
             $this->log("Checking for events to create in Outlook", 2);
             $eventsToCreate = $this->find_events_to_create($outlookLookup, $systemLookup);
             $this->log("Found " . count($eventsToCreate) . " events to create in Outlook", 2);
 
+            $s = [];
+            foreach ($eventsToCreate as $systemEvent) {
+                $s[] = array($systemEvent->activityname, date('Y-m-d\TH:i:s', $systemEvent->timestart), date('Y-m-d\TH:i:s', $systemEvent->timeend));
+            }
+            echo "CREATE\n";
+            var_export($s);
+
             // Find events to update (in both but with mismatched content)
             $this->log("Checking for events to update in Outlook", 2);
             $eventsToUpdate = $this->find_events_to_update($outlookLookup, $systemLookup);
             $this->log("Found " . count($eventsToUpdate) . " events to update in Outlook", 2);
+
+
+            exit;
 
             // Execute the reconciliation actions
             $this->delete_events_from_outlook($calendar, $eventsToDelete);
@@ -310,11 +305,16 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
         
         foreach ($outlookEvents as $event) {
             $subject = $event->getSubject();
-            $start = $event->getStart()->getDateTime();
-            $end = $event->getEnd()->getDateTime();
+            $start = $this->normalize_outlook_datetime($event->getStart()->getDateTime());
+            $end = $this->normalize_outlook_datetime($event->getEnd()->getDateTime());
             
             // Create a hash for comparison
             $hash = $this->create_event_hash($subject, $start, $end);
+
+            if ($subject == "Learner Licence Course") {
+                echo "OUTLOOK start and end: " . $start . " - " . $end . "\n";
+            }
+
             $lookup[$hash] = $event;
         }
         
@@ -338,6 +338,10 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
             // Create a hash for comparison
             $hash = $this->create_event_hash($subject, $start, $end);
             $lookup[$hash] = $event;
+
+            if ($subject == "Learner Licence Course") {
+                echo "SYSTEM start and end: " . $start . " - " . $end . "\n";
+            }
         }
         
         return $lookup;
@@ -353,6 +357,26 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
      */
     private function create_event_hash($subject, $start, $end) {
         return md5($subject . '|' . $start . '|' . $end);
+    }
+
+    /**
+     * Normalize Outlook datetime string to match system format.
+     *
+     * @param string $outlookDatetime Outlook datetime string (e.g., '2025-08-03T00:00:00.0000000')
+     * @return string Normalized datetime string (e.g., '2025-08-03T10:00:00')
+     */
+    private function normalize_outlook_datetime($outlookDatetime) {
+        // Remove microseconds if present
+        $datetime = preg_replace('/\.\d+$/', '', $outlookDatetime);
+        
+        // Parse the datetime string
+        $dateTime = new \DateTime($datetime);
+        
+        // Convert to AUS Eastern Standard Time (same timezone as system)
+        $dateTime->setTimezone(new \DateTimeZone('Australia/Sydney'));
+        
+        // Format to match system format
+        return $dateTime->format('Y-m-d\TH:i:s');
     }
 
     /**
@@ -432,10 +456,10 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
         $outlookSubject = $outlookEvent->getSubject();
         $systemSubject = $systemEvent->activityname;
         
-        $outlookStart = $outlookEvent->getStart()->getDateTime();
+        $outlookStart = $this->normalize_outlook_datetime($outlookEvent->getStart()->getDateTime());
         $systemStart = date('Y-m-d\TH:i:s', $systemEvent->timestart);
         
-        $outlookEnd = $outlookEvent->getEnd()->getDateTime();
+        $outlookEnd = $this->normalize_outlook_datetime($outlookEvent->getEnd()->getDateTime());
         $systemEnd = date('Y-m-d\TH:i:s', $systemEvent->timeend);
         
         $outlookLocation = $outlookEvent->getLocation() ? $outlookEvent->getLocation()->getDisplayName() : '';
