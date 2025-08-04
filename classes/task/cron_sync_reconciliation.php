@@ -119,12 +119,12 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
             $eventsToDelete = $this->find_events_to_delete($outlookLookup, $systemLookup);
             $this->log("Found " . count($eventsToDelete) . " events to delete from Outlook", 2);
 
-            /*$o = [];
+            $o = [];
             foreach ($eventsToDelete as $outlookEvent) {
                 $o[] = array($outlookEvent->getSubject(), $outlookEvent->getStart()->getDateTime(), $outlookEvent->getEnd()->getDateTime());
             }
             echo "DELETE\n";
-            var_export($o);*/
+            var_export($o);
             
             // Show which events are duplicates
             if (!empty($this->outlookDuplicates)) {
@@ -142,24 +142,26 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
             $eventsToCreate = $this->find_events_to_create($outlookLookup, $systemLookup);
             $this->log("Found " . count($eventsToCreate) . " events to create in Outlook", 2);
 
-            /*$s = [];
+            $s = [];
             foreach ($eventsToCreate as $systemEvent) {
                 $s[] = array($systemEvent->activityname, date('Y-m-d\TH:i:s', $systemEvent->timestart), date('Y-m-d\TH:i:s', $systemEvent->timeend));
             }
             echo "CREATE\n";
-            var_export($s);*/
+            var_export($s);
 
             // Find events to update (in both but with mismatched content)
             $this->log("Checking for events to update in Outlook", 2);
             $eventsToUpdate = $this->find_events_to_update($outlookLookup, $systemLookup);
             $this->log("Found " . count($eventsToUpdate) . " events to update in Outlook", 2);
 
-            /*$u = [];
+            $u = [];
             foreach ($eventsToUpdate as $systemEvent) {
                 $u[] = array($systemEvent->activityname, date('Y-m-d\TH:i:s', $systemEvent->timestart), date('Y-m-d\TH:i:s', $systemEvent->timeend));
             }
             echo "UPDATE\n";
-            var_export($u);*/
+            var_export($u);
+
+            exit;
 
 
             // Execute the reconciliation actions
@@ -340,7 +342,7 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
             $subject = $event->getSubject();
             $start = $this->normalize_outlook_datetime($event->getStart()->getDateTime());
             $end = $this->normalize_outlook_datetime($event->getEnd()->getDateTime());
-            $location = $event->getLocation();
+            $location = $event->getLocation() ? $event->getLocation()->getDisplayName() : '';
             
             // Check if this is an all-day event
             $isAllDay = $this->is_all_day_event($start, $end);
