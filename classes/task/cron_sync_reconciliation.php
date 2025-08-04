@@ -26,7 +26,7 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
     private $calendars = [
         'cgs_calendar_ss@cgs.act.edu.au',
         'cgs_calendar_ps@cgs.act.edu.au', 
-        //'cgs_calendar_cm@cgs.act.edu.au',
+        'cgs_calendar_cm@cgs.act.edu.au',
         'cgs_cal_planning@cgs.act.edu.au'
     ];
 
@@ -60,9 +60,9 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
         }
 
         // Start date shoulwd be midnight of the day before
-        $this->startDate = strtotime('yesterday midnight');
+        $this->startDate = strtotime('3 days ago midnight');
         // End date should be midnight of the day after
-        $this->endDate = strtotime('midnight +2 days');
+        $this->endDate = strtotime('midnight +14 days');
 
         $this->log_start("Starting daily full reconciliation for date range: " . 
                         date('Y-m-d H:i:s', $this->startDate) . " to " . 
