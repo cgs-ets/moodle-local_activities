@@ -408,10 +408,10 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
      */
     private function create_event_hash($subject, $start, $end, $isAllDay = false) {
         if ($isAllDay) {
-            // For all-day events, use just the date part for comparison
+            // For all-day events, use just the start date part for comparison
+            // (Outlook all-day events end on the next day, so we only compare start date)
             $startDate = date('Y-m-d', strtotime($start));
-            $endDate = date('Y-m-d', strtotime($end));
-            return md5($subject . '|ALLDAY|' . $startDate . '|' . $endDate);
+            return md5($subject . '|ALLDAY|' . $startDate);
         } else {
             return md5($subject . '|' . $start . '|' . $end);
         }
@@ -557,47 +557,22 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
     }
 
     /**
-     * Check if two events have mismatched content.
+     * Check if two events have mismatched content (excluding date/time and subject).
+     * Note: Date/time and subject mismatches result in deletion/recreation, not updates.
      *
      * @param object $outlookEvent Outlook event
      * @param object $systemEvent System event
      * @return bool True if content is mismatched
      */
     private function events_content_mismatched($outlookEvent, $systemEvent) {
-        // Compare key fields
-        $outlookSubject = $outlookEvent->getSubject();
-        $systemSubject = $systemEvent->activityname;
-        
-        $outlookStart = $this->normalize_outlook_datetime($outlookEvent->getStart()->getDateTime());
-        $systemStart = date('Y-m-d\TH:i:s', $systemEvent->timestart);
-        
-        $outlookEnd = $this->normalize_outlook_datetime($outlookEvent->getEnd()->getDateTime());
-        $systemEnd = date('Y-m-d\TH:i:s', $systemEvent->timeend);
-        
+        // Compare content fields only (not date/time or subject)
+        // Subject is included in the hash, so events with same hash have same subject
         $outlookLocation = $outlookEvent->getLocation() ? $outlookEvent->getLocation()->getDisplayName() : '';
         $systemLocation = $systemEvent->location ?? '';
         
-        // Check if both events are all-day events
-        $outlookIsAllDay = $this->is_all_day_event($outlookStart, $outlookEnd);
-        $systemIsAllDay = $this->is_all_day_event($systemStart, $systemEnd);
-        
-        // If both are all-day events, compare only the date part
-        if ($outlookIsAllDay && $systemIsAllDay) {
-            $outlookStartDate = date('Y-m-d', strtotime($outlookStart));
-            $systemStartDate = date('Y-m-d', strtotime($systemStart));
-            $outlookEndDate = date('Y-m-d', strtotime($outlookEnd));
-            $systemEndDate = date('Y-m-d', strtotime($systemEnd));
-            
-            return ($outlookSubject !== $systemSubject ||
-                    $outlookStartDate !== $systemStartDate ||
-                    $outlookEndDate !== $systemEndDate ||
-                    $outlookLocation !== $systemLocation);
-        }
-        
-        return ($outlookSubject !== $systemSubject ||
-                $outlookStart !== $systemStart ||
-                $outlookEnd !== $systemEnd ||
-                $outlookLocation !== $systemLocation);
+        // Compare location only
+        // Date/time and subject differences are handled by the hash comparison and result in delete/recreate
+        return ($outlookLocation !== $systemLocation);
     }
 
     /**
