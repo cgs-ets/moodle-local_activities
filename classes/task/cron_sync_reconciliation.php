@@ -26,7 +26,7 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
     private $calendars = [
         'cgs_calendar_ss@cgs.act.edu.au',
         'cgs_calendar_ps@cgs.act.edu.au', 
-        'cgs_calendar_cm@cgs.act.edu.au',
+        //'cgs_calendar_cm@cgs.act.edu.au',
         'cgs_cal_planning@cgs.act.edu.au'
     ];
 
@@ -62,7 +62,7 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
         // Start date shoulwd be midnight of the day before
         $this->startDate = strtotime('yesterday midnight');
         // End date should be midnight of the day after
-        $this->endDate = strtotime('midnight +3 days');
+        $this->endDate = strtotime('midnight +2 days');
 
         $this->log_start("Starting daily full reconciliation for date range: " . 
                         date('Y-m-d H:i:s', $this->startDate) . " to " . 
@@ -113,18 +113,17 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
                 }
             }
 
-
             // Find events to delete (in Outlook but not in system)
             $this->log("Checking for events to delete from Outlook", 2);
             $eventsToDelete = $this->find_events_to_delete($outlookLookup, $systemLookup);
             $this->log("Found " . count($eventsToDelete) . " events to delete from Outlook", 2);
 
-            $o = [];
+            /*$o = [];
             foreach ($eventsToDelete as $outlookEvent) {
                 $o[] = array($outlookEvent->getSubject(), $outlookEvent->getStart()->getDateTime(), $outlookEvent->getEnd()->getDateTime());
             }
             echo "DELETE\n";
-            var_export($o);
+            var_export($o);*/
             
             // Show which events are duplicates
             if (!empty($this->outlookDuplicates)) {
@@ -142,34 +141,31 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
             $eventsToCreate = $this->find_events_to_create($outlookLookup, $systemLookup);
             $this->log("Found " . count($eventsToCreate) . " events to create in Outlook", 2);
 
-            $s = [];
+            /*$s = [];
             foreach ($eventsToCreate as $systemEvent) {
                 $s[] = array($systemEvent->activityname, date('Y-m-d\TH:i:s', $systemEvent->timestart), date('Y-m-d\TH:i:s', $systemEvent->timeend));
             }
             echo "CREATE\n";
-            var_export($s);
+            var_export($s);*/
 
             // Find events to update (in both but with mismatched content)
             $this->log("Checking for events to update in Outlook", 2);
             $eventsToUpdate = $this->find_events_to_update($outlookLookup, $systemLookup);
             $this->log("Found " . count($eventsToUpdate) . " events to update in Outlook", 2);
 
-            $u = [];
+            /*$u = [];
             foreach ($eventsToUpdate as $systemEvent) {
                 $u[] = array($systemEvent->activityname, date('Y-m-d\TH:i:s', $systemEvent->timestart), date('Y-m-d\TH:i:s', $systemEvent->timeend));
             }
             echo "UPDATE\n";
-            var_export($u);
+            var_export($u);*/
 
-            exit;
-
+            //exit;
 
             // Execute the reconciliation actions
             $this->delete_events_from_outlook($calendar, $eventsToDelete);
             $this->create_events_in_outlook($calendar, $eventsToCreate);
             $this->update_events_in_outlook($calendar, $eventsToUpdate);
-            exit;
-
         } catch (\Exception $e) {
             $this->log("Error reconciling calendar $calendar: " . $e->getMessage(), 1);
         }
@@ -361,7 +357,7 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
                 $lookup[$hash] = $event;
             }
             
-            /*if ($subject == "Day 7") {
+            /*if ($subject == "ACT Debating Competition") {
                 echo "OUTLOOK start and end: " . $start . " - " . $end . " (AllDay: " . ($isAllDay ? 'Yes' : 'No') . ")\n";
             }*/
         }
@@ -394,7 +390,7 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
             $hash = $this->create_event_hash($subject, $start, $end, $isAllDay, $location);
             $lookup[$hash] = $event;
             
-            /*if ($subject == "Day 7") {
+            /*if ($subject == "ACT Debating Competition") {
                 echo "SYSTEM start and end: " . $start . " - " . $end . " (AllDay: " . ($isAllDay ? 'Yes' : 'No') . ")\n";
             }*/
         }
@@ -780,21 +776,17 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
         $record->status = 1; // Success
         $record->activitytype = $event->activitytype === 'assessment' ? 'assessment' : 'activity';
         $record->occurrenceid = $event->is_occurrence ? $event->occurrenceid : 0;
-        
-        // Check if record already exists
-        $existing = $DB->get_record('activities_cal_sync', [
+
+        // Delete existing records for this event.
+        $DB->delete_records('activities_cal_sync', [
             'activityid' => $event->id,
             'calendar' => $calendar,
             'activitytype' => $record->activitytype,
             'occurrenceid' => $record->occurrenceid
         ]);
-        
-        if ($existing) {
-            $record->id = $existing->id;
-            $DB->update_record('activities_cal_sync', $record);
-        } else {
-            $DB->insert_record('activities_cal_sync', $record);
-        }
+ 
+        // Pop a new record into the sync table.
+        $DB->insert_record('activities_cal_sync', $record);
     }
 
     /**
