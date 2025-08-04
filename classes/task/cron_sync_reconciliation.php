@@ -369,8 +369,8 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
         // Remove microseconds if present
         $datetime = preg_replace('/\.\d+$/', '', $outlookDatetime);
         
-        // Parse the datetime string
-        $dateTime = new \DateTime($datetime);
+        // Parse the datetime string as UTC (Outlook sends UTC time)
+        $dateTime = new \DateTime($datetime, new \DateTimeZone('UTC'));
         
         // Convert to AUS Eastern Standard Time (same timezone as system)
         $dateTime->setTimezone(new \DateTimeZone('Australia/Sydney'));
