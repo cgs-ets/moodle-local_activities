@@ -62,7 +62,7 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
         // Start date shoulwd be midnight of the day before
         $this->startDate = strtotime('yesterday midnight');
         // End date should be midnight of the day after
-        $this->endDate = strtotime('tomorrow midnight');
+        $this->endDate = strtotime('midnight +3 days');
 
         $this->log_start("Starting daily full reconciliation for date range: " . 
                         date('Y-m-d H:i:s', $this->startDate) . " to " . 
@@ -119,12 +119,12 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
             $eventsToDelete = $this->find_events_to_delete($outlookLookup, $systemLookup);
             $this->log("Found " . count($eventsToDelete) . " events to delete from Outlook", 2);
 
-            $o = [];
+            /*$o = [];
             foreach ($eventsToDelete as $outlookEvent) {
                 $o[] = array($outlookEvent->getSubject(), $outlookEvent->getStart()->getDateTime(), $outlookEvent->getEnd()->getDateTime());
             }
             echo "DELETE\n";
-            var_export($o);
+            var_export($o);*/
             
             // Show which events are duplicates
             if (!empty($this->outlookDuplicates)) {
@@ -142,31 +142,31 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
             $eventsToCreate = $this->find_events_to_create($outlookLookup, $systemLookup);
             $this->log("Found " . count($eventsToCreate) . " events to create in Outlook", 2);
 
-            $s = [];
+            /*$s = [];
             foreach ($eventsToCreate as $systemEvent) {
                 $s[] = array($systemEvent->activityname, date('Y-m-d\TH:i:s', $systemEvent->timestart), date('Y-m-d\TH:i:s', $systemEvent->timeend));
             }
             echo "CREATE\n";
-            var_export($s);
+            var_export($s);*/
 
             // Find events to update (in both but with mismatched content)
             $this->log("Checking for events to update in Outlook", 2);
             $eventsToUpdate = $this->find_events_to_update($outlookLookup, $systemLookup);
             $this->log("Found " . count($eventsToUpdate) . " events to update in Outlook", 2);
 
-            $u = [];
+            /*$u = [];
             foreach ($eventsToUpdate as $systemEvent) {
                 $u[] = array($systemEvent->activityname, date('Y-m-d\TH:i:s', $systemEvent->timestart), date('Y-m-d\TH:i:s', $systemEvent->timeend));
             }
             echo "UPDATE\n";
-            var_export($u);
+            var_export($u);*/
 
-            exit;
 
             // Execute the reconciliation actions
             $this->delete_events_from_outlook($calendar, $eventsToDelete);
             $this->create_events_in_outlook($calendar, $eventsToCreate);
             $this->update_events_in_outlook($calendar, $eventsToUpdate);
+            exit;
 
         } catch (\Exception $e) {
             $this->log("Error reconciling calendar $calendar: " . $e->getMessage(), 1);
@@ -340,12 +340,13 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
             $subject = $event->getSubject();
             $start = $this->normalize_outlook_datetime($event->getStart()->getDateTime());
             $end = $this->normalize_outlook_datetime($event->getEnd()->getDateTime());
+            $location = $event->getLocation();
             
             // Check if this is an all-day event
             $isAllDay = $this->is_all_day_event($start, $end);
             
             // Create a hash for comparison
-            $hash = $this->create_event_hash($subject, $start, $end, $isAllDay);
+            $hash = $this->create_event_hash($subject, $start, $end, $isAllDay, $location);
             
             // Check if this hash already exists (duplicate event)
             if (isset($lookup[$hash])) {
@@ -358,9 +359,9 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
                 $lookup[$hash] = $event;
             }
             
-            if ($subject == "Mentor/Mentee Session | Alumni/Scholar Mentoring Programme") {
+            /*if ($subject == "Day 7") {
                 echo "OUTLOOK start and end: " . $start . " - " . $end . " (AllDay: " . ($isAllDay ? 'Yes' : 'No') . ")\n";
-            }
+            }*/
         }
         
         // Store duplicate information for later use
@@ -382,16 +383,18 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
             $subject = $event->activityname;
             $start = date('Y-m-d\TH:i:s', $event->timestart);
             $end = date('Y-m-d\TH:i:s', $event->timeend);
+            $location = $event->location;
             
             // Check if this is an all-day event
             $isAllDay = $this->is_all_day_event($start, $end);
             
             // Create a hash for comparison
-            $hash = $this->create_event_hash($subject, $start, $end, $isAllDay);
+            $hash = $this->create_event_hash($subject, $start, $end, $isAllDay, $location);
             $lookup[$hash] = $event;
-            if ($subject == "Mentor/Mentee Session | Alumni/Scholar Mentoring Programme") {
+            
+            /*if ($subject == "Day 7") {
                 echo "SYSTEM start and end: " . $start . " - " . $end . " (AllDay: " . ($isAllDay ? 'Yes' : 'No') . ")\n";
-            }
+            }*/
         }
         
         return $lookup;
@@ -406,14 +409,14 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
      * @param bool $isAllDay Whether this is an all-day event
      * @return string Hash for comparison
      */
-    private function create_event_hash($subject, $start, $end, $isAllDay = false) {
+    private function create_event_hash($subject, $start, $end, $isAllDay = false, $location = '') {
         if ($isAllDay) {
             // For all-day events, use just the start date part for comparison
             // (Outlook all-day events end on the next day, so we only compare start date)
             $startDate = date('Y-m-d', strtotime($start));
-            return md5($subject . '|ALLDAY|' . $startDate);
+            return md5($subject . '|ALLDAY|' . $startDate . '|' . $location);
         } else {
-            return md5($subject . '|' . $start . '|' . $end);
+            return md5($subject . '|' . $start . '|' . $end . '|' . $location);
         }
     }
 
