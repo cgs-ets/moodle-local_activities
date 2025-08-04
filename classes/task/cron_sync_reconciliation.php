@@ -108,7 +108,8 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
                     $subject = $duplicates[0]->getSubject();
                     $start = $this->normalize_outlook_datetime($duplicates[0]->getStart()->getDateTime());
                     $end = $this->normalize_outlook_datetime($duplicates[0]->getEnd()->getDateTime());
-                    $this->log("  - '$subject' ($start to $end): " . count($duplicates) . " duplicates", 2);
+                    $isAllDay = $this->is_all_day_event($start, $end);
+                    $this->log("  - '$subject' ($start to $end) [AllDay: " . ($isAllDay ? 'Yes' : 'No') . "]: " . count($duplicates) . " duplicates", 2);
                 }
             }
 
@@ -340,8 +341,11 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
             $start = $this->normalize_outlook_datetime($event->getStart()->getDateTime());
             $end = $this->normalize_outlook_datetime($event->getEnd()->getDateTime());
             
+            // Check if this is an all-day event
+            $isAllDay = $this->is_all_day_event($start, $end);
+            
             // Create a hash for comparison
-            $hash = $this->create_event_hash($subject, $start, $end);
+            $hash = $this->create_event_hash($subject, $start, $end, $isAllDay);
             
             // Check if this hash already exists (duplicate event)
             if (isset($lookup[$hash])) {
@@ -355,7 +359,7 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
             }
             
             if ($subject == "Mentor/Mentee Session | Alumni/Scholar Mentoring Programme") {
-                echo "OUTLOOK start and end: " . $start . " - " . $end . "\n";
+                echo "OUTLOOK start and end: " . $start . " - " . $end . " (AllDay: " . ($isAllDay ? 'Yes' : 'No') . ")\n";
             }
         }
         
@@ -379,11 +383,14 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
             $start = date('Y-m-d\TH:i:s', $event->timestart);
             $end = date('Y-m-d\TH:i:s', $event->timeend);
             
+            // Check if this is an all-day event
+            $isAllDay = $this->is_all_day_event($start, $end);
+            
             // Create a hash for comparison
-            $hash = $this->create_event_hash($subject, $start, $end);
+            $hash = $this->create_event_hash($subject, $start, $end, $isAllDay);
             $lookup[$hash] = $event;
             if ($subject == "Mentor/Mentee Session | Alumni/Scholar Mentoring Programme") {
-                echo "SYSTEM start and end: " . $start . " - " . $end . "\n";
+                echo "SYSTEM start and end: " . $start . " - " . $end . " (AllDay: " . ($isAllDay ? 'Yes' : 'No') . ")\n";
             }
         }
         
@@ -396,10 +403,18 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
      * @param string $subject Event subject/title
      * @param string $start Start datetime
      * @param string $end End datetime
+     * @param bool $isAllDay Whether this is an all-day event
      * @return string Hash for comparison
      */
-    private function create_event_hash($subject, $start, $end) {
-        return md5($subject . '|' . $start . '|' . $end);
+    private function create_event_hash($subject, $start, $end, $isAllDay = false) {
+        if ($isAllDay) {
+            // For all-day events, use just the date part for comparison
+            $startDate = date('Y-m-d', strtotime($start));
+            $endDate = date('Y-m-d', strtotime($end));
+            return md5($subject . '|ALLDAY|' . $startDate . '|' . $endDate);
+        } else {
+            return md5($subject . '|' . $start . '|' . $end);
+        }
     }
 
     /**
@@ -420,6 +435,33 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
         
         // Format to match system format
         return $dateTime->format('Y-m-d\TH:i:s');
+    }
+
+    /**
+     * Check if an event is an all-day event based on its times.
+     *
+     * @param string $start Start datetime
+     * @param string $end End datetime
+     * @return bool True if this appears to be an all-day event
+     */
+    private function is_all_day_event($start, $end) {
+        // Check for system format: 00:00:00 to 23:59:00 on same day
+        if (preg_match('/T00:00:00$/', $start) && preg_match('/T23:59:00$/', $end)) {
+            $startDate = date('Y-m-d', strtotime($start));
+            $endDate = date('Y-m-d', strtotime($end));
+            return $startDate === $endDate;
+        }
+        
+        // Check for Outlook format: 10:00:00 to 10:00:00 (next day)
+        if (preg_match('/T10:00:00$/', $start) && preg_match('/T10:00:00$/', $end)) {
+            $startDate = date('Y-m-d', strtotime($start));
+            $endDate = date('Y-m-d', strtotime($end));
+            // Check if end date is next day after start date
+            $expectedEndDate = date('Y-m-d', strtotime($start . ' +1 day'));
+            return $endDate === $expectedEndDate;
+        }
+        
+        return false;
     }
 
     /**
@@ -534,6 +576,23 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
         
         $outlookLocation = $outlookEvent->getLocation() ? $outlookEvent->getLocation()->getDisplayName() : '';
         $systemLocation = $systemEvent->location ?? '';
+        
+        // Check if both events are all-day events
+        $outlookIsAllDay = $this->is_all_day_event($outlookStart, $outlookEnd);
+        $systemIsAllDay = $this->is_all_day_event($systemStart, $systemEnd);
+        
+        // If both are all-day events, compare only the date part
+        if ($outlookIsAllDay && $systemIsAllDay) {
+            $outlookStartDate = date('Y-m-d', strtotime($outlookStart));
+            $systemStartDate = date('Y-m-d', strtotime($systemStart));
+            $outlookEndDate = date('Y-m-d', strtotime($outlookEnd));
+            $systemEndDate = date('Y-m-d', strtotime($systemEnd));
+            
+            return ($outlookSubject !== $systemSubject ||
+                    $outlookStartDate !== $systemStartDate ||
+                    $outlookEndDate !== $systemEndDate ||
+                    $outlookLocation !== $systemLocation);
+        }
         
         return ($outlookSubject !== $systemSubject ||
                 $outlookStart !== $systemStart ||
