@@ -33,6 +33,9 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
     // Date range for reconciliation (1 day past to 60 days future)
     private $startDate;
     private $endDate;
+    
+    // Store duplicate Outlook events for processing
+    private $outlookDuplicates = [];
 
     /**
      * Get a descriptive name for this task (shown to admins).
@@ -97,6 +100,17 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
             // Create lookup arrays for comparison
             $outlookLookup = $this->create_outlook_lookup($outlookEvents);
             $systemLookup = $this->create_system_lookup($systemEvents);
+            
+            // Log duplicate detection
+            if (!empty($this->outlookDuplicates)) {
+                $this->log("Found duplicate events in Outlook:", 2);
+                foreach ($this->outlookDuplicates as $hash => $duplicates) {
+                    $subject = $duplicates[0]->getSubject();
+                    $start = $this->normalize_outlook_datetime($duplicates[0]->getStart()->getDateTime());
+                    $end = $this->normalize_outlook_datetime($duplicates[0]->getEnd()->getDateTime());
+                    $this->log("  - '$subject' ($start to $end): " . count($duplicates) . " duplicates", 2);
+                }
+            }
 
 
             // Find events to delete (in Outlook but not in system)
@@ -110,6 +124,17 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
             }
             echo "DELETE\n";
             var_export($o);
+            
+            // Show which events are duplicates
+            if (!empty($this->outlookDuplicates)) {
+                echo "\nDUPLICATES DETECTED:\n";
+                foreach ($this->outlookDuplicates as $hash => $duplicates) {
+                    $subject = $duplicates[0]->getSubject();
+                    $start = $this->normalize_outlook_datetime($duplicates[0]->getStart()->getDateTime());
+                    $end = $this->normalize_outlook_datetime($duplicates[0]->getEnd()->getDateTime());
+                    echo "  - '$subject' ($start to $end): " . count($duplicates) . " duplicates\n";
+                }
+            }
 
             // Find events to create (in system but not in Outlook)
             $this->log("Checking for events to create in Outlook", 2);
@@ -128,6 +153,12 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
             $eventsToUpdate = $this->find_events_to_update($outlookLookup, $systemLookup);
             $this->log("Found " . count($eventsToUpdate) . " events to update in Outlook", 2);
 
+            $u = [];
+            foreach ($eventsToUpdate as $systemEvent) {
+                $u[] = array($systemEvent->activityname, date('Y-m-d\TH:i:s', $systemEvent->timestart), date('Y-m-d\TH:i:s', $systemEvent->timeend));
+            }
+            echo "UPDATE\n";
+            var_export($u);
 
             exit;
 
@@ -302,6 +333,7 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
      */
     private function create_outlook_lookup($outlookEvents) {
         $lookup = [];
+        $duplicateHashes = [];
         
         foreach ($outlookEvents as $event) {
             $subject = $event->getSubject();
@@ -310,13 +342,25 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
             
             // Create a hash for comparison
             $hash = $this->create_event_hash($subject, $start, $end);
-
-            if ($subject == "Learner Licence Course") {
+            
+            // Check if this hash already exists (duplicate event)
+            if (isset($lookup[$hash])) {
+                // Mark this hash as having duplicates
+                if (!isset($duplicateHashes[$hash])) {
+                    $duplicateHashes[$hash] = [$lookup[$hash]]; // Add the first event
+                }
+                $duplicateHashes[$hash][] = $event; // Add this duplicate event
+            } else {
+                $lookup[$hash] = $event;
+            }
+            
+            if ($subject == "Mentor/Mentee Session | Alumni/Scholar Mentoring Programme") {
                 echo "OUTLOOK start and end: " . $start . " - " . $end . "\n";
             }
-
-            $lookup[$hash] = $event;
         }
+        
+        // Store duplicate information for later use
+        $this->outlookDuplicates = $duplicateHashes;
         
         return $lookup;
     }
@@ -338,8 +382,7 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
             // Create a hash for comparison
             $hash = $this->create_event_hash($subject, $start, $end);
             $lookup[$hash] = $event;
-
-            if ($subject == "Learner Licence Course") {
+            if ($subject == "Mentor/Mentee Session | Alumni/Scholar Mentoring Programme") {
                 echo "SYSTEM start and end: " . $start . " - " . $end . "\n";
             }
         }
@@ -392,6 +435,24 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
         foreach ($outlookLookup as $hash => $outlookEvent) {
             if (!isset($systemLookup[$hash])) {
                 $toDelete[] = $outlookEvent;
+                
+                // If there are duplicates for this hash, add them all to delete list
+                if (isset($this->outlookDuplicates[$hash])) {
+                    foreach ($this->outlookDuplicates[$hash] as $duplicateEvent) {
+                        $toDelete[] = $duplicateEvent;
+                    }
+                }
+            }
+        }
+        
+        // Also add all duplicate events that exist in system (they should all be deleted and recreated)
+        foreach ($this->outlookDuplicates as $hash => $duplicateEvents) {
+            if (isset($systemLookup[$hash])) {
+                // This event exists in system but has duplicates in Outlook
+                // Add all duplicates to delete list
+                foreach ($duplicateEvents as $duplicateEvent) {
+                    $toDelete[] = $duplicateEvent;
+                }
             }
         }
         
@@ -411,6 +472,10 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
         foreach ($systemLookup as $hash => $systemEvent) {
             if (!isset($outlookLookup[$hash])) {
                 $toCreate[] = $systemEvent;
+            } else if (isset($this->outlookDuplicates[$hash])) {
+                // If there are duplicates for this event, we need to recreate it
+                // (all duplicates will be deleted and a new one created)
+                $toCreate[] = $systemEvent;
             }
         }
         
@@ -429,6 +494,11 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
         
         foreach ($systemLookup as $hash => $systemEvent) {
             if (isset($outlookLookup[$hash])) {
+                // Skip events that have duplicates (they will be deleted and recreated instead)
+                if (isset($this->outlookDuplicates[$hash])) {
+                    continue;
+                }
+                
                 $outlookEvent = $outlookLookup[$hash];
                 
                 // Check if content is mismatched
