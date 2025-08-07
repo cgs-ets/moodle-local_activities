@@ -132,6 +132,12 @@ export function Settings() {
     loadData();
   }, [searchParams]);
 
+  // Initialize search results when classifications are loaded
+  useEffect(() => {
+    setClassificationSearchResults(classifications);
+    setRiskFilterSearchResults(classifications);
+  }, [classifications]);
+
   const loadData = async () => {
     setLoading(true);
 
@@ -323,28 +329,18 @@ export function Settings() {
   };
 
   // Classification search functions
-  const searchClassifications = async (query: string) => {
+  const searchClassifications = (query: string) => {
     setClassificationSearch(query);
     if (!query.length) {
-      setClassificationSearchResults([]);
+      setClassificationSearchResults(classifications);
       return;
     }
     
-    try {
-      const response = await api.call({
-        query: {
-          methodname: 'local_activities-search_classifications',
-          query: query,
-          version: currentVersion?.version
-        }
-      });
-      
-      if (!response.error) {
-        setClassificationSearchResults(response.data);
-      }
-    } catch (error) {
-      console.error('Error searching classifications:', error);
-    }
+    // Filter classifications locally based on query
+    const filtered = classifications.filter(classification =>
+      classification.name.toLowerCase().includes(query.toLowerCase())
+    );
+    setClassificationSearchResults(filtered);
   };
 
   const handleClassificationSelect = (classification: Classification) => {
@@ -360,28 +356,18 @@ export function Settings() {
   };
 
   // Risk filter functions
-  const searchRiskFilters = async (query: string) => {
+  const searchRiskFilters = (query: string) => {
     setRiskFilterSearch(query);
     if (!query.length) {
-      setRiskFilterSearchResults([]);
+      setRiskFilterSearchResults(classifications);
       return;
     }
     
-    try {
-      const response = await api.call({
-        query: {
-          methodname: 'local_activities-search_classifications',
-          query: query,
-          version: currentVersion?.version
-        }
-      });
-      
-      if (!response.error) {
-        setRiskFilterSearchResults(response.data);
-      }
-    } catch (error) {
-      console.error('Error searching classifications for filter:', error);
-    }
+    // Filter classifications locally based on query
+    const filtered = classifications.filter(classification =>
+      classification.name.toLowerCase().includes(query.toLowerCase())
+    );
+    setRiskFilterSearchResults(filtered);
   };
 
   const handleRiskFilterSelect = (classification: Classification) => {
@@ -668,16 +654,20 @@ export function Settings() {
                             ))}
                             <Combobox.EventsTarget>
                               <PillsInput.Field
-                                onFocus={() => riskFilterCombobox.openDropdown()}
-                                onClick={() => riskFilterCombobox.openDropdown()}
+                                onFocus={() => {
+                                  setRiskFilterSearchResults(classifications);
+                                  riskFilterCombobox.openDropdown();
+                                }}
+                                onClick={() => {
+                                  setRiskFilterSearchResults(classifications);
+                                  riskFilterCombobox.openDropdown();
+                                }}
                                 onBlur={() => riskFilterCombobox.closeDropdown()}
                                 value={riskFilterSearch}
                                 placeholder="Search classifications to filter..."
                                 onChange={(event) => {
                                   searchRiskFilters(event.currentTarget.value);
-                                  if (event.currentTarget.value.length > 0) {
-                                    riskFilterCombobox.openDropdown();
-                                  }
+                                  riskFilterCombobox.openDropdown();
                                 }}
                               />
                             </Combobox.EventsTarget>
@@ -685,8 +675,8 @@ export function Settings() {
                         </PillsInput>
                       </Combobox.DropdownTarget>
 
-                      <Combobox.Dropdown hidden={!riskFilterSearchResults.length}>
-                        <Combobox.Options>
+                      <Combobox.Dropdown>
+                        <Combobox.Options style={{ maxHeight: '300px', overflowY: 'auto' }}>
                           {riskFilterSearchResults.length > 0 
                             ? riskFilterSearchResults.map((classification) => (
                                 <Combobox.Option value={JSON.stringify(classification)} key={classification.id}>
@@ -1176,13 +1166,20 @@ export function Settings() {
                     ))}
                     <Combobox.EventsTarget>
                       <PillsInput.Field
-                        onFocus={() => combobox.openDropdown()}
-                        onClick={() => combobox.openDropdown()}
+                        onFocus={() => {
+                          setClassificationSearchResults(classifications);
+                          combobox.openDropdown();
+                        }}
+                        onClick={() => {
+                          setClassificationSearchResults(classifications);
+                          combobox.openDropdown();
+                        }}
                         onBlur={() => combobox.closeDropdown()}
                         value={classificationSearch}
                         placeholder="Search classifications"
                         onChange={(event) => {
                           searchClassifications(event.currentTarget.value);
+                          combobox.openDropdown();
                         }}
                       />
                     </Combobox.EventsTarget>
@@ -1190,12 +1187,12 @@ export function Settings() {
                 </PillsInput>
               </Combobox.DropdownTarget>
 
-              <Combobox.Dropdown hidden={!classificationSearchResults.length}>
-                <Combobox.Options>
+              <Combobox.Dropdown>
+                <Combobox.Options style={{ maxHeight: '300px', overflowY: 'auto' }}>
                   {classificationSearchResults.length > 0 
                     ? classificationSearchResults.map((classification) => (
                         <Combobox.Option value={JSON.stringify(classification)} key={classification.id}>
-                          <Text>{classification.name}</Text>
+                          <Text className="normal-case font-normal text-black text-sm">{classification.name}</Text>
                         </Combobox.Option>
                       ))
                     : <Combobox.Empty>Nothing found...</Combobox.Empty>
