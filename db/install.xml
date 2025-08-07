@@ -263,10 +263,14 @@
         <FIELD NAME="control_timing" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="risk_benefit" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="isstandard" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="version" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="risk_version" FIELDS="id,version"/>
+      </INDEXES>
     </TABLE>
 
 
@@ -277,12 +281,14 @@
         <FIELD NAME="icon" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="description" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="version" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="name_unique" UNIQUE="true" FIELDS="name"/>
+        <INDEX NAME="name_version_unique" UNIQUE="true" FIELDS="name,version"/>
+        <INDEX NAME="classification_version" FIELDS="id,version"/>
       </INDEXES>
     </TABLE>
 
@@ -291,6 +297,7 @@
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="riskid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="classificationid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="version" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -298,7 +305,25 @@
         <KEY NAME="fk_classificationid" TYPE="foreign" FIELDS="classificationid" REFTABLE="activities_classifications" REFFIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="risk_classification_unique" UNIQUE="true" FIELDS="riskid,classificationid"/>
+        <INDEX NAME="risk_classification_unique" UNIQUE="true" FIELDS="riskid,classificationid,version"/>
+      </INDEXES>
+    </TABLE>
+
+    <TABLE NAME="activities_risk_versions" COMMENT="Version control for risk configurations">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="version" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="is_published" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="published_by" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="timepublished" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="description" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="version_unique" UNIQUE="true" FIELDS="version"/>
       </INDEXES>
     </TABLE>
 

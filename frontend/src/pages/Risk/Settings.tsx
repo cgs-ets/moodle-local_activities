@@ -21,13 +21,16 @@ import {
   Pill,
   PillsInput,
   Tooltip,
-  Grid
+  Alert,
+  Tabs,
+  Space,
 } from '@mantine/core';
-import { IconPlus, IconEdit, IconTrash, IconTag, IconAlertSquare, IconX, IconCheck, IconGripVertical } from '@tabler/icons-react';
+import { IconPlus, IconEdit, IconTrash, IconAlertSquare, IconX, IconCheck, IconGripVertical, IconEye, IconEyeOff, IconGitBranch, IconAlertCircle, IconFirstAidKit, IconCategory2, IconSettings, IconCat } from '@tabler/icons-react';
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
 import useFetch from "../../hooks/useFetch";
 import { SvgRenderer } from "../../components/SvgRenderer";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 interface Classification {
   id: number;
@@ -48,13 +51,31 @@ interface Risk {
   risk_benefit: string;
   isstandard: number;
   classification_ids: number[];
+  version: number;
+}
+
+interface Version {
+  id: number;
+  version: number;
+  is_published: number;
+  published_by: string;
+  timepublished: number;
+  timecreated: number;
+  description: string;
+  risk_count?: number;
+  classification_count?: number;
 }
 
 export function Settings() {
   const api = useFetch();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  
   const [loading, setLoading] = useState(true);
   const [classifications, setClassifications] = useState<Classification[]>([]);
   const [risks, setRisks] = useState<Risk[]>([]);
+  const [versions, setVersions] = useState<Version[]>([]);
+  const [currentVersion, setCurrentVersion] = useState<Version | null>(null);
   
   // Classification modal state
   const [classificationModalOpen, setClassificationModalOpen] = useState(false);
@@ -97,18 +118,34 @@ export function Settings() {
     onDropdownOpen: () => combobox.updateSelectedOptionIndex('active'),
   });
 
+  const [tab, setTab] = useState('risks');
+
   document.title = 'Risk Settings';
+
+  // Get version from URL parameter
+  const getVersionFromUrl = () => {
+    const versionParam = searchParams.get('v');
+    return versionParam ? parseInt(versionParam, 10) : null;
+  };
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [searchParams]);
 
   const loadData = async () => {
     setLoading(true);
-    try {
-      const [classificationsRes, risksRes] = await Promise.all([
-        api.call({ query: { methodname: 'local_activities-get_classifications' } }),
-        api.call({ query: { methodname: 'local_activities-get_risks' } })
+
+    const version = getVersionFromUrl();
+
+    try {      
+      const [
+        classificationsRes, 
+        risksRes, 
+        versionsRes, 
+      ] = await Promise.all([
+        api.call({ query: { methodname: 'local_activities-get_classifications', version: version } }),
+        api.call({ query: { methodname: 'local_activities-get_risks', version: version } }),
+        api.call({ query: { methodname: 'local_activities-get_versions' } }),
       ]);
       
       if (!classificationsRes.error) {
@@ -118,6 +155,12 @@ export function Settings() {
       if (!risksRes.error) {
         setRisks(risksRes.data);
       }
+      
+      if (!versionsRes.error) {
+        setVersions(versionsRes.data);
+      }
+
+      setCurrentVersion(versionsRes.data.find((v: Version) => v.version === version));
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -235,7 +278,8 @@ export function Settings() {
       const data = {
         ...riskForm,
         id: editingRisk?.id,
-        classification_ids: selectedClassifications.map(c => c.id)
+        classification_ids: selectedClassifications.map(c => c.id),
+        version: currentVersion?.version
       };
       
       const response = await api.call({
@@ -290,7 +334,8 @@ export function Settings() {
       const response = await api.call({
         query: {
           methodname: 'local_activities-search_classifications',
-          query: query
+          query: query,
+          version: currentVersion?.version
         }
       });
       
@@ -326,7 +371,8 @@ export function Settings() {
       const response = await api.call({
         query: {
           methodname: 'local_activities-search_classifications',
-          query: query
+          query: query,
+          version: currentVersion?.version
         }
       });
       
@@ -363,6 +409,69 @@ export function Settings() {
       );
     });
   }, [risks, selectedRiskFilters]);
+
+  // Version control functions
+  const createDraftVersion = async (version: number) => {
+    try {
+      const response = await api.call({
+        method: 'POST',
+        body: {
+          methodname: 'local_activities-create_draft_version',
+          args: { version }
+        }
+      });
+      
+      if (!response.error && response.data.version) {
+        setTab('risks');
+        navigate(`/risk/settings?v=${response.data.version}`);
+      }
+    } catch (error) {
+      console.error('Error creating draft version:', error);
+    }
+  };
+
+  const publishVersion = async (version: number) => {
+    try {
+      const response = await api.call({
+        method: 'POST',
+        body: {
+          methodname: 'local_activities-publish_version',
+          args: { version }
+        }
+      });
+      
+      if (!response.error && response.data.version) {
+        setTab('risks');
+        if (currentVersion?.version !== response.data.version) {
+          navigate(`/risk/settings?v=${response.data.version}`);
+        } else {
+          loadData();
+        }
+      }
+    } catch (error) {
+      console.error('Error publishing version:', error);
+    }
+  };
+
+  const deleteVersion = async (version: number) => {
+    if (!confirm('Are you sure you want to delete this version?')) return;
+    
+    try {
+      const response = await api.call({
+        method: 'POST',
+        body: {
+          methodname: 'local_activities-delete_version',
+          args: { version }
+        }
+      });
+      
+      if (!response.error) {
+        loadData();
+      }
+    } catch (error) {
+      console.error('Error deleting version:', error);
+    }
+  };
 
   // Drag and drop functions
   const handleDragStart = (e: React.DragEvent, id: number) => {
@@ -428,218 +537,292 @@ export function Settings() {
     }
   };
 
-
+  const switchToVersion = async (version: number) => {
+    setTab('risks');
+    navigate(`/risk/settings?v=${version}`);
+  };
 
   return (
     <>
       <Header />
       <div className="page-wrapper" style={{ minHeight: 'calc(100vh - 154px)' }}>
         <Container fluid my="md" className="space-y-6">
-          <Text fz="xl" fw={600}>Risk Settings</Text>
+          <Group justify="space-between" align="center">
+            <Text fz="xl" fw={600}>Risk Settings: Version {getVersionFromUrl()}</Text>
 
-          {loading && (
-            <Box style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-              <Loader type="dots" />
-            </Box>
-          )}
+            {loading && (
+              <Box style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <Loader size="sm" type="dots" />
+              </Box>
+            )}
+          </Group>
 
 
-          
-              {/* Risks Section */}
-              <Card withBorder>
-                <Group justify="space-between" mb="md">
-                  <Text fz="lg" fw={500}>Risks</Text>
-                  <Button 
-                    leftSection={<IconPlus size={16} />}
-                    onClick={() => openRiskModal()}
-                    radius="xl"
-                    size="compact-md"
-                  >
-                    Add Risk
-                  </Button>
+          <Tabs value={tab} onChange={(value) => setTab(value || 'risks')}>
+            <Tabs.List>
+              <Tabs.Tab value="risks" leftSection={<IconFirstAidKit size={12} />}>
+                Risks
+              </Tabs.Tab>
+              <Tabs.Tab value="classifications" leftSection={<IconCategory2 size={12} />}>
+                Classifications
+              </Tabs.Tab>
+              <Tabs.Tab value="versions" leftSection={<IconGitBranch size={12} />}>
+                Versions
+              </Tabs.Tab>
+            </Tabs.List>
+
+            <Space h="md" />
+
+            <Tabs.Panel value="risks">
+              
+              { !!currentVersion && (
+              <>
+                <Group justify="start" mb="md">
+                  <div>
+                    {currentVersion.version !== 0 && currentVersion.is_published === 0 && (
+                      <Alert 
+                        color="dark" 
+                        title={`Draft version`}
+                        icon={<IconAlertCircle size={16} 
+                      />}>
+                        <Text className="mb-3">You're currently editing a draft version. When you're done, you can publish it.</Text>
+                        <Button 
+                          leftSection={<IconCheck size={16} />}
+                          onClick={() => publishVersion(currentVersion.version)}
+                          color="green"
+                          size="compact-md"
+                          radius="xl"
+                        >
+                          Publish
+                        </Button>
+                      </Alert>
+                    )}
+
+                    {currentVersion.version !== 0 && currentVersion.is_published === 1 && (
+                      <Alert color="blue" title="Published version" icon={<IconAlertCircle size={16} />}>
+                        <Text className="mb-3">You're currently viewing a published version. Create a forked version to make changes.</Text>
+                        <Button 
+                          leftSection={<IconGitBranch size={16} />}
+                          onClick={() => createDraftVersion(currentVersion.version)}
+                          color="blue"
+                          size="compact-md"
+                          radius="xl"
+                        >
+                          Create Fork
+                        </Button>
+                      </Alert>
+                    )}
+                  </div>
                 </Group>
-                
-                {/* Risk Filter */}
-                <div className="flex justify-end items-center mb-4">
-                  <Box mb="md" className="w-1/2">
-                    <Combobox 
-                      store={riskFilterCombobox} 
-                      onOptionSubmit={(optionValue: string) => {
-                        const classification = JSON.parse(optionValue);
-                        handleRiskFilterSelect(classification);
-                      }}
-                      withinPortal={false}
+
+
+                {/* 
+                -------------------
+                RISKS
+                -------------------
+                */}
+                <Card withBorder>
+                  <Group justify="space-between" mb="md">
+                    <Text fz="lg" fw={500}>Risks</Text>
+                    <Button 
+                      leftSection={<IconPlus size={16} />}
+                      onClick={() => openRiskModal()}
+                      radius="xl"
+                      size="compact-md"
                     >
-                    <Combobox.DropdownTarget>
-                      <PillsInput 
-                        pointer 
-                        leftSection={<IconTag size={18} />}
-                      >
-                        <Pill.Group>
-                          {selectedRiskFilters.map((classification) => (
-                            <Badge key={classification.id} variant='filled' pr={0} color="gray.2" size="lg" radius="xl">
-                              <Flex gap={4}>
-                                <Text className="normal-case font-normal text-black text-sm">{classification.name}</Text>
-                                <CloseButton
-                                  onMouseDown={() => handleRiskFilterRemove(classification)}
-                                  variant="transparent"
-                                  size={22}
-                                  iconSize={14}
-                                  tabIndex={-1}
-                                  color="black"
-                                />
-                              </Flex>
-                            </Badge>
-                          ))}
-                          <Combobox.EventsTarget>
-                            <PillsInput.Field
-                              onFocus={() => riskFilterCombobox.openDropdown()}
-                              onClick={() => riskFilterCombobox.openDropdown()}
-                              onBlur={() => riskFilterCombobox.closeDropdown()}
-                              value={riskFilterSearch}
-                              placeholder="Search classifications to filter..."
-                              onChange={(event) => {
-                                searchRiskFilters(event.currentTarget.value);
-                                if (event.currentTarget.value.length > 0) {
-                                  riskFilterCombobox.openDropdown();
-                                }
-                              }}
-                            />
-                          </Combobox.EventsTarget>
-                        </Pill.Group>
-                      </PillsInput>
-                    </Combobox.DropdownTarget>
-
-                    <Combobox.Dropdown hidden={!riskFilterSearchResults.length}>
-                      <Combobox.Options>
-                        {riskFilterSearchResults.length > 0 
-                          ? riskFilterSearchResults.map((classification) => (
-                              <Combobox.Option value={JSON.stringify(classification)} key={classification.id}>
-                                <Text>{classification.name}</Text>
-                              </Combobox.Option>
-                            ))
-                          : <Combobox.Empty>Nothing found...</Combobox.Empty>
-                        }
-                      </Combobox.Options>
-                    </Combobox.Dropdown>
-                  </Combobox>
+                      Add Risk
+                    </Button>
+                  </Group>
                   
-                  {selectedRiskFilters.length > 0 && (
-                    <Text fz="xs" c="dimmed" mt="xs">
-                      Showing {filteredRisks.length} of {risks.length} risks
-                    </Text>
-                  )}
-                </Box>
-                </div>
-                
-                <Table
-                  style={{ width: 'auto', tableLayout: 'auto' }}
-                  withColumnBorders
-                  highlightOnHover
-                >
-                  <Table.Thead>
-                    <Table.Tr>
-                      <Table.Th>Hazard</Table.Th>
-                      <Table.Th>Risk Rating (Before)</Table.Th>
-                      <Table.Th>Control Measures</Table.Th>
-                      <Table.Th>Risk Rating (After)</Table.Th>
-                      <Table.Th>Responsible Person</Table.Th>
-                      <Table.Th>Classifications</Table.Th>
-                      <Table.Th style={{ width: '90px' }}>Actions</Table.Th>
-                    </Table.Tr>
-                  </Table.Thead>
-                  <Table.Tbody>
-                    {filteredRisks.map((risk) => (
-                      <Table.Tr key={risk.id}>
-                        <Table.Td>
-                          <Text size="sm">{risk.hazard}</Text>
-                        </Table.Td>
-                        <Table.Td>
-                          <Badge variant="light" color={
-                            risk.riskrating_before === 1 ? "red" :
-                            risk.riskrating_before === 2 ? "orange" :
-                            risk.riskrating_before === 3 ? "yellow" :
-                            risk.riskrating_before === 4 ? "lime" :
-                            risk.riskrating_before === 5 ? "green" :
-                            "gray"
-                          }>
-                            {risk.riskrating_before}
-                          </Badge>
-                        </Table.Td>
-                        <Table.Td>
-                          <Text size="sm">{risk.controlmeasures}</Text>
-                        </Table.Td>
-                        <Table.Td>
-                          <Badge variant="light" color={
-                            risk.riskrating_after === 1 ? "red" :
-                            risk.riskrating_after === 2 ? "orange" :
-                            risk.riskrating_after === 3 ? "yellow" :
-                            risk.riskrating_after === 4 ? "lime" :
-                            risk.riskrating_after === 5 ? "green" :
-                            "gray"
-                          }>
-                            {risk.riskrating_after}
-                          </Badge>
-                        </Table.Td>
-                        <Table.Td>
-                          <Text size="sm">{risk.responsible_person}</Text>
-                        </Table.Td>
-                        <Table.Td>
-                          <Group gap="xs">
-                            {risk.classification_ids.map((classificationId) => {
-                              const classification = classifications.find(c => c.id === classificationId);
-                              return classification ? (
-                                <Badge key={classificationId} variant="light" size="sm">
-                                  {classification.name}
-                                </Badge>
-                              ) : null;
-                            })}
-                          </Group>
-                        </Table.Td>
-                        <Table.Td>
-                          <Group gap="xs">
-                            <ActionIcon 
-                              variant="subtle" 
-                              color="blue"
-                              onClick={() => openRiskModal(risk)}
-                            >
-                              <IconEdit size={16} />
-                            </ActionIcon>
-                            <ActionIcon 
-                              variant="subtle" 
-                              color="red"
-                              onClick={() => deleteRisk(risk.id)}
-                            >
-                              <IconTrash size={16} />
-                            </ActionIcon>
-                          </Group>
-                        </Table.Td>
+                  {/* Risk Filter */}
+                  <div className="flex justify-end items-center mb-4">
+                    <Box mb="md" className="w-1/2">
+                      <Combobox 
+                        store={riskFilterCombobox} 
+                        onOptionSubmit={(optionValue: string) => {
+                          const classification = JSON.parse(optionValue);
+                          handleRiskFilterSelect(classification);
+                        }}
+                        withinPortal={false}
+                      >
+                      <Combobox.DropdownTarget>
+                        <PillsInput 
+                          pointer 
+                          leftSection={<IconCategory2 size={18} />}
+                        >
+                          <Pill.Group>
+                            {selectedRiskFilters.map((classification) => (
+                              <Badge key={classification.id} variant='filled' pr={0} color="gray.2" size="lg" radius="xl">
+                                <Flex gap={4}>
+                                  <Text className="normal-case font-normal text-black text-sm">{classification.name}</Text>
+                                  <CloseButton
+                                    onMouseDown={() => handleRiskFilterRemove(classification)}
+                                    variant="transparent"
+                                    size={22}
+                                    iconSize={14}
+                                    tabIndex={-1}
+                                    color="black"
+                                  />
+                                </Flex>
+                              </Badge>
+                            ))}
+                            <Combobox.EventsTarget>
+                              <PillsInput.Field
+                                onFocus={() => riskFilterCombobox.openDropdown()}
+                                onClick={() => riskFilterCombobox.openDropdown()}
+                                onBlur={() => riskFilterCombobox.closeDropdown()}
+                                value={riskFilterSearch}
+                                placeholder="Search classifications to filter..."
+                                onChange={(event) => {
+                                  searchRiskFilters(event.currentTarget.value);
+                                  if (event.currentTarget.value.length > 0) {
+                                    riskFilterCombobox.openDropdown();
+                                  }
+                                }}
+                              />
+                            </Combobox.EventsTarget>
+                          </Pill.Group>
+                        </PillsInput>
+                      </Combobox.DropdownTarget>
+
+                      <Combobox.Dropdown hidden={!riskFilterSearchResults.length}>
+                        <Combobox.Options>
+                          {riskFilterSearchResults.length > 0 
+                            ? riskFilterSearchResults.map((classification) => (
+                                <Combobox.Option value={JSON.stringify(classification)} key={classification.id}>
+                                  <Text>{classification.name}</Text>
+                                </Combobox.Option>
+                              ))
+                            : <Combobox.Empty>Nothing found...</Combobox.Empty>
+                          }
+                        </Combobox.Options>
+                      </Combobox.Dropdown>
+                    </Combobox>
+                    
+                    {selectedRiskFilters.length > 0 && (
+                      <Text fz="xs" c="dimmed" mt="xs">
+                        Showing {filteredRisks.length} of {risks.length} risks
+                      </Text>
+                    )}
+                  </Box>
+                  </div>
+                  
+                  <Table
+                    style={{ width: 'auto', tableLayout: 'auto' }}
+                    withColumnBorders
+                    highlightOnHover
+                  >
+                    <Table.Thead>
+                      <Table.Tr>
+                        <Table.Th>Hazard</Table.Th>
+                        <Table.Th>Risk Rating (Before)</Table.Th>
+                        <Table.Th>Control Measures</Table.Th>
+                        <Table.Th>Risk Rating (After)</Table.Th>
+                        <Table.Th>Responsible Person</Table.Th>
+                        <Table.Th style={{ minWidth: '250px' }}>Classifications</Table.Th>
+                        <Table.Th style={{ width: '90px' }}>Actions</Table.Th>
                       </Table.Tr>
-                    ))}
-                  </Table.Tbody>
-                </Table>
-              </Card>
+                    </Table.Thead>
+                    <Table.Tbody>
+                      {filteredRisks.map((risk) => (
+                        <Table.Tr key={risk.id}>
+                          <Table.Td>
+                            <Text size="sm">{risk.hazard}</Text>
+                          </Table.Td>
+                          <Table.Td>
+                            <Badge variant="light" color={
+                              risk.riskrating_before === 1 ? "red" :
+                              risk.riskrating_before === 2 ? "orange" :
+                              risk.riskrating_before === 3 ? "yellow" :
+                              risk.riskrating_before === 4 ? "lime" :
+                              risk.riskrating_before === 5 ? "green" :
+                              "gray"
+                            }>
+                              {risk.riskrating_before}
+                            </Badge>
+                          </Table.Td>
+                          <Table.Td>
+                            <Text size="sm">{risk.controlmeasures}</Text>
+                          </Table.Td>
+                          <Table.Td>
+                            <Badge variant="light" color={
+                              risk.riskrating_after === 1 ? "red" :
+                              risk.riskrating_after === 2 ? "orange" :
+                              risk.riskrating_after === 3 ? "yellow" :
+                              risk.riskrating_after === 4 ? "lime" :
+                              risk.riskrating_after === 5 ? "green" :
+                              "gray"
+                            }>
+                              {risk.riskrating_after}
+                            </Badge>
+                          </Table.Td>
+                          <Table.Td>
+                            <Text size="sm">{risk.responsible_person}</Text>
+                          </Table.Td>
+                          <Table.Td>
+                            <Group gap="xs">
+                              {risk.classification_ids.map((classificationId) => {
+                                const classification = classifications.find(c => c.id === classificationId);
+                                return classification ? (
+                                  <Badge key={classificationId} variant="light" size="sm">
+                                    {classification.name}
+                                  </Badge>
+                                ) : null;
+                              })}
+                            </Group>
+                          </Table.Td>
+                          <Table.Td>
+                            {currentVersion.is_published === 0 && (
+                              <Group gap="xs">
+                                <ActionIcon 
+                                  variant="subtle" 
+                                  color="blue"
+                                  onClick={() => openRiskModal(risk)}
+                                >
+                                  <IconEdit size={16} />
+                                </ActionIcon>
+                                <ActionIcon 
+                                  variant="subtle" 
+                                  color="red"
+                                  onClick={() => deleteRisk(risk.id)}
+                                >
+                                  <IconTrash size={16} />
+                                </ActionIcon>
+                              </Group>
+                            )}
+                          </Table.Td>
+                        </Table.Tr>
+                      ))}
+                    </Table.Tbody>
+                  </Table>
+                </Card>
+              </>
+              )}
+            </Tabs.Panel>
 
 
 
 
 
 
-
-
-
-              {/* Classifications Section */}
+            {/* 
+            -------------------
+            CLASSIFICATIONS
+            -------------------
+            */}
+            <Tabs.Panel value="classifications">
+                
               <Card withBorder className="max-w-screen-md mx-auto">
                 <Group justify="space-between" mb="md">
                   <Text fz="lg" fw={500}>Risk Classifications</Text>
-                  <Button 
-                    leftSection={<IconPlus size={16} />}
-                    onClick={() => openClassificationModal()}
-                    radius="xl"
-                    size="compact-md"
-                  >
-                    Add Classification
-                  </Button>
+                    <Button 
+                      leftSection={<IconPlus size={16} />}
+                      onClick={() => openClassificationModal()}
+                      radius="xl"
+                      size="compact-md"
+                    >
+                      Add Classification
+                    </Button>
                 </Group>
                 
                 {deleteError && (
@@ -705,9 +888,113 @@ export function Settings() {
                   </Table.Tbody>
                 </Table>
               </Card>
-              
+
+            </Tabs.Panel>
 
 
+
+
+
+
+            <Tabs.Panel value="versions">
+              {/* Version Control Section */}
+              <Card withBorder>
+                <Group justify="space-between" mb="md">
+                  <Text fz="lg" fw={500}>Version Control</Text>
+                </Group>
+
+                <Table>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th>Version</Table.Th>
+                      <Table.Th>Status</Table.Th>
+                      <Table.Th>Published By</Table.Th>
+                      <Table.Th>Published Date</Table.Th>
+                      <Table.Th>Actions</Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {versions.map((version) => (
+                      <Table.Tr 
+                        key={version.id} 
+                        style={{ cursor: 'pointer' }} 
+                        onClick={() => switchToVersion(version.version)}
+                      >
+                        <Table.Td>
+                          <div className="flex items-center gap-2">
+                            <Text fw={500}>v{version.version}</Text>
+                            {currentVersion?.version === version.version && (
+                              <Badge size="xs" color="blue" ml="xs">Viewing</Badge>
+                            )}
+                          </div>
+                        </Table.Td>
+                        <Table.Td>
+                          <Badge 
+                            variant={version.is_published ? "filled" : "light"}
+                            color={version.is_published ? "green" : "gray"}
+                          >
+                            {version.is_published ? "Published" : "Draft"}
+                          </Badge>
+                        </Table.Td>
+                        <Table.Td>
+                          <Text size="sm">{version.published_by || "-"}</Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <Text size="sm">
+                            {version.timepublished ? new Date(version.timepublished * 1000).toLocaleDateString() : "-"}
+                          </Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <Group gap="xs">
+                            {!version.is_published && (
+                              <>
+                                <ActionIcon 
+                                  variant="subtle" 
+                                  color="red"
+                                  onClick={(e) => {
+                                    e.stopPropagation(); // Prevent row click
+                                    deleteVersion(version.version);
+                                  }}
+                                >
+                                  <IconTrash size={16} />
+                                </ActionIcon>
+                                <ActionIcon 
+                                  variant="subtle" 
+                                  color="blue"
+                                  onClick={() => publishVersion(version.version)}
+                                >
+                                  <IconCheck size={16} />
+                                </ActionIcon>
+                              </>
+                            )}
+                            {version.is_published && (
+                              <ActionIcon 
+                                variant="subtle" 
+                                color="red"
+                                onClick={(e) => {
+                                  e.stopPropagation(); // Prevent row click
+                                  createDraftVersion(version.version);
+                                }}
+                              >
+                                <IconGitBranch size={16} />
+                              </ActionIcon>
+                            )}
+                          </Group>
+                        </Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              </Card>
+            </Tabs.Panel>
+          </Tabs>
+
+          
+
+
+          
+
+      
 
         </Container>
       </div>
@@ -770,7 +1057,7 @@ export function Settings() {
         opened={riskModalOpen} 
         onClose={() => setRiskModalOpen(false)}
         title={editingRisk ? 'Edit Risk' : 'Add Risk'}
-        size="lg"
+        size="xl"
       >
         <Box>
           <Textarea
@@ -780,9 +1067,21 @@ export function Settings() {
             onChange={(e) => setRiskForm({ ...riskForm, hazard: e.target.value })}
             mb="md"
             required
+            autosize
             minRows={3}
           />
           
+          <Textarea
+            label="Control Measures"
+            placeholder="Describe the control measures..."
+            value={riskForm.controlmeasures}
+            onChange={(e) => setRiskForm({ ...riskForm, controlmeasures: e.target.value })}
+            mb="md"
+            required
+            minRows={3}
+            autosize
+          />
+
           <Group grow>
             <TextInput
               label="Risk Rating (Before)"
@@ -805,16 +1104,6 @@ export function Settings() {
               required
             />
           </Group>
-          
-          <Textarea
-            label="Control Measures"
-            placeholder="Describe the control measures..."
-            value={riskForm.controlmeasures}
-            onChange={(e) => setRiskForm({ ...riskForm, controlmeasures: e.target.value })}
-            mb="md"
-            required
-            minRows={3}
-          />
           
           <Group grow>
             <TextInput
@@ -842,12 +1131,13 @@ export function Settings() {
             onChange={(e) => setRiskForm({ ...riskForm, risk_benefit: e.target.value })}
             mb="md"
             minRows={2}
+            autosize
           />
           
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-2">
               <Text fz="sm" fw={500}>Classifications</Text>
-              <Tooltip label="Tag this risk with relevant classifications" multiline withArrow>
+              <Tooltip label="Tag this risk with relevant classifications. This determines the risks included in the risk assessment." multiline withArrow>
                 <div className="flex items-center gap-1 text-blue-600">
                   <IconAlertSquare className="size-4" />
                   <Text size="xs">Help</Text>
@@ -867,7 +1157,7 @@ export function Settings() {
               <Combobox.DropdownTarget>
                 <PillsInput 
                   pointer 
-                  leftSection={<IconTag size={18} />}
+                  leftSection={<IconCategory2 size={18} />}
                 >
                   <Pill.Group>
                     {selectedClassifications.map((classification) => (

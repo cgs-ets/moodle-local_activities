@@ -16,6 +16,7 @@ require_once(__DIR__.'/calendar.api.php');
 require_once(__DIR__.'/assessments.api.php');
 require_once(__DIR__.'/recurrence.api.php');
 require_once(__DIR__.'/risks.api.php');
+require_once(__DIR__.'/risk_versions.api.php');
 
 class API {
     use \local_activities\api\activities_api;
@@ -26,4 +27,5 @@ class API {
     use \local_activities\api\assessments_api;
     use \local_activities\api\recurrence_api;
     use \local_activities\api\risks_api;
+    use \local_activities\api\risk_versions_api;
 }

@@ -206,5 +206,53 @@ function xmldb_local_activities_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2025073000, 'local', 'activities');
     }
 
+
+
+    if ($oldversion < 2025080400) {
+        // Add version field to activities_risks table
+        $table = new xmldb_table('activities_risks');
+        $field = new xmldb_field('version', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'isstandard');
+        
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        
+        // Add version field to activities_classifications table
+        $table = new xmldb_table('activities_classifications');
+        $field = new xmldb_field('version', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'sortorder');
+        
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        
+        // Add version field to activities_risk_classifications table
+        $table = new xmldb_table('activities_risk_classifications');
+        $field = new xmldb_field('version', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'classificationid');
+        
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        
+        // Create activities_risk_versions table
+        $table = new xmldb_table('activities_risk_versions');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('version', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('is_published', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('published_by', XMLDB_TYPE_CHAR, '100', null, null, null, null);
+        $table->add_field('timepublished', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('description', XMLDB_TYPE_CHAR, '255', null, null, null, null);
+        
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $table->add_index('version_unique', XMLDB_INDEX_UNIQUE, array('version'));
+        $table->add_index('published_version', XMLDB_INDEX_UNIQUE, array('is_published'));
+        
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        
+        upgrade_plugin_savepoint(true, 2025080400, 'local', 'activities');
+    }
+
     return true;
 }

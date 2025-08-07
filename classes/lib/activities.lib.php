@@ -1454,11 +1454,16 @@ class activities_lib {
         // - start within the next two weeks ($startlimit) OR
         // - currently running OR
         // - ended within the past 7 days ($endlimit) 
+        // - Suspected race condition - some times sync does not go through when someone makes an edit... 
+        //   To be sure, pick up activities that were edited in the last 120 minutes.
+
+        $now = time();
+        $minus120minutes = $now - (120 * 60); // 120 minutes * 60 seconds
 
         // Get non-recurring activities
         $sql = "SELECT id
                 FROM {" . static::TABLE . "}
-                WHERE absencesprocessed = 0
+                WHERE (absencesprocessed = 0 OR timemodified >= {$minus120minutes})
                 AND recurring = 0
                 AND (
                     (timestart <= {$startlimit} AND timestart >= {$now}) OR
@@ -1478,7 +1483,7 @@ class activities_lib {
         $sql = "SELECT ao.id, ao.timestart, ao.timeend, a.id as activityid
                 FROM {" . static::TABLE . "} a
                 JOIN mdl_activities_occurrences ao ON ao.activityid = a.id
-                WHERE a.absencesprocessed = 0
+                WHERE (a.absencesprocessed = 0 OR a.timemodified >= {$minus120minutes})
                 AND a.recurring = 1
                 AND (
                     (ao.timestart <= {$startlimit} AND ao.timestart >= {$now}) OR

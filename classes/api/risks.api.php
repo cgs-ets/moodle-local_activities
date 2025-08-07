@@ -18,8 +18,9 @@ trait risks_api {
      *
      * @return array
      */
-    static public function get_classifications() {
-        return risks_lib::get_classifications();
+    static public function get_classifications($args) {
+        ['version' => $version] = $args;
+        return risks_lib::get_classifications($version);
     }
 
     /**
@@ -56,8 +57,9 @@ trait risks_api {
      *
      * @return array
      */
-    static public function get_risks() {
-        return risks_lib::get_risks();
+    static public function get_risks($args) {
+        ['version' => $version] = $args;
+        return risks_lib::get_risks($version);
     }
 
     /**
@@ -105,8 +107,9 @@ trait risks_api {
      * @return array
      */
     static public function search_classifications() {
+        $version = required_param('version', PARAM_INT);
         $query = required_param('query', PARAM_ALPHANUMEXT);
-        return risks_lib::search_classifications($query);
+        return risks_lib::search_classifications($query, $version);
     }
 
 }
