@@ -59,7 +59,7 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
             return;
         }
 
-        // Alternate cleaning task between current entries and future entries based on odd/even day.
+        // Alternate cleaning task between short range (current entries) and long range (future entries) based on odd/even day.
         // If it is an even day, -3 days ago to +14 days.
         // If it is an odd day, +13 days to +40 days.
         if (date('d') % 2 == 0) {
@@ -67,7 +67,7 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
             $this->endDate = strtotime('midnight +14 days');
         } else {
             $this->startDate = strtotime('midnight +13 days');
-            $this->endDate = strtotime('midnight +40 days');
+            $this->endDate = strtotime('midnight +60 days');
         }
 
         $this->log_start("Starting daily full reconciliation for date range: " . 
