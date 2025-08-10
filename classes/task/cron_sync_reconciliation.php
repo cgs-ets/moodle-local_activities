@@ -59,10 +59,16 @@ class cron_sync_reconciliation extends \core\task\scheduled_task {
             return;
         }
 
-        // Start date shoulwd be midnight of the day before
-        $this->startDate = strtotime('3 days ago midnight');
-        // End date should be midnight of the day after
-        $this->endDate = strtotime('midnight +14 days');
+        // Alternate cleaning task between current entries and future entries based on odd/even day.
+        // If it is an even day, -3 days ago to +14 days.
+        // If it is an odd day, +13 days to +40 days.
+        if (date('d') % 2 == 0) {
+            $this->startDate = strtotime('3 days ago midnight');
+            $this->endDate = strtotime('midnight +14 days');
+        } else {
+            $this->startDate = strtotime('midnight +13 days');
+            $this->endDate = strtotime('midnight +40 days');
+        }
 
         $this->log_start("Starting daily full reconciliation for date range: " . 
                         date('Y-m-d H:i:s', $this->startDate) . " to " . 

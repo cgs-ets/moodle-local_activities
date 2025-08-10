@@ -133,10 +133,10 @@ class risk_versions_lib {
         }
 
         // If the version is used by any activities, throw an error.
-        $used = $DB->record_exists('activities_ra_gen', ['riskversion' => $version]);
-        if ($used) {
-            throw new \Exception("Cannot delete version as it is used by existing activities to generate a risk assessment.");
-        }
+        //$used = $DB->record_exists('activities_ra_gen', ['riskversion' => $version]);
+        //if ($used) {
+        //    throw new \Exception("Cannot delete version as it is used by existing activities to generate a risk assessment.");
+        //}
         
         // Delete all data for this version
         $DB->delete_records(static::TABLE_RISKS, ['version' => $version]);

@@ -25,7 +25,7 @@ import {
   Tabs,
   Space,
 } from '@mantine/core';
-import { IconPlus, IconEdit, IconTrash, IconAlertSquare, IconX, IconCheck, IconGripVertical, IconEye, IconEyeOff, IconGitBranch, IconAlertCircle, IconFirstAidKit, IconCategory2, IconSettings, IconCat } from '@tabler/icons-react';
+import { IconPlus, IconEdit, IconTrash, IconAlertSquare, IconX, IconCheck, IconGripVertical, IconEye, IconEyeOff, IconGitBranch, IconAlertCircle, IconFirstAidKit, IconCategory2, IconSettings, IconCat, IconGitCommit, IconCheckbox, IconGitFork } from '@tabler/icons-react';
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
 import useFetch from "../../hooks/useFetch";
@@ -940,31 +940,34 @@ export function Settings() {
                               <>
                                 <ActionIcon 
                                   variant="subtle" 
+                                  color="green"
+                                  onClick={() => publishVersion(version.version)}
+                                  title="Publish version"
+                                >
+                                  <IconCheckbox size={16} />
+                                </ActionIcon>
+                                <ActionIcon 
+                                  variant="subtle" 
                                   color="red"
                                   onClick={(e) => {
                                     e.stopPropagation(); // Prevent row click
                                     deleteVersion(version.version);
                                   }}
+                                  title="Delete version"
                                 >
                                   <IconTrash size={16} />
-                                </ActionIcon>
-                                <ActionIcon 
-                                  variant="subtle" 
-                                  color="blue"
-                                  onClick={() => publishVersion(version.version)}
-                                >
-                                  <IconCheck size={16} />
                                 </ActionIcon>
                               </>
                             )}
                             {version.is_published && (
                               <ActionIcon 
                                 variant="subtle" 
-                                color="red"
+                                color="blue"
                                 onClick={(e) => {
                                   e.stopPropagation(); // Prevent row click
                                   createDraftVersion(version.version);
                                 }}
+                                title="Create new draft"
                               >
                                 <IconGitBranch size={16} />
                               </ActionIcon>
