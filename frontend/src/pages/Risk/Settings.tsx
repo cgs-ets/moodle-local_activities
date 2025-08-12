@@ -24,23 +24,27 @@ import {
   Alert,
   Tabs,
   Space,
+  Select,
 } from '@mantine/core';
-import { IconPlus, IconEdit, IconTrash, IconAlertSquare, IconX, IconCheck, IconGripVertical, IconEye, IconEyeOff, IconGitBranch, IconAlertCircle, IconFirstAidKit, IconCategory2, IconSettings, IconCat, IconGitCommit, IconCheckbox, IconGitFork } from '@tabler/icons-react';
+import { IconPlus, IconEdit, IconTrash, IconAlertSquare, IconX, IconCheck, IconGripVertical, IconEye, IconEyeOff, IconGitBranch, IconAlertCircle, IconFirstAidKit, IconCategory2, IconSettings, IconCat, IconGitCommit, IconCheckbox, IconGitFork, IconPictureInPicture, IconPhotoCircle, IconPhoto } from '@tabler/icons-react';
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
 import useFetch from "../../hooks/useFetch";
 import { SvgRenderer } from "../../components/SvgRenderer";
 import { useSearchParams, useNavigate } from "react-router-dom";
 
-interface Classification {
+export interface Classification {
   id: number;
   name: string;
   sortorder: number;
   icon: string;
   description: string;
+  type: string;
+  isstandard: number;
+  contexts: number[];
 }
 
-interface Risk {
+export interface Risk {
   id: number;
   hazard: string;
   riskrating_before: number;
@@ -54,7 +58,7 @@ interface Risk {
   version: number;
 }
 
-interface Version {
+export interface Version {
   id: number;
   version: number;
   is_published: number;
@@ -64,6 +68,7 @@ interface Version {
   description: string;
   risk_count?: number;
   classification_count?: number;
+  has_been_used?: number;
 }
 
 export function Settings() {
@@ -80,7 +85,15 @@ export function Settings() {
   // Classification modal state
   const [classificationModalOpen, setClassificationModalOpen] = useState(false);
   const [editingClassification, setEditingClassification] = useState<Classification | null>(null);
-  const [classificationForm, setClassificationForm] = useState({ name: '', icon: '', description: '' });
+  const [editingClassificationIcon, setEditingClassificationIcon] = useState<Classification | null>(null);
+  const [classificationForm, setClassificationForm] = useState({ 
+    name: '', 
+    icon: '', 
+    description: '', 
+    type: 'hazards', 
+    isstandard: 0, 
+    contexts: [] as number[]
+  });
   const [classificationError, setClassificationError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
@@ -117,6 +130,7 @@ export function Settings() {
     onDropdownClose: () => combobox.resetSelectedOption(),
     onDropdownOpen: () => combobox.updateSelectedOptionIndex('active'),
   });
+  const [selectedContexts, setSelectedContexts] = useState<Classification[]>([]);
 
   const [tab, setTab] = useState('risks');
 
@@ -142,6 +156,11 @@ export function Settings() {
     setLoading(true);
 
     const version = getVersionFromUrl();
+
+    if (!version) {
+      loadVersions();
+      return;
+    }
 
     try {      
       const [
@@ -174,15 +193,60 @@ export function Settings() {
     }
   };
 
+  const loadVersions = async () => {
+    setLoading(true);
+
+    try {      
+      const [
+        versionsRes, 
+      ] = await Promise.all([
+        api.call({ query: { methodname: 'local_activities-get_versions' } }),
+      ]);
+      
+      if (!versionsRes.error) {
+        setVersions(versionsRes.data);
+        setTab('versions');
+      }
+    } catch (error) {
+      console.error('Error loading versions:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Classification functions
   const openClassificationModal = (classification?: Classification) => {
+    setEditingClassification(null);
+    setEditingClassificationIcon(null);
+    setClassificationForm({ 
+      name: '', 
+      description: '', 
+      icon: '', 
+      type: 'hazards', 
+      isstandard: 0, 
+      contexts: []
+    });
     if (classification) {
       setEditingClassification(classification);
-      setClassificationForm({ name: classification.name, icon: classification.icon, description: classification.description });
-    } else {
-      setEditingClassification(null);
-      setClassificationForm({ name: '', icon: '', description: '' });
+      setClassificationForm({ 
+        name: classification.name, 
+        description: classification.description, 
+        type: classification.type, 
+        isstandard: classification.isstandard, 
+        contexts: classification.contexts || []
+      } as Classification);
+      // Load selected classifications
+      const selected = classifications.filter(c => classification.contexts.includes(c.id));
+      setSelectedContexts(selected);
     }
+    setClassificationError(null);
+    setClassificationModalOpen(true);
+  };
+
+  const openClassificationIconModal = (classification: Classification) => {
+    setEditingClassification(null);
+    setEditingClassificationIcon(classification);
+    setClassificationForm({icon: classification.icon } as Classification);
     setClassificationError(null);
     setClassificationModalOpen(true);
   };
@@ -193,9 +257,12 @@ export function Settings() {
       
       const data = {
         ...classificationForm,
-        id: editingClassification?.id
+        id: editingClassificationIcon !== null ? editingClassificationIcon.id : editingClassification?.id,
+        version: currentVersion?.version,
+        editingIcon: editingClassificationIcon !== null,
+        contexts: selectedContexts.map(c => c.id)
       };
-      
+
       const response = await api.call({
         method: 'POST',
         body: {
@@ -226,7 +293,7 @@ export function Settings() {
         method: 'POST',
         body: {
           methodname: 'local_activities-delete_classification',
-          args: { id }
+          args: { id, version: currentVersion?.version }
         }
       });
       
@@ -313,7 +380,7 @@ export function Settings() {
         method: 'POST',
         body: {
           methodname: 'local_activities-delete_risk',
-          args: { id }
+          args: { id, version: currentVersion?.version }
         }
       });
       
@@ -355,6 +422,17 @@ export function Settings() {
     setSelectedClassifications(selectedClassifications.filter(c => c.id !== classification.id));
   };
 
+  const handleContextSelect = (context: Classification) => {
+    if (!selectedContexts.find(c => c.id === context.id)) {
+      setSelectedContexts([...selectedContexts, context]);
+    }
+  };
+
+  const handleContextRemove = (context: Classification) => {
+    setSelectedContexts(selectedContexts.filter(c => c.id !== context.id));
+  };
+
+
   // Risk filter functions
   const searchRiskFilters = (query: string) => {
     setRiskFilterSearch(query);
@@ -382,6 +460,7 @@ export function Settings() {
   const handleRiskFilterRemove = (classification: Classification) => {
     setSelectedRiskFilters(selectedRiskFilters.filter(c => c.id !== classification.id));
   };
+
 
   // Filter risks based on selected classifications
   const filteredRisks = useMemo(() => {
@@ -507,7 +586,7 @@ export function Settings() {
         method: 'POST',
         body: {
           methodname: 'local_activities-update_classification_sort',
-          args: { sortorder }
+          args: { sortorder, version: currentVersion?.version }
         }
       });
       
@@ -571,16 +650,32 @@ export function Settings() {
                         title={`Draft version`}
                         icon={<IconAlertCircle size={16} 
                       />}>
-                        <Text className="mb-3">You're currently editing a draft version. When you're done, you can publish it.</Text>
-                        <Button 
-                          leftSection={<IconCheck size={16} />}
-                          onClick={() => publishVersion(currentVersion.version)}
-                          color="green"
-                          size="compact-md"
-                          radius="xl"
-                        >
-                          Publish
-                        </Button>
+                        {currentVersion.has_been_used === 0
+                          ? <Text className="mb-3">You're currently editing a draft version. When you're done, you can publish it.</Text>
+                          : <Text className="mb-3">This version has been used in an activity. You can't edit it.</Text>
+                        }
+                        <Group>
+                          <Button 
+                            leftSection={<IconCheck size={16} />}
+                            onClick={() => publishVersion(currentVersion.version)}
+                            color="green"
+                            size="compact-md"
+                            radius="xl"
+                          >
+                            Publish
+                          </Button>
+                          {currentVersion.has_been_used === 1 && (
+                            <Button 
+                              leftSection={<IconGitBranch size={16} />}
+                              onClick={() => createDraftVersion(currentVersion.version)}
+                              color="blue"
+                              size="compact-md"
+                              radius="xl"
+                            >
+                              Create Fork
+                            </Button>
+                          )}
+                        </Group>
                       </Alert>
                     )}
 
@@ -754,7 +849,7 @@ export function Settings() {
                               {risk.classification_ids.map((classificationId) => {
                                 const classification = classifications.find(c => c.id === classificationId);
                                 return classification ? (
-                                  <Badge key={classificationId} variant="light" size="sm">
+                                  <Badge key={classificationId} variant="light" size="sm" color={classification.type === 'hazards' ? 'red' : 'blue'}>
                                     {classification.name}
                                   </Badge>
                                 ) : null;
@@ -762,7 +857,7 @@ export function Settings() {
                             </Group>
                           </Table.Td>
                           <Table.Td>
-                            {currentVersion.is_published === 0 && (
+                            {currentVersion.is_published === 0 && currentVersion.has_been_used === 0 && (
                               <Group gap="xs">
                                 <ActionIcon 
                                   variant="subtle" 
@@ -829,7 +924,9 @@ export function Settings() {
                     <Table.Tr>
                       <Table.Th style={{ width: '40px' }}></Table.Th>
                       <Table.Th>Name</Table.Th>
-                      <Table.Th style={{ width: '90px' }}>Actions</Table.Th>
+                      <Table.Th style={{ width: '90px' }}>Type</Table.Th>
+                      <Table.Th style={{ width: '90px' }}>Standard</Table.Th>
+                      <Table.Th style={{ width: '110px' }}>Actions</Table.Th>
                     </Table.Tr>
                   </Table.Thead>
                   <Table.Tbody>
@@ -856,21 +953,42 @@ export function Settings() {
                           </div>
                         </Table.Td>
                         <Table.Td>
-                          <Group gap="xs">
-                            <ActionIcon 
-                              variant="subtle" 
-                              color="blue"
-                              onClick={() => openClassificationModal(classification)}
-                            >
-                              <IconEdit size={16} />
-                            </ActionIcon>
-                            <ActionIcon 
-                              variant="subtle" 
-                              color="red"
-                              onClick={() => deleteClassification(classification.id)}
-                            >
-                              <IconTrash size={16} />
-                            </ActionIcon>
+                          <Badge variant="light" color={classification.type === 'hazards' ? 'red' : 'blue'}>
+                            <span className="capitalize">{classification.type}</span>
+                          </Badge>
+                        </Table.Td>
+                        <Table.Td>
+                          <Badge variant="light" color={classification.isstandard === 1 ? 'green' : 'gray'}>
+                            <span className="capitalize">{classification.isstandard === 1 ? 'Yes' : 'No'}</span>
+                          </Badge>
+                        </Table.Td>
+                        <Table.Td>
+                          <Group gap="1">
+                            {currentVersion?.is_published === 0 && currentVersion?.has_been_used === 0 && (
+                              <>
+                                <ActionIcon 
+                                  variant="subtle" 
+                                  color="blue"
+                                  onClick={() => openClassificationIconModal(classification)}
+                                >
+                                  <IconPhoto size={16} />
+                                </ActionIcon>
+                                <ActionIcon 
+                                  variant="subtle" 
+                                  color="blue"
+                                  onClick={() => openClassificationModal(classification)}
+                                >
+                                  <IconEdit size={16} />
+                                </ActionIcon>
+                                <ActionIcon 
+                                  variant="subtle" 
+                                  color="red"
+                                  onClick={() => deleteClassification(classification.id)}
+                                >
+                                  <IconTrash size={16} />
+                                </ActionIcon>
+                              </>
+                            )}
                           </Group>
                         </Table.Td>
                       </Table.Tr>
@@ -946,32 +1064,35 @@ export function Settings() {
                                 >
                                   <IconCheckbox size={16} />
                                 </ActionIcon>
-                                <ActionIcon 
-                                  variant="subtle" 
-                                  color="red"
-                                  onClick={(e) => {
-                                    e.stopPropagation(); // Prevent row click
-                                    deleteVersion(version.version);
-                                  }}
-                                  title="Delete version"
-                                >
-                                  <IconTrash size={16} />
-                                </ActionIcon>
                               </>
                             )}
-                            {version.is_published && (
+                      
+                            <ActionIcon 
+                              variant="subtle" 
+                              color="blue"
+                              onClick={(e) => {
+                                e.stopPropagation(); // Prevent row click
+                                createDraftVersion(version.version);
+                              }}
+                              title="Create new draft"
+                            >
+                              <IconGitBranch size={16} />
+                            </ActionIcon>
+
+                            {!version.has_been_used && (
                               <ActionIcon 
                                 variant="subtle" 
-                                color="blue"
+                                color="red"
                                 onClick={(e) => {
                                   e.stopPropagation(); // Prevent row click
-                                  createDraftVersion(version.version);
+                                  deleteVersion(version.version);
                                 }}
-                                title="Create new draft"
+                                title="Delete version"
                               >
-                                <IconGitBranch size={16} />
+                                <IconTrash size={16} />
                               </ActionIcon>
                             )}
+                      
                           </Group>
                         </Table.Td>
                       </Table.Tr>
@@ -996,7 +1117,7 @@ export function Settings() {
       <Modal 
         opened={classificationModalOpen} 
         onClose={() => setClassificationModalOpen(false)}
-        title={editingClassification ? 'Edit Classification' : 'Add Classification'}
+        title={editingClassificationIcon ? 'Edit Classification Icon' : editingClassification ? 'Edit Classification' : 'Add Classification'}
         size="md"
       >
         <Box>
@@ -1006,6 +1127,7 @@ export function Settings() {
             </Text>
           )}
           
+          {editingClassificationIcon && (
           <Textarea
             label="Icon"
             placeholder="<svg..."
@@ -1015,31 +1137,146 @@ export function Settings() {
             autosize
             minRows={2}
           />
+          )}
+          {!editingClassificationIcon && (
+            <>
+              <TextInput
+                label="Name"
+                placeholder="e.g., 0-4 students"
+                value={classificationForm.name}
+                onChange={(e) => setClassificationForm({ ...classificationForm, name: e.target.value })}
+                mb="md"
+                required
+              />
 
-          <TextInput
-            label="Name"
-            placeholder="e.g., 0-4 students"
-            value={classificationForm.name}
-            onChange={(e) => setClassificationForm({ ...classificationForm, name: e.target.value })}
-            mb="md"
-            required
-          />
+              <Textarea
+                label="Description"
+                value={classificationForm.description}
+                onChange={(e) => setClassificationForm({ ...classificationForm, description: e.target.value })}
+                mb="md"
+                autosize
+                minRows={2}
+              />
 
-          <Textarea
-            label="Description"
-            value={classificationForm.description}
-            onChange={(e) => setClassificationForm({ ...classificationForm, description: e.target.value })}
-            mb="md"
-            autosize
-            minRows={2}
-          />
+              <Select
+                label="Type"
+                value={classificationForm.type}
+                onChange={(value) => setClassificationForm({ ...classificationForm, type: value || 'hazards' })}
+                mb="md"
+                required
+                data={[
+                  { value: 'hazards', label: 'Hazards' },
+                  { value: 'context', label: 'Context' },
+                ]}
+              >
+              </Select>
+
+              {classificationForm.type === 'hazards' && (
+                <div className="mb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Text fz="sm" fw={500}>Contexts</Text>
+                    <Tooltip w={300} label="This determines when the hazard should be displayed as an option to the user. For example, this might be a hazard that only applies to incursions. Leave blank to display in all contexts." multiline withArrow>
+                      <div className="flex items-center gap-1 text-blue-600">
+                        <IconAlertSquare className="size-4" />
+                        <Text size="xs">Help</Text>
+                      </div>
+                    </Tooltip>
+                  </div>
+                  
+                  <Combobox 
+                    store={combobox} 
+                    onOptionSubmit={(optionValue: string) => {
+                      const classification = JSON.parse(optionValue);
+                      handleContextSelect(classification);
+                      combobox.closeDropdown();
+                    }}
+                    withinPortal={false}
+                  >
+                    <Combobox.DropdownTarget>
+                      <PillsInput 
+                        pointer 
+                        leftSection={<IconCategory2 size={18} />}
+                      >
+                        <Pill.Group>
+                          {selectedContexts.map((context) => (
+                            <Badge key={context.id} variant='filled' pr={0} color={context.type === 'hazards' ? 'red.2' : 'blue.2'} size="lg" radius="xl">
+                              <Flex gap={4}>
+                                <Text className="normal-case font-normal text-black text-sm">{context.name}</Text>
+                                <CloseButton
+                                  onMouseDown={() => handleContextRemove(context)}
+                                  variant="transparent"
+                                  size={22}
+                                  iconSize={14}
+                                  tabIndex={-1}
+                                />
+                              </Flex>
+                            </Badge>
+                          ))}
+                          <Combobox.EventsTarget>
+                            <PillsInput.Field
+                              onFocus={() => {
+                                setClassificationSearchResults(classifications);
+                                combobox.openDropdown();
+                              }}
+                              onClick={() => {
+                                setClassificationSearchResults(classifications);
+                                combobox.openDropdown();
+                              }}
+                              onBlur={() => combobox.closeDropdown()}
+                              value={classificationSearch}
+                              placeholder="Search classifications"
+                              onChange={(event) => {
+                                searchClassifications(event.currentTarget.value);
+                                combobox.openDropdown();
+                              }}
+                            />
+                          </Combobox.EventsTarget>
+                        </Pill.Group>
+                      </PillsInput>
+                    </Combobox.DropdownTarget>
+
+                    <Combobox.Dropdown>
+                      <Combobox.Options style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                        {classificationSearchResults.length > 0 
+                          ? classificationSearchResults.filter((classification) => classification.type === 'context').map((classification) => (
+                              <Combobox.Option value={JSON.stringify(classification)} key={classification.id}>
+                                <Text className="normal-case font-normal text-black text-sm">{classification.name}</Text>
+                              </Combobox.Option>
+                            ))
+                          : <Combobox.Empty>Nothing found...</Combobox.Empty>
+                        }
+                      </Combobox.Options>
+                    </Combobox.Dropdown>
+                  </Combobox>
+                </div>
+              )}
+              
+
+              <Checkbox
+                label={
+                  <Group>
+                    <Text size="sm">Standard Classification</Text>
+                    <Tooltip w={300} label="Risks under this classification will be included in the risk assessment by default, as long as context conditions are met." multiline withArrow>
+                      <div className="flex items-center gap-1 text-blue-600">
+                        <IconAlertSquare className="size-4" />
+                        <Text size="xs">Help</Text>
+                      </div>
+                    </Tooltip>
+                  </Group>
+                }
+                checked={classificationForm.isstandard === 1}
+                onChange={(e) => setClassificationForm({ ...classificationForm, isstandard: e.currentTarget.checked ? 1 : 0 })}
+                mb="lg"
+              />
+            </>
+          )}
 
           <Group justify="flex-end">
             <Button variant="light" onClick={() => setClassificationModalOpen(false)}>
               Cancel
             </Button>
             <Button onClick={saveClassification}>
-              {editingClassification ? 'Update' : 'Create'}
+              {editingClassificationIcon ? 'Update Icon' : editingClassification ? 'Update' : 'Create'}
             </Button>
           </Group>
         </Box>
@@ -1154,7 +1391,7 @@ export function Settings() {
                 >
                   <Pill.Group>
                     {selectedClassifications.map((classification) => (
-                      <Badge key={classification.id} variant='filled' pr={0} color="gray.2" size="lg" radius="xl">
+                      <Badge key={classification.id} variant='filled' pr={0} color={classification.type === 'hazards' ? 'red.2' : 'blue.2'} size="lg" radius="xl">
                         <Flex gap={4}>
                           <Text className="normal-case font-normal text-black text-sm">{classification.name}</Text>
                           <CloseButton
@@ -1204,13 +1441,6 @@ export function Settings() {
               </Combobox.Dropdown>
             </Combobox>
           </div>
-
-          <Checkbox
-            label="Standard Risk"
-            checked={riskForm.isstandard === 1}
-            onChange={(e) => setRiskForm({ ...riskForm, isstandard: e.currentTarget.checked ? 1 : 0 })}
-            mb="lg"
-          />
           
           <Group justify="flex-end">
             <Button variant="light" onClick={() => setRiskModalOpen(false)}>

@@ -33,6 +33,9 @@ class risk_versions_lib {
     /** Table to store risk classifications relationships. */
     const TABLE_RISK_CLASSIFICATIONS = 'activities_risk_classifications';
 
+    /** Table to store classifications contexts relationships. */
+    const TABLE_CLASSIFICATIONS_CONTEXTS = 'activities_classifications_contexts';
+
     /**
      * Get the current published version.
      *
@@ -70,15 +73,25 @@ class risk_versions_lib {
             throw new \Exception("Permission denied.");
         }
         
-        $records = $DB->get_records(static::TABLE_RISK_VERSIONS, [], 'version DESC');
+        $records = array_values($DB->get_records(static::TABLE_RISK_VERSIONS, [], 'version DESC'));
+
+        if (empty($records)) {
+            return [];
+        }
+
+        foreach ($records as &$record) {
+            $record->has_been_used = static::has_been_used($record->version) ? 1 : 0;
+        }
+
         service_lib::cast_fields($records, [
             'version' => 'int',
             'is_published' => 'int',
             'timepublished' => 'int',
-            'timecreated' => 'int'
+            'timecreated' => 'int',
+            'has_been_used' => 'int',
         ]);
         
-        return array_values($records);
+        return $records;
     }
 
     /**
@@ -133,10 +146,10 @@ class risk_versions_lib {
         }
 
         // If the version is used by any activities, throw an error.
-        //$used = $DB->record_exists('activities_ra_gen', ['riskversion' => $version]);
-        //if ($used) {
-        //    throw new \Exception("Cannot delete version as it is used by existing activities to generate a risk assessment.");
-        //}
+        $used = static::has_been_used($version);
+        if ($used) {
+            throw new \Exception("Cannot delete version as it is used by existing activities to generate a risk assessment.");
+        }
         
         // Delete all data for this version
         $DB->delete_records(static::TABLE_RISKS, ['version' => $version]);
@@ -210,6 +223,18 @@ class risk_versions_lib {
     }
 
     /**
+     * Get the working version.
+     *
+     * @param int $version
+     * @return bool
+     */
+    public static function has_been_used($version) {
+        global $DB;
+        $used = $DB->record_exists('activities_ra_gens', ['riskversion' => $version]);
+        return $used;
+    }
+
+    /**
      * Ensure we're working on a draft version.
      * If the current working version is published, create a new draft.
      *
@@ -269,27 +294,46 @@ class risk_versions_lib {
         $latest_version = self::get_latest_version();
         $new_version = $latest_version + 1;
 
-        // Copy risks from current version
+        // Copy risks from current version and track ID mappings
         $risks = $DB->get_records(static::TABLE_RISKS, ['version' => $version]);
+        $risk_id_mapping = []; // old_id => new_id
+        
         foreach ($risks as $risk) {
+            $old_risk_id = $risk->id;
             unset($risk->id);
             $risk->version = $new_version;
-            $DB->insert_record(static::TABLE_RISKS, $risk);
+            $new_risk_id = $DB->insert_record(static::TABLE_RISKS, $risk);
+            $risk_id_mapping[$old_risk_id] = $new_risk_id;
         }
         
-        // Copy classifications from current version
+        // Copy classifications from current version and track ID mappings
         $classifications = $DB->get_records(static::TABLE_CLASSIFICATIONS, ['version' => $version]);
+        $classification_id_mapping = []; // old_id => new_id
+        
         foreach ($classifications as $classification) {
+            $old_classification_id = $classification->id;
             unset($classification->id);
             $classification->version = $new_version;
-            $DB->insert_record(static::TABLE_CLASSIFICATIONS, $classification);
+            $new_classification_id = $DB->insert_record(static::TABLE_CLASSIFICATIONS, $classification);
+            $classification_id_mapping[$old_classification_id] = $new_classification_id;
         }
         
-        // Copy risk-classification relationships
+        // Copy risk-classification relationships with updated IDs
         $risk_classifications = $DB->get_records(static::TABLE_RISK_CLASSIFICATIONS, ['version' => $version]);
         foreach ($risk_classifications as $rc) {
             unset($rc->id);
             $rc->version = $new_version;
+            
+            // Update riskid to reference the newly copied risk
+            if (isset($risk_id_mapping[$rc->riskid])) {
+                $rc->riskid = $risk_id_mapping[$rc->riskid];
+            }
+            
+            // Update classificationid to reference the newly copied classification
+            if (isset($classification_id_mapping[$rc->classificationid])) {
+                $rc->classificationid = $classification_id_mapping[$rc->classificationid];
+            }
+            
             $DB->insert_record(static::TABLE_RISK_CLASSIFICATIONS, $rc);
         }
 
@@ -339,5 +383,439 @@ class risk_versions_lib {
     }
 
 
+    /**
+     * Create or update a risk classification.
+     *
+     * @param object $data
+     * @return array
+     */
+    public static function save_classification($data) {
+        global $DB;
+
+        // Only allow cal reviewers.
+        if (!workflow_lib::is_cal_reviewer()) {
+            throw new \Exception("Permission denied.");
+        }
+        
+        $data = (object) $data;
+
+        // If editing icon, update the icon only.
+        if ($data->editingIcon) {
+            $DB->update_record(static::TABLE_CLASSIFICATIONS, ['id' => $data->id, 'icon' => $data->icon]);
+            return ['success' => true];
+        }
+
+        // Cannot edit a version that has been used.
+        if (static::has_been_used($data->version)) {
+            throw new \Exception("Cannot update classification as it has been used in an activity. Fork and make changes to the draft version instead.");
+        }
+        
+        // Check if name already exists in this version (excluding current record if updating)
+        $existing = $DB->get_record(static::TABLE_CLASSIFICATIONS, ['name' => $data->name, 'version' => $data->version]);
+        if ($existing && (!isset($data->id) || $existing->id != $data->id)) {
+            throw new \Exception("A classification with this name already exists in this version.");
+        }
+
+        if (isset($data->id) && $data->id) {
+            // Update existing
+            $DB->update_record(static::TABLE_CLASSIFICATIONS, ['id' => $data->id, 'name' => $data->name, 'description' => $data->description, 'isstandard' => $data->isstandard, 'type' => $data->type]);
+            $id = $data->id;
+        } else {
+            // Set sortorder for new records.
+            if (!isset($data->sortorder)) {
+                $maxsort = $DB->get_field_sql("SELECT MAX(sortorder) FROM {" . static::TABLE_CLASSIFICATIONS . "} WHERE version = ?", [$data->version]);
+                $data->sortorder = ($maxsort ? $maxsort + 1 : 1);
+            }
+            // Create new.
+            $id = $DB->insert_record(static::TABLE_CLASSIFICATIONS, $data);
+        }
+
+
+        // Update contexts
+        if (isset($data->contexts)) {
+            $DB->delete_records(static::TABLE_CLASSIFICATIONS_CONTEXTS, ['classificationid' => $id, 'version' => $data->version]);
+            foreach ($data->contexts as $contextid) {
+                $DB->insert_record(static::TABLE_CLASSIFICATIONS_CONTEXTS, ['classificationid' => $id, 'contextid' => $contextid, 'version' => $data->version]);
+            }
+        }
+        
+        return ['id' => $id, 'success' => true];
+    }
+
+
+    /**
+     * Get all risk classifications.
+     *
+     * @param int $version Optional version to get classifications for
+     * @return array
+     */
+    public static function get_classifications($version = null) {
+        global $DB;
+        
+        // Only allow cal reviewers.
+        if (!workflow_lib::is_cal_reviewer()) {
+            throw new \Exception("Permission denied.");
+        }
+        
+        // If no version specified, check URL parameter or get the latest version
+        if ($version === null) {
+            $version = risk_versions_lib::get_latest_version();
+        }
+        
+        $records = $DB->get_records(static::TABLE_CLASSIFICATIONS, ['version' => $version], 'sortorder ASC, name ASC');
+        service_lib::cast_fields($records, [
+            'sortorder' => 'int',
+            'id' => 'int',
+            'version' => 'int',
+            'isstandard' => 'int',
+        ]);
+
+        foreach ($records as &$record) {
+            // Get contexts and order them by sortorder
+            $sql = "SELECT cc.contextid
+                    FROM {" . static::TABLE_CLASSIFICATIONS_CONTEXTS . "} cc 
+                    LEFT JOIN {" . static::TABLE_CLASSIFICATIONS . "} c ON cc.contextid = c.id 
+                    WHERE cc.classificationid = ? 
+                    AND cc.version = ? 
+                    ORDER BY c.sortorder ASC";
+            $contexts = $DB->get_fieldset_sql($sql, [$record->id, $version]);
+            $record->contexts = array_map('intval', $contexts);
+        }
+
+
+        return array_values($records);
+    }
+
+    /**
+     * Get a single risk classification by ID.
+     *
+     * @param int $id
+     * @param int $version Optional version to get classification for
+     * @return object
+     */
+    public static function get_classification($id, $version = null) {
+        global $DB;
+
+        // Only allow cal reviewers.
+        if (!workflow_lib::is_cal_reviewer()) {
+            throw new \Exception("Permission denied.");
+        }
+        
+        // If no version specified, get the latest version
+        if ($version === null) {
+            require_once(__DIR__.'/risk_versions.lib.php');
+            $version = \local_activities\lib\risk_versions_lib::get_latest_version();
+        }
+        
+        return $DB->get_record(static::TABLE_CLASSIFICATIONS, ['id' => $id, 'version' => $version]);
+    }
+
+    
+
+    /**
+     * Delete a risk classification.
+     *
+     * @param int $id
+     * @return array
+     */
+    public static function delete_classification($id) {
+        global $DB;
+        
+        // Only allow cal reviewers.
+        if (!workflow_lib::is_cal_reviewer()) {
+            throw new \Exception("Permission denied.");
+        }
+
+        // Get the risk
+        $data = $DB->get_record(static::TABLE_CLASSIFICATIONS, ['id' => $id]);
+
+        // Cannot delete a version that has been used.
+        if (static::has_been_used($data->version)) {
+            throw new \Exception("Cannot delete classification as it has been used in an activity. Fork and make changes to the draft version instead.");
+        }
+        
+        // Check if classification is used by any risks in this version
+        $used = $DB->record_exists(static::TABLE_RISK_CLASSIFICATIONS, ['classificationid' => $id, 'version' => $data->version]);
+        if ($used) {
+            throw new \Exception("Cannot delete classification as it is used by existing risks in this version.");
+        }
+        
+        $DB->delete_records(static::TABLE_CLASSIFICATIONS, ['id' => $id, 'version' => $data->version]);
+        return ['success' => true];
+    }
+
+    /**
+     * Get all risks.
+     *
+     * @param int $version Optional version to get risks for
+     * @return array
+     */
+    public static function get_risks($version = null) {
+        global $DB;
+        
+        // Only allow people who can generate risks (staff, cal reviewers, etc)
+        if (!utils_lib::is_user_staff()) {
+            throw new \Exception("Permission denied.");
+        }
+        
+        // If no version specified, check URL parameter or get the latest version
+        if ($version === null) {
+            $version = risk_versions_lib::get_latest_version();
+        }
+
+
+        $risks = $DB->get_records(static::TABLE_RISKS, ['version' => $version]);
+        foreach ($risks as &$risk) {
+            // Get risk classifications and order them by sortorder
+            $sql = "SELECT rc.classificationid
+                    FROM {" . static::TABLE_RISK_CLASSIFICATIONS . "} rc 
+                    LEFT JOIN {" . static::TABLE_CLASSIFICATIONS . "} c ON rc.classificationid = c.id 
+                    WHERE rc.riskid = ? 
+                    AND rc.version = ? 
+                    ORDER BY c.sortorder ASC";
+            $classifications = $DB->get_fieldset_sql($sql, [$risk->id, $version]);
+            $risk->classification_ids = array_map('intval', $classifications);
+        }
+    
+        service_lib::cast_fields($risks, [
+            'isstandard' => 'int',
+            'riskrating_before' => 'int',
+            'riskrating_after' => 'int',
+            'version' => 'int'
+        ]);
+
+        return array_values($risks);
+    }
+
+
+    /**
+     * Get all risks.
+     *
+     * @param int $version Optional version to get risks for
+     * @return array
+     */
+    public static function get_risks_with_classifications($version = null) {
+        global $DB;
+
+        // If no version specified, get the latest version
+        if ($version === null) {
+            $version = risk_versions_lib::get_latest_version();
+        }
+
+        $risks = self::get_risks($version);
+
+        foreach ($risks as &$risk) {
+            $risk->classifications = static::get_classifications_for_risk($risk->classification_ids, $version);
+        }
+
+        return $risks;
+    }
+
+
+    public static function get_classifications_for_risk($classification_ids, $version) {
+        global $DB;
+
+        if (empty($classification_ids)) {
+            return [];
+        }
+
+        [$insql, $inparams] = $DB->get_in_or_equal($classification_ids);
+        $sql = "SELECT * FROM {" . static::TABLE_CLASSIFICATIONS . "} WHERE id $insql AND version = ?";
+        $classifications = $DB->get_records_sql($sql, array_merge($inparams, [$version]));
+        return array_values($classifications);
+    }
+    
+
+    /**
+     * Get a single risk by ID.
+     *
+     * @param int $id
+     * @return object
+     */
+    public static function get_risk($id) {
+        global $DB;
+        
+        // Only allow cal reviewers.
+        if (!workflow_lib::is_cal_reviewer()) {
+            throw new \Exception("Permission denied.");
+        }
+        
+        $risk = $DB->get_record(static::TABLE_RISKS, ['id' => $id]);
+        
+        if ($risk) {
+            // Get classification IDs
+            $classification_ids = $DB->get_fieldset_select(
+                static::TABLE_RISK_CLASSIFICATIONS, 
+                'classificationid', 
+                'riskid = ?', 
+                [$id]
+            );
+            $risk->classification_ids = $classification_ids;
+        }
+        
+        return $risk;
+    }
+
+    /**
+     * Create or update a risk.
+     *
+     * @param object $data
+     * @return array
+     */
+    public static function save_risk($data) {
+        global $DB;
+        
+        // Only allow cal reviewers.
+        if (!workflow_lib::is_cal_reviewer()) {
+            throw new \Exception("Permission denied.");
+        }
+
+        // Get the risk
+        $risk = $DB->get_record(static::TABLE_RISKS, ['id' => $data->id]);
+
+        // Cannot update a risk that has been used.
+        if (static::has_been_used($risk->version)) {
+            throw new \Exception("Cannot update risk as it has been used in an activity. Fork and make changes to the draft version instead.");
+        }
+        
+        $data = (object) $data;
+        $classification_ids = isset($data->classification_ids) ? $data->classification_ids : [];
+        unset($data->classification_ids);
+   
+        if (isset($data->id) && $data->id) {
+            // Update existing
+            $DB->update_record(static::TABLE_RISKS, $data);
+            $id = $data->id;
+        } else {
+            // Create new
+            $id = $DB->insert_record(static::TABLE_RISKS, $data);
+        }
+        
+        // Update classifications
+        static::update_risk_classifications($id, $classification_ids, $data->version);
+        
+        return ['id' => $id, 'success' => true];
+    }
+
+    /**
+     * Delete a risk.
+     *
+     * @param int $id
+     * @return array
+     */
+    public static function delete_risk($id) {
+        global $DB;
+        
+        // Only allow cal reviewers.
+        if (!workflow_lib::is_cal_reviewer()) {
+            throw new \Exception("Permission denied.");
+        }
+
+        // Get the risk
+        $risk = $DB->get_record(static::TABLE_RISKS, ['id' => $id]);
+
+        // Cannot delete a risk that has been used.
+        if (static::has_been_used($risk->version)) {
+            throw new \Exception("Cannot delete risk as it has been used in an activity. Fork and make changes to the draft version instead.");
+        }
+        
+        // Delete risk classifications first
+        $DB->delete_records(static::TABLE_RISK_CLASSIFICATIONS, ['riskid' => $id]);
+        
+        // Delete the risk
+        $DB->delete_records(static::TABLE_RISKS, ['id' => $id]);
+        
+        return ['success' => true];
+    }
+
+    /**
+     * Update risk classifications for a risk.
+     *
+     * @param int $riskid
+     * @param array $classification_ids
+     * @param int $version
+     */
+    private static function update_risk_classifications($riskid, $classification_ids, $version) {
+        global $DB;
+
+        // Only allow cal reviewers.
+        if (!workflow_lib::is_cal_reviewer()) {
+            throw new \Exception("Permission denied.");
+        }
+
+        // Get the risk
+        $risk = $DB->get_record(static::TABLE_RISKS, ['id' => $riskid]);
+
+        // Cannot update risk classifications that have been used.
+        if (static::has_been_used($risk->version)) {
+            throw new \Exception("Cannot update risk classifications as it has been used in an activity. Fork and make changes to the draft version instead.");
+        }
+        
+        // Delete existing classifications for this version
+        $DB->delete_records(static::TABLE_RISK_CLASSIFICATIONS, ['riskid' => $riskid, 'version' => $version]);
+        
+        // Add new classifications
+        foreach ($classification_ids as $classification_id) {
+            $DB->insert_record(static::TABLE_RISK_CLASSIFICATIONS, [
+                'riskid' => $riskid,
+                'classificationid' => $classification_id,
+                'version' => $version
+            ]);
+        }
+    }
+
+
+
+    /**
+     * Update classification sort order.
+     *
+     * @param array $sortorder Array of classification IDs in new order
+     * @return array
+     */
+    public static function update_classification_sort($sortorder) {
+        global $DB;
+        
+        // Only allow cal reviewers.
+        if (!workflow_lib::is_cal_reviewer()) {
+            throw new \Exception("Permission denied.");
+        }
+        
+        foreach ($sortorder as $index => $classificationid) {
+            $DB->update_record(static::TABLE_CLASSIFICATIONS, [
+                'id' => $classificationid,
+                'sortorder' => $index + 1
+            ]);
+        }
+        
+        return ['success' => true];
+    }
+
+    /**
+     * Search classifications by name.
+     *
+     * @param string $query
+     * @param int $version
+     * @return array
+     */
+    public static function search_classifications($query, $version) {
+        global $DB;
+        
+        // Only allow cal reviewers.
+        if (!workflow_lib::is_cal_reviewer()) {
+            throw new \Exception("Permission denied.");
+        }
+        
+        $sql = "SELECT * FROM {" . static::TABLE_CLASSIFICATIONS . "} 
+                WHERE name LIKE ? AND version = ?
+                ORDER BY sortorder ASC, name ASC";
+        
+        $records = $DB->get_records_sql($sql, ['%' . $query . '%', $version]);
+        service_lib::cast_fields($records, [
+            'id' => 'int',
+            'version' => 'int',
+            'sortorder' => 'int',
+        ]);
+        return array_values($records);
+    }
 
 } 

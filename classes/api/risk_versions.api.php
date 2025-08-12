@@ -14,6 +14,85 @@ use \local_activities\lib\risk_versions_lib;
 trait risk_versions_api {
 
     /**
+     * Get all risk classifications.
+     *
+     * @return array
+     */
+    static public function get_classifications() {
+        $version = optional_param('version', null, PARAM_INT);
+        return risk_versions_lib::get_classifications($version);
+    }
+
+    /**
+     * Create or update a risk classification.
+     *
+     * @return array
+     */
+    static public function save_classification($args) {
+        return risk_versions_lib::save_classification((object) $args);
+    }
+
+    /**
+     * Delete a risk classification.
+     *
+     * @return array
+     */
+    static public function delete_classification($args) {
+        ['id' => $id] = $args;
+        return risk_versions_lib::delete_classification($id);
+    }
+
+    /**
+     * Get all risks.
+     *
+     * @return array
+     */
+    static public function get_risks() {
+        $version = required_param('version', PARAM_INT);
+        return risk_versions_lib::get_risks($version);
+    }
+
+    /**
+     * Create or update a risk.
+     *
+     * @return array
+     */
+    static public function save_risk($args) {
+        return risk_versions_lib::save_risk((object) $args);
+    }
+
+    /**
+     * Delete a risk.
+     *
+     * @return array
+     */
+    static public function delete_risk($args) {
+        ['id' => $id] = $args;
+        return risk_versions_lib::delete_risk($id);
+    }
+
+    /**
+     * Update classification sort order.
+     *
+     * @return array
+     */
+    static public function update_classification_sort($args) {
+        ['sortorder' => $sortorder] = $args;
+        return risk_versions_lib::update_classification_sort($sortorder);
+    }
+
+    /**
+     * Search classifications by name.
+     *
+     * @return array
+     */
+    static public function search_classifications() {
+        $version = required_param('version', PARAM_INT);
+        $query = required_param('query', PARAM_ALPHANUMEXT);
+        return risk_versions_lib::search_classifications($query, $version);
+    }
+
+    /**
      * Get the current published version.
      *
      * @return int|null
