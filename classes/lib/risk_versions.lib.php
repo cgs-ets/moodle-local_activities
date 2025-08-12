@@ -337,6 +337,19 @@ class risk_versions_lib {
             $DB->insert_record(static::TABLE_RISK_CLASSIFICATIONS, $rc);
         }
 
+        // Copy classification-context relationships with updated IDs
+        $classification_contexts = $DB->get_records(static::TABLE_CLASSIFICATIONS_CONTEXTS, ['version' => $version]);
+        foreach ($classification_contexts as $cc) {
+            unset($cc->id);
+            $cc->version = $new_version;
+
+            // Update contextid and classificationid to reference the newly copied context and classification
+            $cc->contextid = $classification_id_mapping[$cc->contextid];
+            $cc->classificationid = $classification_id_mapping[$cc->classificationid];
+            
+            $DB->insert_record(static::TABLE_CLASSIFICATIONS_CONTEXTS, $cc);
+        }
+
         // Create version record
         $DB->insert_record(static::TABLE_RISK_VERSIONS, [
             'version' => $new_version,
