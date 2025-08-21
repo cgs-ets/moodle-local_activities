@@ -21,9 +21,10 @@ trait risks_api {
      *
      * @return array
      */
-    static public function get_published_ra() {
+    static public function get_ra_classifications() {
+        $activityid = required_param('id', PARAM_INT);
         $version = risk_versions_lib::get_published_version();
-        $classifications = risk_versions_lib::get_classifications($version);
+        $classifications = risks_lib::get_classifications_preselected($version, $activityid);
         return ['version' => $version, 'classifications' => $classifications];
     }
 
@@ -36,6 +37,13 @@ trait risks_api {
         return risks_lib::generate_ra((object) $args);
     }
 
-    
-
+    /**
+     * Get a list of risk assessment generations for an activity.
+     *
+     * @return array
+     */
+    static public function get_ra_generations() {
+        $activityid = required_param('id', PARAM_INT);
+        return risks_lib::get_ra_generations($activityid);
+    }
 }

@@ -26,7 +26,7 @@ export function StaffSelector({staff, setStaff, label, sublabel, tip, multiple, 
     onDropdownOpen: () => combobox.updateSelectedOptionIndex('active'),
   });
   
-  const decorateStaff = (item: User) => ({
+  const decorateStaff = (item: User): DecordatedUser => ({
     value: { un: item.un, fn: item.fn, ln: item.ln }, // What we'll send to the server for saving.
     label: item.fn + " " + item.ln,
     username: item.un,
@@ -81,7 +81,9 @@ export function StaffSelector({staff, setStaff, label, sublabel, tip, multiple, 
   ));
 
   // The selected pills
-  const values = staff.map((item, i) => {
+  console.log("staff is array?", Array.isArray(staff))
+  const values = Array.isArray(staff)
+  ? staff.map((item, i) => {
     const user = decorateStaff(item)
     return (
       <Badge key={user.username} variant='filled' p={0} color="gray.2" size="lg" radius="xl" 
@@ -101,7 +103,7 @@ export function StaffSelector({staff, setStaff, label, sublabel, tip, multiple, 
         </Flex>
       </Badge>
     )
-  });
+  }) : null;
 
 
   const dropdown = 
@@ -154,7 +156,8 @@ export function StaffSelector({staff, setStaff, label, sublabel, tip, multiple, 
       </Combobox.Dropdown>
     </Combobox>
 
-  const readOnlyValues = staff.map((item, i) => {
+  const readOnlyValues = Array.isArray(staff)
+  ? staff.map((item, i) => {
     const user = decorateStaff(item)
     return (
       <Badge key={user.username} variant='filled' pl={0} color="gray.2" size="lg" radius="xl" leftSection={
@@ -165,7 +168,7 @@ export function StaffSelector({staff, setStaff, label, sublabel, tip, multiple, 
         </Flex>
       </Badge>
     )
-  });
+  }) : null;
 
 
   return (
@@ -183,7 +186,7 @@ export function StaffSelector({staff, setStaff, label, sublabel, tip, multiple, 
       </div>
       <div className="mt-1">
         {readOnly
-          ? readOnlyValues.length 
+          ? readOnlyValues && readOnlyValues.length > 0
             ? readOnlyValues
             : <div className="ml-2 italic">No staff selected</div>
           : dropdown

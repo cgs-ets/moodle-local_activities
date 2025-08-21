@@ -49,6 +49,7 @@ function local_activities_pluginfile($course, $cm, $context, $filearea, $args, $
     $areas = array(
         'attachments' => 'attachments',
         'riskassessment' => 'riskassessment',
+        'ra_generations' => 'ra_generations',
     );
 
     // filearea must contain a real area
@@ -63,7 +64,14 @@ function local_activities_pluginfile($course, $cm, $context, $filearea, $args, $
     if (!$file = $fs->get_file_by_hash(sha1($fullpath)) or $file->is_directory()) {
         return false;
     }
+    
+    // Default: download
+    $forcedownload = true;
+    // If ?action=open - let browser open inline
+    if (optional_param('action', '', PARAM_ALPHA) === 'open') {
+        $forcedownload = false;
+    }
 
     // finally send the file
-    send_stored_file($file, 0, 0, true, $options); // download MUST be forced - security!
+    send_stored_file($file, 0, 0, $forcedownload, $options);
 }

@@ -1,5 +1,6 @@
 import { Breadcrumbs, Container, Text } from '@mantine/core';
 import { Link } from "react-router-dom";
+import { defaults, useFormStore } from '../../../stores/formStore';
 
 interface Props {
   id: string;
@@ -8,6 +9,12 @@ interface Props {
 }
 
 export function PageHeader(props: Props) {
+  //const setFormData = useFormStore((state) => state.setFormData)
+
+  //const handleClick = () => {
+  //  setFormData({...defaults})
+  //}
+
   return (
     <>
       <div className="page-header">

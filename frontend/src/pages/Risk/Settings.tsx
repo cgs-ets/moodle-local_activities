@@ -42,6 +42,8 @@ export interface Classification {
   type: string;
   isstandard: number;
   contexts: number[];
+  preselected: boolean;
+  hidden: boolean;
 }
 
 export interface Risk {
@@ -805,6 +807,7 @@ export function Settings() {
                         <Table.Th>Risk Rating (After)</Table.Th>
                         <Table.Th>Responsible Person</Table.Th>
                         <Table.Th style={{ minWidth: '250px' }}>Classifications</Table.Th>
+                        <Table.Th>Benefit</Table.Th>
                         <Table.Th style={{ width: '90px' }}>Actions</Table.Th>
                       </Table.Tr>
                     </Table.Thead>
@@ -855,6 +858,9 @@ export function Settings() {
                                 ) : null;
                               })}
                             </Group>
+                          </Table.Td>
+                          <Table.Td>
+                            <Text size="sm">{risk.risk_benefit}</Text>
                           </Table.Td>
                           <Table.Td>
                             {currentVersion.is_published === 0 && currentVersion.has_been_used === 0 && (
@@ -958,9 +964,16 @@ export function Settings() {
                           </Badge>
                         </Table.Td>
                         <Table.Td>
-                          <Badge variant="light" color={classification.isstandard === 1 ? 'green' : 'gray'}>
-                            <span className="capitalize">{classification.isstandard === 1 ? 'Yes' : 'No'}</span>
-                          </Badge>
+                          {classification.type === 'context' && (
+                            <Badge variant="light" color="gray">
+                              <span className="capitalize">NA</span>
+                            </Badge>
+                          )}
+                          {classification.type === 'hazards' && (
+                            <Badge variant="light" color={classification.isstandard === 1 ? 'green' : 'gray'}>
+                              <span className="capitalize">{classification.isstandard === 1 ? 'Yes' : 'No'}</span>
+                            </Badge>
+                          )}
                         </Table.Td>
                         <Table.Td>
                           <Group gap="1">
@@ -1172,102 +1185,104 @@ export function Settings() {
               </Select>
 
               {classificationForm.type === 'hazards' && (
-                <div className="mb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Text fz="sm" fw={500}>Contexts</Text>
-                    <Tooltip w={300} label="This determines when the hazard should be displayed as an option to the user. For example, this might be a hazard that only applies to incursions. Leave blank to display in all contexts." multiline withArrow>
-                      <div className="flex items-center gap-1 text-blue-600">
-                        <IconAlertSquare className="size-4" />
-                        <Text size="xs">Help</Text>
-                      </div>
-                    </Tooltip>
+                <>
+                  <div className="mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Text fz="sm" fw={500}>Contexts</Text>
+                      <Tooltip w={300} label="This determines when the hazard should be displayed as an option to the user. For example, this might be a hazard that only applies to incursions. Leave blank to display in all contexts." multiline withArrow>
+                        <div className="flex items-center gap-1 text-blue-600">
+                          <IconAlertSquare className="size-4" />
+                          <Text size="xs">Help</Text>
+                        </div>
+                      </Tooltip>
+                    </div>
+                    
+                    <Combobox 
+                      store={combobox} 
+                      onOptionSubmit={(optionValue: string) => {
+                        const classification = JSON.parse(optionValue);
+                        handleContextSelect(classification);
+                        combobox.closeDropdown();
+                      }}
+                      withinPortal={false}
+                    >
+                      <Combobox.DropdownTarget>
+                        <PillsInput 
+                          pointer 
+                          leftSection={<IconCategory2 size={18} />}
+                        >
+                          <Pill.Group>
+                            {selectedContexts.map((context) => (
+                              <Badge key={context.id} variant='filled' pr={0} color={context.type === 'hazards' ? 'red.2' : 'blue.2'} size="lg" radius="xl">
+                                <Flex gap={4}>
+                                  <Text className="normal-case font-normal text-black text-sm">{context.name}</Text>
+                                  <CloseButton
+                                    onMouseDown={() => handleContextRemove(context)}
+                                    variant="transparent"
+                                    size={22}
+                                    iconSize={14}
+                                    tabIndex={-1}
+                                  />
+                                </Flex>
+                              </Badge>
+                            ))}
+                            <Combobox.EventsTarget>
+                              <PillsInput.Field
+                                onFocus={() => {
+                                  setClassificationSearchResults(classifications);
+                                  combobox.openDropdown();
+                                }}
+                                onClick={() => {
+                                  setClassificationSearchResults(classifications);
+                                  combobox.openDropdown();
+                                }}
+                                onBlur={() => combobox.closeDropdown()}
+                                value={classificationSearch}
+                                placeholder="Search classifications"
+                                onChange={(event) => {
+                                  searchClassifications(event.currentTarget.value);
+                                  combobox.openDropdown();
+                                }}
+                              />
+                            </Combobox.EventsTarget>
+                          </Pill.Group>
+                        </PillsInput>
+                      </Combobox.DropdownTarget>
+
+                      <Combobox.Dropdown>
+                        <Combobox.Options style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                          {classificationSearchResults.length > 0 
+                            ? classificationSearchResults.filter((classification) => classification.type === 'context').map((classification) => (
+                                <Combobox.Option value={JSON.stringify(classification)} key={classification.id}>
+                                  <Text className="normal-case font-normal text-black text-sm">{classification.name}</Text>
+                                </Combobox.Option>
+                              ))
+                            : <Combobox.Empty>Nothing found...</Combobox.Empty>
+                          }
+                        </Combobox.Options>
+                      </Combobox.Dropdown>
+                    </Combobox>
                   </div>
-                  
-                  <Combobox 
-                    store={combobox} 
-                    onOptionSubmit={(optionValue: string) => {
-                      const classification = JSON.parse(optionValue);
-                      handleContextSelect(classification);
-                      combobox.closeDropdown();
-                    }}
-                    withinPortal={false}
-                  >
-                    <Combobox.DropdownTarget>
-                      <PillsInput 
-                        pointer 
-                        leftSection={<IconCategory2 size={18} />}
-                      >
-                        <Pill.Group>
-                          {selectedContexts.map((context) => (
-                            <Badge key={context.id} variant='filled' pr={0} color={context.type === 'hazards' ? 'red.2' : 'blue.2'} size="lg" radius="xl">
-                              <Flex gap={4}>
-                                <Text className="normal-case font-normal text-black text-sm">{context.name}</Text>
-                                <CloseButton
-                                  onMouseDown={() => handleContextRemove(context)}
-                                  variant="transparent"
-                                  size={22}
-                                  iconSize={14}
-                                  tabIndex={-1}
-                                />
-                              </Flex>
-                            </Badge>
-                          ))}
-                          <Combobox.EventsTarget>
-                            <PillsInput.Field
-                              onFocus={() => {
-                                setClassificationSearchResults(classifications);
-                                combobox.openDropdown();
-                              }}
-                              onClick={() => {
-                                setClassificationSearchResults(classifications);
-                                combobox.openDropdown();
-                              }}
-                              onBlur={() => combobox.closeDropdown()}
-                              value={classificationSearch}
-                              placeholder="Search classifications"
-                              onChange={(event) => {
-                                searchClassifications(event.currentTarget.value);
-                                combobox.openDropdown();
-                              }}
-                            />
-                          </Combobox.EventsTarget>
-                        </Pill.Group>
-                      </PillsInput>
-                    </Combobox.DropdownTarget>
+                
 
-                    <Combobox.Dropdown>
-                      <Combobox.Options style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                        {classificationSearchResults.length > 0 
-                          ? classificationSearchResults.filter((classification) => classification.type === 'context').map((classification) => (
-                              <Combobox.Option value={JSON.stringify(classification)} key={classification.id}>
-                                <Text className="normal-case font-normal text-black text-sm">{classification.name}</Text>
-                              </Combobox.Option>
-                            ))
-                          : <Combobox.Empty>Nothing found...</Combobox.Empty>
-                        }
-                      </Combobox.Options>
-                    </Combobox.Dropdown>
-                  </Combobox>
-                </div>
+                  <Checkbox
+                    label={
+                      <Group>
+                        <Text size="sm">Standard Classification</Text>
+                        <Tooltip w={300} label="Risks under this classification will be included in the risk assessment by default, as long as context conditions are met." multiline withArrow>
+                          <div className="flex items-center gap-1 text-blue-600">
+                            <IconAlertSquare className="size-4" />
+                            <Text size="xs">Help</Text>
+                          </div>
+                        </Tooltip>
+                      </Group>
+                    }
+                    checked={classificationForm.isstandard === 1}
+                    onChange={(e) => setClassificationForm({ ...classificationForm, isstandard: e.currentTarget.checked ? 1 : 0 })}
+                    mb="lg"
+                  />
+                </>
               )}
-              
-
-              <Checkbox
-                label={
-                  <Group>
-                    <Text size="sm">Standard Classification</Text>
-                    <Tooltip w={300} label="Risks under this classification will be included in the risk assessment by default, as long as context conditions are met." multiline withArrow>
-                      <div className="flex items-center gap-1 text-blue-600">
-                        <IconAlertSquare className="size-4" />
-                        <Text size="xs">Help</Text>
-                      </div>
-                    </Tooltip>
-                  </Group>
-                }
-                checked={classificationForm.isstandard === 1}
-                onChange={(e) => setClassificationForm({ ...classificationForm, isstandard: e.currentTarget.checked ? 1 : 0 })}
-                mb="lg"
-              />
             </>
           )}
 

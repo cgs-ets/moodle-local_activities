@@ -1,0 +1,228 @@
+<html>
+  <head>
+    <title>Risk Assessment - {{activity.activityname}}</title>
+    <style>
+      @page {
+        margin: 0;
+      }
+      
+      body { 
+        font-family: Arial, sans-serif;
+        margin: 0; 
+        background-color: #FFF;
+        font-size: 12px;
+        line-height: 1.2;
+        color: #000000;
+      }
+      
+      .container { 
+        max-width: 1123px; 
+        margin: 0 auto; 
+        background-color: #ffffff;
+        padding: 30px; 
+      }
+      
+      .header {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      
+      .header .title {
+        margin: 0 0 10px 0;
+        font-size: 23px;
+        font-weight: bold;
+      }
+      
+      .header .subtitle {
+        margin: 0 0 5px 0;
+        font-size: 20px;
+        font-weight: normal;
+      }
+      
+      .table-container {
+        overflow: hidden;
+      }
+
+
+      .beautiful-table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 12px;
+        background: #fff;
+        color: #000000;
+      }
+
+      .beautiful-table th,
+      .beautiful-table td {
+        border: 1px solid #444;
+        padding: 8px 12px;
+        text-align: left;
+        background: #fff;
+        color: #000000;
+        vertical-align: top;
+      }
+
+      .beautiful-table th {
+        background: #f2f2f2;
+        font-weight: bold;
+      }
+
+      .beautiful-table caption {
+        caption-side: top;
+        font-size: 1.2em;
+        margin-bottom: 8px;
+        font-weight: bold;
+        color: #111;
+        background: none;
+      }
+      
+      .classification-row td {
+        background:rgb(253, 249, 225);
+        font-weight: bold;
+      }
+      
+      .hazard-cell {
+        max-width: 90px;
+      }
+      
+      .rating-cell {
+        text-align: center;
+      }
+      
+      .rating {
+        border-radius: 20px;
+        display: block;
+        text-align: center;
+        padding: 5px;
+        width: 13px;
+        height: 13px;
+        font-family: monospace;
+        line-height: 1;
+        font-size: 16px;
+        font-weight: bold;
+      }
+
+      .rating-1 {
+        background-color:rgb(255, 59, 59) !important;
+        color: white;
+      }
+
+      .rating-2 {
+        background-color:rgb(216, 136, 30) !important;
+        color: white;
+      }
+
+      .rating-3 {
+        background-color:rgb(236, 234, 94) !important;
+        color: black;
+      }
+
+      .rating-4 {
+        background-color:rgb(151, 194, 33) !important;
+        color: white;
+      }
+
+      .rating-5 {
+        background-color: #27ae60 !important;
+        color: white;
+      }
+
+      .rating-bg-1 {
+        background-color:rgb(255, 159, 159) !important;
+        color: white;
+      }
+
+      .rating-bg-2 {
+        background-color:rgb(243, 197, 137) !important;
+        color: white;
+      }
+
+      .rating-bg-3 {
+        background-color:rgb(255, 254, 166) !important;
+        color: black;
+      }
+
+      .rating-bg-4 {
+        background-color:rgb(192, 240, 154) !important;
+        color: white;
+      }
+
+      .rating-bg-5 {
+        background-color:rgb(117, 202, 153) !important;
+        color: white;
+      }
+      
+      .control-measures {
+        max-width: 300px;
+        line-height: 1.1;
+      }
+      
+      .responsible-person {
+        max-width: 70px;
+      }
+      
+      .control-timing {
+        max-width: 70px;
+      }
+      
+      .risk-benefit {
+        font-weight: bold;
+        max-width: 70px;
+      }
+      
+      /* Ensure proper page breaks */
+      .page-break {
+        page-break-before: always;
+      }
+      
+    </style>
+  </head>
+<body>
+  <div class='container'>
+    
+    <div class="header">
+      <h1 class="title">Risk Assessment</h1>
+      <div class="subtitle">{{activity.activityname}}</div>
+    </div>
+    
+    <div class="table-container">
+      <table class="beautiful-table">
+        <thead>
+          <tr>
+            <th>Hazard</th>
+            <th>Before</th>
+            <th>Control Measures</th>
+            <th>After</th>
+            <th>Responsible Person</th>
+            <th>Control Timing</th>
+            <th>Risk Benefit</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#classifications}}
+            <tr class="classification-row">
+              <td colspan="7">{{name}}</td>
+            </tr>
+            {{#risks}}
+              <tr class="risk-row">
+                <td class="hazard-cell">{{hazard}}</td>
+                <td class="rating-cell  rating-bg-{{riskrating_before}}">
+                  <span class="rating xrating-{{riskrating_before}}">{{riskrating_before}}</span>
+                </td>
+                <td class="control-measures">{{controlmeasures}}</td>
+                <td class="rating-cell rating-bg-{{riskrating_after}}">
+                  <span class="rating xrating-{{riskrating_after}}">{{riskrating_after}}</span>
+                </td>
+                <td class="responsible-person">{{responsible_person}}</td>
+                <td class="control-timing">{{control_timing}}</td>
+                <td class="risk-benefit">{{risk_benefit}}</td>
+              </tr>
+            {{/risks}}
+          {{/classifications}}
+        </tbody>
+      </table>
+    </div>
+    
+  </div>
+</body>
+</html>

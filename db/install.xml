@@ -269,7 +269,7 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="risk_version" FIELDS="id,version"/>
+        <INDEX NAME="risk_version" UNIQUE="true" FIELDS="id,version"/>
       </INDEXES>
     </TABLE>
 
@@ -288,6 +288,23 @@
       </KEYS>
     </TABLE>
 
+    <TABLE NAME="activities_ra_gens_risks" COMMENT="Stores custom risk entries for a risk assessment generation">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="ra_gen_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="hazard" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="riskrating_before" TYPE="int" LENGTH="3" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="controlmeasures" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="riskrating_after" TYPE="int" LENGTH="3" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="responsible_person" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="control_timing" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="risk_benefit" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_ra_gen_id" TYPE="foreign" FIELDS="ra_gen_id" REFTABLE="activities_ra_gens" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
 
     <TABLE NAME="activities_classifications" COMMENT="Classification tags for risks">
       <FIELDS>
@@ -305,7 +322,7 @@
       </KEYS>
       <INDEXES>
         <INDEX NAME="name_version_unique" UNIQUE="true" FIELDS="name,version"/>
-        <INDEX NAME="classification_version" FIELDS="id,version"/>
+        <INDEX NAME="classification_version" UNIQUE="true" FIELDS="id,version"/>
       </INDEXES>
     </TABLE>
 

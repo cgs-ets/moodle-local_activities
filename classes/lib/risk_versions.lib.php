@@ -429,6 +429,9 @@ class risk_versions_lib {
             throw new \Exception("A classification with this name already exists in this version.");
         }
 
+        $contexts = $data->contexts;
+        unset($data->contexts);
+
         if (isset($data->id) && $data->id) {
             // Update existing
             $DB->update_record(static::TABLE_CLASSIFICATIONS, ['id' => $data->id, 'name' => $data->name, 'description' => $data->description, 'isstandard' => $data->isstandard, 'type' => $data->type]);
@@ -445,9 +448,9 @@ class risk_versions_lib {
 
 
         // Update contexts
-        if (isset($data->contexts)) {
+        if (isset($contexts)) {
             $DB->delete_records(static::TABLE_CLASSIFICATIONS_CONTEXTS, ['classificationid' => $id, 'version' => $data->version]);
-            foreach ($data->contexts as $contextid) {
+            foreach ($contexts as $contextid) {
                 $DB->insert_record(static::TABLE_CLASSIFICATIONS_CONTEXTS, ['classificationid' => $id, 'contextid' => $contextid, 'version' => $data->version]);
             }
         }
@@ -462,7 +465,7 @@ class risk_versions_lib {
      * @param int $version Optional version to get classifications for
      * @return array
      */
-    public static function get_classifications($version = null) {
+    public static function get_classifications($version = null, $standard_only = false) {
         global $DB;
         
         // Only allow cal reviewers.
@@ -475,7 +478,12 @@ class risk_versions_lib {
             $version = risk_versions_lib::get_latest_version();
         }
         
-        $records = $DB->get_records(static::TABLE_CLASSIFICATIONS, ['version' => $version], 'sortorder ASC, name ASC');
+        $where = ['version' => $version];
+        if ($standard_only) {
+            $where['isstandard'] = 1;
+        }
+
+        $records = $DB->get_records(static::TABLE_CLASSIFICATIONS, $where, 'sortorder ASC, name ASC');
         service_lib::cast_fields($records, [
             'sortorder' => 'int',
             'id' => 'int',
@@ -498,6 +506,7 @@ class risk_versions_lib {
 
         return array_values($records);
     }
+
 
     /**
      * Get a single risk classification by ID.
@@ -682,20 +691,20 @@ class risk_versions_lib {
         if (!workflow_lib::is_cal_reviewer()) {
             throw new \Exception("Permission denied.");
         }
-
-        // Get the risk
-        $risk = $DB->get_record(static::TABLE_RISKS, ['id' => $data->id]);
-
-        // Cannot update a risk that has been used.
-        if (static::has_been_used($risk->version)) {
-            throw new \Exception("Cannot update risk as it has been used in an activity. Fork and make changes to the draft version instead.");
-        }
         
         $data = (object) $data;
         $classification_ids = isset($data->classification_ids) ? $data->classification_ids : [];
         unset($data->classification_ids);
    
         if (isset($data->id) && $data->id) {
+            // Get the risk
+            $risk = $DB->get_record(static::TABLE_RISKS, ['id' => $data->id]);
+
+            // Cannot update a risk that has been used.
+            if (static::has_been_used($risk->version)) {
+                throw new \Exception("Cannot update risk as it has been used in an activity. Fork and make changes to the draft version instead.");
+            }
+
             // Update existing
             $DB->update_record(static::TABLE_RISKS, $data);
             $id = $data->id;

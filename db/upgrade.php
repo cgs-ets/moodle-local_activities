@@ -310,5 +310,36 @@ function xmldb_local_activities_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2025081104, 'local', 'activities');
     }
 
+
+    if ($oldversion < 2025082100) {
+
+        // Define table activities_ra_gens_risks to be created.
+        $table = new xmldb_table('activities_ra_gens_risks');
+
+        // Adding fields to table activities_ra_gens_risks.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('ra_gen_id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('hazard', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
+        $table->add_field('riskrating_before', XMLDB_TYPE_INTEGER, '3', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('controlmeasures', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
+        $table->add_field('riskrating_after', XMLDB_TYPE_INTEGER, '3', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('responsible_person', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('control_timing', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('risk_benefit', XMLDB_TYPE_TEXT, null, null, null, null, null);
+
+        // Adding keys to table activities_ra_gens_risks.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('fk_ra_gen_id', XMLDB_KEY_FOREIGN, ['ra_gen_id'], 'activities_ra_gens', ['id']);
+
+        // Conditionally launch create table for activities_ra_gens_risks.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Activities savepoint reached.
+        upgrade_plugin_savepoint(true, 2025082100, 'local', 'activities');
+    }
+
+
     return true;
 }

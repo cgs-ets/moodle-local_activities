@@ -5,7 +5,7 @@ export type User = {
 }
 
 export type DecordatedUser = {
-  value: string,
+  value: { un: string, fn: string, ln: string },
   label: string,
   username: string,
   image: string,
