@@ -261,6 +261,7 @@ function xmldb_local_activities_upgrade($oldversion) {
         $table->add_field('riskversion', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 0, null, 'activityid');
         $table->add_field('classifications', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
         $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 0, null, 'riskversion');
+        $table->add_field('approved', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, 0, null, 'timecreated');
         $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
         $table->add_key('fk_activityid', XMLDB_KEY_FOREIGN, ['activityid'], 'activities', ['id']);
         if (!$dbman->table_exists($table)) {
@@ -338,6 +339,73 @@ function xmldb_local_activities_upgrade($oldversion) {
 
         // Activities savepoint reached.
         upgrade_plugin_savepoint(true, 2025082100, 'local', 'activities');
+    }
+
+    if ($oldversion < 2025082101) {
+        $table = new xmldb_table('activities_ra_gens');
+        $field = new xmldb_field('reason_for_activity', XMLDB_TYPE_TEXT, null, null, null, null, null, 'riskversion');
+        $field2 = new xmldb_field('proposed_activities', XMLDB_TYPE_TEXT, null, null, null, null, null, 'reason_for_activity');
+        $field3 = new xmldb_field('anticipated_students', XMLDB_TYPE_INTEGER, '10', null, null, null, 0, null, 'proposed_activities');
+        $field4 = new xmldb_field('anticipated_adults', XMLDB_TYPE_INTEGER, '10', null, null, null, 0, null, 'anticipated_students');
+        $field5 = new xmldb_field('leader', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'anticipated_adults');
+        $field6 = new xmldb_field('leader_contact', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'leader');
+        $field7 = new xmldb_field('second_in_charge', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'leader_contact');
+        $field8 = new xmldb_field('second_in_charge_contact', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'second_in_charge');
+        $field9 = new xmldb_field('location_contact_person', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'second_in_charge_contact');
+        $field10 = new xmldb_field('location_contact_number', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'location_contact_person');
+        $field11 = new xmldb_field('site_visit_reviewer', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'location_contact_number');
+        $field12 = new xmldb_field('site_visit_date', XMLDB_TYPE_INTEGER, '10', null, null, null, 0, null, 'site_visit_reviewer');
+        $field13 = new xmldb_field('water_hazards_present', XMLDB_TYPE_CHAR, '10', null, null, null, null, 'site_visit_date');
+        $field14 = new xmldb_field('staff_qualifications', XMLDB_TYPE_TEXT, null, null, null, null, null, 'water_hazards_present');
+        $field15 = new xmldb_field('other_qualifications', XMLDB_TYPE_TEXT, null, null, null, null, null, 'staff_qualifications');
+
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        if (!$dbman->field_exists($table, $field2)) {
+            $dbman->add_field($table, $field2);
+        }
+        if (!$dbman->field_exists($table, $field3)) {
+            $dbman->add_field($table, $field3);
+        }
+        if (!$dbman->field_exists($table, $field4)) {
+            $dbman->add_field($table, $field4);
+        }
+        if (!$dbman->field_exists($table, $field5)) {
+            $dbman->add_field($table, $field5);
+        }
+        if (!$dbman->field_exists($table, $field6)) {
+            $dbman->add_field($table, $field6);
+        }
+        if (!$dbman->field_exists($table, $field7)) {
+            $dbman->add_field($table, $field7);
+        }
+        if (!$dbman->field_exists($table, $field8)) {
+            $dbman->add_field($table, $field8);
+        }
+        if (!$dbman->field_exists($table, $field9)) {
+            $dbman->add_field($table, $field9);
+        }
+        if (!$dbman->field_exists($table, $field10)) {
+            $dbman->add_field($table, $field10);
+        }
+        if (!$dbman->field_exists($table, $field11)) {
+            $dbman->add_field($table, $field11);
+        }
+        if (!$dbman->field_exists($table, $field12)) {
+            $dbman->add_field($table, $field12);
+        }
+        if (!$dbman->field_exists($table, $field13)) {
+            $dbman->add_field($table, $field13);
+        }
+        if (!$dbman->field_exists($table, $field14)) {
+            $dbman->add_field($table, $field14);
+        }
+        if (!$dbman->field_exists($table, $field15)) {
+            $dbman->add_field($table, $field15);
+        }
+
+        upgrade_plugin_savepoint(true, 2025082101, 'local', 'activities');
     }
 
 

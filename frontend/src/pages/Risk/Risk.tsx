@@ -3,7 +3,6 @@ import { Box, Container, Center, Text, Loader, Card, Checkbox, Group, Stack, Gri
 import { useNavigate, useParams } from "react-router-dom";
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
-import dayjs from "dayjs";
 import { defaults, useFormStore } from "../../stores/formStore";
 import { ActivityDetails } from "./Components/ActivityDetails";
 import useFetch from "../../hooks/useFetch";
@@ -11,6 +10,8 @@ import { PageHeader } from "./Components/PageHeader";
 import { SvgRenderer } from "../../components/SvgRenderer";
 import { IconTornado, IconPlus, IconEdit, IconTrash } from "@tabler/icons-react";
 import { Classification } from "./Settings";
+import { DatePicker, DatePickerInput } from '@mantine/dates';
+import dayjs from 'dayjs';
 
 interface RiskAssessment {
   riskVersion: number;
@@ -59,6 +60,25 @@ export function Risk() {
     risk_benefit: ''
   })
 
+  // Additional fields local state
+  const [additionalFields, setAdditionalFields] = useState({
+    reasonForActivity: '',
+    proposedActivities: '',
+    anticipatedStudents: '',
+    anticipatedAdults: '',
+    leader: '',
+    leaderContact: '',
+    secondInCharge: '',
+    secondInChargeContact: '',
+    locationContactPerson: '',
+    locationContactNumber: '',
+    siteVisitReviewer: '',
+    siteVisitDate: dayjs().unix().toString(),
+    waterHazardsPresent: '',
+    staffQualifications: [] as string[],
+    otherQualifications: ''
+  })
+
   document.title = 'Risk Assessment'
 
   useEffect(() => {
@@ -69,7 +89,8 @@ export function Risk() {
 
   useEffect(() => {
     if (id) {
-      getRiskAssessment()
+      // TODO: Load existing generation?
+      //getRiskAssessment()
     }
   }, [id]);
 
@@ -105,37 +126,53 @@ export function Risk() {
 
   const getActivity = async () => {
     setLoading(true)
-    const fetchResponse = await api.call({
-      query: {
-        methodname: 'local_activities-get_activity',
-        id: activityid,
-      }
-    })
+
+    const [
+      activityRes, 
+      lastGenRes, 
+    ] = await Promise.all([
+      api.call({ query: { methodname: 'local_activities-get_activity', id: activityid } }),
+      api.call({ query: { methodname: 'local_activities-get_last_ra_gen', activityid: activityid } }),
+    ]);
   
-    if (fetchResponse && !fetchResponse.error) {
-      document.title = fetchResponse.data.activityname + " - Risk Assessment";
+    if (activityRes && !activityRes.error) {
+      document.title = activityRes.data.activityname + " - Risk Assessment";
       const data = {
-        ...fetchResponse.data,
-        timestart: Number(fetchResponse.data.timestart) ? fetchResponse.data.timestart : dayjs().unix(),
-        timeend: Number(fetchResponse.data.timeend) ? fetchResponse.data.timeend : dayjs().unix(),
+        ...activityRes.data,
+        timestart: Number(activityRes.data.timestart) ? activityRes.data.timestart : dayjs().unix(),
+        timeend: Number(activityRes.data.timeend) ? activityRes.data.timeend : dayjs().unix(),
       }
       setFormData({...defaults, ...data})
     }
-    setLoading(false)
-  }
 
-  const getRiskAssessment = async () => {
-    const fetchResponse = await api.call({
-      query: {
-        methodname: 'local_activities-get_risk_assessment',
-        id: id,
-      }
-    })
-  
-    if (fetchResponse && !fetchResponse.error) {
-      console.log(fetchResponse.data)
-      // TODO: Load existing risk assessment data if available
+
+
+    if (lastGenRes && !lastGenRes.error) {
+
+      setAdditionalFields(
+        {
+          reasonForActivity: lastGenRes.data.reason_for_activity,
+          proposedActivities: lastGenRes.data.proposed_activities,
+          anticipatedStudents: lastGenRes.data.anticipated_students,
+          anticipatedAdults: lastGenRes.data.anticipated_adults,
+          leader: lastGenRes.data.leader,
+          leaderContact: lastGenRes.data.leader_contact,
+          secondInCharge: lastGenRes.data.second_in_charge,
+          secondInChargeContact: lastGenRes.data.second_in_charge_contact,
+          locationContactPerson: lastGenRes.data.location_contact_person,
+          locationContactNumber: lastGenRes.data.location_contact_number,
+          siteVisitReviewer: lastGenRes.data.site_visit_reviewer,
+          siteVisitDate: Number(lastGenRes.data.site_visit_date) > 0 ? lastGenRes.data.site_visit_date : dayjs().unix().toString(),
+          waterHazardsPresent: lastGenRes.data.water_hazards_present,
+          staffQualifications: lastGenRes.data.staff_qualifications ? JSON.parse(lastGenRes.data.staff_qualifications) : [],
+          otherQualifications: lastGenRes.data.other_qualifications,
+        }
+      )
+      setCustomRisks(lastGenRes.data.custom_risks)
     }
+
+
+    setLoading(false)
   }
 
   // Custom risk functions
@@ -184,6 +221,22 @@ export function Risk() {
           activityid: activityid,
           riskassessment: riskAssessment,
           customRisks: customRisks,
+          // Additional fields
+          reasonForActivity: additionalFields.reasonForActivity,
+          proposedActivities: additionalFields.proposedActivities,
+          anticipatedStudents: additionalFields.anticipatedStudents,
+          anticipatedAdults: additionalFields.anticipatedAdults,
+          leader: additionalFields.leader,
+          leaderContact: additionalFields.leaderContact,
+          secondInCharge: additionalFields.secondInCharge,
+          secondInChargeContact: additionalFields.secondInChargeContact,
+          locationContactPerson: additionalFields.locationContactPerson,
+          locationContactNumber: additionalFields.locationContactNumber,
+          siteVisitReviewer: additionalFields.siteVisitReviewer,
+          siteVisitDate: Number(additionalFields.siteVisitDate),
+          waterHazardsPresent: additionalFields.waterHazardsPresent,
+          staffQualifications: JSON.stringify(additionalFields.staffQualifications),
+          otherQualifications: additionalFields.otherQualifications,
         }
       }
     })
@@ -225,19 +278,6 @@ export function Risk() {
       <Header />
       <div className="page-wrapper" style={{minHeight: 'calc(100vh - 154px)'}}>
 
-      { !activityid 
-          ? <Center h={200} mx="auto"><Loader type="dots" /></Center> : null
-        }
-
-        {
-          loading &&
-          <Container size="xl">
-            <Center h={300}>
-              <Loader type="dots" />
-            </Center>
-          </Container>
-        }
-
         { !loading && !formData.usercanedit ?
           <Container size="xl">
             <Center h={300}>
@@ -254,6 +294,149 @@ export function Risk() {
               <Container size="xl" my="md" className="space-y-6">
                 <Box className="flex flex-col gap-4 border">
                   <ActivityDetails activity={formData}  />
+                </Box>
+
+                {/* Additional fields */}
+                <Box className="flex flex-col gap-4">
+                  <Card withBorder className="space-y-4">
+                    <Text fz="md" fw={500}>Additional Information</Text>
+                    
+                    <Textarea
+                      label="Reason for undertaking the activity"
+                      placeholder="Describe the reason for undertaking this activity..."
+                      value={additionalFields.reasonForActivity || ''}
+                      onChange={(e) => setAdditionalFields({ ...additionalFields, reasonForActivity: e.target.value })}
+                      autosize
+                      minRows={3}
+                    />
+
+                    <Textarea
+                      label="Proposed activities"
+                      placeholder="Describe the proposed activities..."
+                      value={additionalFields.proposedActivities || ''}
+                      onChange={(e) => setAdditionalFields({ ...additionalFields, proposedActivities: e.target.value })}
+                      autosize
+                      minRows={3}
+                    />
+
+                    <Group grow>
+                      <TextInput
+                        label="Anticipated number of students attending"
+                        type="number"
+                        min={0}
+                        placeholder="0"
+                        value={additionalFields.anticipatedStudents || ''}
+                        onChange={(e) => setAdditionalFields({ ...additionalFields, anticipatedStudents: e.target.value })}
+                      />
+                      <TextInput
+                        label="Anticipated number of responsible adults (staff and volunteers) attending"
+                        type="number"
+                        min={0}
+                        placeholder="0"
+                        value={additionalFields.anticipatedAdults || ''}
+                        onChange={(e) => setAdditionalFields({ ...additionalFields, anticipatedAdults: e.target.value })}
+                      />
+                    </Group>
+
+                    <Group grow>
+                      <TextInput
+                        label="Leader"
+                        placeholder="Leader name"
+                        value={additionalFields.leader || ''}
+                        onChange={(e) => setAdditionalFields({ ...additionalFields, leader: e.target.value })}
+                      />
+                      <TextInput
+                        label="Leader contact number"
+                        placeholder="Leader contact number"
+                        value={additionalFields.leaderContact || ''}
+                        onChange={(e) => setAdditionalFields({ ...additionalFields, leaderContact: e.target.value })}
+                      />
+                    </Group>
+
+                    <Group grow>
+                      <TextInput
+                        label="Second in Charge (if leader unable to attend)"
+                        placeholder="Second in charge name"
+                        value={additionalFields.secondInCharge || ''}
+                        onChange={(e) => setAdditionalFields({ ...additionalFields, secondInCharge: e.target.value })}
+                      />
+                      <TextInput
+                        label="Second in Charge contact number"
+                        placeholder="Second in charge contact number"
+                        value={additionalFields.secondInChargeContact || ''}
+                        onChange={(e) => setAdditionalFields({ ...additionalFields, secondInChargeContact: e.target.value })}
+                      />
+                    </Group>
+
+                    <Group grow>
+                      <TextInput
+                        label="Contact person at the location of activity"
+                        placeholder="Contact person name"
+                        value={additionalFields.locationContactPerson || ''}
+                        onChange={(e) => setAdditionalFields({ ...additionalFields, locationContactPerson: e.target.value })}
+                      />
+                      <TextInput
+                        label="Contact number at location of activity"
+                        placeholder="Location contact number"
+                        value={additionalFields.locationContactNumber || ''}
+                        onChange={(e) => setAdditionalFields({ ...additionalFields, locationContactNumber: e.target.value })}
+                      />
+                    </Group>
+
+                    <Group grow>
+                      <TextInput
+                        label="Site visit completed / reviewed by"
+                        placeholder="Site visit reviewer name"
+                        value={additionalFields.siteVisitReviewer || ''}
+                        onChange={(e) => setAdditionalFields({ ...additionalFields, siteVisitReviewer: e.target.value })}
+                      />
+
+                      <DatePickerInput
+                        value={dayjs.unix(Number(additionalFields.siteVisitDate)).toDate()} // Convert to Date
+                        dropdownType="popover"
+                        label="Site visit completed / reviewed date"
+                        onChange={(newValue) => {
+                          setAdditionalFields({ ...additionalFields, siteVisitDate: dayjs(newValue).unix().toString() })
+                        }}
+                      />
+
+                    </Group>
+
+                    <Select
+                      label="Are there any water hazards present?"
+                      placeholder="Select an option"
+                      value={additionalFields.waterHazardsPresent || ''}
+                      onChange={(value) => setAdditionalFields({ ...additionalFields, waterHazardsPresent: value || '' })}
+                      data={[
+                        { value: 'yes', label: 'Yes' },
+                        { value: 'no', label: 'No' },
+                      ]}
+                    />
+
+                    <div>
+                      <Text fz="sm" fw={500} mb="xs">Supervising staff relevant qualifications (select all that apply)</Text>
+                      <Checkbox.Group
+                        value={additionalFields.staffQualifications || []}
+                        onChange={(value) => setAdditionalFields({ ...additionalFields, staffQualifications: value })}
+                      >
+                        <Group gap="md">
+                          <Checkbox value="first_aid" label="First Aid" />
+                          <Checkbox value="cpr" label="CPR" />
+                          <Checkbox value="bronze_medallion" label="Bronze Medallion" />
+                          <Checkbox value="other" label="Other" />
+                        </Group>
+                      </Checkbox.Group>
+                      {additionalFields.staffQualifications?.includes('other') && (
+                        <TextInput
+                          label="Other qualifications"
+                          placeholder="Specify other qualifications..."
+                          value={additionalFields.otherQualifications || ''}
+                          onChange={(e) => setAdditionalFields({ ...additionalFields, otherQualifications: e.target.value })}
+                          mt="xs"
+                        />
+                      )}
+                    </div>
+                  </Card>
                 </Box>
 
                 <Box className="flex flex-col gap-4">

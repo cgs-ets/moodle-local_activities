@@ -24,6 +24,7 @@ class risks_lib {
 
     /** Table to store risk assessments. */
     const TABLE_RA_GENS = 'activities_ra_gens';
+    const TABLE_RA_GENS_RISKS = 'activities_ra_gens_risks';
 
 
     /**
@@ -58,17 +59,35 @@ class risks_lib {
         }
 
         try {
-            $id = $DB->insert_record(static::TABLE_RA_GENS, [
+            // Prepare the additional fields data
+            $additionalFields = [
                 'activityid' => $activityid,
                 'riskversion' => $riskversion,
                 'classifications' => json_encode($classifications),
                 'timecreated' => time(),
-            ]);
+                'reason_for_activity' => isset($data->reasonForActivity) ? $data->reasonForActivity : '',
+                'proposed_activities' => isset($data->proposedActivities) ? $data->proposedActivities : '',
+                'anticipated_students' => isset($data->anticipatedStudents) ? intval($data->anticipatedStudents) : 0,
+                'anticipated_adults' => isset($data->anticipatedAdults) ? intval($data->anticipatedAdults) : 0,
+                'leader' => isset($data->leader) ? $data->leader : '',
+                'leader_contact' => isset($data->leaderContact) ? $data->leaderContact : '',
+                'second_in_charge' => isset($data->secondInCharge) ? $data->secondInCharge : '',
+                'second_in_charge_contact' => isset($data->secondInChargeContact) ? $data->secondInChargeContact : '',
+                'location_contact_person' => isset($data->locationContactPerson) ? $data->locationContactPerson : '',
+                'location_contact_number' => isset($data->locationContactNumber) ? $data->locationContactNumber : '',
+                'site_visit_reviewer' => isset($data->siteVisitReviewer) ? $data->siteVisitReviewer : '',
+                'site_visit_date' => isset($data->siteVisitDate) ? $data->siteVisitDate : 0,
+                'water_hazards_present' => isset($data->waterHazardsPresent) ? $data->waterHazardsPresent : '',
+                'staff_qualifications' => isset($data->staffQualifications) ? $data->staffQualifications : '',
+                'other_qualifications' => isset($data->otherQualifications) ? $data->otherQualifications : '',
+            ];
+
+            $id = $DB->insert_record(static::TABLE_RA_GENS, $additionalFields);
 
             // Save custom risks if any
             if (!empty($customRisks)) {
                 foreach ($customRisks as $customRisk) {
-                    $DB->insert_record('activities_ra_gens_risks', [
+                    $DB->insert_record(static::TABLE_RA_GENS_RISKS, [
                         'ra_gen_id' => $id,
                         'hazard' => $customRisk->hazard,
                         'riskrating_before' => $customRisk->riskrating_before,
@@ -140,7 +159,7 @@ class risks_lib {
         }
 
         // Add custom risks to the classifications.
-        $custom_risks = array_values($DB->get_records('activities_ra_gens_risks', ['ra_gen_id' => $id]));
+        $custom_risks = array_values($DB->get_records(static::TABLE_RA_GENS_RISKS, ['ra_gen_id' => $id]));
         if ($custom_risks) {
             $used_classifications[] = (object) [
                 'name' => 'Additional Risks',
@@ -284,8 +303,25 @@ class risks_lib {
             $ra_generation->classifications = array_values($DB->get_records_sql($sql, $inparams));
 
             // Custom risks
-            $custom_risks = $DB->get_records('activities_ra_gens_risks', ['ra_gen_id' => $ra_generation->id]);
+            $custom_risks = $DB->get_records(static::TABLE_RA_GENS_RISKS, ['ra_gen_id' => $ra_generation->id]);
             $ra_generation->custom_risks = array_values($custom_risks);
+
+            // Map additional fields to frontend field names
+            $ra_generation->reasonForActivity = $ra_generation->reason_for_activity ?? '';
+            $ra_generation->proposedActivities = $ra_generation->proposed_activities ?? '';
+            $ra_generation->anticipatedStudents = $ra_generation->anticipated_students ?? 0;
+            $ra_generation->anticipatedAdults = $ra_generation->anticipated_adults ?? 0;
+            $ra_generation->leader = $ra_generation->leader ?? '';
+            $ra_generation->leaderContact = $ra_generation->leader_contact ?? '';
+            $ra_generation->secondInCharge = $ra_generation->second_in_charge ?? '';
+            $ra_generation->secondInChargeContact = $ra_generation->second_in_charge_contact ?? '';
+            $ra_generation->locationContactPerson = $ra_generation->location_contact_person ?? '';
+            $ra_generation->locationContactNumber = $ra_generation->location_contact_number ?? '';
+            $ra_generation->siteVisitReviewer = $ra_generation->site_visit_reviewer ?? '';
+            $ra_generation->siteVisitDate = $ra_generation->site_visit_date ? date('Y-m-d', $ra_generation->site_visit_date) : '';
+            $ra_generation->waterHazardsPresent = $ra_generation->water_hazards_present ?? '';
+            $ra_generation->staffQualifications = $ra_generation->staff_qualifications ? json_decode($ra_generation->staff_qualifications) : [];
+            $ra_generation->otherQualifications = $ra_generation->other_qualifications ?? '';
 
             // Download url
             $fs = get_file_storage();
@@ -300,6 +336,80 @@ class risks_lib {
         return array_values($ra_generations);
     }
 
+    /**
+     * Get a single risk assessment by ID.
+     *
+     * @param int $id
+     * @return object
+     */
+    public static function get_risk_assessment($id) {
+        global $DB, $CFG;
 
-    
+        $ra_generation = $DB->get_record(static::TABLE_RA_GENS, ['id' => $id]);
+        if (!$ra_generation) {
+            return null;
+        }
+
+        // Classifications
+        $classification_ids = json_decode($ra_generation->classifications);
+        [$insql, $inparams] = $DB->get_in_or_equal($classification_ids);
+        $sql = "SELECT * FROM {activities_classifications} WHERE id $insql";
+        $ra_generation->classifications = array_values($DB->get_records_sql($sql, $inparams));
+
+        // Custom risks
+        $custom_risks = $DB->get_records(static::TABLE_RA_GENS_RISKS, ['ra_gen_id' => $ra_generation->id]);
+        $ra_generation->custom_risks = array_values($custom_risks);
+
+        // Map additional fields to frontend field names
+        $ra_generation->reasonForActivity = $ra_generation->reason_for_activity ?? '';
+        $ra_generation->proposedActivities = $ra_generation->proposed_activities ?? '';
+        $ra_generation->anticipatedStudents = $ra_generation->anticipated_students ?? 0;
+        $ra_generation->anticipatedAdults = $ra_generation->anticipated_adults ?? 0;
+        $ra_generation->leader = $ra_generation->leader ?? '';
+        $ra_generation->leaderContact = $ra_generation->leader_contact ?? '';
+        $ra_generation->secondInCharge = $ra_generation->second_in_charge ?? '';
+        $ra_generation->secondInChargeContact = $ra_generation->second_in_charge_contact ?? '';
+        $ra_generation->locationContactPerson = $ra_generation->location_contact_person ?? '';
+        $ra_generation->locationContactNumber = $ra_generation->location_contact_number ?? '';
+        $ra_generation->siteVisitReviewer = $ra_generation->site_visit_reviewer ?? '';
+        $ra_generation->siteVisitDate = $ra_generation->site_visit_date ? date('Y-m-d', $ra_generation->site_visit_date) : '';
+        $ra_generation->waterHazardsPresent = $ra_generation->water_hazards_present ?? '';
+        $ra_generation->staffQualifications = $ra_generation->staff_qualifications ? json_decode($ra_generation->staff_qualifications) : [];
+        $ra_generation->otherQualifications = $ra_generation->other_qualifications ?? '';
+
+        // Download url
+        $fs = get_file_storage();
+        $files = $fs->get_area_files(1, 'local_activities', 'ra_generations', $ra_generation->id, "filename", false);
+        if ($files) {
+            foreach ($files as $file) {
+                $ra_generation->download_url = $CFG->wwwroot . '/pluginfile.php/1/local_activities/ra_generations/' . $ra_generation->id . '/' . $file->get_filename();
+                break;
+            }
+        }
+
+        return $ra_generation;
+    }
+
+    /**
+     * Get the last risk assessment generation for an activity.
+     *
+     * @param int $activityid
+     * @return object
+     */
+    public static function get_last_ra_gen($activityid) {
+        global $DB;
+
+        // Get the latest ra generation for the activity.
+        $ra_generation = $DB->get_records(static::TABLE_RA_GENS, ['activityid' => $activityid], 'timecreated DESC', '*', 0, 1);
+        if (!$ra_generation) {
+            return null;
+        }
+        $ra_generation = reset($ra_generation);
+
+        // Get the custom risks for this generation.
+        $custom_risks = $DB->get_records(static::TABLE_RA_GENS_RISKS, ['ra_gen_id' => $ra_generation->id]);
+        $ra_generation->custom_risks = array_values($custom_risks);
+
+        return  $ra_generation;
+    }
 }

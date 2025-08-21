@@ -46,4 +46,25 @@ trait risks_api {
         $activityid = required_param('id', PARAM_INT);
         return risks_lib::get_ra_generations($activityid);
     }
+
+    /**
+     * Get a single risk assessment by ID.
+     *
+     * @return object
+     */
+    static public function get_risk_assessment() {
+        $id = required_param('id', PARAM_INT);
+        return risks_lib::get_risk_assessment($id);
+    }
+
+
+    /**
+     * Get the last risk assessment generation for an activity.
+     *
+     * @return object
+     */
+    static public function get_last_ra_gen() {
+        $activityid = required_param('activityid', PARAM_INT);
+        return risks_lib::get_last_ra_gen($activityid);
+    }
 }
