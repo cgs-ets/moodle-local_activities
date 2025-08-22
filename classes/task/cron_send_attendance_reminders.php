@@ -55,10 +55,19 @@ class cron_send_attendance_reminders extends \core\task\scheduled_task {
                 $this->log("Sending reminder for activity " . $data->id . " to " . $recipient->username);
                 $this->send_reminder($data, $recipient);
             }
+
+            try {
+                foreach ($recipients as $recipient) {
+                    $this->log("Sending reminder for activity " . $data->id . " to " . $recipient->username);
+                    $this->send_reminder($data, $recipient);
+                }
+            } catch (Exception $ex) {
+                // Error.
+            }
+                
             
             // Mark as processed.
-            $activity->set('remindersprocessed', 1);
-            $activity->save();
+            $DB->execute("UPDATE {activities} SET remindersprocessed = 1 WHERE id = $data->id");
             $this->log("Finished sending reminders for activity " . $data->id);
         }
 

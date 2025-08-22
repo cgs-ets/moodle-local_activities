@@ -124,9 +124,16 @@ class risks_lib {
         if (!$activity) {
             throw new \Exception("Activity not found.");
         }
+
         $activity = $activity->export();
 
-        //$standardrisks = static::get_standard_risks($riskversion);
+        // Append additional fields to activity.
+        $ra_gen = $DB->get_record(static::TABLE_RA_GENS, ['id' => $id]);
+        $activity = (object) array_merge((array) $activity, (array) $ra_gen);
+        $activity->staff_qualifications = json_decode($activity->staff_qualifications);
+        $activity->is_other_qualification = in_array('Other', $activity->staff_qualifications);
+
+        // Get the risks for the classifications.
         $risks = static::get_risks_for_classifications($classifications, $riskversion);
 
         // Group risks by classification. 
@@ -183,6 +190,10 @@ class risks_lib {
             'isRemoteEnabled' => false,
             'defaultFont' => 'Arial',
             'dpi' => 96,
+            'margin_top' => 30,
+            'margin_right' => 30,
+            'margin_bottom' => 30,
+            'margin_left' => 30,
         ]));
         
         // Load HTML content
@@ -260,7 +271,6 @@ class risks_lib {
             'classifications' => array_values($classifications),
         ];
         return $OUTPUT->render_from_template('local_activities/risk_assessment', $data);
-
     }
 
 
@@ -294,7 +304,7 @@ class risks_lib {
     public static function get_ra_generations($activityid) {
         global $DB, $CFG;
 
-        $ra_generations = $DB->get_records(static::TABLE_RA_GENS, ['activityid' => $activityid], 'timecreated DESC');
+        $ra_generations = $DB->get_records(static::TABLE_RA_GENS, ['activityid' => $activityid, 'deleted' => 0], 'timecreated DESC');
         foreach ($ra_generations as $ra_generation) {
             // Classifications
             $classification_ids = json_decode($ra_generation->classifications);
@@ -400,7 +410,7 @@ class risks_lib {
         global $DB;
 
         // Get the latest ra generation for the activity.
-        $ra_generation = $DB->get_records(static::TABLE_RA_GENS, ['activityid' => $activityid], 'timecreated DESC', '*', 0, 1);
+        $ra_generation = $DB->get_records(static::TABLE_RA_GENS, ['activityid' => $activityid, 'deleted' => 0], 'timecreated DESC', '*', 0, 1);
         if (!$ra_generation) {
             return null;
         }
@@ -411,5 +421,68 @@ class risks_lib {
         $ra_generation->custom_risks = array_values($custom_risks);
 
         return  $ra_generation;
+    }
+
+
+    /**
+     * Delete a risk assessment generation.
+     *
+     * @param int $id
+     * @return object
+     */
+    public static function delete_ra_generation($id) {
+        global $DB;
+
+        // Get the RA generation.
+        $ra_generation = $DB->get_record(static::TABLE_RA_GENS, ['id' => $id]);
+        if (!$ra_generation) {
+            return false;
+        }
+
+        // Check if the user has the capability to delete RA generations.
+        if (!utils_lib::has_capability_edit_activity($ra_generation->activityid)) {
+            return false;
+        }
+
+        // Delete the RA generation.
+        $ra_generation->deleted = 1;
+        return $DB->update_record(static::TABLE_RA_GENS, $ra_generation);
+    }
+
+
+    /**
+     * Approve a risk assessment generation.
+     *
+     * @param int $id
+     * @return object
+     */
+    public static function approve_ra_generation($id, $approved) {
+        global $DB;
+
+        // Get the RA generation.
+        $ra_generation = $DB->get_record(static::TABLE_RA_GENS, ['id' => $id]);
+        if (!$ra_generation) {
+            return false;
+        }
+
+        // Check if the user is an approver.
+        if (!utils_lib::is_user_approver()) {
+            return false;
+        }
+
+        if ($approved) {
+            // Remove approval from all RA generations for this activity.
+            $sql = "UPDATE {activities_ra_gens} SET approved = 0 WHERE activityid = :activityid";
+            $DB->execute($sql, ['activityid' => $ra_generation->activityid]);
+
+            // Approve the RA generation.
+            $ra_generation->approved = 1;
+            return $DB->update_record(static::TABLE_RA_GENS, $ra_generation);
+        } else {
+            // Remove approval from the RA generation.
+            $ra_generation->approved = 0;
+            return $DB->update_record(static::TABLE_RA_GENS, $ra_generation);
+        }
+       
     }
 }

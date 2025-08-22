@@ -2,9 +2,7 @@
   <head>
     <title>Risk Assessment - {{activity.activityname}}</title>
     <style>
-      @page {
-        margin: 0;
-      }
+
       
       body { 
         font-family: Arial, sans-serif;
@@ -19,7 +17,6 @@
         max-width: 1123px; 
         margin: 0 auto; 
         background-color: #ffffff;
-        padding: 30px; 
       }
       
       .header {
@@ -37,6 +34,145 @@
         margin: 0 0 5px 0;
         font-size: 20px;
         font-weight: normal;
+      }
+      
+      .cover-page {
+        page-break-after: always;
+        margin-bottom: 30px;
+        padding: 20px;
+        background: #fff;
+      }
+      
+      .cover-table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 12px;
+        background: #fff;
+        color: #000000;
+        margin-bottom: 20px;
+        table-layout: fixed;
+        border-left: 1px solid #444;
+        border-right: 1px solid #444;
+      }
+      
+      .cover-table th,
+      .cover-table td {
+        border-top: 1px solid #444;
+        border-bottom: 1px solid #444;
+        padding: 7px 8px;
+        text-align: left;
+        background: #fff;
+        color: #000000;
+        vertical-align: top;
+        white-space: normal;
+        min-width: 0;
+      }
+      
+      .cover-table th {
+        background: #f2f2f2;
+        font-weight: bold;
+        width: 25% !important;
+        max-width: 25% !important;
+      }
+      
+      .cover-table thead th {
+        background: #e0e0e0;
+        font-weight: bold;
+        text-align: center;
+        border-bottom: 2px solid #444;
+      }
+      
+      .cover-table td {
+        width: 25% !important;
+        max-width: 25% !important;
+      }
+      
+      /* Force equal column widths for DomPDF */
+      .cover-table th:nth-child(1),
+      .cover-table td:nth-child(1) {
+        width: 25% !important;
+        max-width: 25% !important;
+      }
+      
+      .cover-table th:nth-child(2),
+      .cover-table td:nth-child(2) {
+        width: 25% !important;
+        max-width: 25% !important;
+      }
+      
+      .cover-table th:nth-child(3),
+      .cover-table td:nth-child(3) {
+        width: 25% !important;
+        max-width: 25% !important;
+      }
+      
+      .cover-table th:nth-child(4),
+      .cover-table td:nth-child(4) {
+        width: 25% !important;
+        max-width: 25% !important;
+      }
+      
+      /* Handle colspan="3" cells properly */
+      .cover-table td[colspan="3"] {
+        width: 75% !important;
+        max-width: 75% !important;
+        min-width: 75% !important;
+      }
+      
+      /* Add visual separation for the 4-column rows */
+      .cover-table tbody tr:nth-child(8) th:nth-child(2),
+      .cover-table tbody tr:nth-child(8) td:nth-child(2),
+      .cover-table tbody tr:nth-child(9) th:nth-child(2),
+      .cover-table tbody tr:nth-child(9) td:nth-child(2),
+      .cover-table tbody tr:nth-child(10) th:nth-child(2),
+      .cover-table tbody tr:nth-child(10) td:nth-child(2),
+      .cover-table tbody tr:nth-child(11) th:nth-child(2),
+      .cover-table tbody tr:nth-child(11) td:nth-child(2),
+      .cover-table tbody tr:nth-child(12) th:nth-child(2),
+      .cover-table tbody tr:nth-child(12) td:nth-child(2) {
+        border-right: 1px solid #444;
+      }
+      
+      /* Ensure proper spacing and prevent overflow */
+      .cover-table th,
+      .cover-table td {
+        box-sizing: border-box;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
+      
+      /* Additional DomPDF-specific fixes */
+      .cover-table {
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+      
+      .cover-table th,
+      .cover-table td {
+        width: 25% !important;
+        max-width: 25% !important;
+        min-width: 25% !important;
+      }
+      
+      /* Force table to respect column widths */
+      .cover-table {
+        table-layout: fixed !important;
+      }
+      
+      /* DomPDF fallback - use pixel widths if percentages fail */
+      @media print {
+        .cover-table th,
+        .cover-table td {
+          width: 200px !important;
+          max-width: 200px !important;
+          min-width: 200px !important;
+        }
+        
+        .cover-table td[colspan="3"] {
+          width: 600px !important;
+          max-width: 600px !important;
+          min-width: 600px !important;
+        }
       }
       
       .table-container {
@@ -185,6 +321,102 @@
       <div class="subtitle">{{activity.activityname}}</div>
     </div>
     
+    <div class="cover-page">
+      <table class="cover-table">
+        <tbody>
+        <tr>
+          <th>Activity Name</th>
+          <td colspan="3">{{activity.activityname}}</td>
+        </tr>
+        <tr>
+          <th>Location</th>
+          <td colspan="3">{{activity.location}}</td>
+        </tr>
+        <tr>
+          <th>Start Date & Time</th>
+          <td colspan="3">{{activity.startreadabletime}}</td>
+        </tr>
+        <tr>
+          <th>End Date & Time</th>
+          <td colspan="3">{{activity.endreadabletime}}</td>
+        </tr>
+        <tr>
+          <th>Transport</th>
+          <td colspan="3">{{activity.transport}}</td>
+        </tr>
+        <tr>
+          <th>Reason for undertaking the activity</th>
+          <td colspan="3">{{activity.reason_for_activity}}</td>
+        </tr>
+        <tr>
+          <th>Proposed activities</th>
+          <td colspan="3">{{activity.proposed_activities}}</td>
+        </tr>
+        <tr>
+          <th>Anticipated number of students attending</th>
+          <td>{{activity.anticipated_students}}</td>
+          <th>Anticipated number of responsible adults (staff and volunteers) attending</th>
+          <td>{{activity.anticipated_adults}}</td>
+        </tr>
+        <tr>
+          <th>Leader</th>
+          <td>{{activity.leader}}</td>
+          <th>Leader contact number</th>
+          <td>{{activity.leader_contact}}</td>
+        </tr>
+        <tr>
+          <th>Second in Charge (if leader unable to attend)</th>
+          <td>{{activity.second_in_charge}}</td>
+          <th>Second in Charge contact number</th>
+          <td>{{activity.second_in_charge_contact}}</td>
+        </tr>
+        <tr>
+          <th>Contact person at the location of activity</th>
+          <td>{{activity.location_contact_person}}</td>
+          <th>Contact number at location of activity</th>
+          <td>{{activity.location_contact_number}}</td>
+        </tr>
+        <tr>
+          <th>Site visit completed / reviewed by</th>
+          <td>{{activity.site_visit_reviewer}}</td>
+          <th>Site visit completed / reviewed date</th>
+          <td>
+            {{#activity.site_visit_date}}
+              {{activity.site_visit_date}}
+            {{/activity.site_visit_date}}
+            {{^activity.site_visit_date}}Not specified{{/activity.site_visit_date}}
+          </td>
+        </tr>
+        <tr>
+          <th>Are there any water hazards present?</th>
+          <td colspan="3">
+            {{#activity.water_hazards_present}}
+              {{activity.water_hazards_present}}
+            {{/activity.water_hazards_present}}
+            {{^activity.water_hazards_present}}No{{/activity.water_hazards_present}}
+          </td>
+        </tr>
+        <tr>
+          <th>Supervising staff relevant qualifications (select all that apply)</th>
+          <td colspan="3">
+            {{#activity.staff_qualifications}}
+              {{#.}}
+                {{.}}{{^last}}, {{/last}}
+              {{/.}}
+            {{/activity.staff_qualifications}}
+            {{^activity.staff_qualifications}}None specified{{/activity.staff_qualifications}}
+          </td>
+        </tr>
+        {{#activity.is_other_qualifications}}
+          <tr>
+            <th>Other qualifications</th>
+            <td colspan="3">{{activity.other_qualifications}}</td>
+          </tr>
+        {{/activity.is_other_qualifications}}
+        </tbody>
+      </table>
+    </div>
+
     <div class="table-container">
       <table class="beautiful-table">
         <thead>

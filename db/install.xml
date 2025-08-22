@@ -282,6 +282,7 @@
         <FIELD NAME="classifications" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="approved" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="deleted" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="reason_for_activity" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="proposed_activities" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="anticipated_students" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>

@@ -67,4 +67,25 @@ trait risks_api {
         $activityid = required_param('activityid', PARAM_INT);
         return risks_lib::get_last_ra_gen($activityid);
     }
+
+    /**
+     * Delete a risk assessment generation.
+     *
+     * @return object
+     */
+    static public function delete_ra_generation() {
+        $id = required_param('id', PARAM_INT);
+        return risks_lib::delete_ra_generation($id);
+    }
+
+    /**
+     * Approve a risk assessment generation.
+     *
+     * @return object
+     */
+    static public function approve_ra_generation() {
+        $id = required_param('id', PARAM_INT);
+        $approved = required_param('approved', PARAM_INT);
+        return risks_lib::approve_ra_generation($id, $approved);
+    }
 }

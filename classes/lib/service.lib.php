@@ -231,7 +231,7 @@ class service_lib {
         $data->toolname = $config->toolname;
         $data->body = $body;
         $messageHtml = $OUTPUT->render_from_template('local_activities/email_template', $data);
-        $result = static::real_email_to_user($recipient, $fromUser, $subject, '', $messageHtml, '', '', true);
+        $result = static::real_email_to_user($recipient, $fromUser, $subject, '', $messagehtml);
     }
 
     /**

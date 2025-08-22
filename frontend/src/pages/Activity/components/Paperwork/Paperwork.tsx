@@ -1,7 +1,7 @@
-import { Anchor, Button, Card, Grid, Table, Text } from '@mantine/core';
+import { ActionIcon, Anchor, Button, Card, Checkbox, Collapse, Grid, Group, Switch, Table, Text } from '@mantine/core';
 import { FileUploader } from './components/FileUploader/FileUploader';
 import '@mantine/dropzone/styles.css';
-import { IconBrandAdobe, IconDownload, IconExternalLink, IconFileTypePdf, IconPlus } from '@tabler/icons-react';
+import { IconArchive, IconBrandAdobe, IconDownload, IconExternalLink, IconEye, IconFileTypePdf, IconPlus } from '@tabler/icons-react';
 import { useFormStore } from '../../../../stores/formStore';
 import { useStateStore } from '../../../../stores/stateStore';
 import { useEffect, useState } from 'react';
@@ -18,7 +18,7 @@ export function Paperwork() {
   const api = useFetch();
   const [raGenerations, setRaGenerations] = useState<any[]>([]);
   const [pulsing, setPulsing] = useState(false);
-
+  const [showPreviousRAs, setShowPreviousRAs] = useState(false);
   useEffect(() => {
     getRaGenerations();
   }, [activityid]);
@@ -47,12 +47,30 @@ export function Paperwork() {
     if (response.error) {
       return;
     }
+    console.log(response.data);
     setRaGenerations(response.data);
   };
 
-  useEffect(() => {
-    console.log(raGenerations);
-  }, [raGenerations]);
+  const deleteRaGeneration = async (id: number) => {
+    await api.call({
+      query: {
+        methodname: 'local_activities-delete_ra_generation',
+        id: id,
+      }
+    });
+    getRaGenerations();
+  }
+
+  const approveRaGeneration = async (id: number, approved: boolean) => {
+    await api.call({
+      query: {
+        methodname: 'local_activities-approve_ra_generation',
+        id: id,
+        approved: approved ? 1 : 0,
+      }
+    });
+    getRaGenerations();
+  }
 
   return (
     <>
@@ -76,51 +94,36 @@ export function Paperwork() {
                   <Table.Td className='w-44'>Date</Table.Td>
                   <Table.Td>Categories</Table.Td>
                   <Table.Td className='w-20'>Output</Table.Td>
+                  <Table.Td className='w-26'>Actions</Table.Td>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
-                {raGenerations.length > 0 && (
+                {raGenerations.map((raGeneration) => (
                   <Table.Tr
-                    key={raGenerations[0].id}
-                    id={`risk-assessment-row-${raGenerations[0].id}`}
-                    className={`${raid === raGenerations[0].id ? "bg-yellow-100" : ""} ${
+                    key={raGeneration.id}
+                    id={`risk-assessment-row-${raGeneration.id}`}
+                    className={`${raid === raGeneration.id ? "bg-yellow-100" : ""} ${
                       pulsing ? "animate-pulse" : ""
                     }`}
                   >
-                    <Table.Td>{dayjs.unix(Number(raGenerations[0].timecreated)).format("D MMM YYYY H:mma")}</Table.Td>
-                    <Table.Td>{raGenerations[0].classifications.map((classification: any) => classification.name).join(', ')}</Table.Td>
+                    <Table.Td>{dayjs.unix(Number(raGeneration.timecreated)).format("D MMM YYYY H:mma")}</Table.Td>
+                    <Table.Td>{raGeneration.classifications.map((classification: any) => classification.name).join(', ')}</Table.Td>
                     <Table.Td>
-                      <Button variant='light' size='compact-xs' onClick={() => window.open(raGenerations[0].download_url + '?action=open', '_blank')}>PDF</Button>
+                      <Button variant='light' size='compact-xs' onClick={() => window.open(raGeneration.download_url + '?action=open', '_blank')}>PDF</Button>
+                    </Table.Td>
+                    <Table.Td>
+                      <Group>
+                        <ActionIcon disabled={api.state.loading} onClick={() => deleteRaGeneration(raGeneration.id)} color='red' variant='light' size='compact-xs'><IconArchive className='size-4' /></ActionIcon>
+                        <Checkbox disabled={api.state.loading} checked={Number(raGeneration.approved) === 1} onChange={(v) => approveRaGeneration(raGeneration.id, v.target.checked)} />
+                      </Group>
                     </Table.Td>
                   </Table.Tr>
-                )}
+                ))}
               </Table.Tbody>
             </Table>
-
-            {raGenerations.length > 1 && (
-              <>
-                <div className='px-2'>
-                  <Text className=" text-sm">Previous Risk Assessments</Text>
-                </div>
-                <Table>
-                  <Table.Tbody>
-                    {raGenerations.slice(1).map((raGeneration) => (
-                      <Table.Tr
-                        key={raGeneration.id}
-                        id={`risk-assessment-row-${raGeneration.id}`}
-                        className={`${raid === raGeneration.id ? "bg-yellow-100" : ""} ${
-                          pulsing ? "animate-pulse" : ""
-                        }`}
-                      >
-                        <Table.Td className='w-44'>{dayjs.unix(Number(raGeneration.timecreated)).format("D MMM YYYY H:mma")}</Table.Td>
-                        <Table.Td>{raGeneration.classifications.map((classification: any) => classification.name).join(', ')}</Table.Td>
-                        <Table.Td className='w-20'><Button variant='light' size='compact-xs' onClick={() => window.open(raGeneration.download_url + '?action=open', '_blank')}>PDF</Button></Table.Td>
-                      </Table.Tr>
-                    ))}
-                  </Table.Tbody>
-                </Table>
-              </>
-            )}
+             
+        
+               
 
           </div>
 

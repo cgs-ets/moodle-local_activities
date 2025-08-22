@@ -408,8 +408,8 @@ export function Risk() {
                       value={additionalFields.waterHazardsPresent || ''}
                       onChange={(value) => setAdditionalFields({ ...additionalFields, waterHazardsPresent: value || '' })}
                       data={[
-                        { value: 'yes', label: 'Yes' },
-                        { value: 'no', label: 'No' },
+                        { value: 'Yes', label: 'Yes' },
+                        { value: 'No', label: 'No' },
                       ]}
                     />
 
@@ -420,13 +420,13 @@ export function Risk() {
                         onChange={(value) => setAdditionalFields({ ...additionalFields, staffQualifications: value })}
                       >
                         <Group gap="md">
-                          <Checkbox value="first_aid" label="First Aid" />
-                          <Checkbox value="cpr" label="CPR" />
-                          <Checkbox value="bronze_medallion" label="Bronze Medallion" />
-                          <Checkbox value="other" label="Other" />
+                          <Checkbox value="First Aid" label="First Aid" />
+                          <Checkbox value="CPR" label="CPR" />
+                          <Checkbox value="Bronze Medallion" label="Bronze Medallion" />
+                          <Checkbox value="Other" label="Other" />
                         </Group>
                       </Checkbox.Group>
-                      {additionalFields.staffQualifications?.includes('other') && (
+                      {additionalFields.staffQualifications?.includes('Other') && (
                         <TextInput
                           label="Other qualifications"
                           placeholder="Specify other qualifications..."
