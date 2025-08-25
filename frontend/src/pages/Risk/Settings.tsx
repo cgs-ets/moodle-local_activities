@@ -1443,7 +1443,7 @@ export function Settings() {
           
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-2">
-              <Text fz="sm" fw={500}>Classification Sets</Text>
+              <Text fz="sm" fw={500}>Where does this risk appear?</Text>
               <Tooltip label="Create sets of classifications where this risk should appear. A risk will be included if ANY of its sets match the selected classifications in the risk assessment." multiline withArrow>
                 <div className="flex items-center gap-1 text-blue-600">
                   <IconAlertSquare className="size-4" />
@@ -1548,22 +1548,7 @@ export function Settings() {
             {riskForm.classification_sets.length > 0 && (
               <>
                 {riskForm.classification_sets.map((set, setIndex) => (
-                  <div key={setIndex} className="mb-3 p-3 border rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <Text fz="sm" fw={500}>Set {setIndex + 1}</Text>
-                      <Button
-                        variant="subtle"
-                        color="red"
-                        size="xs"
-                        onClick={() => {
-                          const newSets = [...riskForm.classification_sets];
-                          newSets.splice(setIndex, 1);
-                          setRiskForm({ ...riskForm, classification_sets: newSets });
-                        }}
-                      >
-                        Remove Set
-                      </Button>
-                    </div>
+                  <div key={setIndex} className="mb-3 p-3 bg-gray-100 rounded-lg relative">
                     
                     {/* Display classifications in this set */}
                     <Group gap="xs">
@@ -1589,6 +1574,22 @@ export function Settings() {
                         ) : null;
                       })}
                     </Group>
+
+                    <ActionIcon
+                      className="absolute top-1 right-1"
+                      variant="light"
+                      color="red"
+                      size="sm"
+                      onClick={() => {
+                        const newSets = [...riskForm.classification_sets];
+                        newSets.splice(setIndex, 1);
+                        setRiskForm({ ...riskForm, classification_sets: newSets });
+                      }}
+                    >
+                      <IconTrash size={16} />
+                    </ActionIcon>
+
+
                   </div>
                 ))}
               </>
