@@ -408,6 +408,44 @@ function xmldb_local_activities_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2025082101, 'local', 'activities');
     }
 
+    if ($oldversion < 2025082102) {
+        // Create table activities_risk_classification_sets
+        $table = new xmldb_table('activities_risk_classification_sets');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('riskid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 0, null, 'id');
+        $table->add_field('set_order', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 1, null, 'riskid');
+        $table->add_field('version', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 0, null, 'set_order');
+        
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('fk_risk_classification_sets_riskid', XMLDB_KEY_FOREIGN, ['riskid'], 'activities_risks', ['id']);
+        
+        $table->add_index('risk_classification_sets_riskid_version', XMLDB_INDEX_NOTUNIQUE, ['riskid', 'version']);
+        
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Create table activities_risk_classification_set_members
+        $table = new xmldb_table('activities_risk_classification_set_members');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('set_id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 0, null, 'id');
+        $table->add_field('classificationid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 0, null, 'set_id');
+        $table->add_field('version', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 0, null, 'classificationid');
+        
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('fk_risk_classification_set_members_setid', XMLDB_KEY_FOREIGN, ['set_id'], 'activities_risk_classification_sets', ['id']);
+        $table->add_key('fk_risk_classification_set_members_classificationid', XMLDB_KEY_FOREIGN, ['classificationid'], 'activities_classifications', ['id']);
+        
+        $table->add_index('risk_classification_set_members_setid_version', XMLDB_INDEX_NOTUNIQUE, ['set_id', 'version']);
+        $table->add_index('risk_classification_set_members_classificationid_version', XMLDB_INDEX_NOTUNIQUE, ['classificationid', 'version']);
+        
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        upgrade_plugin_savepoint(true, 2025082102, 'local', 'activities');
+    }
+
 
     return true;
 }

@@ -141,6 +141,11 @@ class risks_lib {
         $risks_processed = [];
         foreach ($risks as $risk) {
             foreach ($risk->classifications as $classification) {
+                // If the risk has a qualifying set, and the qualifying set is not in the selected classifications, skip it.
+                if (isset($risk->qualifying_set) && !in_array($classification->id, $risk->qualifying_set)) {
+                    continue;
+                }
+
                 // RISKS DO NOT APPEAR FOR CONTEXTS!
                 if ($classification->type === 'context') {
                     continue;
@@ -243,21 +248,36 @@ class risks_lib {
 
         // Then filter the risks to only include those that match the classifications.
         $risks = array_filter($risks, function($risk) use ($selected, $standard_classification_ids) {
-            // We need to exlude standard classifications from the check as they are not selectable.
-            $risk_classification_ids = array_diff($risk->classification_ids, $standard_classification_ids);         
-            // Check if all of the risks classifications are in the selected classifications.
-            // Get the classifications in common.
-            $classifications_in_common = array_intersect($risk_classification_ids, $selected);
-            // Check if the number of classifications in common is the same as the number of classifications in the risk.
-            // Example 1: 
-            // - The risk has "K-2" and "Walk", and the selected are "K-2", "Walk", "Playground".
-            //   - The number of common classifications is 2, and the number of classifications in the risk is 2.
-            //   - So the risk should be kept.
-            // Example 2: 
-            // - The risk has "K-2", "Walk", "Pool", and the selected are "K-2", "Walk", "Playground".
-            //   - The number of common classifications is 2, and the number of classifications in the risk is 3.
-            //   - So the risk should be filtered out.
-            return count($classifications_in_common) === count($risk_classification_ids);
+            // Check if ANY of the classification sets match the selected classifications
+            foreach ($risk->classification_sets as $classification_set) {
+                // We need to exclude standard classifications from the check as they are not selectable.
+                $risk_classification_ids = array_diff($classification_set, $standard_classification_ids);
+                
+                if (empty($risk_classification_ids)) {
+                    continue; // Skip empty sets
+                }
+
+                // Check if all of the risk's classifications in this set are in the selected classifications.
+                // Get the classifications in common.
+                $classifications_in_common = array_intersect($risk_classification_ids, $selected);
+                
+                // Check if the number of classifications in common is the same as the number of classifications in the risk set.
+                // Example 1: 
+                // - The risk has set ["K-2", "Walk"], and the selected are ["K-2", "Walk", "Playground"].
+                //   - The number of common classifications is 2, and the number of classifications in the risk set is 2.
+                //   - So the risk should be kept.
+                // Example 2: 
+                // - The risk has set ["K-2", "Walk", "Pool"], and the selected are ["K-2", "Walk", "Playground"].
+                //   - The number of common classifications is 2, and the number of classifications in the risk set is 3.
+                //   - So this set doesn't match, but we continue checking other sets.
+                
+                if (count($classifications_in_common) === count($risk_classification_ids)) {
+                    $risk->qualifying_set = $classification_set;
+                    return true; // This set matches, so include the risk
+                }
+            }
+            
+            return false; // No sets matched
         });
 
         return $risks;

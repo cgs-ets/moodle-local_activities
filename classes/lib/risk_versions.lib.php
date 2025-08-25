@@ -32,6 +32,12 @@ class risk_versions_lib {
     
     /** Table to store risk classifications relationships. */
     const TABLE_RISK_CLASSIFICATIONS = 'activities_risk_classifications';
+    
+    /** Table to store risk classification sets. */
+    const TABLE_RISK_CLASSIFICATION_SETS = 'activities_risk_classification_sets';
+    
+    /** Table to store risk classification set members. */
+    const TABLE_RISK_CLASSIFICATION_SET_MEMBERS = 'activities_risk_classification_set_members';
 
     /** Table to store classifications contexts relationships. */
     const TABLE_CLASSIFICATIONS_CONTEXTS = 'activities_classifications_contexts';
@@ -318,7 +324,7 @@ class risk_versions_lib {
             $classification_id_mapping[$old_classification_id] = $new_classification_id;
         }
         
-        // Copy risk-classification relationships with updated IDs
+        // Copy risk-classification relationships with updated IDs (for backward compatibility)
         $risk_classifications = $DB->get_records(static::TABLE_RISK_CLASSIFICATIONS, ['version' => $version]);
         foreach ($risk_classifications as $rc) {
             unset($rc->id);
@@ -335,6 +341,43 @@ class risk_versions_lib {
             }
             
             $DB->insert_record(static::TABLE_RISK_CLASSIFICATIONS, $rc);
+        }
+
+        // Copy risk classification sets with updated IDs
+        $risk_classification_sets = $DB->get_records(static::TABLE_RISK_CLASSIFICATION_SETS, ['version' => $version]);
+        $set_id_mapping = []; // old_set_id => new_set_id
+        
+        foreach ($risk_classification_sets as $rcs) {
+            $old_set_id = $rcs->id;
+            unset($rcs->id);
+            $rcs->version = $new_version;
+            
+            // Update riskid to reference the newly copied risk
+            if (isset($risk_id_mapping[$rcs->riskid])) {
+                $rcs->riskid = $risk_id_mapping[$rcs->riskid];
+            }
+            
+            $new_set_id = $DB->insert_record(static::TABLE_RISK_CLASSIFICATION_SETS, $rcs);
+            $set_id_mapping[$old_set_id] = $new_set_id;
+        }
+
+        // Copy risk classification set members with updated IDs
+        $risk_classification_set_members = $DB->get_records(static::TABLE_RISK_CLASSIFICATION_SET_MEMBERS, ['version' => $version]);
+        foreach ($risk_classification_set_members as $rcsm) {
+            unset($rcsm->id);
+            $rcsm->version = $new_version;
+            
+            // Update set_id to reference the newly copied set
+            if (isset($set_id_mapping[$rcsm->set_id])) {
+                $rcsm->set_id = $set_id_mapping[$rcsm->set_id];
+            }
+            
+            // Update classificationid to reference the newly copied classification
+            if (isset($classification_id_mapping[$rcsm->classificationid])) {
+                $rcsm->classificationid = $classification_id_mapping[$rcsm->classificationid];
+            }
+            
+            $DB->insert_record(static::TABLE_RISK_CLASSIFICATION_SET_MEMBERS, $rcsm);
         }
 
         // Copy classification-context relationships with updated IDs
@@ -585,18 +628,44 @@ class risk_versions_lib {
             $version = risk_versions_lib::get_latest_version();
         }
 
-
         $risks = $DB->get_records(static::TABLE_RISKS, ['version' => $version]);
         foreach ($risks as &$risk) {
-            // Get risk classifications and order them by sortorder
-            $sql = "SELECT rc.classificationid
-                    FROM {" . static::TABLE_RISK_CLASSIFICATIONS . "} rc 
-                    LEFT JOIN {" . static::TABLE_CLASSIFICATIONS . "} c ON rc.classificationid = c.id 
-                    WHERE rc.riskid = ? 
-                    AND rc.version = ? 
-                    ORDER BY c.sortorder ASC";
-            $classifications = $DB->get_fieldset_sql($sql, [$risk->id, $version]);
-            $risk->classification_ids = array_map('intval', $classifications);
+            // First get all classification sets for this risk
+            $sets_sql = "SELECT id, set_order 
+                        FROM {" . static::TABLE_RISK_CLASSIFICATION_SETS . "} 
+                        WHERE riskid = ? AND version = ? 
+                        ORDER BY set_order ASC";
+            $sets = $DB->get_records_sql($sets_sql, [$risk->id, $version]);
+            
+            // Initialize classification sets array
+            $classification_sets = [];
+            
+            foreach ($sets as $set) {
+                // Get all classifications for this specific set
+                $members_sql = "SELECT m.classificationid
+                               FROM {" . static::TABLE_RISK_CLASSIFICATION_SET_MEMBERS . "} m
+                               LEFT JOIN {" . static::TABLE_CLASSIFICATIONS . "} c ON m.classificationid = c.id
+                               WHERE m.set_id = ? AND m.version = ? 
+                               ORDER BY c.sortorder ASC";
+                $members = $DB->get_records_sql($members_sql, [$set->id, $version]);
+                
+                // Extract classification IDs and convert to integers
+                $classification_ids = array_map('intval', array_column($members, 'classificationid'));
+                
+                // Add to classification sets (indexed by set_order - 1 for 0-based array)
+                $classification_sets[$set->set_order - 1] = $classification_ids;
+            }
+            
+            // Ensure we have a properly indexed array (fill any gaps with empty arrays)
+            $final_sets = [];
+            for ($i = 0; $i < count($classification_sets); $i++) {
+                $final_sets[$i] = $classification_sets[$i] ?? [];
+            }
+            
+            $risk->classification_sets = $final_sets;
+
+            // Keep track of classification_ids as flattened array
+            $risk->classification_ids = array_merge(...$risk->classification_sets);
         }
     
         service_lib::cast_fields($risks, [
@@ -693,8 +762,8 @@ class risk_versions_lib {
         }
         
         $data = (object) $data;
-        $classification_ids = isset($data->classification_ids) ? $data->classification_ids : [];
-        unset($data->classification_ids);
+        $classification_sets = isset($data->classification_sets) ? $data->classification_sets : [[]];
+        unset($data->classification_sets);
    
         if (isset($data->id) && $data->id) {
             // Get the risk
@@ -713,8 +782,8 @@ class risk_versions_lib {
             $id = $DB->insert_record(static::TABLE_RISKS, $data);
         }
         
-        // Update classifications
-        static::update_risk_classifications($id, $classification_ids, $data->version);
+        // Update classification sets
+        static::update_risk_classification_sets($id, $classification_sets, $data->version);
         
         return ['id' => $id, 'success' => true];
     }
@@ -741,7 +810,10 @@ class risk_versions_lib {
             throw new \Exception("Cannot delete risk as it has been used in an activity. Fork and make changes to the draft version instead.");
         }
         
-        // Delete risk classifications first
+        // Delete risk classification sets first (this will cascade to members)
+        $DB->delete_records(static::TABLE_RISK_CLASSIFICATION_SETS, ['riskid' => $id]);
+        
+        // Also delete old-style risk classifications for backward compatibility
         $DB->delete_records(static::TABLE_RISK_CLASSIFICATIONS, ['riskid' => $id]);
         
         // Delete the risk
@@ -783,6 +855,56 @@ class risk_versions_lib {
                 'classificationid' => $classification_id,
                 'version' => $version
             ]);
+        }
+    }
+
+    /**
+     * Update risk classification sets for a risk.
+     *
+     * @param int $riskid
+     * @param array $classification_sets Array of classification sets, each set is an array of classification IDs
+     * @param int $version
+     */
+    private static function update_risk_classification_sets($riskid, $classification_sets, $version) {
+        global $DB;
+
+        // Only allow cal reviewers.
+        if (!workflow_lib::is_cal_reviewer()) {
+            throw new \Exception("Permission denied.");
+        }
+
+        // Get the risk
+        $risk = $DB->get_record(static::TABLE_RISKS, ['id' => $riskid]);
+
+        // Cannot update risk classifications that have been used.
+        if (static::has_been_used($risk->version)) {
+            throw new \Exception("Cannot update risk classifications as it has been used in an activity. Fork and make changes to the draft version instead.");
+        }
+        
+        // Delete existing classification sets for this version
+        $DB->delete_records(static::TABLE_RISK_CLASSIFICATION_SETS, ['riskid' => $riskid, 'version' => $version]);
+        
+        // Add new classification sets
+        foreach ($classification_sets as $set_index => $classification_ids) {
+            if (empty($classification_ids)) {
+                continue; // Skip empty sets
+            }
+            
+            // Create the classification set
+            $set_id = $DB->insert_record(static::TABLE_RISK_CLASSIFICATION_SETS, [
+                'riskid' => $riskid,
+                'set_order' => $set_index + 1,
+                'version' => $version
+            ]);
+            
+            // Add members to the set
+            foreach ($classification_ids as $classification_id) {
+                $DB->insert_record(static::TABLE_RISK_CLASSIFICATION_SET_MEMBERS, [
+                    'set_id' => $set_id,
+                    'classificationid' => $classification_id,
+                    'version' => $version
+                ]);
+            }
         }
     }
 

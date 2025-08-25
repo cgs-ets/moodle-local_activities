@@ -25,6 +25,7 @@ import {
   Tabs,
   Space,
   Select,
+  Stack,
 } from '@mantine/core';
 import { IconPlus, IconEdit, IconTrash, IconAlertSquare, IconX, IconCheck, IconGripVertical, IconEye, IconEyeOff, IconGitBranch, IconAlertCircle, IconFirstAidKit, IconCategory2, IconSettings, IconCat, IconGitCommit, IconCheckbox, IconGitFork, IconPictureInPicture, IconPhotoCircle, IconPhoto } from '@tabler/icons-react';
 import { Header } from "../../components/Header";
@@ -56,7 +57,7 @@ export interface Risk {
   control_timing: string;
   risk_benefit: string;
   isstandard: number;
-  classification_ids: number[];
+  classification_sets: number[][]; // Array of classification sets, each set is an array of classification IDs
   version: number;
 }
 
@@ -121,7 +122,7 @@ export function Settings() {
     control_timing: '',
     risk_benefit: '',
     isstandard: 0,
-    classification_ids: [] as number[]
+    classification_sets: [] as number[][] // Start with no classification sets
   });
   
   // Classification selector state
@@ -133,6 +134,18 @@ export function Settings() {
     onDropdownOpen: () => combobox.updateSelectedOptionIndex('active'),
   });
   const [selectedContexts, setSelectedContexts] = useState<Classification[]>([]);
+  
+  // Single combobox for adding new classification sets
+  const addSetCombobox = useCombobox({
+    onDropdownClose: () => addSetCombobox.resetSelectedOption(),
+    onDropdownOpen: () => addSetCombobox.updateSelectedOptionIndex('active'),
+  });
+  
+  // State for the current classification set being built
+  const [currentSetClassifications, setCurrentSetClassifications] = useState<Classification[]>([]);
+  
+  // State for the search input in the classification set combobox
+  const [classificationSetSearchInput, setClassificationSetSearchInput] = useState('');
 
   const [tab, setTab] = useState('risks');
 
@@ -315,45 +328,54 @@ export function Settings() {
   const openRiskModal = (risk?: Risk) => {
     if (risk) {
       setEditingRisk(risk);
-      setRiskForm({ 
-        hazard: risk.hazard, 
-        riskrating_before: risk.riskrating_before,
-        controlmeasures: risk.controlmeasures,
-        riskrating_after: risk.riskrating_after,
-        responsible_person: risk.responsible_person,
-        control_timing: risk.control_timing,
-        risk_benefit: risk.risk_benefit,
-        isstandard: risk.isstandard,
-        classification_ids: risk.classification_ids
-      });
-      
-      // Load selected classifications
-      const selected = classifications.filter(c => risk.classification_ids.includes(c.id));
-      setSelectedClassifications(selected);
+        setRiskForm({ 
+          hazard: risk.hazard, 
+          riskrating_before: risk.riskrating_before,
+          controlmeasures: risk.controlmeasures,
+          riskrating_after: risk.riskrating_after,
+          responsible_person: risk.responsible_person,
+          control_timing: risk.control_timing,
+          risk_benefit: risk.risk_benefit,
+          isstandard: risk.isstandard,
+          classification_sets: risk.classification_sets
+        });
+        
+        // Load selected classifications from the first set (for backward compatibility in the UI)
+        const selected = classifications.filter(c => risk.classification_sets[0]?.includes(c.id) || false);
+        setSelectedClassifications(selected);
     } else {
       setEditingRisk(null);
-      setRiskForm({ 
-        hazard: '', 
-        riskrating_before: 1,
-        controlmeasures: '',
-        riskrating_after: 1,
-        responsible_person: '',
-        control_timing: '',
-        risk_benefit: '',
-        isstandard: 0,
-        classification_ids: []
-      });
-      setSelectedClassifications([]);
+        setRiskForm({ 
+          hazard: '', 
+          riskrating_before: 1,
+          controlmeasures: '',
+          riskrating_after: 1,
+          responsible_person: '',
+          control_timing: '',
+          risk_benefit: '',
+          isstandard: 0,
+          classification_sets: []
+        });
+        setSelectedClassifications([]);
     }
+    
+    // Reset current set classifications
+    setCurrentSetClassifications([]);
+    // Reset search input
+    setClassificationSetSearchInput('');
+    
     setRiskModalOpen(true);
   };
 
   const saveRisk = async () => {
     try {
+      // Filter out empty sets
+      const validClassificationSets = riskForm.classification_sets.filter(set => set.length > 0);
+      
       const data = {
         ...riskForm,
         id: editingRisk?.id,
-        classification_ids: selectedClassifications.map(c => c.id),
+        classification_sets: validClassificationSets,
         version: currentVersion?.version
       };
       
@@ -413,6 +435,8 @@ export function Settings() {
   };
 
   const handleClassificationSelect = (classification: Classification) => {
+    // This function is now only used for the old single classification system
+    // The new classification sets system handles selection differently
     if (!selectedClassifications.find(c => c.id === classification.id)) {
       setSelectedClassifications([...selectedClassifications, classification]);
     }
@@ -432,6 +456,38 @@ export function Settings() {
 
   const handleContextRemove = (context: Classification) => {
     setSelectedContexts(selectedContexts.filter(c => c.id !== context.id));
+  };
+
+  // Helper functions for adding classification sets
+  const addClassificationToCurrentSet = (classification: Classification) => {
+    if (!currentSetClassifications.find(c => c.id === classification.id)) {
+      setCurrentSetClassifications([...currentSetClassifications, classification]);
+    }
+    // Clear search text when selecting a classification
+    setClassificationSearchResults(classifications);
+    // Clear the search input field
+    setClassificationSetSearchInput('');
+    // Don't close dropdown immediately - let user select multiple classifications
+  };
+
+  const removeClassificationFromCurrentSet = (classification: Classification) => {
+    setCurrentSetClassifications(currentSetClassifications.filter(c => c.id !== classification.id));
+  };
+
+  const addCurrentSetToRisk = () => {
+    if (currentSetClassifications.length === 0) {
+      return; // Don't add empty sets
+    }
+    
+    const newSet = currentSetClassifications.map(c => c.id);
+    setRiskForm({ 
+      ...riskForm, 
+      classification_sets: [...riskForm.classification_sets, newSet] 
+    });
+    
+    // Clear the current set and close dropdown
+    setCurrentSetClassifications([]);
+    addSetCombobox.closeDropdown();
   };
 
 
@@ -472,7 +528,7 @@ export function Settings() {
     
     return risks.filter(risk => {
       return selectedRiskFilters.some(filter => 
-        risk.classification_ids.includes(filter.id)
+        risk.classification_sets.some(set => set.includes(filter.id))
       );
     });
   }, [risks, selectedRiskFilters]);
@@ -848,16 +904,22 @@ export function Settings() {
                             <Text size="sm">{risk.responsible_person}</Text>
                           </Table.Td>
                           <Table.Td>
-                            <Group gap="xs">
-                              {risk.classification_ids.map((classificationId) => {
-                                const classification = classifications.find(c => c.id === classificationId);
-                                return classification ? (
-                                  <Badge key={classificationId} variant="light" size="sm" color={classification.type === 'hazards' ? 'red' : 'blue'}>
-                                    {classification.name}
-                                  </Badge>
-                                ) : null;
-                              })}
-                            </Group>
+                            <Stack gap="xs">
+                              {risk.classification_sets.map((classificationSet, setIndex) => (
+                                <div key={`set-${setIndex}`} className="bg-gray-100 p-2 rounded-md">
+                                  <Group gap="xs">
+                                    {classificationSet.map((classificationId) => {
+                                      const classification = classifications.find(c => c.id === classificationId);
+                                      return classification ? (
+                                        <Badge key={classificationId} variant="light" size="sm" color={classification.type === 'hazards' ? 'red' : 'blue'}>
+                                          {classification.name}
+                                        </Badge>
+                                      ) : null;
+                                    })}
+                                  </Group>
+                                </div>
+                              ))}
+                            </Stack>
                           </Table.Td>
                           <Table.Td>
                             <Text size="sm">{risk.risk_benefit}</Text>
@@ -1381,8 +1443,8 @@ export function Settings() {
           
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-2">
-              <Text fz="sm" fw={500}>Classifications</Text>
-              <Tooltip label="Tag this risk with relevant classifications. This determines the risks included in the risk assessment." multiline withArrow>
+              <Text fz="sm" fw={500}>Classification Sets</Text>
+              <Tooltip label="Create sets of classifications where this risk should appear. A risk will be included if ANY of its sets match the selected classifications in the risk assessment." multiline withArrow>
                 <div className="flex items-center gap-1 text-blue-600">
                   <IconAlertSquare className="size-4" />
                   <Text size="xs">Help</Text>
@@ -1390,71 +1452,147 @@ export function Settings() {
               </Tooltip>
             </div>
             
-            <Combobox 
-              store={combobox} 
-              onOptionSubmit={(optionValue: string) => {
-                const classification = JSON.parse(optionValue);
-                handleClassificationSelect(classification);
-                combobox.closeDropdown();
-              }}
-              withinPortal={false}
-            >
-              <Combobox.DropdownTarget>
-                <PillsInput 
-                  pointer 
-                  leftSection={<IconCategory2 size={18} />}
-                >
-                  <Pill.Group>
-                    {selectedClassifications.map((classification) => (
-                      <Badge key={classification.id} variant='filled' pr={0} color={classification.type === 'hazards' ? 'red.2' : 'blue.2'} size="lg" radius="xl">
-                        <Flex gap={4}>
-                          <Text className="normal-case font-normal text-black text-sm">{classification.name}</Text>
-                          <CloseButton
-                            onMouseDown={() => handleClassificationRemove(classification)}
-                            variant="transparent"
-                            size={22}
-                            iconSize={14}
-                            tabIndex={-1}
-                          />
-                        </Flex>
-                      </Badge>
-                    ))}
-                    <Combobox.EventsTarget>
-                      <PillsInput.Field
-                        onFocus={() => {
-                          setClassificationSearchResults(classifications);
-                          combobox.openDropdown();
-                        }}
-                        onClick={() => {
-                          setClassificationSearchResults(classifications);
-                          combobox.openDropdown();
-                        }}
-                        onBlur={() => combobox.closeDropdown()}
-                        value={classificationSearch}
-                        placeholder="Search classifications"
-                        onChange={(event) => {
-                          searchClassifications(event.currentTarget.value);
-                          combobox.openDropdown();
-                        }}
-                      />
-                    </Combobox.EventsTarget>
-                  </Pill.Group>
-                </PillsInput>
-              </Combobox.DropdownTarget>
+            {/* Single combobox for adding new classification sets */}
+            <div className="mb-4">
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <Combobox 
+                    store={addSetCombobox} 
+                    onOptionSubmit={(optionValue: string) => {
+                      const classification = JSON.parse(optionValue);
+                      addClassificationToCurrentSet(classification);
+                    }}
+                    withinPortal={false}
+                  >
+                    <Combobox.DropdownTarget>
+                      <PillsInput 
+                        pointer 
+                        leftSection={<IconCategory2 size={18} />}
+                      >
+                        <Pill.Group>
+                          {currentSetClassifications.map((classification) => (
+                            <Badge key={classification.id} variant='filled' pr={0} color={classification.type === 'hazards' ? 'red.2' : 'blue.2'} size="lg" radius="xl">
+                              <Flex gap={4}>
+                                <Text className="normal-case font-normal text-black text-sm">{classification.name}</Text>
+                                <CloseButton
+                                  onMouseDown={() => removeClassificationFromCurrentSet(classification)}
+                                  variant="transparent"
+                                  size={22}
+                                  iconSize={14}
+                                  tabIndex={-1}
+                                />
+                              </Flex>
+                            </Badge>
+                          ))}
+                          <Combobox.EventsTarget>
+                            <PillsInput.Field
+                              onFocus={() => {
+                                addSetCombobox.openDropdown();
+                              }}
+                              onClick={() => {
+                                addSetCombobox.openDropdown();
+                              }}
+                              onBlur={() => addSetCombobox.closeDropdown()}
+                              placeholder="Search and select classifications for this set..."
+                              value={classificationSetSearchInput}
+                              onChange={(event) => {
+                                // Filter classifications based on search
+                                const query = event.currentTarget.value;
+                                setClassificationSetSearchInput(query);
+                                if (!query.length) {
+                                  setClassificationSearchResults(classifications);
+                                } else {
+                                  const filtered = classifications.filter(classification =>
+                                    classification.name.toLowerCase().includes(query.toLowerCase())
+                                  );
+                                  setClassificationSearchResults(filtered);
+                                }
+                                addSetCombobox.openDropdown();
+                              }}
+                            />
+                          </Combobox.EventsTarget>
+                        </Pill.Group>
+                      </PillsInput>
+                    </Combobox.DropdownTarget>
 
-              <Combobox.Dropdown>
-                <Combobox.Options style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                  {classificationSearchResults.length > 0 
-                    ? classificationSearchResults.map((classification) => (
-                        <Combobox.Option value={JSON.stringify(classification)} key={classification.id}>
-                          <Text className="normal-case font-normal text-black text-sm">{classification.name}</Text>
-                        </Combobox.Option>
-                      ))
-                    : <Combobox.Empty>Nothing found...</Combobox.Empty>
-                  }
-                </Combobox.Options>
-              </Combobox.Dropdown>
-            </Combobox>
+                    <Combobox.Dropdown>
+                      <Combobox.Options style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                        {classificationSearchResults.length > 0 
+                          ? classificationSearchResults.map((classification) => (
+                              <Combobox.Option value={JSON.stringify(classification)} key={classification.id}>
+                                <Text className="normal-case font-normal text-black text-sm">{classification.name}</Text>
+                              </Combobox.Option>
+                            ))
+                          : <Combobox.Empty>Nothing found...</Combobox.Empty>
+                        }
+                      </Combobox.Options>
+                    </Combobox.Dropdown>
+                  </Combobox>
+                </div>
+                
+                {/* Add button */}
+                <Button
+                  variant="light"
+                  leftSection={<IconPlus size={16} />}
+                  onClick={addCurrentSetToRisk}
+                  size="sm"
+                  disabled={currentSetClassifications.length === 0}
+                  className="self-end"
+                >
+                  + Add
+                </Button>
+              </div>
+            </div>
+            
+            {/* Display existing classification sets */}
+            {riskForm.classification_sets.length > 0 && (
+              <>
+                {riskForm.classification_sets.map((set, setIndex) => (
+                  <div key={setIndex} className="mb-3 p-3 border rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <Text fz="sm" fw={500}>Set {setIndex + 1}</Text>
+                      <Button
+                        variant="subtle"
+                        color="red"
+                        size="xs"
+                        onClick={() => {
+                          const newSets = [...riskForm.classification_sets];
+                          newSets.splice(setIndex, 1);
+                          setRiskForm({ ...riskForm, classification_sets: newSets });
+                        }}
+                      >
+                        Remove Set
+                      </Button>
+                    </div>
+                    
+                    {/* Display classifications in this set */}
+                    <Group gap="xs">
+                      {set.map((classificationId) => {
+                        const classification = classifications.find(c => c.id === classificationId);
+                        return classification ? (
+                          <Badge key={classificationId} variant='filled' pr={0} color={classification.type === 'hazards' ? 'red.2' : 'blue.2'} size="lg" radius="xl">
+                            <Flex gap={4}>
+                              <Text className="normal-case font-normal text-black text-sm">{classification.name}</Text>
+                              <CloseButton
+                                onMouseDown={() => {
+                                  const newSets = [...riskForm.classification_sets];
+                                  newSets[setIndex] = newSets[setIndex].filter(id => id !== classificationId);
+                                  setRiskForm({ ...riskForm, classification_sets: newSets });
+                                }}
+                                variant="transparent"
+                                size={22}
+                                iconSize={14}
+                                tabIndex={-1}
+                              />
+                            </Flex>
+                          </Badge>
+                        ) : null;
+                      })}
+                    </Group>
+                  </div>
+                ))}
+              </>
+            )}
           </div>
           
           <Group justify="flex-end">

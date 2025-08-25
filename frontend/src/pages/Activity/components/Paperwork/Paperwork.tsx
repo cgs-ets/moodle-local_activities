@@ -78,55 +78,53 @@ export function Paperwork() {
         <Card.Section withBorder inheritPadding py="sm">
           <h3 className="text-base m-0">Documentation</h3>
         </Card.Section>
+
         <Card.Section>
 
-          <div className='border-b p-4 space-y-2'>
-            <div className='flex items-center justify-between'>
-              <Text className="font-semibold">Risk Assessment</Text>
-              <Link to={`/${activityid}/risk`}><Button leftSection={<IconPlus className='size-4' />} radius='xl' variant='filled' size='compact-sm'>Generate</Button></Link>
-            </div>
-            {/* Show a list of RA Generations.
-            It includes a list of classifications the user selected and a VIEW button which opens to the PDF rendering? */}
-            
-            <Table>
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Td className='w-44'>Date</Table.Td>
-                  <Table.Td>Categories</Table.Td>
-                  <Table.Td className='w-20'>Output</Table.Td>
-                  <Table.Td className='w-26'>Actions</Table.Td>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                {raGenerations.map((raGeneration) => (
-                  <Table.Tr
-                    key={raGeneration.id}
-                    id={`risk-assessment-row-${raGeneration.id}`}
-                    className={`${raid === raGeneration.id ? "bg-yellow-100" : ""} ${
-                      pulsing ? "animate-pulse" : ""
-                    }`}
-                  >
-                    <Table.Td>{dayjs.unix(Number(raGeneration.timecreated)).format("D MMM YYYY H:mma")}</Table.Td>
-                    <Table.Td>{raGeneration.classifications.map((classification: any) => classification.name).join(', ')}</Table.Td>
-                    <Table.Td>
-                      <Button variant='light' size='compact-xs' onClick={() => window.open(raGeneration.download_url + '?action=open', '_blank')}>PDF</Button>
-                    </Table.Td>
-                    <Table.Td>
-                      <Group>
-                        <ActionIcon disabled={api.state.loading} onClick={() => deleteRaGeneration(raGeneration.id)} color='red' variant='light' size='compact-xs'><IconArchive className='size-4' /></ActionIcon>
-                        <Checkbox disabled={api.state.loading} checked={Number(raGeneration.approved) === 1} onChange={(v) => approveRaGeneration(raGeneration.id, v.target.checked)} />
-                      </Group>
-                    </Table.Td>
+          {false &&
+            <div className='border-b p-4 space-y-2'>
+              <div className='flex items-center justify-between'>
+                <Text className="font-semibold">Risk Assessment</Text>
+                <Link to={`/${activityid}/risk`}><Button leftSection={<IconPlus className='size-4' />} radius='xl' variant='filled' size='compact-sm'>Generate</Button></Link>
+              </div>
+              {/* Show a list of RA Generations.
+              It includes a list of classifications the user selected and a VIEW button which opens to the PDF rendering? */}
+              
+              <Table>
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Td className='w-44'>Date</Table.Td>
+                    <Table.Td>Categories</Table.Td>
+                    <Table.Td className='w-20'>Output</Table.Td>
+                    <Table.Td className='w-26'>Actions</Table.Td>
                   </Table.Tr>
-                ))}
-              </Table.Tbody>
-            </Table>
-             
-        
-               
-
-          </div>
-
+                </Table.Thead>
+                <Table.Tbody>
+                  {raGenerations.map((raGeneration) => (
+                    <Table.Tr
+                      key={raGeneration.id}
+                      id={`risk-assessment-row-${raGeneration.id}`}
+                      className={`${raid === raGeneration.id ? "bg-yellow-100" : ""} ${
+                        pulsing ? "animate-pulse" : ""
+                      }`}
+                    >
+                      <Table.Td>{dayjs.unix(Number(raGeneration.timecreated)).format("D MMM YYYY H:mma")}</Table.Td>
+                      <Table.Td>{raGeneration.classifications.map((classification: any) => classification.name).join(', ')}</Table.Td>
+                      <Table.Td>
+                        <Button variant='light' size='compact-xs' onClick={() => window.open(raGeneration.download_url + '?action=open', '_blank')}>PDF</Button>
+                      </Table.Td>
+                      <Table.Td>
+                        <Group>
+                          <ActionIcon disabled={api.state.loading} onClick={() => deleteRaGeneration(raGeneration.id)} color='red' variant='light' size='compact-xs'><IconArchive className='size-4' /></ActionIcon>
+                          <Checkbox disabled={api.state.loading} checked={Number(raGeneration.approved) === 1} onChange={(v) => approveRaGeneration(raGeneration.id, v.target.checked)} />
+                        </Group>
+                      </Table.Td>
+                    </Table.Tr>
+                  ))}
+                </Table.Tbody>
+              </Table>
+            </div>
+          }
 
           <div className='border-b p-4'>
             <Text className="font-semibold inline">Risk Assessment</Text>
