@@ -489,7 +489,7 @@ class utils_lib {
             foreach ($mentees as $i => $mentee) {
                 $parent = \core_user::get_user($userid);
                 $liveswithsql = "SELECT * FROM cgs.UVW_Mentors WHERE ObserverID = ? AND StudentID = ? AND LivesWithFlag = 1";
-                $liveswithresults = $externalDB->get_records_sql($liveswithsql, array($parent->username, $mentee));
+                $liveswithresults = $DB->get_records_sql($liveswithsql, array($parent->username, $mentee));
                 if (empty($liveswithresults)) {
                     unset($mentees[$i]);
                 }

@@ -2028,7 +2028,8 @@ class activities_lib {
         $permissions = $DB->get_records_sql($sql, $params);
 
         // Do not include permissions for students that do not live with their parent.
-        $mentees = utils_lib::get_user_mentees($parentusername, true);
+        $parent = \core_user::get_user_by_username($parentusername);
+        $mentees = utils_lib::get_user_mentees($parent->id, true);
         foreach ($permissions as $i => $permission) {
             if ( ! in_array($permission->studentusername, $mentees)) {
                 unset($permissions[$i]);
