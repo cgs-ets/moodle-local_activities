@@ -250,7 +250,7 @@ class Activity {
 
         // Sort by last name.
         usort($students, function($a, $b) {
-            return strcmp($a->ln, $b->ln);
+            return strcmp(strtolower($a->ln), strtolower($b->ln));
         });
 
         $this->set('studentsdata', json_encode($students));
