@@ -10,6 +10,7 @@ require_once(__DIR__.'/utils.lib.php');
 require_once(__DIR__.'/service.lib.php');
 require_once(__DIR__.'/workflow.lib.php');
 require_once(__DIR__.'/recurrence.lib.php');
+require_once($CFG->dirroot . '/local/activities/vendor/autoload.php');
 
 use \local_activities\lib\Activity;
 use \local_activities\lib\utils_lib;
@@ -17,6 +18,7 @@ use \local_activities\lib\service_lib;
 use \local_activities\lib\workflow_lib;
 use \local_activities\lib\recurrence_lib;
 use \moodle_exception;
+use FineDiff\Diff;
 
 /**
  * Activity lib
@@ -2440,5 +2442,28 @@ class activities_lib {
 
         return $result->id;
     }
+
+
+
+    
+
+
+    public static function diff_versions_html($a1, $a2) {
+        global $OUTPUT;
+        
+        $a1 = new Activity($a1);
+        $a1 = $a1->export();
+        $a2 = new Activity($a2);
+        $a2 = $a2->export();
+
+        $fromhtml = $OUTPUT->render_from_template('local_activities/email_activity_details', ['activity' => $a1]);
+        $tohtml = $OUTPUT->render_from_template('local_activities/email_activity_details', ['activity' => $a2]);
+
+        $diff = new \FineDiff\Diff();
+        return $diff->render($fromhtml, $tohtml);
+    }
+
+
+
 
 }

@@ -2,6 +2,7 @@
   "require": {
       "guzzlehttp/guzzle": "^7.7",
       "microsoft/microsoft-graph": "^1.103",
-    "dompdf/dompdf": "^3.1"
+    "dompdf/dompdf": "^3.1",
+    "d4h/finediff": "^1.0"
   }
 }

@@ -2,6 +2,7 @@
 
 // Include required files and classes.
 require_once(dirname(__FILE__) . '/../../config.php');
+require_once(dirname(__FILE__) . '/classes/lib/activities.lib.php');
 
 
 $context = context_system::instance();
@@ -16,6 +17,12 @@ $PAGE->navbar->add($title);
 // Check user is logged in.
 require_login();
 require_capability('moodle/site:config', $context, $USER->id); 
+
+
+$html = \local_activities\lib\activities_lib::diff_versions_html(1, 2);
+$html = html_entity_decode($html);
+echo $html;
+exit;
 
 
 echo "<pre>"; 

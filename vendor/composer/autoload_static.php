@@ -37,6 +37,7 @@ class ComposerStaticInit58f697267a8f6c1c086e0e475d762ec0
         'F' => 
         array (
             'FontLib\\' => 8,
+            'FineDiff\\' => 9,
         ),
         'D' => 
         array (
@@ -89,6 +90,10 @@ class ComposerStaticInit58f697267a8f6c1c086e0e475d762ec0
         'FontLib\\' => 
         array (
             0 => __DIR__ . '/..' . '/dompdf/php-font-lib/src/FontLib',
+        ),
+        'FineDiff\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/d4h/finediff/src',
         ),
         'Dompdf\\' => 
         array (
