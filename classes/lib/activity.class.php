@@ -447,10 +447,16 @@ class Activity {
             $params['deleted'] = 0;
         }
 
-        $this->data = (object) $DB->get_record(static::TABLE, $params, '*', IGNORE_MULTIPLE);
+        // First check if the record exists.
+        if (!static::exists($id, $includeDeleted)) {
+            return null;
+        }
 
+        $this->data = (object) $DB->get_record(static::TABLE, $params, '*', IGNORE_MULTIPLE);
+        
         return $this;
     }
+
 
     /**
      * Load the data from the DB.
@@ -458,10 +464,15 @@ class Activity {
      * @param $id
      * @return static
      */
-    final public static function exists($id) {
+    final public static function exists($id, $includeDeleted = false) {
         global $DB;
 
-        return $DB->record_exists(static::TABLE, array('id' => $id, 'deleted' => 0));
+        $params = array('id' => $id);
+        if (!$includeDeleted) {
+            $params['deleted'] = 0;
+        }
+
+        return $DB->record_exists(static::TABLE, $params);
     }
 
     public function set($property, $value) {

@@ -62,6 +62,9 @@ class activities_lib {
             exit;
         }
         $activity = new Activity($id);
+        if ($id != $activity->get('id')) {
+            return null;
+        }
         $exported = $activity->export();
         if((!$exported->usercanedit) && $exported->status < static::ACTIVITY_STATUS_INREVIEW) {
             throw new \Exception("Permission denied.");
@@ -81,6 +84,9 @@ class activities_lib {
         global $USER;
 
         $activity = new Activity($id);
+        if ($id != $activity->get('id')) {
+            return null;
+        }
         $exported = $activity->export();
         $permissions = static::get_parent_permissions($id, $USER->username);
 
