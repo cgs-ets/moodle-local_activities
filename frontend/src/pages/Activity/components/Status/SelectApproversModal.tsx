@@ -21,7 +21,7 @@ export function SelectApproversModal({save}: Props) {
       && Object.keys(approvals[i].approvers).length > 0 
       && !approvals[i].nominated
       && !approvals[i].currentnominated
-      && !approvals[i].invalidated
+      && !Number(approvals[i].invalidated)
     ) {
       active = true
       break
