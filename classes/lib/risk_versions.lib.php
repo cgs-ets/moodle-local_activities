@@ -15,6 +15,7 @@ use \local_activities\lib\service_lib;
 use \local_activities\lib\workflow_lib;
 use \local_activities\lib\risks_lib;
 use \moodle_exception;
+use Caxy\HtmlDiff\HtmlDiff;
 
 /**
  * Risk Versions lib - Handles version control for risks and classifications
@@ -962,60 +963,102 @@ class risk_versions_lib {
         return array_values($records);
     }
 
-    public static function get_activitydata_as_xml($data) {
-        $xml = "<activityname>{$data->activityname}</activityname>";
-        $xml .= "<pypuoi>{$data->pypuoi}</pypuoi>";
-        $xml .= "<outcomes>{$data->outcomes}</outcomes>";
-        $xml .= "<rubricjson>{$data->rubricjson}</rubricjson>";
 
-        return $xml;
+
+    public static function diff_versions_html($version1, $version2) {
+        global $DB;
+        
+        // Get all risks for both versions
+        $risks1 = static::get_risks($version1);
+        $risks2 = static::get_risks($version2);
+        
+        // Get all classifications for both versions
+        $classifications1 = static::get_classifications($version1);
+        $classifications2 = static::get_classifications($version2);
+        
+        // Create HTML documents for comparison
+        $html1 = static::create_version_html($risks1, $classifications1, $version1);
+        $html2 = static::create_version_html($risks2, $classifications2, $version2);
+        
+        // Use FineDiff to generate the diff
+        //$diff = new \FineDiff\Diff();
+        //$diff_html = $diff->render($html2, $html1);
+        $diff = new HtmlDiff($html2, $html1);
+        $diff_html = $diff->build();
+        $diff_html = html_entity_decode($diff_html);
+        
+        return $diff_html;
     }
-
-    public static function diff_versions($json1, $json2) {
-        global $DB, $PAGE;
-        $olddata = json_decode($json1);
-        $newdata = json_decode($json2);
-
-        $oldxml = static::get_activitydata_as_xml($olddata);
-        $newxml = static::get_activitydata_as_xml($newdata);
-
-        list($diff1, $diff2) = ouwiki_diff_html($oldxml, $newxml);
-
-        $diff1 = format_text($diff1, FORMAT_HTML, array('overflowdiv'=>true));
-        $diff2 = format_text($diff2, FORMAT_HTML, array('overflowdiv'=>true));
-
-        // Mock up the data needed by the wiki renderer.
-        $wikioutput = $PAGE->get_renderer('mod_wiki');
-        $oldversion = array(
-            'id' => 1111, // Use log id.
-            'pageid' => $olddata->id,
-            'content' => $oldxml,
-            'contentformat' => 'html',
-            'version' => 1111, // Use log id.
-            'timecreated' => 1613693887,
-            'userid' => 2,
-            'diff' => $diff1,
-            'user' => $DB->get_record('user', array('id' => 2)),
-        );
-        $newversion = array(
-            'id' => 1112, // Use log id.
-            'pageid' => $newdata->id,
-            'content' => $newxml,
-            'contentformat' => 'html',
-            'version' => 1112, // Use log id.
-            'timecreated' => 1613693887,
-            'userid' => 2,
-            'diff' => $diff2,
-            'user' => $DB->get_record('user', array('id' => 2)),
-        );
-
-        echo $wikioutput->diff($newdata->id, (object) $oldversion, (object) $newversion, array('total' => 9999));
+    
+    private static function create_version_html($risks, $classifications, $version) {
+        $html = "<div class='version-comparison'>";
+        
+        // Classifications section
+        $html .= "<h3><strong>Classifications</strong></h3>";
+        $html .= "<table border='1' style='border-collapse: collapse; width: 100%;'>";
+        $html .= "<tr><th>Name</th><th>Type</th><th>Description</th><th>Standard</th><th>Contexts</th></tr>";
+        
+        foreach ($classifications as $classification) {
+            $context_names = [];
+            foreach ($classification->contexts as $context_id) {
+                $context = array_filter($classifications, function($c) use ($context_id) {
+                    return $c->id === $context_id;
+                });
+                if (!empty($context)) {
+                    $context_names[] = reset($context)->name;
+                }
+            }
+            
+            // Add row markers that FineDiff can work with
+            $html .= "<!--ROW_START--><tr>";
+            $html .= "<td>" . htmlspecialchars($classification->name) . "</td>";
+            $html .= "<td>" . htmlspecialchars($classification->type) . "</td>";
+            $html .= "<td>" . htmlspecialchars($classification->description) . "</td>";
+            $html .= "<td>" . ($classification->isstandard ? 'Yes' : 'No') . "</td>";
+            $html .= "<td>" . htmlspecialchars(implode(', ', $context_names)) . "</td>";
+            $html .= "</tr><!--ROW_END-->";
+        }
+        $html .= "</table>";
+        
+        // Risks section
+        $html .= "<h3><strong>Risks</strong></h3>";
+        $html .= "<table border='1' style='border-collapse: collapse; width: 100%;'>";
+        $html .= "<tr><th>Hazard</th><th>Risk Rating (Before)</th><th>Control Measures</th><th>Risk Rating (After)</th><th>Responsible Person</th><th>Control Timing</th><th>Risk/Benefit</th><th>Classifications</th></tr>";
+        
+        foreach ($risks as $risk) {
+            $classification_names = [];
+            foreach ($risk->classification_sets as $set) {
+                $set_names = [];
+                foreach ($set as $classification_id) {
+                    $classification = array_filter($classifications, function($c) use ($classification_id) {
+                        return $c->id === $classification_id;
+                    });
+                    if (!empty($classification)) {
+                        $set_names[] = reset($classification)->name;
+                    }
+                }
+                if (!empty($set_names)) {
+                    $classification_names[] = implode(' + ', $set_names);
+                }
+            }
+            
+            // Add row markers that FineDiff can work with
+            $html .= "<tr>";
+            $html .= "<td>" . htmlspecialchars($risk->hazard) . "</td>";
+            $html .= "<td>" . $risk->riskrating_before . "</td>";
+            $html .= "<td>" . htmlspecialchars($risk->controlmeasures) . "</td>";
+            $html .= "<td>" . $risk->riskrating_after . "</td>";
+            $html .= "<td>" . htmlspecialchars($risk->responsible_person) . "</td>";
+            $html .= "<td>" . htmlspecialchars($risk->control_timing) . "</td>";
+            $html .= "<td>" . htmlspecialchars($risk->risk_benefit) . "</td>";
+            $html .= "<td>" . htmlspecialchars(implode(' | ', $classification_names)) . "</td>";
+            $html .= "</tr>" . $risk->id . time() . "";
+        }
+        $html .= "</table>";
+        
+        $html .= "</div>";
+        
+        return $html;
     }
-
-
-
-
-
-
 
 } 

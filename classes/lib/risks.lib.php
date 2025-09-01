@@ -248,13 +248,18 @@ class risks_lib {
 
         // Then filter the risks to only include those that match the classifications.
         $risks = array_filter($risks, function($risk) use ($selected, $standard_classification_ids) {
+            if (empty($risk->classification_sets)) {
+                // No classification sets were defined for this.
+                return false;
+            }
             // Check if ANY of the classification sets match the selected classifications
             foreach ($risk->classification_sets as $classification_set) {
                 // We need to exclude standard classifications from the check as they are not selectable.
                 $risk_classification_ids = array_diff($classification_set, $standard_classification_ids);
                 
                 if (empty($risk_classification_ids)) {
-                    continue; // Skip empty sets
+                    // If nothing left to select, this is a standard classification.
+                    return true;
                 }
 
                 // Check if all of the risk's classifications in this set are in the selected classifications.
@@ -301,7 +306,10 @@ class risks_lib {
 
         // Do not show excursion or incursion. These are not selectable.
         $classifications = array_map(function($classification) {
-            if ($classification->name === 'Excursion' || $classification->name === 'Incursion') {
+            if ($classification->name === 'Excursion' || 
+                $classification->name === 'Incursion' || 
+                $classification->name === 'Commercial'
+            ) {
                 $classification->hidden = true;
             }
             return $classification;
@@ -312,9 +320,13 @@ class risks_lib {
             // Search for the classification with the name "Excursion" and set the "preselected" property to true.
             $classificationix = array_search('Excursion', array_column($classifications, 'name'));
             $classifications[$classificationix]->preselected = true;
-        } else {
+        } else if ($activity->activitytype === 'incursion') {
             // Search for the classification with the name "Incursion" and set the "preselected" property to true.
             $classificationix = array_search('Incursion', array_column($classifications, 'name'));
+            $classifications[$classificationix]->preselected = true;
+        } else if ($activity->activitytype === 'commercial') {
+            // Search for the classification with the name "Commercial" and set the "preselected" property to true.
+            $classificationix = array_search('Commercial', array_column($classifications, 'name'));
             $classifications[$classificationix]->preselected = true;
         }
         return $classifications;

@@ -214,4 +214,14 @@ trait risk_versions_api {
     static public function is_viewing_version_editable() {
         return risk_versions_lib::is_viewing_version_editable();
     }
+
+    /**
+     * Get diff between two risk versions.
+     *
+     * @return string
+     */
+    static public function get_version_diff($args) {
+        ['version1' => $version1, 'version2' => $version2] = $args;
+        return risk_versions_lib::diff_versions_html($version1, $version2);
+    }
 } 

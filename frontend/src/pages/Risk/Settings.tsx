@@ -147,9 +147,67 @@ export function Settings() {
   // State for the search input in the classification set combobox
   const [classificationSetSearchInput, setClassificationSetSearchInput] = useState('');
 
+  // Comparison modal state
+  const [comparisonModalOpen, setComparisonModalOpen] = useState(false);
+  const [comparingVersion, setComparingVersion] = useState<number | null>(null);
+  const [diffHtml, setDiffHtml] = useState<string>('');
+  const [diffLoading, setDiffLoading] = useState(false);
+
   const [tab, setTab] = useState('risks');
 
   document.title = 'Risk Settings';
+
+  // Add custom styles for version diff content
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .version-diff-content table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-bottom: 16px;
+      }
+      .version-diff-content th,
+      .version-diff-content td {
+        border: 1px solid #dee2e6;
+        padding: 8px 12px;
+        text-align: left;
+      }
+      .version-diff-content th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+      }
+      .version-diff-content h2,
+      .version-diff-content h3 {
+        margin-top: 24px;
+        margin-bottom: 16px;
+        color: #495057;
+      }
+      .version-diff-content h2:first-child {
+        margin-top: 0;
+      }
+      
+      /* Diff styling for inline content */
+      .version-diff-content .ins, .version-diff-content ins {
+        background-color: #d4edda;
+        color: #155724;
+        padding: 2px 4px;
+        text-decoration: none;
+      }
+      
+      .version-diff-content .del, .version-diff-content del {
+        background-color: #f8d7da;
+        color: #721c24;
+        padding: 2px 4px;
+        text-decoration: line-through;
+        opacity: 0.8;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
 
   // Get version from URL parameter
   const getVersionFromUrl = () => {
@@ -553,6 +611,35 @@ export function Settings() {
     }
   };
 
+  const openComparisonModal = (version: number) => {
+    setComparingVersion(version);
+    setDiffHtml('');
+    setComparisonModalOpen(true);
+  };
+
+  const compareVersions = async (version1: number, version2: number) => {
+    try {
+      setDiffLoading(true);
+      const response = await api.call({
+        method: 'POST',
+        body: {
+          methodname: 'local_activities-get_version_diff',
+          args: { version1, version2 }
+        }
+      });
+      
+      if (!response.error) {
+        setDiffHtml(response.data);
+      } else {
+        console.error('Error getting version diff:', response.exception?.message);
+      }
+    } catch (error) {
+      console.error('Error comparing versions:', error);
+    } finally {
+      setDiffLoading(false);
+    }
+  };
+
   const publishVersion = async (version: number) => {
     try {
       const response = await api.call({
@@ -570,6 +657,7 @@ export function Settings() {
         } else {
           loadData();
         }
+        setComparisonModalOpen(false);
       }
     } catch (error) {
       console.error('Error publishing version:', error);
@@ -715,7 +803,7 @@ export function Settings() {
                         <Group>
                           <Button 
                             leftSection={<IconCheck size={16} />}
-                            onClick={() => publishVersion(currentVersion.version)}
+                            onClick={() => openComparisonModal(currentVersion.version)}
                             color="green"
                             size="compact-md"
                             radius="xl"
@@ -965,9 +1053,10 @@ export function Settings() {
             */}
             <Tabs.Panel value="classifications">
                 
-              <Card withBorder className="max-w-screen-md mx-auto">
+              <Card withBorder className="max-w-screen-lg mx-auto">
                 <Group justify="space-between" mb="md">
                   <Text fz="lg" fw={500}>Risk Classifications</Text>
+                  {currentVersion?.is_published === 0 && currentVersion?.has_been_used === 0 && (
                     <Button 
                       leftSection={<IconPlus size={16} />}
                       onClick={() => openClassificationModal()}
@@ -976,6 +1065,7 @@ export function Settings() {
                     >
                       Add Classification
                     </Button>
+                  )}
                 </Group>
                 
                 {deleteError && (
@@ -994,6 +1084,7 @@ export function Settings() {
                       <Table.Th>Name</Table.Th>
                       <Table.Th style={{ width: '90px' }}>Type</Table.Th>
                       <Table.Th style={{ width: '90px' }}>Standard</Table.Th>
+                      <Table.Th style={{ width: '200px' }}>Contexts</Table.Th>
                       <Table.Th style={{ width: '110px' }}>Actions</Table.Th>
                     </Table.Tr>
                   </Table.Thead>
@@ -1036,6 +1127,9 @@ export function Settings() {
                               <span className="capitalize">{classification.isstandard === 1 ? 'Yes' : 'No'}</span>
                             </Badge>
                           )}
+                        </Table.Td>
+                        <Table.Td>
+                          <Text size="sm">{classification.contexts.map((context) => classifications.find(c => c.id === context)?.name).join(', ')}</Text>
                         </Table.Td>
                         <Table.Td>
                           <Group gap="1">
@@ -1134,7 +1228,7 @@ export function Settings() {
                                 <ActionIcon 
                                   variant="subtle" 
                                   color="green"
-                                  onClick={() => publishVersion(version.version)}
+                                  onClick={() => openComparisonModal(version.version)}
                                   title="Publish version"
                                 >
                                   <IconCheckbox size={16} />
@@ -1539,7 +1633,7 @@ export function Settings() {
                   disabled={currentSetClassifications.length === 0}
                   className="self-end"
                 >
-                  + Add
+                  Add
                 </Button>
               </div>
             </div>
@@ -1604,6 +1698,140 @@ export function Settings() {
               {editingRisk ? 'Update' : 'Create'}
             </Button>
           </Group>
+        </Box>
+      </Modal>
+
+      {/* Comparison Modal */}
+      <Modal 
+        opened={comparisonModalOpen} 
+        onClose={() => setComparisonModalOpen(false)}
+        title="Review Changes Before Publishing"
+        size="95%"
+      >
+        <Box>
+          {!diffHtml ? (
+            <>
+              <Text mb="lg">
+                Before publishing the risk database, please review changes you made. Please select a version to compare to:
+              </Text>
+              
+              {versions.filter(v => v.version !== comparingVersion).length === 0 ? (
+                <Alert color="blue" title="No versions to compare with" icon={<IconAlertCircle size={16} />}>
+                  <Text>This appears to be the first version. There are no previous versions to compare with.</Text>
+                  <Group mt="md">
+                    <Button
+                      color="green"
+                      leftSection={<IconCheck size={16} />}
+                      onClick={() => publishVersion(comparingVersion!)}
+                      size="md"
+                    >
+                      Publish Version {comparingVersion}
+                    </Button>
+                  </Group>
+                </Alert>
+              ) : (
+              <Table>
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th>Version</Table.Th>
+                    <Table.Th>Status</Table.Th>
+                    <Table.Th>Published By</Table.Th>
+                    <Table.Th>Published Date</Table.Th>
+                    <Table.Th>Actions</Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {versions
+                    .filter(v => v.version !== comparingVersion)
+                    .map((version) => (
+                      <Table.Tr key={version.id}>
+                        <Table.Td>
+                          <Text fw={500}>v{version.version}</Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <Badge 
+                            variant={version.is_published ? "filled" : "light"}
+                            color={version.is_published ? "green" : "gray"}
+                          >
+                            {version.is_published ? "Published" : "Draft"}
+                          </Badge>
+                        </Table.Td>
+                        <Table.Td>
+                          <Text size="sm">{version.published_by || "-"}</Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <Text size="sm">
+                            {version.timepublished ? new Date(version.timepublished * 1000).toLocaleDateString() : "-"}
+                          </Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <Button
+                            variant="light"
+                            leftSection={<IconGitBranch size={16} />}
+                            onClick={() => compareVersions(comparingVersion!, version.version)}
+                            size="sm"
+                          >
+                            Compare
+                          </Button>
+                        </Table.Td>
+                      </Table.Tr>
+                    ))}
+                </Table.Tbody>
+              </Table>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="mb-4">
+                <Button
+                  variant="light"
+                  leftSection={<IconX size={16} />}
+                  onClick={() => setDiffHtml('')}
+                  mb="md"
+                >
+                  Back to Version Selection
+                </Button>
+              </div>
+              
+              {diffLoading ? (
+                <Box style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+                  <Loader size="lg" type="dots" />
+                </Box>
+              ) : (
+                <>
+                  <div 
+                    dangerouslySetInnerHTML={{ __html: diffHtml }}
+                    className="version-diff-content"
+                    style={{ 
+                      overflowY: 'auto',
+                      border: '1px solid #e9ecef',
+                      borderRadius: '8px',
+                      padding: '16px',
+                      backgroundColor: '#f8f9fa'
+                    }}
+                  />
+                  
+                  <Group justify="center" mt="xl">
+                    <Button
+                      variant="light"
+                      onClick={() => setComparisonModalOpen(false)}
+                      size="lg"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      color="green"
+                      leftSection={<IconCheck size={16} />}
+                      onClick={() => publishVersion(comparingVersion!)}
+                      size="lg"
+                    >
+                      Publish Version {comparingVersion}
+                    </Button>
+                  </Group>
+                </>
+              )}
+            </>
+          )}
         </Box>
       </Modal>
 

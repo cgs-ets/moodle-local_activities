@@ -9,6 +9,7 @@ class ComposerStaticInit58f697267a8f6c1c086e0e475d762ec0
     public static $files = array (
         '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
+        '2cffec82183ee1cea088009cef9a6fc3' => __DIR__ . '/..' . '/ezyang/htmlpurifier/library/HTMLPurifier.composer.php',
         '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
     );
 
@@ -105,6 +106,23 @@ class ComposerStaticInit58f697267a8f6c1c086e0e475d762ec0
         ),
     );
 
+    public static $prefixesPsr0 = array (
+        'H' => 
+        array (
+            'HTMLPurifier' => 
+            array (
+                0 => __DIR__ . '/..' . '/ezyang/htmlpurifier/library',
+            ),
+        ),
+        'C' => 
+        array (
+            'Caxy\\HtmlDiff' => 
+            array (
+                0 => __DIR__ . '/..' . '/caxy/php-htmldiff/lib',
+            ),
+        ),
+    );
+
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'Dompdf\\Cpdf' => __DIR__ . '/..' . '/dompdf/dompdf/lib/Cpdf.php',
@@ -115,6 +133,7 @@ class ComposerStaticInit58f697267a8f6c1c086e0e475d762ec0
         return \Closure::bind(function () use ($loader) {
             $loader->prefixLengthsPsr4 = ComposerStaticInit58f697267a8f6c1c086e0e475d762ec0::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInit58f697267a8f6c1c086e0e475d762ec0::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInit58f697267a8f6c1c086e0e475d762ec0::$prefixesPsr0;
             $loader->classMap = ComposerStaticInit58f697267a8f6c1c086e0e475d762ec0::$classMap;
 
         }, null, ClassLoader::class);

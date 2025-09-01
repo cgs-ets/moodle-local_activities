@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import useFetch from '../../../../hooks/useFetch';
 import dayjs from 'dayjs';
 import { Link, useSearchParams } from 'react-router-dom';
+import { getConfig } from '../../../../utils';
 
 export function Paperwork() {
   const [searchParams] = useSearchParams()
@@ -81,7 +82,7 @@ export function Paperwork() {
 
         <Card.Section>
 
-          {false &&
+          {getConfig().user.un == '43563' || getConfig().user.un == 'admin' ?
             <div className='border-b p-4 space-y-2'>
               <div className='flex items-center justify-between'>
                 <Text className="font-semibold">Risk Assessment</Text>
@@ -123,7 +124,7 @@ export function Paperwork() {
                   ))}
                 </Table.Tbody>
               </Table>
-            </div>
+            </div> : null
           }
 
           <div className='border-b p-4'>
