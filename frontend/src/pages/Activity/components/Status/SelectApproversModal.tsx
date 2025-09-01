@@ -21,6 +21,7 @@ export function SelectApproversModal({save}: Props) {
       && Object.keys(approvals[i].approvers).length > 0 
       && !approvals[i].nominated
       && !approvals[i].currentnominated
+      && !approvals[i].invalidated
     ) {
       active = true
       break
@@ -54,8 +55,8 @@ export function SelectApproversModal({save}: Props) {
           {approvals && approvals.map((approval) => {
             if (approval.selectable && approval.selectablebywho === 'planner') {
               return (
-                <Box key={approval.id} data-id={approval.id}>
-                  {approval.description}
+                <Box key={approval.id}>
+                  {approval.description} {approval.id}
                   <Select
                     size="xs"
                     placeholder="Nominate approver"
