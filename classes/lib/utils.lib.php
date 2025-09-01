@@ -489,7 +489,10 @@ class utils_lib {
             foreach ($mentees as $i => $mentee) {
                 $parent = \core_user::get_user($userid);
                 $liveswithsql = "SELECT * FROM cgs.UVW_Mentors WHERE ObserverID = ? AND StudentID = ? AND LivesWithFlag = 1";
-                $liveswithresults = $DB->get_records_sql($liveswithsql, array($parent->username, $mentee));
+                $config = get_config('local_activities');
+                $externalDB = \moodle_database::get_driver_instance($config->dbtype, 'native', true);
+                $externalDB->connect($config->dbhost, $config->dbuser, $config->dbpass, $config->dbname, '');
+                $liveswithresults = $externalDB->get_records_sql($liveswithsql, array($parent->username, $mentee));
                 if (empty($liveswithresults)) {
                     unset($mentees[$i]);
                 }

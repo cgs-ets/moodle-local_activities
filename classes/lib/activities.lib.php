@@ -2223,7 +2223,7 @@ class activities_lib {
             $sql = "SELECT id
                     FROM mdl_activities_occurrences
                     WHERE activityid = ?
-                    AND (timestart >= ? || timeend > ?)";
+                    AND (timestart >= ? OR timeend > ?)";
             $params = array($activity->get('id'), time(), time());
             $occurrences = $DB->get_records_sql($sql, $params);
             if (count($occurrences) == 0) {
