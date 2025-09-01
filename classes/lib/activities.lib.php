@@ -63,7 +63,8 @@ class activities_lib {
         }
         $activity = new Activity($id);
         if ($id != $activity->get('id')) {
-            return null;
+            throw new \Exception("Activity not found.");
+            exit;
         }
         $exported = $activity->export();
         if((!$exported->usercanedit) && $exported->status < static::ACTIVITY_STATUS_INREVIEW) {
@@ -85,7 +86,8 @@ class activities_lib {
 
         $activity = new Activity($id);
         if ($id != $activity->get('id')) {
-            return null;
+            throw new \Exception("Activity not found.");
+            exit;
         }
         $exported = $activity->export();
         $permissions = static::get_parent_permissions($id, $USER->username);
