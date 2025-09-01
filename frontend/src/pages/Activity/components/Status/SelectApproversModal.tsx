@@ -54,7 +54,7 @@ export function SelectApproversModal({save}: Props) {
           {approvals && approvals.map((approval) => {
             if (approval.selectable && approval.selectablebywho === 'planner') {
               return (
-                <Box key={approval.id}>
+                <Box key={approval.id} data-id={approval.id}>
                   {approval.description}
                   <Select
                     size="xs"
