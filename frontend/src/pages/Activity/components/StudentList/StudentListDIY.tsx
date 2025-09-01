@@ -1,7 +1,6 @@
 import { Card, Flex, Group, Text, Button, Tooltip, Chip, Loader, Table, Checkbox } from '@mantine/core';
 import { IconPlus, IconMinus, IconMail, IconChecks, IconReport } from '@tabler/icons-react';
 import { useEffect, useMemo, useState } from 'react';
-import { MantineReactTable } from 'mantine-react-table';
 import { statuses } from '../../../../utils';
 import { parentColumn, studentColumn } from './columns';
 import { AddStudentsModal } from '../Modals/AddStudentsModal';

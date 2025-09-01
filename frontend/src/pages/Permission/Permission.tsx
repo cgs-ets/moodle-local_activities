@@ -27,6 +27,7 @@ export function Permission() {
   const [permissions, setPermissions] = useState([])
   const [permissionshelper, setPermissionsHelper] = useState<PermissionsHelper|null>(null)
   const api = useFetch()
+  const [error, setError] = useState<string | null>(null)
 
 
   useEffect(() => {
@@ -59,6 +60,9 @@ export function Permission() {
         timeend: Number(activity.timeend) ? activity.timeend : dayjs().unix(),
       }
       setFormData({...defaults, ...data})
+    } else {
+      setError(fetchResponse.exception?.message ?? "Error")
+      return
     }
   }
 
@@ -72,8 +76,16 @@ export function Permission() {
     <>
       <Header />
       <div className="page-wrapper" style={{minHeight: 'calc(100vh - 154px)'}}>
-        { !activityid 
+        { id && !error && !activityid 
           ? <Center h={200} mx="auto"><Loader type="dots" /></Center> : null
+        }
+
+        { id && error ?
+          <Container size="xl">
+            <Center h={300}>
+              <Text fw={600} fz="lg">Failed to load activity. It might have been deleted...</Text>
+            </Center>
+          </Container> : null
         }
 
         { activityid && !permissions.length ?
