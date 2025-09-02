@@ -3,13 +3,15 @@ import { Box, Button, Flex, Modal, Select } from '@mantine/core';
 import { IconUsersPlus } from '@tabler/icons-react';
 import { useWorkflowStore } from '../../../../stores/workflowStore';
 import { useState } from 'react';
+import { useFormStore } from '../../../../stores/formStore';
+import { statuses } from '../../../../utils';
 
 type Props = {
   save: (selections: { [key: string]: string }) => void,
 }
 
 export function SelectApproversModal({save}: Props) {
-  
+  const status = useFormStore((state) => state.formData.status)
   const approvals = useWorkflowStore((state) => state.approvals)
   const [selected, setSelected] = useState<{ [key: string]: string }>({})
 
@@ -28,7 +30,7 @@ export function SelectApproversModal({save}: Props) {
     }
   }
 
-  if (!active) {
+  if (!active || status == statuses.approved) {
     return null
   }
 
