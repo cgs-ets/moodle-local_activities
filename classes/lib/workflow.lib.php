@@ -462,6 +462,13 @@ class workflow_lib extends \local_activities\local_activities_config {
 
         // Check for remaining approvals and set activity status based on findings.
         $remainingapprovals = static::get_unactioned_approvals($activityid);
+
+        // transition - if this activity was created BEFORE September 2, 2025 10:36:13 AM, ignore senior_hod approval.
+        $createdbefore2sept2025 = $activity->get('timecreated') < 1756773373;
+        if ($createdbefore2sept2025) {
+            unset($remainingapprovals[array_search('senior_hod', array_column($remainingapprovals, 'type'))]);
+        }
+
         $oldstatus = activities_lib::status_helper($activity->get('status'));
         $status = activities_lib::ACTIVITY_STATUS_INREVIEW;
         if (empty($remainingapprovals)) {
