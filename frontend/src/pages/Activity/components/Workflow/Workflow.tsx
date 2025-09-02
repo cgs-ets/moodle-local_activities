@@ -19,6 +19,7 @@ export function Workflow({
   const [fetchResponse, fetchError, fetchLoading, fetchAjax, setFetchData] = useAjax(); // destructure state and fetch function
   const [fetchDraftResponse, fetchDraftError, fetchDraftLoading, fetchDraftAjax, setFetchDraftData] = useAjax(); // destructure state and fetch function
   const approvals = useWorkflowStore((state) => state.approvals)
+  const resetApprovals = useWorkflowStore((state) => state.reset)
   const setApprovals = useWorkflowStore((state) => state.setApprovals)
   const campus = useFormStore((state) => state.campus)
   const activitytype = useFormStore((state) => state.activitytype)
@@ -58,6 +59,7 @@ export function Workflow({
 
   useEffect(() => {
     if (fetchResponse && !fetchError) {
+      resetApprovals()
       setApprovals(fetchResponse.data)
     }
   }, [fetchResponse]);
@@ -115,6 +117,7 @@ export function Workflow({
   }
   useEffect(() => {
     if (submitResponse && !submitError) {
+      resetApprovals()
       setApprovals(submitResponse.data.workflow)
     }
   }, [submitResponse]);
