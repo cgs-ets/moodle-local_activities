@@ -466,7 +466,10 @@ class workflow_lib extends \local_activities\local_activities_config {
         // transition - if this activity was created BEFORE September 2, 2025 10:36:13 AM, ignore senior_hod approval.
         $createdbefore2sept2025 = $activity->get('timecreated') < 1756773373;
         if ($createdbefore2sept2025) {
-            unset($remainingapprovals[array_search('senior_hod', array_column($remainingapprovals, 'type'))]);
+            $hod = array_search('senior_hod', array_column($remainingapprovals, 'type'));
+            if ($hod !== false) {
+                unset($remainingapprovals[$hod]);
+            }
         }
 
         $oldstatus = activities_lib::status_helper($activity->get('status'));
@@ -616,8 +619,11 @@ class workflow_lib extends \local_activities\local_activities_config {
             if ($isSelectable) {
                 if ($nextapproval->nominated) {
                     // If an approver has already been nominated, send them the email, otherwise that will need to happen first.
-                    $approver = static::WORKFLOW[$nextapproval->type]['approvers'][$nextapproval->nominated];
-                    if ($approver['contacts']) {
+                    $approver = null;
+                    if (isset(static::WORKFLOW[$nextapproval->type]['approvers'][$nextapproval->nominated])) {
+                        $approver = static::WORKFLOW[$nextapproval->type]['approvers'][$nextapproval->nominated];
+                    }
+                    if ($approver && $approver['contacts']) {
                         foreach ($approver['contacts'] as $email) {
                             static::send_next_approval_email($activityid, static::WORKFLOW[$nextapproval->type]['name'], $nextapproval->nominated, $email, $bccemails);
                         }
