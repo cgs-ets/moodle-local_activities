@@ -604,6 +604,29 @@ class Activity {
         // Get all the other activities in the series.
         $occurrences = recurrence_lib::get_series($this->data->id);
 
+        // Can permissions/messages be sent for this activity yet?
+        $canpermissionsend = false;
+        if ($this->data->permissions == 1) {
+            // Check for remaining approvals and set activity status based on findings.
+            $remainingapprovals = workflow_lib::get_unactioned_approvals($this->data->id);
+            // EXCLUDE senior_hod approval if this activity was created BEFORE September 2, 2025 10:36:13 AM
+            $createdbefore2sept2025 = $this->data->timecreated < 1756773373;
+            if ($createdbefore2sept2025) {
+                $hod = array_search('senior_hod', array_column($remainingapprovals, 'type'));
+                if ($hod !== false) {
+                    unset($remainingapprovals[$hod]);
+                }
+            }
+            // EXCLUDE senior_ra approval - we don't wait for that anymore.
+            $senior_ra = array_search('senior_ra', array_column($remainingapprovals, 'type'));
+            if ($senior_ra !== false) {
+                unset($remainingapprovals[$senior_ra]);
+            }
+            if (empty($remainingapprovals)) {
+                $canpermissionsend = true;
+            }
+        }
+
     	return (object) [
             'manageurl' => $manageurl->out(false),
             'permissionsurl' => $permissionsurl->out(false),
@@ -624,7 +647,8 @@ class Activity {
             'endreadabletime' => $endreadabletime,
             'assessmentid' => $assessmentid,
             'permissionsent' => $permissionsent,
-            'occurrences' => $occurrences
+            'occurrences' => $occurrences,
+            'canpermissionsend' => $canpermissionsend,
 	    ];
     }
 

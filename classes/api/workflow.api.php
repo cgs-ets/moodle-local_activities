@@ -34,7 +34,8 @@ trait workflow_api {
         $campus = required_param('campus', PARAM_TEXT);
         $activitytype = required_param('activitytype', PARAM_TEXT);
         $assessmentid = optional_param('assessmentid', 0, PARAM_INT);
-        return workflow_lib::get_draft_workflow($activitytype, $campus, $assessmentid);
+        $isovernight = optional_param('isovernight', false, PARAM_BOOL);
+        return workflow_lib::get_draft_workflow($activitytype, $campus, $assessmentid, $isovernight);
     } 
 
     /**

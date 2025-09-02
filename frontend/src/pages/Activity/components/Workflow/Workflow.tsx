@@ -10,6 +10,7 @@ import { Approval } from "./Approval";
 import { statuses } from "../../../../utils";
 import { useStateStore } from "../../../../stores/stateStore";
 import { SelectApproversModal } from "../Status/SelectApproversModal";
+import dayjs from "dayjs";
 
 export function Workflow({
   activityid,
@@ -27,6 +28,10 @@ export function Workflow({
   const initialCampus = useFormStore((state) => state.initialCampus)
   const initialActivitytype = useFormStore((state) => state.initialActivitytype)
   const assessmentid = useFormStore((state) => state.assessmentid)
+  const initialTimestart = useFormStore((state) => state.initialTimestart)
+  const initialTimeend = useFormStore((state) => state.initialTimeend)
+  const timestart = useFormStore((state) => state.timestart)
+  const timeend = useFormStore((state) => state.timeend)
 
   const [draftApprovals, setDraftApprovals] = useState<any[]>([])
   const savedtime = useStateStore((state) => (state.savedtime))
@@ -40,7 +45,8 @@ export function Workflow({
     if (expectNewWorkflow()) {
       getDraftWorkflow()
     }
-  }, [campus, activityid, status, savedtime, initialCampus, activitytype])
+  }, [campus, activityid, status, savedtime, initialCampus, activitytype, timestart, timeend])
+
   
   const getWorkflow = () => {
     console.log("getting workflow...")
@@ -65,7 +71,12 @@ export function Workflow({
   }, [fetchResponse]);
 
   const expectNewWorkflow = () => {
-    return status == statuses.draft || status == statuses.saved || (initialCampus && initialCampus != campus) || (initialActivitytype && initialActivitytype != activitytype)
+    return status == statuses.draft || 
+           status == statuses.saved || 
+           (initialCampus && initialCampus != campus) || 
+           (initialActivitytype && initialActivitytype != activitytype) ||
+           (initialTimestart && initialTimestart != timestart) ||
+           (initialTimeend && initialTimeend != timeend)
   }
 
   const getDraftWorkflow = () => {
@@ -82,6 +93,7 @@ export function Workflow({
         activitytype: activitytype,
         campus: campus,
         assessmentid: assessmentid,
+        isovernight: timestart && timeend && dayjs.unix(timestart).format('YYYYMMDD') != dayjs.unix(timeend).format('YYYYMMDD'),
       }
     })
   }

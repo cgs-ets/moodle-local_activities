@@ -18,6 +18,7 @@ export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
   const permissionslimit = useFormStore((state) => state.permissionslimit)
   const permissionsdueby = useFormStore((state) => state.permissionsdueby)
   const permissionsent = useFormStore((state) => state.permissionsent)
+  const canpermissionsend = useFormStore((state) => state.canpermissionsend)
   const studentlist = useFormStore((state) => state.studentlist)
   const setState = useFormStore((state) => state.setState)
   const config = getConfig()
@@ -141,7 +142,7 @@ export function Permissions({openSendMessage} : {openSendMessage: () => void}) {
               
             </div>
 
-            { permissions && status == statuses.approved && viewStateProps.editable &&
+            { canpermissionsend && viewStateProps.editable &&
               <>
                 
                 <div className="p-4 border-t border-gray-300 flex justify-between">

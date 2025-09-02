@@ -111,7 +111,9 @@ export function EditActivity() {
       timecreated: Number(fetchResponse.data.timecreated) ? fetchResponse.data.timecreated : dayjs().unix(),
       timemodified: Number(fetchResponse.data.timemodified) ? fetchResponse.data.timemodified : dayjs().unix(),
       timestart: Number(fetchResponse.data.timestart) ? fetchResponse.data.timestart : dayjs().unix(),
+      initialTimestart: Number(fetchResponse.data.timestart) ? fetchResponse.data.timestart : dayjs().unix(),
       timeend: Number(fetchResponse.data.timeend) ? fetchResponse.data.timeend : dayjs().unix(),
+      initialTimeend: Number(fetchResponse.data.timeend) ? fetchResponse.data.timeend : dayjs().unix(),
       planningstaff: JSON.parse(fetchResponse.data.planningstaffjson || '[]'),
       accompanyingstaff: JSON.parse(fetchResponse.data.accompanyingstaffjson || '[]'),
       staffincharge: [JSON.parse(fetchResponse.data.staffinchargejson || null)].filter(item => item !== null),
@@ -124,6 +126,7 @@ export function EditActivity() {
       permissionsinitial: !!Number(fetchResponse.data.permissions),
       isallday: !!Number(fetchResponse.data.isallday),
       permissionsent: fetchResponse.data.permissionsent || false,
+      canpermissionsend: fetchResponse.data.canpermissionsend || false,
       // Move these into existing
       existingriskassessment: fetchResponse.data.riskassessment,
       existingattachments: fetchResponse.data.attachments,
@@ -244,6 +247,8 @@ export function EditActivity() {
     })
     setFormData({initialActivitytype: formData.activitytype} as Form)
     setFormData({initialCampus: formData.campus} as Form)
+    setFormData({initialTimestart: formData.timestart} as Form)
+    setFormData({initialTimeend: formData.timeend} as Form)
     setFormData({recurringAcceptChanges: false} as Form)
   }
 

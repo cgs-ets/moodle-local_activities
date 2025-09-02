@@ -25,6 +25,7 @@ export function StudentListDIY() {
   const id = useFormStore((state) => (state.id))
   const activitytype = useFormStore((state) => (state.activitytype))
   const permissionsrequired = useFormStore((state) => (state.permissions))
+  const canpermissionsend = useFormStore((state) => (state.canpermissionsend))
   const [isOpenAddStudentsModal, addStudentsModalHandlers] = useDisclosure(false)
   const [isOpenMessageModal, messageModalHandlers] = useDisclosure(false);
   const [isOpenReports, {close: closeReports, open: openReports}] = useDisclosure(false);
@@ -261,7 +262,7 @@ export function StudentListDIY() {
                           }
                           <Flex gap="sm">
                             <Button variant="light" onClick={openReports} size="compact-sm" radius="xl" leftSection={<IconReport size={14} />}>Reports</Button>
-                            { viewStateProps.editable && status == statuses.approved &&
+                            { viewStateProps.editable && canpermissionsend &&
                               <Tooltip.Floating disabled={!haschanges} label="You must save changes before you may send messages.">
                                 <Button variant="filled" color={haschanges ? "gray.4" : undefined} onClick={() => (haschanges ? null : messageModalHandlers.open())} size="compact-sm" radius="xl" leftSection={<IconMail size={14} />}>Send a message</Button>
                               </Tooltip.Floating>

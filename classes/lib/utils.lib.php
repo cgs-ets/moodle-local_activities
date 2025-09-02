@@ -431,6 +431,9 @@ class utils_lib {
         $disallowedparents = array();
 
         $config = get_config('local_activities');
+        if (empty($config->dbtype)) {
+            return $disallowedparents;
+        }
         $externalDB = \moodle_database::get_driver_instance($config->dbtype, 'native', true);
         $externalDB->connect($config->dbhost, $config->dbuser, $config->dbpass, $config->dbname, '');
 
@@ -486,10 +489,13 @@ class utils_lib {
         }
 
         if ($checkliveswith) {
+            $config = get_config('local_activities');
+            if (empty($config->dbtype)) {
+                return $mentees;
+            }
             foreach ($mentees as $i => $mentee) {
                 $parent = \core_user::get_user($userid);
                 $liveswithsql = "SELECT * FROM cgs.UVW_Mentors WHERE ObserverID = ? AND StudentID = ? AND LivesWithFlag = 1";
-                $config = get_config('local_activities');
                 $externalDB = \moodle_database::get_driver_instance($config->dbtype, 'native', true);
                 $externalDB->connect($config->dbhost, $config->dbuser, $config->dbpass, $config->dbname, '');
                 $liveswithresults = $externalDB->get_records_sql($liveswithsql, array($parent->username, $mentee));

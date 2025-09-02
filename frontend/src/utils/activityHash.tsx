@@ -7,7 +7,7 @@ export const exportActivityHash = () => {
   const formData = useFormStore.getState()
 
   // Unset some props that should not interfere with the hash.
-  const { status, pushpublic, studentlistjson, initialCampus, initialActivitytype, occurrences, recurringAcceptChanges, ...rest } = formData; 
+  const { status, pushpublic, studentlistjson, initialCampus, initialActivitytype, initialTimestart, initialTimeend, occurrences, recurringAcceptChanges, ...rest } = formData; 
 
   // NOTE - when there are existing files these are loaded into the controls and the string goes from empty to filled.. 
   // Remove existing attachments and ra from the hash as these are added after the hash is initially baselined.

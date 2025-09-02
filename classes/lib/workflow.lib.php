@@ -83,7 +83,7 @@ class workflow_lib extends \local_activities\local_activities_config {
         return $approval;
     }
 
-    private static function get_approval_stubs($activityid, $activitytype, $campus, $assessmentid) {
+    private static function get_approval_stubs($activityid, $activitytype, $campus, $assessmentid, $isovernight) {
         $approvals = array();
 
         //if ($activitytype == 'incursion' && $assessmentid) {
@@ -101,17 +101,20 @@ class workflow_lib extends \local_activities\local_activities_config {
         } else  {
             switch ($campus) {
                 case 'senior': {
-                    // Senior School - 1st approver.
-                    //$approvals[] = static::get_approval_clone('senior_hod', 1, $activityid);
+                    $i = 0;
+                    // Senior School.
+                    //$approvals[] = static::get_approval_clone('senior_hod', ++$i, $activityid);
 
-                    // Senior School - 2nd approver.
-                    $approvals[] = static::get_approval_clone('senior_ra', 1, $activityid);
+                    //if ($isovernight) {
+                        // RA.
+                        $approvals[] = static::get_approval_clone('senior_ra', ++$i, $activityid);
+                    //}
 
-                    // Senior School - 3st approver.
-                    $approvals[] = static::get_approval_clone('senior_admin', 2, $activityid);
+                    // Admin.
+                    $approvals[] = static::get_approval_clone('senior_admin', ++$i, $activityid);
 
-                    // Senior School - 4th approver.
-                    $approvals[] = static::get_approval_clone('senior_hoss', 3, $activityid);
+                    // Head of Senior or Director.
+                    $approvals[] = static::get_approval_clone('senior_hoss', ++$i, $activityid);
                     break;
                 }
                 case 'primary': {
@@ -166,8 +169,12 @@ class workflow_lib extends \local_activities\local_activities_config {
         // Is activity linked to an assessment?
         $assessmentid = $DB->get_field('activities_assessments', 'id', array('activityid' => $newactivity->get('id')));
 
-        $approvals = static::get_approval_stubs($newactivity->get('id'), $newactivity->get('activitytype'), $newactivity->get('campus'), $assessmentid ? $assessmentid : 0);
-        //echo "<pre>"; var_export($approvals); exit;
+        // Determine overnight based on whether timestart and timeend are different days.
+        $isovernight = false;
+        if ($newactivity->get('timestart') > 0 && $newactivity->get('timeend') > 0) {
+            $isovernight = date('Ymd', $newactivity->get('timestart')) != date('Ymd', $newactivity->get('timeend'));
+        }
+        $approvals = static::get_approval_stubs($newactivity->get('id'), $newactivity->get('activitytype'), $newactivity->get('campus'), $assessmentid ? $assessmentid : 0, $isovernight);
 
         // Invalidate approvals that should not be there.
         $approvaltypes = array_column($approvals, 'type');
@@ -1000,8 +1007,8 @@ class workflow_lib extends \local_activities\local_activities_config {
     }
 
 
-    public static function get_draft_workflow($activitytype, $campus, $assessmentid) {
-        $approvals = static::get_approval_stubs(0, $activitytype, $campus, $assessmentid);
+    public static function get_draft_workflow($activitytype, $campus, $assessmentid, $isovernight) {
+        $approvals = static::get_approval_stubs(0, $activitytype, $campus, $assessmentid, $isovernight);
 
         // Pull in approver fullnames.
         foreach ($approvals as $approval) {

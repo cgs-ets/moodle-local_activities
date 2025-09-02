@@ -20,7 +20,9 @@ export type Form = {
   activitytype: string;
   location: string;
   timestart: number;
+  initialTimestart: number;
   timeend: number;
+  initialTimeend: number;
   description: string;
   transport: string;
   cost: string;
@@ -30,7 +32,7 @@ export type Form = {
   permissionslimit: string;
   permissionsdueby: number;
   permissionsent: boolean;
-
+  canpermissionsend: boolean;
   riskassessment: string;
   existingriskassessment: FileData[];
   attachments: string;
@@ -89,7 +91,9 @@ const defaults: Form = {
   activitytype: 'excursion',
   location: '',
   timestart: dayjs().unix(),
+  initialTimestart: dayjs().unix(),
   timeend: dayjs().unix() + 3600, // Now plus 1 hour
+  initialTimeend: dayjs().unix() + 3600, // Now plus 1 hour
   description: '',
   transport: '',
   cost: '',
@@ -99,7 +103,7 @@ const defaults: Form = {
   permissionslimit: '',
   permissionsdueby: dayjs().unix(),
   permissionsent: false,
-
+  canpermissionsend: false,
   riskassessment: '',
   existingriskassessment: [],
   attachments: '',
