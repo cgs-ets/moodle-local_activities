@@ -11,7 +11,7 @@ type Props = {
 }
 
 export function SelectApproversModal({save}: Props) {
-  const status = useFormStore((state) => state.formData.status)
+  const status = useFormStore((state) => (state.status))
   const approvals = useWorkflowStore((state) => state.approvals)
   const [selected, setSelected] = useState<{ [key: string]: string }>({})
 
