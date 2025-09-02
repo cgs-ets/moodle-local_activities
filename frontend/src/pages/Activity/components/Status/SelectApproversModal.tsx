@@ -56,12 +56,12 @@ export function SelectApproversModal({save}: Props) {
             if (approval.selectable && approval.selectablebywho === 'planner') {
               return (
                 <Box key={approval.id}>
-                  {approval.description} {approval.id}
+                  {approval.description}
                   <Select
                     size="xs"
                     placeholder="Nominate approver"
                     value={selected[approval.id]}
-                    onChange={(value) => setSelected({...selected, [approval.id]: value})}
+                    onChange={(value) => setSelected({[approval.id]: value!})}
                     data={Object.keys(approval.approvers).map((a: any) => ({value: approval.approvers[a].username, label: approval.approvers[a].fullname}))}
                     className="flex-1"
                     searchable
