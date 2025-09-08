@@ -48,6 +48,8 @@ export function Public() {
   useEffect(() => {
     if (filters.categories.length == 0) {
       setSearchParams({categories: '', type: calView.type, year: calView.year, month: calView.month, term: calView.term})
+    } else {
+      setSearchParams({categories: filters.categories.join(','), type: calView.type, year: calView.year, month: calView.month, term: calView.term})
     }
   }, [filters.categories])
 

@@ -8,12 +8,14 @@ import { useEffect, useState } from 'react';
 import useFetch from '../../../../hooks/useFetch';
 import dayjs from 'dayjs';
 import { Link, useSearchParams } from 'react-router-dom';
-import { getConfig } from '../../../../utils';
+import { getConfig, statuses } from '../../../../utils';
+import { stat } from 'fs';
 
 export function Paperwork() {
   const [searchParams] = useSearchParams()
   const raid = searchParams.get('ra')
   const activityid = useFormStore((state) => state.id)
+  const status = useFormStore((state) => state.status)
   const cost = useFormStore((state) => state.cost)
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
   const api = useFetch();
@@ -83,48 +85,62 @@ export function Paperwork() {
         <Card.Section>
 
           {getConfig().user.un == '43563' || getConfig().user.un == 'admin' ?
+
+            !activityid || (status == statuses.draft) ? 
+              <div className='border-b p-4 space-y-2'>
+                <Text className="font-semibold">Online Risk Assessment</Text>
+                <Text className='text-xs bg-orange-100 p-2 rounded-md'>Save this activity to access the Risk Assessment generator.</Text>
+              </div>
+            :
+
             <div className='border-b p-4 space-y-2'>
+            
               <div className='flex items-center justify-between'>
-                <Text className="font-semibold">Risk Assessment</Text>
+                <Text className="font-semibold">Online Risk Assessment</Text>
                 <Link to={`/${activityid}/risk`}><Button leftSection={<IconPlus className='size-4' />} radius='xl' variant='filled' size='compact-sm'>Generate</Button></Link>
               </div>
               {/* Show a list of RA Generations.
               It includes a list of classifications the user selected and a VIEW button which opens to the PDF rendering? */}
-              
-              <Table>
-                <Table.Thead>
-                  <Table.Tr>
-                    <Table.Td className='w-44'>Date</Table.Td>
-                    <Table.Td>Categories</Table.Td>
-                    <Table.Td className='w-20'>Output</Table.Td>
-                    <Table.Td className='w-26'>Actions</Table.Td>
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                  {raGenerations.map((raGeneration) => (
-                    <Table.Tr
-                      key={raGeneration.id}
-                      id={`risk-assessment-row-${raGeneration.id}`}
-                      className={`${raid === raGeneration.id ? "bg-yellow-100" : ""} ${
-                        pulsing ? "animate-pulse" : ""
-                      }`}
-                    >
-                      <Table.Td>{dayjs.unix(Number(raGeneration.timecreated)).format("D MMM YYYY H:mma")}</Table.Td>
-                      <Table.Td>{raGeneration.classifications.map((classification: any) => classification.name).join(', ')}</Table.Td>
-                      <Table.Td>
-                        <Button variant='light' size='compact-xs' onClick={() => window.open(raGeneration.download_url + '?action=open', '_blank')}>PDF</Button>
-                      </Table.Td>
-                      <Table.Td>
-                        <Group>
-                          <ActionIcon disabled={api.state.loading} onClick={() => deleteRaGeneration(raGeneration.id)} color='red' variant='light' size='compact-xs'><IconArchive className='size-4' /></ActionIcon>
-                          <Checkbox disabled={api.state.loading} checked={Number(raGeneration.approved) === 1} onChange={(v) => approveRaGeneration(raGeneration.id, v.target.checked)} />
-                        </Group>
-                      </Table.Td>
+              {raGenerations.length > 0 ?
+                <Table>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Td className='w-44'>Date</Table.Td>
+                      <Table.Td>Categories</Table.Td>
+                      <Table.Td className='w-20'>Output</Table.Td>
+                      <Table.Td className='w-26'>Actions</Table.Td>
                     </Table.Tr>
-                  ))}
-                </Table.Tbody>
-              </Table>
-            </div> : null
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {raGenerations.map((raGeneration) => (
+                      <Table.Tr
+                        key={raGeneration.id}
+                        id={`risk-assessment-row-${raGeneration.id}`}
+                        className={`${raid === raGeneration.id ? "bg-yellow-100" : ""} ${
+                          pulsing ? "animate-pulse" : ""
+                        }`}
+                      >
+                        <Table.Td>{dayjs.unix(Number(raGeneration.timecreated)).format("D MMM YYYY H:mma")}</Table.Td>
+                        <Table.Td>{raGeneration.classifications.map((classification: any) => classification.name).join(', ')}</Table.Td>
+                        <Table.Td>
+                          <Button variant='light' size='compact-xs' onClick={() => window.open(raGeneration.download_url + '?action=open', '_blank')}>PDF</Button>
+                        </Table.Td>
+                        <Table.Td>
+                          <Group>
+                            <ActionIcon disabled={api.state.loading} onClick={() => deleteRaGeneration(raGeneration.id)} color='red' variant='light' size='compact-xs'><IconArchive className='size-4' /></ActionIcon>
+                            <Checkbox disabled={api.state.loading} checked={Number(raGeneration.approved) === 1} onChange={(v) => approveRaGeneration(raGeneration.id, v.target.checked)} />
+                          </Group>
+                        </Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              : <Text className='text-xs'>No Risk Assessments have been generated for this activity. Click the Generate button to create one.</Text>
+              }
+            </div> 
+            
+            
+            : null
           }
 
           <div className='border-b p-4'>

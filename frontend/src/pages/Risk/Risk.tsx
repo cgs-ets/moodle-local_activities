@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Box, Container, Center, Text, Loader, Card, Checkbox, Group, Stack, Grid, Button, Table, Badge, ActionIcon, Modal, Textarea, TextInput, Select } from '@mantine/core';
+import { Box, Container, Center, Text, Loader, Card, Checkbox, Group, Stack, Grid, Button, Table, Badge, ActionIcon, Modal, Textarea, TextInput, Select, Alert } from '@mantine/core';
 import { useNavigate, useParams } from "react-router-dom";
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
@@ -8,9 +8,9 @@ import { ActivityDetails } from "./Components/ActivityDetails";
 import useFetch from "../../hooks/useFetch";
 import { PageHeader } from "./Components/PageHeader";
 import { SvgRenderer } from "../../components/SvgRenderer";
-import { IconTornado, IconPlus, IconEdit, IconTrash } from "@tabler/icons-react";
+import { IconPlus, IconEdit, IconTrash } from "@tabler/icons-react";
 import { Classification } from "./Settings";
-import { DatePicker, DatePickerInput } from '@mantine/dates';
+import { DatePickerInput } from '@mantine/dates';
 import dayjs from 'dayjs';
 
 interface RiskAssessment {
@@ -40,6 +40,7 @@ export function Risk() {
   const [classifications, setClassifications] = useState<Classification[]>([])
   const [classificationsLoading, setClassificationsLoading] = useState(true)
   const navigate = useNavigate()
+  const [error, setError] = useState('')
 
   const [riskAssessment, setRiskAssessment] = useState<RiskAssessment>({
     riskVersion: 0,
@@ -59,6 +60,7 @@ export function Risk() {
     control_timing: '',
     risk_benefit: ''
   })
+
 
   // Additional fields local state
   const [additionalFields, setAdditionalFields] = useState({
@@ -135,7 +137,7 @@ export function Risk() {
       api.call({ query: { methodname: 'local_activities-get_last_ra_gen', activityid: activityid } }),
     ]);
   
-    if (activityRes && !activityRes.error) {
+    if (activityRes.data && !activityRes.error) {
       document.title = activityRes.data.activityname + " - Risk Assessment";
       const data = {
         ...activityRes.data,
@@ -143,11 +145,14 @@ export function Risk() {
         timeend: Number(activityRes.data.timeend) ? activityRes.data.timeend : dayjs().unix(),
       }
       setFormData({...defaults, ...data})
+      setAdditionalFields({
+        ...additionalFields,
+        leader: data.staffinchargedata?.fn + ' ' + data.staffinchargedata?.ln + ' (' + data.staffinchargedata?.un + ')',
+      })
     }
 
 
-
-    if (lastGenRes && !lastGenRes.error) {
+    if (lastGenRes.data && !lastGenRes.error) {
 
       setAdditionalFields(
         {
@@ -213,6 +218,30 @@ export function Risk() {
   }
 
   const generateRiskAssessment = async () => {
+    // Make sure all additional fields are provided, and that at least one context and classification is selected.
+    if (!additionalFields.reasonForActivity || 
+        !additionalFields.proposedActivities || 
+        !additionalFields.anticipatedStudents || 
+        !additionalFields.anticipatedAdults || 
+        !additionalFields.leader || 
+        !additionalFields.leaderContact || 
+        !additionalFields.secondInCharge || 
+        !additionalFields.secondInChargeContact || 
+        !additionalFields.locationContactPerson || 
+        !additionalFields.locationContactNumber || 
+        !additionalFields.siteVisitReviewer || 
+        !additionalFields.siteVisitDate || 
+        !additionalFields.waterHazardsPresent || 
+        !additionalFields.staffQualifications || 
+        (!additionalFields.otherQualifications && additionalFields.staffQualifications.includes('Other')) || 
+        riskAssessment.selectedClassifications.length <= 1 // Noting, 1 because exc/inc always selected by default.
+      ) {
+      setError('All "Additional Information" fields are required, and that at least one context or risk must be selected.')
+      // Scroll to top
+      window.scrollTo(0, 0)
+      return;
+    }
+
     const response = await api.call({
       method: 'POST',
       body: {
@@ -244,6 +273,8 @@ export function Risk() {
     if (response && !response.error) {
       // Navigate back to the activity page, with a search query for "paperwork"
       navigate(`/${activityid}?ra=${response.data.id}`)  
+    } else {
+      setError(response.exception?.message ?? "Error")
     }
   }
 
@@ -292,6 +323,13 @@ export function Risk() {
                 <PageHeader name={formData.activityname} id={id ?? ''} activityid={activityid} />
               </Container>
               <Container size="xl" my="md" className="space-y-6">
+
+                {error && (
+                  <Alert color="red" title="Error">
+                    {error}
+                  </Alert>
+                )}
+
                 <Box className="flex flex-col gap-4 border">
                   <ActivityDetails activity={formData}  />
                 </Box>
@@ -308,6 +346,7 @@ export function Risk() {
                       onChange={(e) => setAdditionalFields({ ...additionalFields, reasonForActivity: e.target.value })}
                       autosize
                       minRows={3}
+                      required
                     />
 
                     <Textarea
@@ -317,6 +356,7 @@ export function Risk() {
                       onChange={(e) => setAdditionalFields({ ...additionalFields, proposedActivities: e.target.value })}
                       autosize
                       minRows={3}
+                      required
                     />
 
                     <Group grow>
@@ -327,6 +367,7 @@ export function Risk() {
                         placeholder="0"
                         value={additionalFields.anticipatedStudents || ''}
                         onChange={(e) => setAdditionalFields({ ...additionalFields, anticipatedStudents: e.target.value })}
+                        required
                       />
                       <TextInput
                         label="Anticipated number of responsible adults (staff and volunteers) attending"
@@ -335,6 +376,7 @@ export function Risk() {
                         placeholder="0"
                         value={additionalFields.anticipatedAdults || ''}
                         onChange={(e) => setAdditionalFields({ ...additionalFields, anticipatedAdults: e.target.value })}
+                        required
                       />
                     </Group>
 
@@ -344,12 +386,14 @@ export function Risk() {
                         placeholder="Leader name"
                         value={additionalFields.leader || ''}
                         onChange={(e) => setAdditionalFields({ ...additionalFields, leader: e.target.value })}
+                        required
                       />
                       <TextInput
                         label="Leader contact number"
                         placeholder="Leader contact number"
                         value={additionalFields.leaderContact || ''}
                         onChange={(e) => setAdditionalFields({ ...additionalFields, leaderContact: e.target.value })}
+                        required
                       />
                     </Group>
 
@@ -359,12 +403,14 @@ export function Risk() {
                         placeholder="Second in charge name"
                         value={additionalFields.secondInCharge || ''}
                         onChange={(e) => setAdditionalFields({ ...additionalFields, secondInCharge: e.target.value })}
+                        required
                       />
                       <TextInput
                         label="Second in Charge contact number"
                         placeholder="Second in charge contact number"
                         value={additionalFields.secondInChargeContact || ''}
                         onChange={(e) => setAdditionalFields({ ...additionalFields, secondInChargeContact: e.target.value })}
+                        required
                       />
                     </Group>
 
@@ -374,12 +420,14 @@ export function Risk() {
                         placeholder="Contact person name"
                         value={additionalFields.locationContactPerson || ''}
                         onChange={(e) => setAdditionalFields({ ...additionalFields, locationContactPerson: e.target.value })}
+                        required
                       />
                       <TextInput
                         label="Contact number at location of activity"
                         placeholder="Location contact number"
                         value={additionalFields.locationContactNumber || ''}
                         onChange={(e) => setAdditionalFields({ ...additionalFields, locationContactNumber: e.target.value })}
+                        required
                       />
                     </Group>
 
@@ -389,6 +437,7 @@ export function Risk() {
                         placeholder="Site visit reviewer name"
                         value={additionalFields.siteVisitReviewer || ''}
                         onChange={(e) => setAdditionalFields({ ...additionalFields, siteVisitReviewer: e.target.value })}
+                        required
                       />
 
                       <DatePickerInput
@@ -398,6 +447,7 @@ export function Risk() {
                         onChange={(newValue) => {
                           setAdditionalFields({ ...additionalFields, siteVisitDate: dayjs(newValue).unix().toString() })
                         }}
+                        required
                       />
 
                     </Group>
@@ -411,10 +461,13 @@ export function Risk() {
                         { value: 'Yes', label: 'Yes' },
                         { value: 'No', label: 'No' },
                       ]}
+                      required
                     />
 
                     <div>
-                      <Text fz="sm" fw={500} mb="xs">Supervising staff relevant qualifications (select all that apply)</Text>
+                      <Text fz="sm" fw={500} mb="xs">
+                        Supervising staff relevant qualifications (select all that apply) <span className="text-red-500">*</span>
+                      </Text>
                       <Checkbox.Group
                         value={additionalFields.staffQualifications || []}
                         onChange={(value) => setAdditionalFields({ ...additionalFields, staffQualifications: value })}
@@ -433,6 +486,7 @@ export function Risk() {
                           value={additionalFields.otherQualifications || ''}
                           onChange={(e) => setAdditionalFields({ ...additionalFields, otherQualifications: e.target.value })}
                           mt="xs"
+                          required
                         />
                       )}
                     </div>
@@ -655,6 +709,7 @@ export function Risk() {
                     color="blue"
                     size="compact-md"
                     radius="xl"
+                    loading={api.state.loading}
                   >
                     Generate Risk Assessment
                   </Button>
