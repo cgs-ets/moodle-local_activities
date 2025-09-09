@@ -22,10 +22,9 @@ type MoYear = {
 
 type Props = {
   hideFilters?: boolean
-  defaultFilters?: string[]
 }
 
-export function Calendar({hideFilters, defaultFilters}: Props) {
+export function Calendar({hideFilters}: Props) {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const filters = useFilterStore((state) => state)
@@ -80,8 +79,9 @@ export function Calendar({hideFilters, defaultFilters}: Props) {
       month: searchParams.get('month') || dayjs().format("M"), 
       year: searchParams.get('year') || dayjs().format("YYYY"), 
     })
-    setFilters({...filters, categories: defaultFilters || []})
-  }, [searchParams]);
+  }, [searchParams.get('month'), searchParams.get('year')]);
+
+
 
   const splitCells = (cells: Record<string, any>) => {
     const keys = Object.keys(cells);

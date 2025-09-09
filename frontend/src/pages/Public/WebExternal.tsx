@@ -35,28 +35,19 @@ export function WebExternal() {
     }
   }, [calView.type])
 
-
-
-  // Add filters from search param.
+  const defaultFilters = [
+    "Whole School/Website External",
+    "Senior School/Website External",
+    "Primary School/Website External",
+  ]
   useEffect(() => {
-    setFilters({...filters, categories: searchParams.get('categories')?.split(',').filter(Boolean) || [] as string[]})
-  }, [searchParams.get('categories')])
-
+    setFilters({...filters, categories: defaultFilters})
+  }, []);
 
   // Default to list view
   useEffect(() => {
     setCalView({...calView, type: searchParams.get('type') || 'list'})
   }, [])
-
-
-  // If PS or SS categories are removed from filters, remove them from search params.
-  useEffect(() => {
-    if (filters.categories.length == 0) {
-      setSearchParams({categories: '', type: calView.type, year: calView.year, month: calView.month, term: calView.term})
-    } else {
-      setSearchParams({categories: filters.categories.join(','), type: calView.type, year: calView.year, month: calView.month, term: calView.term})
-    }
-  }, [filters.categories])
 
  
   return (
@@ -67,16 +58,8 @@ export function WebExternal() {
           <Grid grow gutter={0}>
               <Grid.Col span={{ base: 12, lg: 9 }} className="border-r min-h-screen bg-white pb-6">
                 { calView.type == 'calendar'
-                  ? <Calendar hideFilters defaultFilters={[
-                    "Whole School/Website External",
-                    "Senior School/Website External",
-                    "Primary School/Website External",
-                  ]} />
-                  : <List hideFilters defaultFilters={[
-                    "Whole School/Website External",
-                    "Senior School/Website External",
-                    "Primary School/Website External",
-                  ]} />
+                  ? <Calendar hideFilters />
+                  : <List hideFilters />
                 }
             </Grid.Col>
           </Grid>

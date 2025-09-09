@@ -21,10 +21,9 @@ type TermYear = {
 
 type Props = {
   hideFilters?: boolean
-  defaultFilters?: string[]
 }
 
-export function List({hideFilters, defaultFilters}: Props) {
+export function List({hideFilters}: Props) {
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -72,8 +71,7 @@ export function List({hideFilters, defaultFilters}: Props) {
       term: searchParams.get('term') || currterm.toString(), 
       year: searchParams.get('year') || initYear, 
     })
-    setFilters({...filters, categories: defaultFilters || []})
-  }, [searchParams]);
+  }, [searchParams.get('term'), searchParams.get('year')]);
 
   // If the date changes, get calendar.
   useEffect(() => {
