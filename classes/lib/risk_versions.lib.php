@@ -31,9 +31,6 @@ class risk_versions_lib {
     /** Table to store classifications. */
     const TABLE_CLASSIFICATIONS = 'activities_classifications';
     
-    /** Table to store risk classifications relationships. */
-    const TABLE_RISK_CLASSIFICATIONS = 'activities_risk_classifications';
-    
     /** Table to store risk classification sets. */
     const TABLE_RISK_CLASSIFICATION_SETS = 'activities_risk_classification_sets';
     
@@ -161,7 +158,6 @@ class risk_versions_lib {
         // Delete all data for this version
         $DB->delete_records(static::TABLE_RISKS, ['version' => $version]);
         $DB->delete_records(static::TABLE_CLASSIFICATIONS, ['version' => $version]);
-        $DB->delete_records(static::TABLE_RISK_CLASSIFICATIONS, ['version' => $version]);
         $DB->delete_records(static::TABLE_RISK_VERSIONS, ['version' => $version]);
         
         return ['success' => true];
@@ -323,25 +319,6 @@ class risk_versions_lib {
             $classification->version = $new_version;
             $new_classification_id = $DB->insert_record(static::TABLE_CLASSIFICATIONS, $classification);
             $classification_id_mapping[$old_classification_id] = $new_classification_id;
-        }
-        
-        // Copy risk-classification relationships with updated IDs (for backward compatibility)
-        $risk_classifications = $DB->get_records(static::TABLE_RISK_CLASSIFICATIONS, ['version' => $version]);
-        foreach ($risk_classifications as $rc) {
-            unset($rc->id);
-            $rc->version = $new_version;
-            
-            // Update riskid to reference the newly copied risk
-            if (isset($risk_id_mapping[$rc->riskid])) {
-                $rc->riskid = $risk_id_mapping[$rc->riskid];
-            }
-            
-            // Update classificationid to reference the newly copied classification
-            if (isset($classification_id_mapping[$rc->classificationid])) {
-                $rc->classificationid = $classification_id_mapping[$rc->classificationid];
-            }
-            
-            $DB->insert_record(static::TABLE_RISK_CLASSIFICATIONS, $rc);
         }
 
         // Copy risk classification sets with updated IDs
@@ -601,7 +578,7 @@ class risk_versions_lib {
         }
         
         // Check if classification is used by any risks in this version
-        $used = $DB->record_exists(static::TABLE_RISK_CLASSIFICATIONS, ['classificationid' => $id, 'version' => $data->version]);
+        $used = $DB->record_exists(static::TABLE_RISK_CLASSIFICATION_SET_MEMBERS, ['classificationid' => $id, 'version' => $data->version]);
         if ($used) {
             throw new \Exception("Cannot delete classification as it is used by existing risks in this version.");
         }
@@ -716,37 +693,6 @@ class risk_versions_lib {
         $classifications = $DB->get_records_sql($sql, array_merge($inparams, [$version]));
         return array_values($classifications);
     }
-    
-
-    /**
-     * Get a single risk by ID.
-     *
-     * @param int $id
-     * @return object
-     */
-    public static function get_risk($id) {
-        global $DB;
-        
-        // Only allow cal reviewers.
-        if (!workflow_lib::is_cal_reviewer()) {
-            throw new \Exception("Permission denied.");
-        }
-        
-        $risk = $DB->get_record(static::TABLE_RISKS, ['id' => $id]);
-        
-        if ($risk) {
-            // Get classification IDs
-            $classification_ids = $DB->get_fieldset_select(
-                static::TABLE_RISK_CLASSIFICATIONS, 
-                'classificationid', 
-                'riskid = ?', 
-                [$id]
-            );
-            $risk->classification_ids = $classification_ids;
-        }
-        
-        return $risk;
-    }
 
     /**
      * Create or update a risk.
@@ -812,51 +758,18 @@ class risk_versions_lib {
         }
         
         // Delete risk classification sets first (this will cascade to members)
+        $memberssql = "SELECT * 
+        FROM {" . static::TABLE_RISK_CLASSIFICATION_SET_MEMBERS . "} WHERE set_id IN (SELECT id FROM {" . static::TABLE_RISK_CLASSIFICATION_SETS . "} WHERE riskid = ?)";
+        $members = $DB->get_records_sql($memberssql, [$id]);
+        foreach ($members as $member) {
+            $DB->delete_records(static::TABLE_RISK_CLASSIFICATION_SET_MEMBERS, ['id' => $member->id]);
+        }
         $DB->delete_records(static::TABLE_RISK_CLASSIFICATION_SETS, ['riskid' => $id]);
-        
-        // Also delete old-style risk classifications for backward compatibility
-        $DB->delete_records(static::TABLE_RISK_CLASSIFICATIONS, ['riskid' => $id]);
         
         // Delete the risk
         $DB->delete_records(static::TABLE_RISKS, ['id' => $id]);
         
         return ['success' => true];
-    }
-
-    /**
-     * Update risk classifications for a risk.
-     *
-     * @param int $riskid
-     * @param array $classification_ids
-     * @param int $version
-     */
-    private static function update_risk_classifications($riskid, $classification_ids, $version) {
-        global $DB;
-
-        // Only allow cal reviewers.
-        if (!workflow_lib::is_cal_reviewer()) {
-            throw new \Exception("Permission denied.");
-        }
-
-        // Get the risk
-        $risk = $DB->get_record(static::TABLE_RISKS, ['id' => $riskid]);
-
-        // Cannot update risk classifications that have been used.
-        if (static::has_been_used($risk->version)) {
-            throw new \Exception("Cannot update risk classifications as it has been used in an activity. Fork and make changes to the draft version instead.");
-        }
-        
-        // Delete existing classifications for this version
-        $DB->delete_records(static::TABLE_RISK_CLASSIFICATIONS, ['riskid' => $riskid, 'version' => $version]);
-        
-        // Add new classifications
-        foreach ($classification_ids as $classification_id) {
-            $DB->insert_record(static::TABLE_RISK_CLASSIFICATIONS, [
-                'riskid' => $riskid,
-                'classificationid' => $classification_id,
-                'version' => $version
-            ]);
-        }
     }
 
     /**

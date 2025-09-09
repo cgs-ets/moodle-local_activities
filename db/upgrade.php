@@ -165,28 +165,6 @@ function xmldb_local_activities_upgrade($oldversion) {
             $dbman->create_table($table);
         }
 
-
-        // Define table activities_risk_classifications to be created.
-        $table = new xmldb_table('activities_risk_classifications');
-
-        // Adding fields to table activities_risk_classifications.
-        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
-        $table->add_field('riskid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
-        $table->add_field('classificationid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
-
-        // Adding keys to table activities_risk_classifications.
-        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
-        $table->add_key('fk_riskid', XMLDB_KEY_FOREIGN, ['riskid'], 'activities_risks', ['id']);
-        $table->add_key('fk_classificationid', XMLDB_KEY_FOREIGN, ['classificationid'], 'activities_classifications', ['id']);
-
-        // Adding indexes to table activities_risk_classifications.
-        $table->add_index('risk_classification_unique', XMLDB_INDEX_UNIQUE, ['riskid', 'classificationid']);
-
-        // Conditionally launch create table for activities_risk_classifications.
-        if (!$dbman->table_exists($table)) {
-            $dbman->create_table($table);
-        }
-
         // Activities savepoint reached.
         upgrade_plugin_savepoint(true, 2025072900, 'local', 'activities');
      }
@@ -220,14 +198,6 @@ function xmldb_local_activities_upgrade($oldversion) {
         // Add version field to activities_classifications table
         $table = new xmldb_table('activities_classifications');
         $field = new xmldb_field('version', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'sortorder');
-        
-        if (!$dbman->field_exists($table, $field)) {
-            $dbman->add_field($table, $field);
-        }
-        
-        // Add version field to activities_risk_classifications table
-        $table = new xmldb_table('activities_risk_classifications');
-        $field = new xmldb_field('version', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'classificationid');
         
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);

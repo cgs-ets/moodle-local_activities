@@ -17,6 +17,7 @@ import { VerifySync } from "./pages/VerifySync/VerifySync";
 import { Risk } from "./pages/Risk/Risk";
 import { Settings } from "./pages/Risk/Settings";
 import { useSearchParams, Navigate } from "react-router-dom";
+import { WebExternal } from "./pages/Public/WebExternal";
 
 
 function App() { 
@@ -25,6 +26,9 @@ function App() {
     [
       { path: "/", element: <Dashboard /> },
       { path: "/index.php", element: <Dashboard /> },
+
+      
+      { path: "/web", element: <WebExternal /> },
 
       { path: "/public", element: <Public /> },
       { path: "/public/index.php", element: <Public /> },

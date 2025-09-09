@@ -20,7 +20,12 @@ type MoYear = {
   year: string,
 }
 
-export function Calendar() {
+type Props = {
+  hideFilters?: boolean
+  defaultFilters?: string[]
+}
+
+export function Calendar({hideFilters, defaultFilters}: Props) {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const filters = useFilterStore((state) => state)
@@ -75,6 +80,7 @@ export function Calendar() {
       month: searchParams.get('month') || dayjs().format("M"), 
       year: searchParams.get('year') || dayjs().format("YYYY"), 
     })
+    setFilters({...filters, categories: defaultFilters || []})
   }, [searchParams]);
 
   const splitCells = (cells: Record<string, any>) => {
@@ -232,20 +238,22 @@ export function Calendar() {
               size="md"
             />
 
-            <div className="ml-2 flex items-center gap-2 ">
-              <Button onClick={goToToday} variant="light" aria-label="Filters" className="h-8" size="compact-md">Today</Button>
-              { hasFilters() 
-                ? <div className="flex">
-                    <Button color="orange" onClick={() => openFilter()} variant="light" aria-label="Filters" size="compact-md" leftSection={<IconAdjustments size={20} />} className="h-8 rounded-r-none">Filters on</Button>
-                    <ActionIcon color="orange" onClick={reset} variant="light" aria-label="Clear"  size="compact-md" ml={2} className="rounded-l-none pl-1 pr-1">
-                      <IconX stroke={1.5} size={18} />
+            {!hideFilters && 
+              <div className="ml-2 flex items-center gap-2 ">
+                <Button onClick={goToToday} variant="light" aria-label="Filters" className="h-8" size="compact-md">Today</Button>
+                { hasFilters() 
+                  ? <div className="flex">
+                      <Button color="orange" onClick={() => openFilter()} variant="light" aria-label="Filters" size="compact-md" leftSection={<IconAdjustments size={20} />} className="h-8 rounded-r-none">Filters on</Button>
+                      <ActionIcon color="orange" onClick={reset} variant="light" aria-label="Clear"  size="compact-md" ml={2} className="rounded-l-none pl-1 pr-1">
+                        <IconX stroke={1.5} size={18} />
+                      </ActionIcon>
+                    </div>
+                  : <ActionIcon onClick={() => openFilter()} variant="light" aria-label="Filters" className="size-8"  >
+                      <IconAdjustments stroke={1.5} />
                     </ActionIcon>
-                  </div>
-                : <ActionIcon onClick={() => openFilter()} variant="light" aria-label="Filters" className="size-8"  >
-                    <IconAdjustments stroke={1.5} />
-                  </ActionIcon>
-              } 
-            </div>
+                } 
+              </div>
+            }
           </div>
           <ActionIcon onClick={() => handleNav(1)} variant="subtle" size="lg"><IconArrowNarrowRight className="size-7" /></ActionIcon>
         </div>

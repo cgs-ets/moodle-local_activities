@@ -1,5 +1,5 @@
 import { ActionIcon, Button, Card, Loader, LoadingOverlay, Select, Text } from "@mantine/core";
-import { IconAdjustments, IconArrowNarrowLeft, IconArrowNarrowRight, IconCalendarDue, IconCalendarWeek, IconEye, IconListDetails, IconRotateClockwise2, IconTable, IconX } from "@tabler/icons-react";
+import { IconAdjustments, IconArrowNarrowLeft, IconArrowNarrowRight, IconCalendarWeek, IconListDetails, IconRotateClockwise2, IconX } from "@tabler/icons-react";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
 import useFetch from "../../../hooks/useFetch";
@@ -19,9 +19,12 @@ type TermYear = {
   year: string,
 }
 
+type Props = {
+  hideFilters?: boolean
+  defaultFilters?: string[]
+}
 
-
-export function List() {
+export function List({hideFilters, defaultFilters}: Props) {
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -69,6 +72,7 @@ export function List() {
       term: searchParams.get('term') || currterm.toString(), 
       year: searchParams.get('year') || initYear, 
     })
+    setFilters({...filters, categories: defaultFilters || []})
   }, [searchParams]);
 
   // If the date changes, get calendar.
@@ -236,24 +240,30 @@ export function List() {
             />
 
 
+          
             <div className="ml-2 flex items-center gap-2">
               <Button onClick={goToToday} variant="light" aria-label="Go to today" title="Go to today" className="h-8" size="compact-md">Today</Button>
-              { hasFilters() 
-                ? <div className="flex">
-                    <Button color="orange" onClick={() => openFilter()} variant="light" aria-label="Filters" title="Filters" size="compact-md" leftSection={<IconAdjustments size={20} />} className="h-8 rounded-r-none">Filters on</Button>
-                    <ActionIcon color="orange" onClick={reset} variant="light" aria-label="Clear"  size="compact-md" ml={2} className="rounded-l-none pl-1 pr-1">
-                      <IconX stroke={1.5} size={18} />
-                    </ActionIcon>
-                  </div>
-                : <ActionIcon onClick={() => openFilter()} variant="light" aria-label="Filters" title="Filters" className="size-8"  >
-                    <IconAdjustments stroke={1.5} />
-                  </ActionIcon>
-              } 
+              {!hideFilters && 
+                <div className="flex">
+                  { hasFilters() 
+                    ? <>
+                        <Button color="orange" onClick={() => openFilter()} variant="light" aria-label="Filters" title="Filters" size="compact-md" leftSection={<IconAdjustments size={20} />} className="h-8 rounded-r-none">Filters on</Button>
+                        <ActionIcon color="orange" onClick={reset} variant="light" aria-label="Clear"  size="compact-md" ml={2} className="rounded-l-none pl-1 pr-1">
+                          <IconX stroke={1.5} size={18} />
+                        </ActionIcon>
+                      </>
+                    : <ActionIcon onClick={() => openFilter()} variant="light" aria-label="Filters" title="Filters" className="size-8"  >
+                        <IconAdjustments stroke={1.5} />
+                      </ActionIcon>
+                  } 
+                </div>
+              }
 
               { !loading && date.term == currterm.toString() && date.year == dayjs().format("YYYY") && !showPast &&
                 <ActionIcon variant="light" aria-label="Show past events" title="Show past events" className="size-8" onClick={() => toggleShowPast()}><IconRotateClockwise2 className="transform rotate-90 scale-x-[-1]" stroke={1.5} /></ActionIcon>
               }
             </div>
+          
 
 
 
@@ -274,7 +284,7 @@ export function List() {
         }
 
         { !loading && !filteredList.days.current.length && !filteredList.days.upcoming.length &&
-          <div className="text-base italic p-6">No events in selected period. {hasFilters() ? "Try removing filters." : ""}</div>
+          <div className="text-base italic p-6">No events in selected period. {!hideFilters && hasFilters() ? "Try removing filters." : ""}</div>
         }
 
         <Card className="ev-calendar list-calendar rounded-none" p={0}>

@@ -11,7 +11,12 @@ import { useCalViewStore } from '../../../stores/calViewStore';
 import { useFilterStore } from '../../../stores/filterStore';
 import logo from '../../../assets/logo.png';
 
-export function Header() {
+type Props = {
+  hideSearch?: boolean
+  hideNav?: boolean
+}
+
+export function Header({hideSearch, hideNav}: Props) {
   const [searchOpened, setSearchOpened] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -113,42 +118,48 @@ export function Header() {
 
 
           <div className="items-center gap-2 hidden md:flex">
-            <ActionIcon
-              variant="transparent"
-              color="white"
-              className="mr-2"
-              onClick={() => setSearchOpened(true)}
-            >
-              <IconSearch size={20} />
-            </ActionIcon>
+            {!hideSearch && 
+              <ActionIcon
+                variant="transparent"
+                color="white"
+                className="mr-2"
+                onClick={() => setSearchOpened(true)}
+              >
+                <IconSearch size={20} />
+              </ActionIcon>
+            }
 
-            <Anchor 
-              className={cn(
-                "flex items-center justify-center text-white hover:no-underline px-4 text-md font-semibold h-[54px]", 
-                searchParams.get('categories') == '' ? 'bg-[#59a5d7]' : ''
-              )}
-              onClick={() => setSearchParams({type: calView.type, categories: '', year: calView.year, month: calView.month, term: calView.term})}
-            >
-              All
-            </Anchor> 
-            <Anchor 
-              className={cn(
-                "flex items-center justify-center text-white hover:no-underline px-4 text-md font-semibold h-[54px]", 
-                searchParams.get('categories') == 'Primary School' && filters.categories.length <= 1 ? 'bg-[#59a5d7]' : ''
-              )}
-              onClick={() => setSearchParams({ categories: 'Primary School', type: calView.type, year: calView.year, month: calView.month, term: calView.term })}
-            >
-              Primary School
-            </Anchor> 
-            <Anchor 
-              className={cn(
-                "flex items-center justify-center text-white hover:no-underline px-4 text-md font-semibold h-[54px]", 
-                searchParams.get('categories') == 'Senior School' && filters.categories.length <= 1 ? 'bg-[#59a5d7]' : ''
-              )}
-              onClick={() => setSearchParams({ categories: 'Senior School', type: calView.type, year: calView.year, month: calView.month, term: calView.term })}
-            >
-              Senior School
-            </Anchor> 
+            {!hideNav && 
+              <>
+                <Anchor 
+                  className={cn(
+                    "flex items-center justify-center text-white hover:no-underline px-4 text-md font-semibold h-[54px]", 
+                    searchParams.get('categories') == '' ? 'bg-[#59a5d7]' : ''
+                  )}
+                  onClick={() => setSearchParams({type: calView.type, categories: '', year: calView.year, month: calView.month, term: calView.term})}
+                >
+                  All
+                </Anchor> 
+                <Anchor 
+                  className={cn(
+                    "flex items-center justify-center text-white hover:no-underline px-4 text-md font-semibold h-[54px]", 
+                    searchParams.get('categories') == 'Primary School' && filters.categories.length <= 1 ? 'bg-[#59a5d7]' : ''
+                  )}
+                  onClick={() => setSearchParams({ categories: 'Primary School', type: calView.type, year: calView.year, month: calView.month, term: calView.term })}
+                >
+                  Primary School
+                </Anchor> 
+                <Anchor 
+                  className={cn(
+                    "flex items-center justify-center text-white hover:no-underline px-4 text-md font-semibold h-[54px]", 
+                    searchParams.get('categories') == 'Senior School' && filters.categories.length <= 1 ? 'bg-[#59a5d7]' : ''
+                  )}
+                  onClick={() => setSearchParams({ categories: 'Senior School', type: calView.type, year: calView.year, month: calView.month, term: calView.term })}
+                >
+                  Senior School
+                </Anchor> 
+              </>
+            }
 
             
             <Anchor className="text-gray-200 hover:no-underline ml-2 mr-4 text-md font-normal flex items-center gap-1" href="/">{getConfig().sitename}<IconExternalLink size={13} /></Anchor>

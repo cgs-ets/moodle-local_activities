@@ -95,7 +95,6 @@ export function CategoriesModal({opened, close, categories, handleChange}: {open
                 <Checkbox value="Primary School/Year 5" label="Year 5" />
                 <Checkbox value="Primary School/Year 6" label="Year 6" />
                 <Checkbox value="Primary School/Website External" label="Website External" />
-                <Checkbox value="Primary School/Alumni Website" label="Alumni Website" />
                 <Checkbox value="Primary School/Music" label="Music" />
               </div>
 
@@ -120,7 +119,6 @@ export function CategoriesModal({opened, close, categories, handleChange}: {open
                 <Checkbox value="Senior School/Year 11" label="Year 11" />
                 <Checkbox value="Senior School/Year 12" label="Year 12" />
                 <Checkbox value="Senior School/Website External" label="Website External" />
-                <Checkbox value="Senior School/Alumni Website" label="Alumni Website" />
                 <Checkbox value="Senior School/Music" label="Music" />
               </div>
 
@@ -139,7 +137,6 @@ export function CategoriesModal({opened, close, categories, handleChange}: {open
                 <Checkbox value="Whole School/External Events" label="External Events" />
                 <Checkbox value="Whole School/Campus Management" label="Campus Management" />
                 <Checkbox value="Whole School/Website External" label="Website External" />
-                <Checkbox value="Whole School/Alumni Website" label="Alumni Website" />
                 <Checkbox value="Whole School/Music" label="Music" />
               </div>
             </div>
