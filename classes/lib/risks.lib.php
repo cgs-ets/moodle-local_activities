@@ -26,6 +26,19 @@ class risks_lib {
     const TABLE_RA_GENS = 'activities_ra_gens';
     const TABLE_RA_GENS_RISKS = 'activities_ra_gens_risks';
 
+    public static function preview_ra($id) {
+        global $DB;
+        
+        $ra_gen = $DB->get_record(static::TABLE_RA_GENS, ['id' => $id]);
+        if (!$ra_gen) {
+            throw new \Exception("Risk assessment generation not found.");
+        }
+        $ra_gen->classifications = json_decode($ra_gen->classifications);
+        list($activity, $classifications) = static::prepare_ra_data($ra_gen);
+        $htmlContent = static::generate_html($activity, $classifications);
+
+        return $htmlContent;
+    }
 
     /**
      * Generate a risk assessment.
@@ -33,7 +46,23 @@ class risks_lib {
      * @param object $data
      * @return array
      */
-    public static function generate_ra($data) {
+    public static function generate_pdf($id) {
+        global $DB;
+        
+        $ra_gen = $DB->get_record(static::TABLE_RA_GENS, ['id' => $id]);
+        if (!$ra_gen) {
+            throw new \Exception("Risk assessment generation not found.");
+        }
+        $ra_gen->classifications = json_decode($ra_gen->classifications);
+        // Generate the PDF based on the risk assessment JSON.
+        $pdf = static::generate_pdf_from_ra($ra_gen);
+
+        return $pdf;
+    }
+
+
+
+    public static function save_ra($data){
         global $DB;
 
         $data = json_decode(json_encode($data), false);
@@ -100,88 +129,30 @@ class risks_lib {
                 }
             }
 
-            // Generate the PDF risk assessment based on the risk assessment JSON.
-            $pdf = static::generate_pdf_risk_assessment($id, $activityid, $classifications, $riskversion);
+            static::generate_pdf($id);
 
         } catch (\Exception $e) {
-            throw new \Exception("Failed to generate risk assessment.");
+            throw new \Exception("Failed to save risk assessment.");
         }
 
 
         return ['id' => $id, 'success' => true];
     }
 
+
+
     /**
-     * Generate the PDF risk assessment based on the risk assessment JSON.
+     * Generate the PDF based on the risk assessment JSON.
      *
-     * @param string $riskassessmentjson
+     * @param object $ra_gen
      * @return string
      */
-    public static function generate_pdf_risk_assessment($id, $activityid, $classifications, $riskversion) {
+    public static function generate_pdf_from_ra($ra_gen) {
         global $DB, $USER;
 
-        $activity = new Activity($activityid);
-        if (!$activity) {
-            throw new \Exception("Activity not found.");
-        }
-
-        $activity = $activity->export();
-
-        // Append additional fields to activity.
-        $ra_gen = $DB->get_record(static::TABLE_RA_GENS, ['id' => $id]);
-        $activity = (object) array_merge((array) $activity, (array) $ra_gen);
-        $activity->staff_qualifications = json_decode($activity->staff_qualifications);
-        $activity->is_other_qualification = in_array('Other', $activity->staff_qualifications);
-
-        // Get the risks for the classifications.
-        $risks = static::get_risks_for_classifications($classifications, $riskversion);
-
-        // Group risks by classification. 
-        $hazard_risks = [];
-        $risks_processed = [];
-        foreach ($risks as $risk) {
-            foreach ($risk->classifications as $classification) {
-                // If the risk has a qualifying set, and the qualifying set is not in the selected classifications, skip it.
-                if (isset($risk->qualifying_set) && !in_array($classification->id, $risk->qualifying_set)) {
-                    continue;
-                }
-
-                // RISKS DO NOT APPEAR FOR CONTEXTS!
-                if ($classification->type === 'context') {
-                    continue;
-                }
-                // Only add the risk if it hasn't been added yet.
-                if (in_array($risk->id, $risks_processed)) {
-                    break;
-                }
-                $hazard_risks[$classification->id][] = $risk;
-                // Keep track of risks that have been added to an array because I only want to add each risk once.
-                $risks_processed[] = $risk->id;
-            }
-        }
-
-        $all_classifications = risk_versions_lib::get_classifications($riskversion);
-        $used_classifications = array_filter($all_classifications, function($classification) use ($hazard_risks) {
-            return isset($hazard_risks[$classification->id]);
-        });
-        foreach ($used_classifications as $classification) {
-            $classification->risks = $hazard_risks[$classification->id];
-            $classification->risks_count = count($classification->risks);
-            $classification->risks_count_string = $classification->risks_count . ' ' . ($classification->risks_count === 1 ? 'risk' : 'risks');
-        }
-
-        // Add custom risks to the classifications.
-        $custom_risks = array_values($DB->get_records(static::TABLE_RA_GENS_RISKS, ['ra_gen_id' => $id]));
-        if ($custom_risks) {
-            $used_classifications[] = (object) [
-                'name' => 'Additional Risks',
-                'risks' => $custom_risks,
-                'risks_count' => count($custom_risks),
-                'risks_count_string' => count($custom_risks) . ' ' . (count($custom_risks) === 1 ? 'risk' : 'risks'),
-            ];
-        }
-
-        $htmlContent = static::generate_html($activity, $used_classifications);
+        
+        list($activity, $classifications) = static::prepare_ra_data($ra_gen);
+        $htmlContent = static::generate_html($activity, $classifications);
         $htmlFile = 'html_risk_assessment.html';
         file_put_contents($htmlFile, $htmlContent);
 
@@ -211,12 +182,12 @@ class risks_lib {
         $dompdf->render();
         
         // Save PDF file
-        $filename = 'pdf_risk_assessment_'. $activityid .'_'. $id .'_'. date('Y-m-d-H-i-s', time()) . '_' . $USER->id . '.pdf';
+        $filename = 'pdf_risk_assessment_'. $activity->id .'_'. $ra_gen->id .'_'. date('Y-m-d-H-i-s', time()) . '_' . $USER->id . '.pdf';
         $fileinfo = [
             'contextid' => \context_system::instance()->id,
             'component' => 'local_activities',
             'filearea' => 'ra_generations',
-            'itemid' => $id,
+            'itemid' => $ra_gen->id,
             'filepath' => '/',
             'filename' => $filename,
         ];
@@ -229,6 +200,76 @@ class risks_lib {
         
         // Clean up
         unset($dompdf);
+    }
+
+
+    private static function prepare_ra_data($ra_gen) {
+        global $DB;
+        $activity = new Activity($ra_gen->activityid);
+        if (!$activity) {
+            throw new \Exception("Activity not found.");
+        }
+        $activity = $activity->export();
+
+        // Get the includes for the selected classifications.
+        $includes = risk_versions_lib::get_includes_for_classifications($ra_gen->classifications, $ra_gen->riskversion);
+        $classifications = array_merge($ra_gen->classifications, array_column($includes, 'includeid'));
+
+        // Append additional fields to activity.
+        $activity = (object) array_merge((array) $activity, (array) $ra_gen);
+        $activity->staff_qualifications = json_decode($activity->staff_qualifications);
+        $activity->is_other_qualification = in_array('Other', $activity->staff_qualifications);
+
+        // Get the risks for the classifications.
+        $risks = static::get_risks_for_classifications($classifications, $ra_gen->riskversion);
+
+        // Group risks by classification. 
+        $hazard_risks = [];
+        $risks_processed = [];
+        foreach ($risks as $risk) {
+            foreach ($risk->classifications as $classification) {
+                // If the risk has a qualifying set, and the qualifying set is not in the selected classifications, skip it.
+                if (isset($risk->qualifying_set) && !in_array($classification->id, $risk->qualifying_set)) {
+                    continue;
+                }
+
+                // RISKS DO NOT APPEAR FOR CONTEXTS!
+                if ($classification->type === 'context') {
+                    continue;
+                }
+                // Only add the risk if it hasn't been added yet.
+                if (in_array($risk->id, $risks_processed)) {
+                    break;
+                }
+                $hazard_risks[$classification->id][] = $risk;
+                // Keep track of risks that have been added to an array because I only want to add each risk once.
+                $risks_processed[] = $risk->id;
+            }
+        }
+
+        $all_classifications = risk_versions_lib::get_classifications($ra_gen->riskversion);
+        $used_classifications = array_filter($all_classifications, function($classification) use ($hazard_risks) {
+            return isset($hazard_risks[$classification->id]);
+        });
+        foreach ($used_classifications as $classification) {
+            $classification->risks = $hazard_risks[$classification->id];
+            $classification->risks_count = count($classification->risks);
+            $classification->risks_count_string = $classification->risks_count . ' ' . ($classification->risks_count === 1 ? 'risk' : 'risks');
+        }
+
+        // Add custom risks to the classifications.
+        $custom_risks = array_values($DB->get_records(static::TABLE_RA_GENS_RISKS, ['ra_gen_id' => $ra_gen->id]));
+        if ($custom_risks) {
+            $used_classifications[] = (object) [
+                'name' => 'Additional Risks',
+                'risks' => $custom_risks,
+                'risks_count' => count($custom_risks),
+                'risks_count_string' => count($custom_risks) . ' ' . (count($custom_risks) === 1 ? 'risk' : 'risks'),
+            ];
+        }
+
+        return [$activity, $used_classifications];
+
     }
 
     /**

@@ -1,7 +1,7 @@
-import { ActionIcon, Anchor, Button, Card, Checkbox, Collapse, Grid, Group, Switch, Table, Text } from '@mantine/core';
+import { ActionIcon, Anchor, Avatar, Box, Button, Card, Checkbox, Collapse, Grid, Group, Loader, Modal, Switch, Table, Text, Tooltip } from '@mantine/core';
 import { FileUploader } from './components/FileUploader/FileUploader';
 import '@mantine/dropzone/styles.css';
-import { IconArchive, IconBrandAdobe, IconDownload, IconExternalLink, IconEye, IconFileTypePdf, IconPlus } from '@tabler/icons-react';
+import { IconArchive, IconBrandAdobe, IconCheck, IconDownload, IconExternalLink, IconEye, IconFileTypePdf, IconPlus, IconSquare, IconSquareCheck, IconTrash, IconUser } from '@tabler/icons-react';
 import { useFormStore } from '../../../../stores/formStore';
 import { useStateStore } from '../../../../stores/stateStore';
 import { useEffect, useState } from 'react';
@@ -16,12 +16,16 @@ export function Paperwork() {
   const raid = searchParams.get('ra')
   const activityid = useFormStore((state) => state.id)
   const status = useFormStore((state) => state.status)
-  const cost = useFormStore((state) => state.cost)
-  const viewStateProps = useStateStore((state) => (state.viewStateProps))
   const api = useFetch();
   const [raGenerations, setRaGenerations] = useState<any[]>([]);
   const [pulsing, setPulsing] = useState(false);
-  const [showPreviousRAs, setShowPreviousRAs] = useState(false);
+  const [selectedRA, setSelectedRA] = useState<any>(null);
+  const [previewHtml, setPreviewHtml] = useState<any>(null);
+  const viewStateProps = useStateStore((state) => (state.viewStateProps))
+  const isapprover = useFormStore((state) => (state.isapprover))
+  const isacknowledger = useFormStore((state) => (state.isacknowledger))
+  const acknowledgers = useFormStore((state) => (state.acknowledgers))
+
   useEffect(() => {
     getRaGenerations();
   }, [activityid]);
@@ -75,6 +79,38 @@ export function Paperwork() {
     getRaGenerations();
   }
 
+  const acknowledgeActivity = async (acknowledge: boolean) => {
+    await api.call({
+      query: {
+        methodname: 'local_activities-acknowledge_activity',
+        id: activityid,
+        acknowledge: acknowledge ? 1 : 0,
+      }
+    });
+  }
+
+  /*const previewRA = async (raGeneration: any) => {
+    const response = await api.call({
+      query: {
+        methodname: 'local_activities-preview_ra',
+        id: raGeneration.id,
+      }
+    });
+    if (response.error) {
+      return;
+    }
+    setPreviewHtml(response.data);
+  }
+
+  useEffect(() => {
+    if (selectedRA) {
+      previewRA(selectedRA);
+    } else {
+      setPreviewHtml(null);
+    }
+  }, [selectedRA]);*/
+
+
   return (
     <>
       <Card withBorder radius="sm" id="paperwork-section">
@@ -84,63 +120,102 @@ export function Paperwork() {
 
         <Card.Section>
 
-          {getConfig().user.un == '43563' || getConfig().user.un == 'admin' ?
+          {(getConfig().user.un == '43563' || getConfig().user.un == 'admin') &&
 
-            !activityid || (status == statuses.draft) ? 
+            <>
               <div className='border-b p-4 space-y-2'>
-                <Text className="font-semibold">Online Risk Assessment</Text>
-                <Text className='text-xs bg-orange-100 p-2 rounded-md'>Save this activity to access the Risk Assessment generator.</Text>
-              </div>
-            :
+                <Text className="font-semibold">Acknowledgments</Text>
 
-            <div className='border-b p-4 space-y-2'>
-            
-              <div className='flex items-center justify-between'>
-                <Text className="font-semibold">Online Risk Assessment</Text>
-                <Link to={`/${activityid}/risk`}><Button leftSection={<IconPlus className='size-4' />} radius='xl' variant='filled' size='compact-sm'>Generate</Button></Link>
+                <Text className="font-semibold">EDUCATOR IN CHARGE (LEADER)</Text>
+                <Text className="text-sm">As the Educator in charge of the activity, I acknowledge that all Educators participating will be made aware of the risk mitigation strategies to be implemented and any additional activity documentation. I acknowledge I am responsible for all updates of activity information to ensure all information is current for staff and school community reference.</Text>
+
+                <Text className="font-semibold">STAND BY EDUCATOR IN CHARGE (STAND BY LEADER)</Text>
+                <Text className="text-sm">If the Educator in charge of the activity is unable to attend, I will take the responsibility as Educator in Charge. I acknowledge that all Educators participating will be made aware of the risk mitigation strategies to be implemented and any additional activity documentation.</Text>
+
+                <Text className="font-semibold">ACCOMPANYING STAFF ACKNOWLEDGEMENT</Text>
+                <Text className="text-sm">I have read and understood the activity details and risk assessment. I understand the possible hazards and what measures will be put in place to lower the risk. I understand I am actively responsible for engaging in the measures outlined.</Text>
+
+                {isacknowledger && <Checkbox onChange={(v) => acknowledgeActivity(v.target.checked)} className="py-4" label="I acknowledge and accept my responsibilities in accordance with the above acknowledgments." />}
+                
+                {acknowledgers.length > 0 && 
+                  <Avatar.Group className="cursor-pointer">
+                    {acknowledgers.map((un: string, i: number) => {
+                      return <Avatar size={24} key={i} src={'/local/activities/avatar.php?username=' + un}><IconUser /></Avatar>
+                    })}
+                  </Avatar.Group>
+                }
+
               </div>
-              {/* Show a list of RA Generations.
-              It includes a list of classifications the user selected and a VIEW button which opens to the PDF rendering? */}
-              {raGenerations.length > 0 ?
-                <Table>
-                  <Table.Thead>
-                    <Table.Tr>
-                      <Table.Td className='w-44'>Date</Table.Td>
-                      <Table.Td>Categories</Table.Td>
-                      <Table.Td className='w-20'>Output</Table.Td>
-                      <Table.Td className='w-26'>Actions</Table.Td>
-                    </Table.Tr>
-                  </Table.Thead>
-                  <Table.Tbody>
-                    {raGenerations.map((raGeneration) => (
-                      <Table.Tr
-                        key={raGeneration.id}
-                        id={`risk-assessment-row-${raGeneration.id}`}
-                        className={`${raid === raGeneration.id ? "bg-yellow-100" : ""} ${
-                          pulsing ? "animate-pulse" : ""
-                        }`}
-                      >
-                        <Table.Td>{dayjs.unix(Number(raGeneration.timecreated)).format("D MMM YYYY H:mma")}</Table.Td>
-                        <Table.Td>{raGeneration.classifications.map((classification: any) => classification.name).join(', ')}</Table.Td>
-                        <Table.Td>
-                          <Button variant='light' size='compact-xs' onClick={() => window.open(raGeneration.download_url + '?action=open', '_blank')}>PDF</Button>
-                        </Table.Td>
-                        <Table.Td>
-                          <Group>
-                            <ActionIcon disabled={api.state.loading} onClick={() => deleteRaGeneration(raGeneration.id)} color='red' variant='light' size='compact-xs'><IconArchive className='size-4' /></ActionIcon>
-                            <Checkbox disabled={api.state.loading} checked={Number(raGeneration.approved) === 1} onChange={(v) => approveRaGeneration(raGeneration.id, v.target.checked)} />
-                          </Group>
-                        </Table.Td>
-                      </Table.Tr>
-                    ))}
-                  </Table.Tbody>
-                </Table>
-              : <Text className='text-xs'>No Risk Assessments have been generated for this activity. Click the Generate button to create one.</Text>
-              }
-            </div> 
-            
-            
-            : null
+
+            { !activityid || (status == statuses.draft) ? 
+              (
+                <div className='border-b p-4 space-y-2'>
+                  <Text className="font-semibold">Digital Risk Assessment</Text>
+                  <Text className='text-xs bg-orange-100 p-2 rounded-md'>Save this activity to access the Risk Assessment generator.</Text>
+                </div>
+              ) : (
+                <div className='border-b p-4 space-y-2'>
+                
+                  <div className='flex items-center justify-between'>
+                    <Text className="font-semibold">Digital Risk Assessment</Text>
+                    <Link to={`/${activityid}/risk`}><Button leftSection={<IconPlus className='size-4' />} radius='xl' variant='filled' size='compact-sm'>Generate</Button></Link>
+                  </div>
+
+                  {!raGenerations.length && api.state.loading && <Loader className='mx-auto' size='sm' />}
+
+                  {raGenerations.length > 0 ?
+                    <Table>
+                      <Table.Thead>
+                        <Table.Tr>
+                          <Table.Td className='w-44'>Date</Table.Td>
+                          <Table.Td>Categories</Table.Td>
+                          <Table.Td className='w-56'></Table.Td>
+                        </Table.Tr>
+                      </Table.Thead>
+                      <Table.Tbody>
+                        {raGenerations.map((raGeneration) => (
+                          <Table.Tr
+                            key={raGeneration.id}
+                            id={`risk-assessment-row-${raGeneration.id}`}
+                            className={`${raid === raGeneration.id ? "bg-yellow-100" : ""} ${
+                              pulsing ? "xanimate-pulse" : ""
+                            }`}
+                          >
+                            <Table.Td>{dayjs.unix(Number(raGeneration.timecreated)).format("D MMM YYYY H:mma")}</Table.Td>
+                            <Table.Td>{raGeneration.classifications.map((classification: any) => classification.name).join(', ')}</Table.Td>
+                            <Table.Td>
+                              { viewStateProps.editable && (
+
+                                <Group className="justify-end pr-1">
+                                  <ActionIcon onClick={() => deleteRaGeneration(raGeneration.id)} color='red' variant='light' size='compact-xs'><IconTrash className='size-4' /></ActionIcon>
+                                
+                                  <Button onClick={() => window.open(raGeneration.download_url + '?action=open', '_blank')} variant='light' size='compact-xs' rightSection={<IconDownload className='size-3' />}>PDF</Button>
+
+                                  {isapprover ? (
+                                    <Checkbox disabled={api.state.loading} checked={Number(raGeneration.approved) === 1} onChange={(v) => approveRaGeneration(raGeneration.id, v.target.checked)} />
+                                  ) : (
+                                    raGeneration.approved == 1 
+                                    ? <Text className='text-xs text-green-500'>Approved</Text>
+                                    : <Text className='text-xs text-gray-500'>Unapproved</Text>
+                                  )}
+                                </Group>
+                              )}
+                              
+                            </Table.Td>
+                          </Table.Tr>
+                        ))}
+                      </Table.Tbody>
+                    </Table>
+                  : !api.state.loading && <Text className='text-xs'>No Risk Assessments have been generated for this activity. Click the Generate button to create one.</Text>
+                  }
+                </div> 
+              )
+            }
+
+          </>
+
+
+
           }
 
           <div className='border-b p-4'>
@@ -157,6 +232,44 @@ export function Paperwork() {
 
         </Card.Section>
       </Card>
+
+      <Modal
+        title="Risk Assessment"
+        opened={selectedRA} 
+        withCloseButton={false}
+        onClose={() => setSelectedRA(null)} 
+        size="90%"
+        styles={{
+          header: {
+            borderBottom: '0.0625rem solid #dee2e6',
+          },
+          title: {
+            fontWeight: 600,
+          },
+          body: {
+            padding: 0,
+          }
+        }}
+      >
+        {previewHtml ? (
+
+
+            <div className="rendered-ra text-base p-10">
+              <div dangerouslySetInnerHTML={ {__html: previewHtml || ''} }></div>
+            </div>
+
+
+
+        ) : (
+          <div className="rendered-ra text-base">
+            <Box className="flex flex-col justify-center items-center min-h-[200px]">
+              <Loader size="lg" type="dots" />
+              Please wait will the system generates a preview.
+            </Box>
+          </div>
+        )}
+
+      </Modal>
     </>
   );
 };

@@ -50,6 +50,8 @@ trait risk_versions_api {
     static public function get_risks() {
         $version = required_param('version', PARAM_INT);
         return risk_versions_lib::get_risks($version);
+        //$risks = risk_versions_lib::get_risks_with_classifications($version);
+        //return $risks;
     }
 
     /**

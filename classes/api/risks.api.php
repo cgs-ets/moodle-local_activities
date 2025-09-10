@@ -33,8 +33,28 @@ trait risks_api {
      *
      * @return object
      */
-    static public function generate_ra($args) {
-        return risks_lib::generate_ra((object) $args);
+    static public function save_ra($args) {
+        return risks_lib::save_ra((object) $args);
+    }
+
+    /**
+     * Preview a risk assessment.
+     *
+     * @return object
+     */
+    static public function preview_ra() {
+        $id = required_param('id', PARAM_INT);
+        return risks_lib::preview_ra($id);
+    }
+
+    /**
+     * Generate a PDF for a risk assessment.
+     *
+     * @return object
+     */
+    static public function generate_pdf() {
+        $id = required_param('id', PARAM_INT);
+        return risks_lib::generate_pdf($id);
     }
 
     /**

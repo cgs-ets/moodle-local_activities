@@ -17,6 +17,7 @@ type Props = {
 export function EmailModal({opened, close, students}: Props) {
   const activityid = useFormStore((state) => (state.id))
   const activityname = useFormStore((state) => (state.activityname))
+  const permissions = useFormStore((state) => (state.permissions))
   const [message, setMessage] = useState<string>('')
   const [audiences, setAudiences] = useState<string[]>(['students', 'parents', 'staff'])
   const [includes, setIncludes] = useState<string[]>(['details', 'permissions'])
@@ -146,7 +147,7 @@ export function EmailModal({opened, close, students}: Props) {
         >
           <Flex mt="xs" gap="xs" direction="column">
             <Checkbox value="details" label="Include activity details" />
-            <Checkbox value="permissions" label="Include permission request link" />
+            <Checkbox disabled={!permissions} value="permissions" label="Include permission request link" />
           </Flex>
         </Checkbox.Group>
       </Box>
@@ -182,7 +183,7 @@ export function EmailModal({opened, close, students}: Props) {
 
       <Box mb="md">
         <Text fz="sm" mb={5} fw={500}>Recipients</Text>
-        {includes.includes("permissions") && <Text fz="sm" mb={5} fs="italic">Permissions emails are sent to parents only. If you would like to send a message to students or staff, untick the "Include permission request link" option above.</Text>}
+        {includes.includes("permissions") && !permissions && <Text fz="sm" mb={5} fs="italic">Permissions emails are sent to parents only. If you would like to send a message to students or staff, untick the "Include permission request link" option above.</Text>}
         <Checkbox.Group
           value={audiences}
           onChange={setAudiences}

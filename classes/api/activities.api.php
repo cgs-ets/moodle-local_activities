@@ -202,4 +202,15 @@ trait activities_api {
         return activities_lib::duplicate_activity($args['id'], $args['options']);
     }
 
+    /**
+     * Get acknowledgers for an activity.
+     *
+     * @return array containing acknowledgers.
+     */
+    static public function acknowledge_activity() { 
+        $id = required_param('id', PARAM_INT);
+        $acknowledge = required_param('acknowledge', PARAM_INT);
+        return activities_lib::acknowledge_activity($id, $acknowledge);
+    }
+
 }

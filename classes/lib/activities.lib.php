@@ -39,6 +39,7 @@ class activities_lib {
     const TABLE_ACTIVITY_EMAILS = 'activities_emails';
     const TABLE_ACTIVITY_PERMISSIONS = 'activities_permissions';
     const TABLE_ACTIVITY_STAFF = 'activities_staff';
+    const TABLE_ACTIVITY_ACKNOWLEDGEMENTS = 'activities_acknowledgements';
 
     public static function is_activity($activitytype) {
         return (
@@ -1849,7 +1850,7 @@ class activities_lib {
         $emaildata = new \stdClass();
         $emaildata->activity = $activity;
         $emaildata->extratext = $data->extratext;
-        $emaildata->includepermissions = in_array('permissions', $data->includes);
+        $emaildata->includepermissions = $activity->permissions && in_array('permissions', $data->includes);
         $emaildata->includedetails = in_array('details', $data->includes);
 
         $output = $PAGE->get_renderer('core');
@@ -2472,6 +2473,41 @@ class activities_lib {
     }
 
 
+    public static function get_acknowledgers($activityid) {
+        global $DB;
 
+        $sql = "SELECT username
+                FROM {" . static::TABLE_ACTIVITY_ACKNOWLEDGEMENTS . "}
+                WHERE activityid = ?
+                AND acknowledge = 1";
+        $params = array($activityid);
+        $staff = $DB->get_records_sql($sql, $params);
+        return array_column($staff, 'username');
+    }
+
+
+    public static function acknowledge_activity($activityid, $acknowledge) {
+        global $DB, $USER;
+        $activity = new Activity($activityid);
+        $activity = $activity->export();
+
+        if (!$activity->isacknowledger) {
+            return false;
+        }
+
+        // Delete existing
+        $DB->delete_records(static::TABLE_ACTIVITY_ACKNOWLEDGEMENTS, [
+            'activityid' => $activityid,
+            'username' => $USER->username,
+        ]);
+
+        $DB->insert_record(static::TABLE_ACTIVITY_ACKNOWLEDGEMENTS, [
+            'activityid' => $activityid,
+            'username' => $USER->username,
+            'acknowledge' => $acknowledge,
+        ]);
+
+        return $acknowledge;
+    }
 
 }

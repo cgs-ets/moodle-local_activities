@@ -88,7 +88,7 @@ class cron_emails_user extends \core\task\scheduled_task {
 
             // If the email is a "permissions" email then it sends in a different way, because it needs to send per student.
             $includes = json_decode($email->includes);
-            if (in_array('permissions', $includes)) {
+            if (in_array('permissions', $includes) && $activity->permissions) {
 
                 foreach ($scope as $studentun) {
                     // Get parents.
@@ -108,7 +108,7 @@ class cron_emails_user extends \core\task\scheduled_task {
                         $data->recipientname = "$parent->firstname $parent->lastname";
                         $data->studentname = "$student->firstname $student->lastname";
                         $data->extratext = $email->extratext;
-                        $data->includepermissions = in_array('permissions', $includes);
+                        $data->includepermissions = true;
                         $data->includedetails = in_array('details', $includes);
                         $body = $OUTPUT->render_from_template('local_activities/email_message', $data);
                         $subject = "Permissions required for: $activity->activityname";

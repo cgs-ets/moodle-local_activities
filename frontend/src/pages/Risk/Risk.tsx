@@ -245,7 +245,7 @@ export function Risk() {
     const response = await api.call({
       method: 'POST',
       body: {
-        methodname: 'local_activities-generate_ra',
+        methodname: 'local_activities-save_ra',
         args: {
           activityid: activityid,
           riskassessment: riskAssessment,

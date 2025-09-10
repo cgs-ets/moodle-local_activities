@@ -43,6 +43,7 @@ export interface Classification {
   type: string;
   isstandard: number;
   contexts: number[];
+  includes: number[];
   preselected: boolean;
   hidden: boolean;
 }
@@ -95,7 +96,8 @@ export function Settings() {
     description: '', 
     type: 'hazards', 
     isstandard: 0, 
-    contexts: [] as number[]
+    contexts: [] as number[],
+    includes: [] as number[]
   });
   const [classificationError, setClassificationError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -134,7 +136,11 @@ export function Settings() {
     onDropdownOpen: () => combobox.updateSelectedOptionIndex('active'),
   });
   const [selectedContexts, setSelectedContexts] = useState<Classification[]>([]);
-  
+  const includesCombobox = useCombobox({
+    onDropdownClose: () => includesCombobox.resetSelectedOption(),
+    onDropdownOpen: () => includesCombobox.updateSelectedOptionIndex('active'),
+  });
+  const [selectedIncludes, setSelectedIncludes] = useState<Classification[]>([]);
   // Single combobox for adding new classification sets
   const addSetCombobox = useCombobox({
     onDropdownClose: () => addSetCombobox.resetSelectedOption(),
@@ -297,7 +303,8 @@ export function Settings() {
       icon: '', 
       type: 'hazards', 
       isstandard: 0, 
-      contexts: []
+      contexts: [],
+      includes: []
     });
     if (classification) {
       setEditingClassification(classification);
@@ -306,11 +313,13 @@ export function Settings() {
         description: classification.description, 
         type: classification.type, 
         isstandard: classification.isstandard, 
-        contexts: classification.contexts || []
+        contexts: classification.contexts || [],
+        includes: classification.includes || []
       } as Classification);
       // Load selected classifications
       const selected = classifications.filter(c => classification.contexts.includes(c.id));
       setSelectedContexts(selected);
+      setSelectedIncludes(classifications.filter(c => classification.includes.includes(c.id)));
     }
     setClassificationError(null);
     setClassificationModalOpen(true);
@@ -319,7 +328,7 @@ export function Settings() {
   const openClassificationIconModal = (classification: Classification) => {
     setEditingClassification(null);
     setEditingClassificationIcon(classification);
-    setClassificationForm({icon: classification.icon } as Classification);
+    setClassificationForm({icon: classification.icon, contexts: classification.contexts, includes: classification.includes } as Classification);
     setClassificationError(null);
     setClassificationModalOpen(true);
   };
@@ -333,7 +342,8 @@ export function Settings() {
         id: editingClassificationIcon !== null ? editingClassificationIcon.id : editingClassification?.id,
         version: currentVersion?.version,
         editingIcon: editingClassificationIcon !== null,
-        contexts: selectedContexts.map(c => c.id)
+        contexts: selectedContexts.map(c => c.id),
+        includes: selectedIncludes.map(c => c.id)
       };
 
       const response = await api.call({
@@ -502,10 +512,6 @@ export function Settings() {
     setClassificationSearchResults([]);
   };
 
-  const handleClassificationRemove = (classification: Classification) => {
-    setSelectedClassifications(selectedClassifications.filter(c => c.id !== classification.id));
-  };
-
   const handleContextSelect = (context: Classification) => {
     if (!selectedContexts.find(c => c.id === context.id)) {
       setSelectedContexts([...selectedContexts, context]);
@@ -514,6 +520,16 @@ export function Settings() {
 
   const handleContextRemove = (context: Classification) => {
     setSelectedContexts(selectedContexts.filter(c => c.id !== context.id));
+  };
+
+  const handleIncludeSelect = (include: Classification) => {
+    if (!selectedIncludes.find(c => c.id === include.id)) {
+      setSelectedIncludes([...selectedIncludes, include]);
+    }
+  };
+
+  const handleIncludeRemove = (include: Classification) => {
+    setSelectedIncludes(selectedIncludes.filter(c => c.id !== include.id));
   };
 
   // Helper functions for adding classification sets
@@ -1419,6 +1435,93 @@ export function Settings() {
                       </Combobox.Dropdown>
                     </Combobox>
                   </div>
+
+
+
+
+
+
+                  <div className="mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Text fz="sm" fw={500}>Includes</Text>
+                      <Tooltip w={300} label="If this hazard is selected, the following hazards will automatically be selected. For example, if International Travel is selected, then Standard Travel will also be selected." multiline withArrow>
+                        <div className="flex items-center gap-1 text-blue-600">
+                          <IconAlertSquare className="size-4" />
+                          <Text size="xs">Help</Text>
+                        </div>
+                      </Tooltip>
+                    </div>
+                    
+                    <Combobox 
+                      store={includesCombobox} 
+                      onOptionSubmit={(optionValue: string) => {
+                        const classification = JSON.parse(optionValue);
+                        handleIncludeSelect(classification);
+                        includesCombobox.closeDropdown();
+                      }}
+                      withinPortal={false}
+                    >
+                      <Combobox.DropdownTarget>
+                        <PillsInput 
+                          pointer 
+                          leftSection={<IconCategory2 size={18} />}
+                        >
+                          <Pill.Group>
+                            {selectedIncludes.map((include) => (
+                              <Badge key={include.id} variant='filled' pr={0} color={include.type === 'hazards' ? 'red.2' : 'blue.2'} size="lg" radius="xl">
+                                <Flex gap={4}>
+                                  <Text className="normal-case font-normal text-black text-sm">{include.name}</Text>
+                                  <CloseButton
+                                    onMouseDown={() => handleIncludeRemove(include)}
+                                    variant="transparent"
+                                    size={22}
+                                    iconSize={14}
+                                    tabIndex={-1}
+                                  />
+                                </Flex>
+                              </Badge>
+                            ))}
+                            <Combobox.EventsTarget>
+                              <PillsInput.Field
+                                onFocus={() => {
+                                  setClassificationSearchResults(classifications);
+                                  includesCombobox.openDropdown();
+                                }}
+                                onClick={() => {
+                                  setClassificationSearchResults(classifications);
+                                  includesCombobox.openDropdown();
+                                }}
+                                onBlur={() => includesCombobox.closeDropdown()}
+                                value={classificationSearch}
+                                placeholder="Search classifications"
+                                onChange={(event) => {
+                                  searchClassifications(event.currentTarget.value);
+                                  includesCombobox.openDropdown();
+                                }}
+                              />
+                            </Combobox.EventsTarget>
+                          </Pill.Group>
+                        </PillsInput>
+                      </Combobox.DropdownTarget>
+
+                      <Combobox.Dropdown>
+                        <Combobox.Options style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                          {classificationSearchResults.length > 0 
+                            ? classificationSearchResults.filter((classification) => classification.type === 'hazards').map((classification) => (
+                                <Combobox.Option value={JSON.stringify(classification)} key={classification.id}>
+                                  <Text className="normal-case font-normal text-black text-sm">{classification.name}</Text>
+                                </Combobox.Option>
+                              ))
+                            : <Combobox.Empty>Nothing found...</Combobox.Empty>
+                          }
+                        </Combobox.Options>
+                      </Combobox.Dropdown>
+                    </Combobox>
+                  </div>
+
+
+
+
                 
 
                   <Checkbox
@@ -1709,7 +1812,7 @@ export function Settings() {
         size="95%"
       >
         <Box>
-          {!diffHtml ? (
+          {!diffHtml && !diffLoading ? (
             <>
               <Text mb="lg">
                 Before publishing the risk database, please review changes you made. Please select a version to compare to:
@@ -1794,8 +1897,9 @@ export function Settings() {
               </div>
               
               {diffLoading ? (
-                <Box style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+                <Box className="flex flex-col justify-center items-center min-h-[200px]">
                   <Loader size="lg" type="dots" />
+                  Please wait will the system generates a comparison of the two versions.
                 </Box>
               ) : (
                 <>

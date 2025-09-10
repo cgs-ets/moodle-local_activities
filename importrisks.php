@@ -53,9 +53,9 @@ foreach ($rows as $row) {
         if (!$classification) {
             $classification = new stdClass();
             $classification->name = $name;
-            $classification->icon = null;
-            $classification->type = 'general';
-            $classification->description = null;
+            $classification->icon = '';
+            $classification->type = 'hazard';
+            $classification->description = '';
             $classification->sortorder = 0;
             $classification->isstandard = 0;
             $classification->version = 99;
