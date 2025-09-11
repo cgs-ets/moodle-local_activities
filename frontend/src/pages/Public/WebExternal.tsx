@@ -58,8 +58,8 @@ export function WebExternal() {
           <Grid grow gutter={0}>
               <Grid.Col span={{ base: 12, lg: 9 }} className="border-r min-h-screen bg-white pb-6">
                 { calView.type == 'calendar'
-                  ? <Calendar hideFilters />
-                  : <List hideFilters />
+                  ? <Calendar hideFilters hideViews />
+                  : <List hideFilters hideViews />
                 }
             </Grid.Col>
           </Grid>

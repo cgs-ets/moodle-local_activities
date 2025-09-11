@@ -15,15 +15,16 @@ import { useCalViewStore } from "../../../stores/calViewStore";
 import { FilterModal } from "./FilterModal";
 
 type TermYear = {
-  term: string,
-  year: string,
+  term: string;
+  year: string;
 }
 
 type Props = {
-  hideFilters?: boolean
+  hideFilters?: boolean;
+  hideViews?: boolean;
 }
 
-export function List({hideFilters}: Props) {
+export function List({hideFilters, hideViews}: Props) {
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -204,14 +205,14 @@ export function List({hideFilters}: Props) {
           <ActionIcon onClick={() => handleNav(-1)} variant="subtle" size="lg"><IconArrowNarrowLeft className="size-7" /></ActionIcon>
 
           <div className="text-xl font-semibold flex gap-2 items-center flex-wrap">
-            <div className="mr-2 flex items-center gap-2">
+            {!hideViews && <div className="mr-2 flex items-center gap-2">
               <ActionIcon onClick={() => setCalView({...calView, type: 'calendar'})} variant="light" aria-label="Calendar view" title="Calendar view" className="size-8"  >
                 <IconCalendarWeek stroke={1.5} />
               </ActionIcon>
               <ActionIcon onClick={() => setCalView({...calView, type: 'list'})} variant="light" aria-label="List view" title="List view" className="size-8"  >
                 <IconListDetails stroke={1.5} />
               </ActionIcon>
-            </div>
+            </div>}
             <Select
               placeholder="Term"
               data={[
