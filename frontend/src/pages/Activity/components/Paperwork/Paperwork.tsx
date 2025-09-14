@@ -1,7 +1,7 @@
-import { ActionIcon, Anchor, Avatar, Box, Button, Card, Checkbox, Collapse, Grid, Group, Loader, Modal, Switch, Table, Text, Tooltip } from '@mantine/core';
+import { Accordion, ActionIcon, Anchor, Avatar, Box, Button, Card, Checkbox, Collapse, Grid, Group, Loader, Modal, Switch, Table, Text, Tooltip } from '@mantine/core';
 import { FileUploader } from './components/FileUploader/FileUploader';
 import '@mantine/dropzone/styles.css';
-import { IconArchive, IconBrandAdobe, IconCheck, IconDownload, IconExternalLink, IconEye, IconFileTypePdf, IconPlus, IconSquare, IconSquareCheck, IconTrash, IconUser } from '@tabler/icons-react';
+import { IconArchive, IconBrandAdobe, IconCheck, IconCircle, IconDownload, IconExternalLink, IconEye, IconFileTypePdf, IconPlus, IconSquare, IconSquareCheck, IconTrash, IconUser } from '@tabler/icons-react';
 import { useFormStore } from '../../../../stores/formStore';
 import { useStateStore } from '../../../../stores/stateStore';
 import { useEffect, useState } from 'react';
@@ -10,6 +10,7 @@ import dayjs from 'dayjs';
 import { Link, useSearchParams } from 'react-router-dom';
 import { getConfig, statuses } from '../../../../utils';
 import { stat } from 'fs';
+import { User } from '../../../../types/types';
 
 export function Paperwork() {
   const [searchParams] = useSearchParams()
@@ -25,6 +26,9 @@ export function Paperwork() {
   const isapprover = useFormStore((state) => (state.isapprover))
   const isacknowledger = useFormStore((state) => (state.isacknowledger))
   const acknowledgers = useFormStore((state) => (state.acknowledgers))
+  const hasUserAcknowledged = useFormStore((state) => (state.hasUserAcknowledged))
+  const setHasUserAcknowledged = useFormStore((state) => (state.setHasUserAcknowledged))
+  const [acknowledgedModalOpened, setAcknowledgedModalOpened] = useState(false);
 
   useEffect(() => {
     getRaGenerations();
@@ -80,6 +84,7 @@ export function Paperwork() {
   }
 
   const acknowledgeActivity = async (acknowledge: boolean) => {
+    setHasUserAcknowledged(acknowledge);
     await api.call({
       query: {
         methodname: 'local_activities-acknowledge_activity',
@@ -124,25 +129,53 @@ export function Paperwork() {
 
             <>
               <div className='border-b p-4 space-y-2'>
-                <Text className="font-semibold">Acknowledgments</Text>
+                <Accordion variant="contained">
+                  <Accordion.Item value="acknowledgments">
+                    <Accordion.Control>
+                      <div className='flex items-center gap-2'>
+                        {hasUserAcknowledged 
+                          ? <IconCheck className='size-6 text-green-500' /> 
+                          : <IconCircle className='size-6 text-gray-400' />
+                        }
+                        <Text className="font-semibold">Acknowledgments</Text>
+                      </div>
+                    </Accordion.Control>
+                    <Accordion.Panel>
+                      <Text className="font-semibold">STAFF IN CHARGE (LEADER)</Text>
+                      <Text className="text-sm">As the Staff Member in charge of the activity, I acknowledge that all Staff and Volunteers participating will be made aware of the risk mitigation strategies to be implemented and any additional activity documentation. I acknowledge I am responsible for all activity form updates in CAPMS to ensure all information is current for staff and school community reference. I understand I an actively responsible for engaging in the measures outlined in addition to CGS Policies, Procedures, and Guidelines.</Text>
 
-                <Text className="font-semibold">EDUCATOR IN CHARGE (LEADER)</Text>
-                <Text className="text-sm">As the Educator in charge of the activity, I acknowledge that all Educators participating will be made aware of the risk mitigation strategies to be implemented and any additional activity documentation. I acknowledge I am responsible for all updates of activity information to ensure all information is current for staff and school community reference.</Text>
+                      <Text className="font-semibold">SECOND IN CHARGE (STAND BY LEADER)</Text>
+                      <Text className="text-sm">If the Staff Member in charge of the activity is unable to attend, I will take the responsibility as Staff in Charge. I acknowledge that all Staff and Volunteers participating will be made aware of the risk mitigation strategies to be implemented and any additional activity documentation. I understand I an actively responsible for engaging in the measures outlined in addition to CGS Policies, Procedures, and Guidelines.</Text>
 
-                <Text className="font-semibold">STAND BY EDUCATOR IN CHARGE (STAND BY LEADER)</Text>
-                <Text className="text-sm">If the Educator in charge of the activity is unable to attend, I will take the responsibility as Educator in Charge. I acknowledge that all Educators participating will be made aware of the risk mitigation strategies to be implemented and any additional activity documentation.</Text>
-
-                <Text className="font-semibold">ACCOMPANYING STAFF ACKNOWLEDGEMENT</Text>
-                <Text className="text-sm">I have read and understood the activity details and risk assessment. I understand the possible hazards and what measures will be put in place to lower the risk. I understand I am actively responsible for engaging in the measures outlined.</Text>
-
-                {isacknowledger && <Checkbox onChange={(v) => acknowledgeActivity(v.target.checked)} className="py-4" label="I acknowledge and accept my responsibilities in accordance with the above acknowledgments." />}
+                      <Text className="font-semibold">ACCOMPANYING STAFF ACKNOWLEDGEMENT</Text>
+                      <Text className="text-sm">I have read and understood the activity details and risk assessment. I understand the possible hazards and what measures will be put in place to lower the risk. I understand I an actively responsible for engaging in the measures outlined in addition to CGS Policies, Procedures, and Guidelines.</Text>
+                    
+                      {isacknowledger && viewStateProps.editable && 
+                        <Checkbox 
+                          checked={hasUserAcknowledged}
+                          onChange={(v) => acknowledgeActivity(v.target.checked)} 
+                          className="mt-5 mb-2" 
+                          label="I acknowledge and accept my responsibilities in accordance with the above acknowledgments." 
+                        />
+                      }
+                    </Accordion.Panel>
+                  </Accordion.Item>
+                </Accordion>
+                
+                
                 
                 {acknowledgers.length > 0 && 
-                  <Avatar.Group className="cursor-pointer">
-                    {acknowledgers.map((un: string, i: number) => {
-                      return <Avatar size={24} key={i} src={'/local/activities/avatar.php?username=' + un}><IconUser /></Avatar>
-                    })}
-                  </Avatar.Group>
+                  <div className='flex justify-start'>
+                    <div className='flex items-center gap-2 py-2 px-4 bg-blue-50 border rounded-md cursor-pointer' onClick={() => setAcknowledgedModalOpened(true)}>
+                      <Text className="text-sm font-semibold">Acknowledged by:</Text>
+                      <Avatar.Group>
+                        {acknowledgers.map((user: User, i: number) => {
+                          return <Avatar size={24} key={i} src={'/local/activities/avatar.php?username=' + user.un}><IconUser /></Avatar>
+                        })}
+                      </Avatar.Group>
+                    </div>
+                  </div>
+
                 }
 
               </div>
@@ -158,7 +191,7 @@ export function Paperwork() {
                 
                   <div className='flex items-center justify-between'>
                     <Text className="font-semibold">Digital Risk Assessment</Text>
-                    <Link to={`/${activityid}/risk`}><Button leftSection={<IconPlus className='size-4' />} radius='xl' variant='filled' size='compact-sm'>Generate</Button></Link>
+                    {viewStateProps.editable && raGenerations.length > 0 && <Link to={`/${activityid}/risk`}><Button leftSection={<IconPlus className='size-4' />} radius='xl' variant='filled' size='compact-sm'>Generate</Button></Link>}
                   </div>
 
                   {!raGenerations.length && api.state.loading && <Loader className='mx-auto' size='sm' />}
@@ -206,7 +239,11 @@ export function Paperwork() {
                         ))}
                       </Table.Tbody>
                     </Table>
-                  : !api.state.loading && <Text className='text-xs'>No Risk Assessments have been generated for this activity. Click the Generate button to create one.</Text>
+                  : !api.state.loading && 
+                    <div>
+                      <Text className='text-xs mb-3'>No Risk Assessments have been generated for this activity. Click the Generate button to create one.</Text>
+                      {viewStateProps.editable && <Link to={`/${activityid}/risk`}><Button leftSection={<IconPlus className='size-4' />} radius='xl' variant='filled' size='compact-md'>Generate</Button></Link>}
+                    </div>
                   }
                 </div> 
               )
@@ -269,6 +306,35 @@ export function Paperwork() {
           </div>
         )}
 
+      </Modal>
+
+      <Modal
+        opened={acknowledgedModalOpened} 
+        onClose={() => setAcknowledgedModalOpened(false)} 
+        title={`Acknowledgments`}
+        size="md"
+        styles={{
+          header: {
+            borderBottom: '0.0625rem solid #dee2e6',
+          },
+          title: {
+            fontWeight: 600,
+          },
+          body: {
+            padding: 0
+          }
+        }}
+        >
+          <div className="flex flex-col">
+            {acknowledgers.map((user: User) => {
+              return (
+                <div key={user.un} className="flex gap-2 border-b px-4 py-2">
+                  <Avatar size={24} key={user.un} src={'/local/activities/avatar.php?username=' + user.un}><IconUser /></Avatar>
+                  <Text>{user.fn} {user.ln} ({user.un})</Text>
+                </div>
+              )
+            })}
+          </div>
       </Modal>
     </>
   );

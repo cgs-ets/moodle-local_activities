@@ -2482,7 +2482,22 @@ class activities_lib {
                 AND acknowledge = 1";
         $params = array($activityid);
         $staff = $DB->get_records_sql($sql, $params);
-        return array_column($staff, 'username');
+        $staff = array_map(function($item) {
+            return utils_lib::user_stub($item->username);
+        }, $staff);
+        return array_values($staff);
+    }
+
+    public static function has_user_acknowledged($activityid) {
+        global $DB, $USER;
+
+        $sql = "SELECT id
+                FROM {" . static::TABLE_ACTIVITY_ACKNOWLEDGEMENTS . "}
+                WHERE activityid = ?
+                AND username = ?
+                AND acknowledge = 1";
+        $params = array($activityid, $USER->username);
+        return $DB->record_exists_sql($sql, $params);
     }
 
 

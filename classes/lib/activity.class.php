@@ -659,6 +659,7 @@ class Activity {
             'occurrences' => $occurrences,
             'canpermissionsend' => $canpermissionsend,
             'acknowledgers' => $acknowledgers,
+            'hasUserAcknowledged' => activities_lib::has_user_acknowledged($this->data->id),
 	    ];
     }
 

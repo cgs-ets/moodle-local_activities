@@ -69,6 +69,7 @@ export type Form = {
     datesReadable: any[],
   };
   recurringAcceptChanges: boolean;
+  hasUserAcknowledged: boolean;
 };
 
 type FormStore = Form & {
@@ -164,6 +165,7 @@ const defaults: Form = {
     datesReadable: [],
   },
   recurringAcceptChanges: false,
+  hasUserAcknowledged: false,
 };
 
 const useFormStore = create<FormStore>((set) => ({
@@ -171,6 +173,7 @@ const useFormStore = create<FormStore>((set) => ({
   setState: (newState) => set(newState || defaults),
   setRecurrence: (newRecurrence: Recurrence) => set({ recurrence: newRecurrence || defaults.recurrence }),
   reset: () => set(defaults),
+  setHasUserAcknowledged: (hasUserAcknowledged: boolean) => set({ hasUserAcknowledged: hasUserAcknowledged }),
 }))
 
 

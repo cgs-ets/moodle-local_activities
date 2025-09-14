@@ -332,9 +332,13 @@ class risks_lib {
 
     private static function generate_html($activity, $classifications) {
         global $OUTPUT;
+        $path = __DIR__ . '/../../images/risk-matrix-test.png';
+        $data = file_get_contents($path);
+        $base64 = 'data:image/png;base64,' . base64_encode($data);
         $data = [
             'activity' => $activity,
             'classifications' => array_values($classifications),
+            'risk_matrix_image' => $base64,
         ];
         return $OUTPUT->render_from_template('local_activities/risk_assessment', $data);
     }

@@ -71,12 +71,23 @@ export function Workflow({
   }, [fetchResponse]);
 
   const expectNewWorkflow = () => {
-    return status == statuses.draft || 
+    if( status == statuses.draft || 
            status == statuses.saved || 
            (initialCampus && initialCampus != campus) || 
            (initialActivitytype && initialActivitytype != activitytype) ||
            (initialTimestart && initialTimestart != timestart) ||
            (initialTimeend && initialTimeend != timeend)
+    ) {
+      console.log("Expecting new workflow")
+      console.log("Status", status)
+      console.log("Campus", initialCampus, "!=", campus)
+      console.log("Activitytype", initialActivitytype, "!=", activitytype)
+      console.log("Timestart", initialTimestart, "!=", timestart)
+      console.log("Timeend", initialTimeend, "!=", timeend)
+      return true;
+    } else {
+      return false;
+    }
   }
 
   const getDraftWorkflow = () => {

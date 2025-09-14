@@ -310,6 +310,13 @@
       .page-break {
         page-break-before: always;
       }
+
+      .risk-matrix-image {
+        page-break-after: always;
+        margin-bottom: 30px;
+        padding: 20px;
+        background: #fff;
+      }
       
     </style>
   </head>
@@ -415,6 +422,10 @@
         {{/activity.is_other_qualifications}}
         </tbody>
       </table>
+    </div>
+
+    <div class="risk-matrix-image">
+      <img src="{{risk_matrix_image}}" width="591" height="482" />
     </div>
 
     <div class="table-container">
