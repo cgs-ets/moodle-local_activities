@@ -40,7 +40,7 @@ foreach ($rows as $row) {
     $classification_ids = [];
 
     // 2. Find or create each classification
-    foreach ($classification_names as $name) {
+    foreach ($classification_names as $i => $name) {
         if (empty($name)) {
             continue; // Skip empty names
         }
@@ -50,16 +50,41 @@ foreach ($rows as $row) {
             'version' => 99
         ]);
 
+        // Classifications are "context" except for the last one, which is a hazard.
+        $type = ($i < count($classification_names) -1) ? 'context' : 'hazard';
+
         if (!$classification) {
             $classification = new stdClass();
             $classification->name = $name;
             $classification->icon = '';
-            $classification->type = 'hazard';
+            $classification->type = $type;
             $classification->description = '';
-            $classification->sortorder = 0;
+            $classification->sortorder = $type == 'hazard' ? 2 : 1;
             $classification->isstandard = 0;
             $classification->version = 99;
             $classification->id = $DB->insert_record('activities_classifications', $classification);
+        }
+
+        // If this is the last classification, add the previous classifications as contexts.
+        if ($i == count($classification_names) - 1) {
+            foreach ($classification_ids as $classification_id) {
+                // Get the classification
+                $existing = $DB->get_record('activities_classifications', ['id' => $classification_id, 'version' => 99]);
+
+                // if it is excursion or incursion, then add it as a context, if it doesn't already exist as a context.
+                if ($existing->name == 'Excursion' || $existing->name == 'Incursion' || $existing->name == 'Events') {
+                    // Check if it already exists as a context.
+                    $existing_context = $DB->get_record('activities_classifications_contexts', ['classificationid' => $classification->id, 'contextid' => $classification_id, 'version' => 99]);
+                    if (!$existing_context) {
+                        $DB->insert_record('activities_classifications_contexts', [
+                            'classificationid' => $classification->id, 
+                                'contextid' => $classification_id, 
+                                'version' => 99
+                        ]);
+                    }
+                }
+
+            }
         }
         
         $classification_ids[] = $classification->id;

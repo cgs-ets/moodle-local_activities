@@ -128,131 +128,126 @@ export function Paperwork() {
           {(getConfig().user.un == '43563' || getConfig().user.un == 'admin') &&
 
             <>
-              <div className='border-b p-4 space-y-2'>
-                <Accordion variant="contained">
-                  <Accordion.Item value="acknowledgments">
-                    <Accordion.Control>
-                      <div className='flex items-center gap-2'>
-                        {hasUserAcknowledged 
-                          ? <IconCheck className='size-6 text-green-500' /> 
-                          : <IconCircle className='size-6 text-gray-400' />
+              { (activityid && status >= statuses.inreview) ?
+                <div className='border-b p-4 space-y-2'>
+                  <Accordion variant="contained">
+                    <Accordion.Item value="acknowledgments">
+                      <Accordion.Control>
+                        <div className='flex items-center gap-2'>
+                          {hasUserAcknowledged 
+                            ? <IconCheck className='size-6 text-green-500' /> 
+                            : <IconCircle className='size-6 text-gray-400' />
+                          }
+                          <Text className="font-semibold">Acknowledgments</Text>
+                        </div>
+                      </Accordion.Control>
+                      <Accordion.Panel>
+                        <Text className="font-semibold">STAFF IN CHARGE (LEADER)</Text>
+                        <Text className="text-sm">As the Staff Member in charge of the activity, I acknowledge that all Staff and Volunteers participating will be made aware of the risk mitigation strategies to be implemented and any additional activity documentation. I acknowledge I am responsible for all activity form updates in CAPMS to ensure all information is current for staff and school community reference. I understand I an actively responsible for engaging in the measures outlined in addition to CGS Policies, Procedures, and Guidelines.</Text>
+
+                        <Text className="font-semibold">SECOND IN CHARGE (STAND BY LEADER)</Text>
+                        <Text className="text-sm">If the Staff Member in charge of the activity is unable to attend, I will take the responsibility as Staff in Charge. I acknowledge that all Staff and Volunteers participating will be made aware of the risk mitigation strategies to be implemented and any additional activity documentation. I understand I an actively responsible for engaging in the measures outlined in addition to CGS Policies, Procedures, and Guidelines.</Text>
+
+                        <Text className="font-semibold">ACCOMPANYING STAFF ACKNOWLEDGEMENT</Text>
+                        <Text className="text-sm">I have read and understood the activity details and risk assessment. I understand the possible hazards and what measures will be put in place to lower the risk. I understand I an actively responsible for engaging in the measures outlined in addition to CGS Policies, Procedures, and Guidelines.</Text>
+                      
+                        {isacknowledger && viewStateProps.editable && 
+                          <Checkbox 
+                            checked={hasUserAcknowledged}
+                            onChange={(v) => acknowledgeActivity(v.target.checked)} 
+                            className="mt-5 mb-2" 
+                            label="I acknowledge and accept my responsibilities in accordance with the above acknowledgments." 
+                          />
                         }
-                        <Text className="font-semibold">Acknowledgments</Text>
+                      </Accordion.Panel>
+                    </Accordion.Item>
+                  </Accordion>
+                  
+                  { acknowledgers.length > 0 && 
+                    <div className='flex justify-start'>
+                      <div className='flex items-center gap-2 py-2 px-4 bg-blue-50 border rounded-md cursor-pointer' onClick={() => setAcknowledgedModalOpened(true)}>
+                        <Text className="text-sm font-semibold">Acknowledged by:</Text>
+                        <Avatar.Group>
+                          {acknowledgers.map((user: User, i: number) => {
+                            return <Avatar size={24} key={i} src={'/local/activities/avatar.php?username=' + user.un}><IconUser /></Avatar>
+                          })}
+                        </Avatar.Group>
                       </div>
-                    </Accordion.Control>
-                    <Accordion.Panel>
-                      <Text className="font-semibold">STAFF IN CHARGE (LEADER)</Text>
-                      <Text className="text-sm">As the Staff Member in charge of the activity, I acknowledge that all Staff and Volunteers participating will be made aware of the risk mitigation strategies to be implemented and any additional activity documentation. I acknowledge I am responsible for all activity form updates in CAPMS to ensure all information is current for staff and school community reference. I understand I an actively responsible for engaging in the measures outlined in addition to CGS Policies, Procedures, and Guidelines.</Text>
-
-                      <Text className="font-semibold">SECOND IN CHARGE (STAND BY LEADER)</Text>
-                      <Text className="text-sm">If the Staff Member in charge of the activity is unable to attend, I will take the responsibility as Staff in Charge. I acknowledge that all Staff and Volunteers participating will be made aware of the risk mitigation strategies to be implemented and any additional activity documentation. I understand I an actively responsible for engaging in the measures outlined in addition to CGS Policies, Procedures, and Guidelines.</Text>
-
-                      <Text className="font-semibold">ACCOMPANYING STAFF ACKNOWLEDGEMENT</Text>
-                      <Text className="text-sm">I have read and understood the activity details and risk assessment. I understand the possible hazards and what measures will be put in place to lower the risk. I understand I an actively responsible for engaging in the measures outlined in addition to CGS Policies, Procedures, and Guidelines.</Text>
-                    
-                      {isacknowledger && viewStateProps.editable && 
-                        <Checkbox 
-                          checked={hasUserAcknowledged}
-                          onChange={(v) => acknowledgeActivity(v.target.checked)} 
-                          className="mt-5 mb-2" 
-                          label="I acknowledge and accept my responsibilities in accordance with the above acknowledgments." 
-                        />
-                      }
-                    </Accordion.Panel>
-                  </Accordion.Item>
-                </Accordion>
-                
-                
-                
-                {acknowledgers.length > 0 && 
-                  <div className='flex justify-start'>
-                    <div className='flex items-center gap-2 py-2 px-4 bg-blue-50 border rounded-md cursor-pointer' onClick={() => setAcknowledgedModalOpened(true)}>
-                      <Text className="text-sm font-semibold">Acknowledged by:</Text>
-                      <Avatar.Group>
-                        {acknowledgers.map((user: User, i: number) => {
-                          return <Avatar size={24} key={i} src={'/local/activities/avatar.php?username=' + user.un}><IconUser /></Avatar>
-                        })}
-                      </Avatar.Group>
-                    </div>
-                  </div>
-
-                }
-
-              </div>
-
-            { !activityid || (status == statuses.draft) ? 
-              (
-                <div className='border-b p-4 space-y-2'>
-                  <Text className="font-semibold">Digital Risk Assessment</Text>
-                  <Text className='text-xs bg-orange-100 p-2 rounded-md'>Save this activity to access the Risk Assessment generator.</Text>
-                </div>
-              ) : (
-                <div className='border-b p-4 space-y-2'>
-                
-                  <div className='flex items-center justify-between'>
-                    <Text className="font-semibold">Digital Risk Assessment</Text>
-                    {viewStateProps.editable && raGenerations.length > 0 && <Link to={`/${activityid}/risk`}><Button leftSection={<IconPlus className='size-4' />} radius='xl' variant='filled' size='compact-sm'>Generate</Button></Link>}
-                  </div>
-
-                  {!raGenerations.length && api.state.loading && <Loader className='mx-auto' size='sm' />}
-
-                  {raGenerations.length > 0 ?
-                    <Table>
-                      <Table.Thead>
-                        <Table.Tr>
-                          <Table.Td className='w-44'>Date</Table.Td>
-                          <Table.Td>Categories</Table.Td>
-                          <Table.Td className='w-56'></Table.Td>
-                        </Table.Tr>
-                      </Table.Thead>
-                      <Table.Tbody>
-                        {raGenerations.map((raGeneration) => (
-                          <Table.Tr
-                            key={raGeneration.id}
-                            id={`risk-assessment-row-${raGeneration.id}`}
-                            className={`${raid === raGeneration.id ? "bg-yellow-100" : ""} ${
-                              pulsing ? "xanimate-pulse" : ""
-                            }`}
-                          >
-                            <Table.Td>{dayjs.unix(Number(raGeneration.timecreated)).format("D MMM YYYY H:mma")}</Table.Td>
-                            <Table.Td>{raGeneration.classifications.map((classification: any) => classification.name).join(', ')}</Table.Td>
-                            <Table.Td>
-                              { viewStateProps.editable && (
-
-                                <Group className="justify-end pr-1">
-                                  <ActionIcon onClick={() => deleteRaGeneration(raGeneration.id)} color='red' variant='light' size='compact-xs'><IconTrash className='size-4' /></ActionIcon>
-                                
-                                  <Button onClick={() => window.open(raGeneration.download_url + '?action=open', '_blank')} variant='light' size='compact-xs' rightSection={<IconDownload className='size-3' />}>PDF</Button>
-
-                                  {isapprover ? (
-                                    <Checkbox disabled={api.state.loading} checked={Number(raGeneration.approved) === 1} onChange={(v) => approveRaGeneration(raGeneration.id, v.target.checked)} />
-                                  ) : (
-                                    raGeneration.approved == 1 
-                                    ? <Text className='text-xs text-green-500'>Approved</Text>
-                                    : <Text className='text-xs text-gray-500'>Unapproved</Text>
-                                  )}
-                                </Group>
-                              )}
-                              
-                            </Table.Td>
-                          </Table.Tr>
-                        ))}
-                      </Table.Tbody>
-                    </Table>
-                  : !api.state.loading && 
-                    <div>
-                      <Text className='text-xs mb-3'>No Risk Assessments have been generated for this activity. Click the Generate button to create one.</Text>
-                      {viewStateProps.editable && <Link to={`/${activityid}/risk`}><Button leftSection={<IconPlus className='size-4' />} radius='xl' variant='filled' size='compact-md'>Generate</Button></Link>}
                     </div>
                   }
-                </div> 
-              )
-            }
+                </div> : null
+              }
 
-          </>
+              { !activityid || (status == statuses.draft) ? 
+                (
+                  <div className='border-b p-4 space-y-2'>
+                    <Text className="font-semibold">Digital Risk Assessment</Text>
+                    <Text className='text-xs bg-orange-100 p-2 rounded-md'>Save this activity to access the Risk Assessment generator.</Text>
+                  </div>
+                ) : (
+                  <div className='border-b p-4 space-y-2'>
+                  
+                    <div className='flex items-center justify-between'>
+                      <Text className="font-semibold">Digital Risk Assessment</Text>
+                      {viewStateProps.editable && raGenerations.length > 0 && <Link to={`/${activityid}/risk`}><Button leftSection={<IconPlus className='size-4' />} radius='xl' variant='filled' size='compact-sm'>Generate</Button></Link>}
+                    </div>
 
+                    {!raGenerations.length && api.state.loading && <Loader className='mx-auto' size='sm' />}
 
+                    {raGenerations.length > 0 ?
+                      <Table>
+                        <Table.Thead>
+                          <Table.Tr>
+                            <Table.Td className='w-44'>Date</Table.Td>
+                            <Table.Td>Categories</Table.Td>
+                            <Table.Td className='w-56'></Table.Td>
+                          </Table.Tr>
+                        </Table.Thead>
+                        <Table.Tbody>
+                          {raGenerations.map((raGeneration) => (
+                            <Table.Tr
+                              key={raGeneration.id}
+                              id={`risk-assessment-row-${raGeneration.id}`}
+                              className={`${raid === raGeneration.id ? "bg-yellow-100" : ""} ${
+                                pulsing ? "xanimate-pulse" : ""
+                              }`}
+                            >
+                              <Table.Td>{dayjs.unix(Number(raGeneration.timecreated)).format("D MMM YYYY H:mma")}</Table.Td>
+                              <Table.Td>{raGeneration.classifications.map((classification: any) => classification.name).join(', ')}</Table.Td>
+                              <Table.Td>
+                                { viewStateProps.editable && (
 
+                                  <Group className="justify-end pr-1">
+                                    <ActionIcon onClick={() => deleteRaGeneration(raGeneration.id)} color='red' variant='light' size='compact-xs'><IconTrash className='size-4' /></ActionIcon>
+                                  
+                                    <Button onClick={() => window.open(raGeneration.download_url + '?action=open', '_blank')} variant='light' size='compact-xs' rightSection={<IconDownload className='size-3' />}>PDF</Button>
+
+                                    {isapprover ? (
+                                      <Checkbox disabled={api.state.loading} checked={Number(raGeneration.approved) === 1} onChange={(v) => approveRaGeneration(raGeneration.id, v.target.checked)} />
+                                    ) : (
+                                      raGeneration.approved == 1 
+                                      ? <Text className='text-xs text-green-500'>Approved</Text>
+                                      : <Text className='text-xs text-gray-500'>Unapproved</Text>
+                                    )}
+                                  </Group>
+                                )}
+                                
+                              </Table.Td>
+                            </Table.Tr>
+                          ))}
+                        </Table.Tbody>
+                      </Table>
+                    : !api.state.loading && 
+                      <div>
+                        <Text className='text-xs mb-3'>No Risk Assessments have been generated for this activity. Click the Generate button to create one.</Text>
+                        {viewStateProps.editable && <Link to={`/${activityid}/risk`}><Button leftSection={<IconPlus className='size-4' />} radius='xl' variant='filled' size='compact-md'>Generate</Button></Link>}
+                      </div>
+                    }
+                  </div> 
+                )
+              }
+
+            </>
           }
 
           <div className='border-b p-4'>

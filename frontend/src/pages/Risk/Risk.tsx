@@ -570,7 +570,7 @@ export function Risk() {
                               label=""
                             >
                               <Grid pt="md" gutter="md" columns={12}>
-                                {classifications.filter(c => c.type === 'hazards').map((classification) => {
+                                {classifications.filter(c => c.type === 'hazard').map((classification) => {
                                   // Only display this classification if all of its contexts are selected
                                   if (!isContextSelected(classification, riskAssessment.selectedClassifications)) {
                                     return null;

@@ -2,7 +2,7 @@
 import dayjs from 'dayjs'
 import { create } from 'zustand'
 import { getConfig } from '../utils';
-import { FileData, Recurrence } from '../types/types';
+import { FileData, Recurrence, User } from '../types/types';
 
 
 export type Form = {
@@ -70,6 +70,7 @@ export type Form = {
   };
   recurringAcceptChanges: boolean;
   hasUserAcknowledged: boolean;
+  acknowledgers: User[];
 };
 
 type FormStore = Form & {
@@ -166,6 +167,7 @@ const defaults: Form = {
   },
   recurringAcceptChanges: false,
   hasUserAcknowledged: false,
+  acknowledgers: [],
 };
 
 const useFormStore = create<FormStore>((set) => ({

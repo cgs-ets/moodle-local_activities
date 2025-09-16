@@ -94,7 +94,7 @@ export function Settings() {
     name: '', 
     icon: '', 
     description: '', 
-    type: 'hazards', 
+    type: 'hazard', 
     isstandard: 0, 
     contexts: [] as number[],
     includes: [] as number[]
@@ -301,7 +301,7 @@ export function Settings() {
       name: '', 
       description: '', 
       icon: '', 
-      type: 'hazards', 
+      type: 'hazard', 
       isstandard: 0, 
       contexts: [],
       includes: []
@@ -580,6 +580,18 @@ export function Settings() {
     setRiskFilterSearchResults(filtered);
   };
 
+  const handleRiskFilterPreset = (presets: string[]) => {
+    let newSelectedRiskFilters: Classification[] = [];
+    for (const preset of presets) {
+      const found = classifications.find(c => c.name === preset)!;
+      newSelectedRiskFilters.push(found);
+    }
+    setSelectedRiskFilters(newSelectedRiskFilters);
+    setRiskFilterSearch('');
+    setRiskFilterSearchResults([]);
+    riskFilterCombobox.resetSelectedOption();
+  };
+
   const handleRiskFilterSelect = (classification: Classification) => {
     if (!selectedRiskFilters.find(c => c.id === classification.id)) {
       setSelectedRiskFilters([...selectedRiskFilters, classification]);
@@ -601,7 +613,7 @@ export function Settings() {
     }
     
     return risks.filter(risk => {
-      return selectedRiskFilters.some(filter => 
+      return selectedRiskFilters.every(filter => 
         risk.classification_sets.some(set => set.includes(filter.id))
       );
     });
@@ -878,7 +890,65 @@ export function Settings() {
                   </Group>
                   
                   {/* Risk Filter */}
-                  <div className="flex justify-end items-center mb-4">
+                  <div className="flex justify-end items-start mb-4 gap-4">
+                    <div className="flex gap-2 items-center pt-1">
+                      <Text fz="sm" fw={500}>Quick filter</Text>
+                      <Button 
+                        onClick={() => {
+                          handleRiskFilterPreset(['PS-PK-CGS Care', 'Incursion'])
+                        }} 
+                        size="compact-md"
+                        radius="xl"
+                        variant="outline"
+                      >
+                        PS-PK-CGS Care Incursions
+                      </Button>
+                      
+                      <Button 
+                        onClick={() => {
+                          handleRiskFilterPreset(['PS-PK-CGS Care', 'Excursion'])
+                        }} 
+                        size="compact-md"
+                        radius="xl"
+                        variant="outline"
+                      >
+                        PS-PK-CGS Care Excursions
+                      </Button>
+
+                      <Button 
+                        onClick={() => {
+                          handleRiskFilterPreset(['K - 6', 'Incursion'])
+                        }} 
+                        size="compact-md"
+                        radius="xl"
+                        variant="outline"
+                      >
+                        K-6 Incursions
+                      </Button>
+                      
+                      <Button 
+                        onClick={() => {
+                          handleRiskFilterPreset(['K - 6', 'Excursion'])
+                        }} 
+                        size="compact-md"
+                        radius="xl"
+                        variant="outline"
+                      >
+                        K-6 Excursions
+                      </Button>
+
+                      <Button 
+                        onClick={() => {
+                          handleRiskFilterPreset(['Events'])
+                        }} 
+                        size="compact-md"
+                        radius="xl"
+                        variant="outline"
+                      >
+                        Events
+                      </Button>
+                    </div>
+
                     <Box mb="md" className="w-1/2">
                       <Combobox 
                         store={riskFilterCombobox} 
@@ -1015,7 +1085,7 @@ export function Settings() {
                                     {classificationSet.map((classificationId) => {
                                       const classification = classifications.find(c => c.id === classificationId);
                                       return classification ? (
-                                        <Badge key={classificationId} variant="light" size="sm" color={classification.type === 'hazards' ? 'red' : 'blue'}>
+                                        <Badge key={classificationId} variant="light" size="sm" color={classification.type === 'hazard' ? 'red' : 'blue'}>
                                           {classification.name}
                                         </Badge>
                                       ) : null;
@@ -1128,7 +1198,7 @@ export function Settings() {
                           </div>
                         </Table.Td>
                         <Table.Td>
-                          <Badge variant="light" color={classification.type === 'hazards' ? 'red' : 'blue'}>
+                          <Badge variant="light" color={classification.type === 'hazard' ? 'red' : 'blue'}>
                             <span className="capitalize">{classification.type}</span>
                           </Badge>
                         </Table.Td>
@@ -1138,7 +1208,7 @@ export function Settings() {
                               <span className="capitalize">NA</span>
                             </Badge>
                           )}
-                          {classification.type === 'hazards' && (
+                          {classification.type === 'hazard' && (
                             <Badge variant="light" color={classification.isstandard === 1 ? 'green' : 'gray'}>
                               <span className="capitalize">{classification.isstandard === 1 ? 'Yes' : 'No'}</span>
                             </Badge>
@@ -1346,17 +1416,17 @@ export function Settings() {
               <Select
                 label="Type"
                 value={classificationForm.type}
-                onChange={(value) => setClassificationForm({ ...classificationForm, type: value || 'hazards' })}
+                onChange={(value) => setClassificationForm({ ...classificationForm, type: value || 'hazard' })}
                 mb="md"
                 required
                 data={[
-                  { value: 'hazards', label: 'Hazards' },
+                  { value: 'hazard', label: 'Hazard' },
                   { value: 'context', label: 'Context' },
                 ]}
               >
               </Select>
 
-              {classificationForm.type === 'hazards' && (
+              {classificationForm.type === 'hazard' && (
                 <>
                   <div className="mb-4">
                     <div className="flex items-center gap-2 mb-2">
@@ -1385,7 +1455,7 @@ export function Settings() {
                         >
                           <Pill.Group>
                             {selectedContexts.map((context) => (
-                              <Badge key={context.id} variant='filled' pr={0} color={context.type === 'hazards' ? 'red.2' : 'blue.2'} size="lg" radius="xl">
+                              <Badge key={context.id} variant='filled' pr={0} color={context.type === 'hazard' ? 'red.2' : 'blue.2'} size="lg" radius="xl">
                                 <Flex gap={4}>
                                   <Text className="normal-case font-normal text-black text-sm">{context.name}</Text>
                                   <CloseButton
@@ -1468,7 +1538,7 @@ export function Settings() {
                         >
                           <Pill.Group>
                             {selectedIncludes.map((include) => (
-                              <Badge key={include.id} variant='filled' pr={0} color={include.type === 'hazards' ? 'red.2' : 'blue.2'} size="lg" radius="xl">
+                              <Badge key={include.id} variant='filled' pr={0} color={include.type === 'hazard' ? 'red.2' : 'blue.2'} size="lg" radius="xl">
                                 <Flex gap={4}>
                                   <Text className="normal-case font-normal text-black text-sm">{include.name}</Text>
                                   <CloseButton
@@ -1507,7 +1577,7 @@ export function Settings() {
                       <Combobox.Dropdown>
                         <Combobox.Options style={{ maxHeight: '200px', overflowY: 'auto' }}>
                           {classificationSearchResults.length > 0 
-                            ? classificationSearchResults.filter((classification) => classification.type === 'hazards').map((classification) => (
+                            ? classificationSearchResults.filter((classification) => classification.type === 'hazard').map((classification) => (
                                 <Combobox.Option value={JSON.stringify(classification)} key={classification.id}>
                                   <Text className="normal-case font-normal text-black text-sm">{classification.name}</Text>
                                 </Combobox.Option>
@@ -1668,7 +1738,7 @@ export function Settings() {
                       >
                         <Pill.Group>
                           {currentSetClassifications.map((classification) => (
-                            <Badge key={classification.id} variant='filled' pr={0} color={classification.type === 'hazards' ? 'red.2' : 'blue.2'} size="lg" radius="xl">
+                            <Badge key={classification.id} variant='filled' pr={0} color={classification.type === 'hazard' ? 'red.2' : 'blue.2'} size="lg" radius="xl">
                               <Flex gap={4}>
                                 <Text className="normal-case font-normal text-black text-sm">{classification.name}</Text>
                                 <CloseButton
@@ -1752,7 +1822,7 @@ export function Settings() {
                       {set.map((classificationId) => {
                         const classification = classifications.find(c => c.id === classificationId);
                         return classification ? (
-                          <Badge key={classificationId} variant='filled' pr={0} color={classification.type === 'hazards' ? 'red.2' : 'blue.2'} size="lg" radius="xl">
+                          <Badge key={classificationId} variant='filled' pr={0} color={classification.type === 'hazard' ? 'red.2' : 'blue.2'} size="lg" radius="xl">
                             <Flex gap={4}>
                               <Text className="normal-case font-normal text-black text-sm">{classification.name}</Text>
                               <CloseButton
