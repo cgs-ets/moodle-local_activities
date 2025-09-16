@@ -873,14 +873,16 @@ export function Settings() {
                 <Card withBorder>
                   <Group justify="space-between" mb="md">
                     <Text fz="lg" fw={500}>Risks</Text>
-                    <Button 
-                      leftSection={<IconPlus size={16} />}
-                      onClick={() => openRiskModal()}
-                      radius="xl"
-                      size="compact-md"
-                    >
-                      Add Risk
-                    </Button>
+                    {currentVersion.is_published === 0 && currentVersion.has_been_used === 0 && (
+                      <Button 
+                        leftSection={<IconPlus size={16} />}
+                        onClick={() => openRiskModal()}
+                        radius="xl"
+                        size="compact-md"
+                      >
+                        Add Risk
+                      </Button>
+                    )}
                   </Group>
                   
                   {/* Risk Filter */}
@@ -895,7 +897,7 @@ export function Settings() {
                         radius="xl"
                         variant="outline"
                       >
-                        PS-PK-CGS Care Incursions
+                        PS-PK-Care Incursions
                       </Button>
                       
                       <Button 
@@ -906,7 +908,7 @@ export function Settings() {
                         radius="xl"
                         variant="outline"
                       >
-                        PS-PK-CGS Care Excursions
+                        PS-PK-Care Excursions
                       </Button>
 
                       <Button 
@@ -943,7 +945,7 @@ export function Settings() {
                       </Button>
                     </div>
 
-                    <Box mb="md" className="w-1/2">
+                    <Box mb="md" className="w-1/4 min-w-64">
                       <Combobox 
                         store={riskFilterCombobox} 
                         onOptionSubmit={(optionValue: string) => {
@@ -955,7 +957,6 @@ export function Settings() {
                       <Combobox.DropdownTarget>
                         <PillsInput 
                           pointer 
-                          leftSection={<IconCategory2 size={18} />}
                         >
                           <Pill.Group>
                             {selectedRiskFilters.map((classification) => (
