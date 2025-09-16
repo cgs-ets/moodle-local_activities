@@ -35,8 +35,8 @@ foreach ($rows as $row) {
     list($classificationname, $hazard, $riskbefore, $controlmeasures, $riskafter,
          $responsible, $timing, $riskbenefit) = $row;
 
-    // 1. Split classification names by comma and trim whitespace
-    $classification_names = array_map('trim', explode(',', $classificationname));
+    // 1. Split classification names by '||' and trim whitespace
+    $classification_names = array_map('trim', explode('||', $classificationname));
     $classification_ids = [];
 
     // 2. Find or create each classification
