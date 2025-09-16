@@ -9,7 +9,6 @@ import useFetch from '../../../../hooks/useFetch';
 import dayjs from 'dayjs';
 import { Link, useSearchParams } from 'react-router-dom';
 import { getConfig, statuses } from '../../../../utils';
-import { stat } from 'fs';
 import { User } from '../../../../types/types';
 
 export function Paperwork() {
@@ -29,6 +28,7 @@ export function Paperwork() {
   const hasUserAcknowledged = useFormStore((state) => (state.hasUserAcknowledged))
   const setHasUserAcknowledged = useFormStore((state) => (state.setHasUserAcknowledged))
   const [acknowledgedModalOpened, setAcknowledgedModalOpened] = useState(false);
+  const haschanges = useStateStore((state) => (state.haschanges))
 
   useEffect(() => {
     getRaGenerations();
@@ -128,7 +128,7 @@ export function Paperwork() {
           {(getConfig().user.un == '43563' || getConfig().user.un == 'admin') &&
 
             <>
-              { (activityid && status >= statuses.inreview) ?
+              { (activityid && status >= statuses.inreview && !haschanges) ?
                 <div className='border-b p-4 space-y-2'>
                   <Accordion variant="contained">
                     <Accordion.Item value="acknowledgments">
@@ -178,7 +178,7 @@ export function Paperwork() {
                 </div> : null
               }
 
-              { !activityid || (status == statuses.draft) ? 
+              { !activityid || (status == statuses.draft) || haschanges ? 
                 (
                   <div className='border-b p-4 space-y-2'>
                     <Text className="font-semibold">Digital Risk Assessment</Text>

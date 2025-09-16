@@ -298,10 +298,12 @@ export function Risk() {
   }
 
   const isContextSelected = (classification: Classification, selectedIds: number[]) => {
-    if (classification.contexts.length > 0 && !classification.contexts.some(c => selectedIds.includes(c))) {
-      return false;
+    // If this classification has contexts, then check if any of them are selected.
+    let selected = true;
+    if (classification.contexts.length) {
+      selected = classification.contexts.some(set => set.every(c => selectedIds.includes(c)));
     }
-    return true;
+    return selected;
   }
 
   return (

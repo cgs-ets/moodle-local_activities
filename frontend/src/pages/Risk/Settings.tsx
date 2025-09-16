@@ -42,7 +42,7 @@ export interface Classification {
   description: string;
   type: string;
   isstandard: number;
-  contexts: number[];
+  contexts: number[][];
   includes: number[];
   preselected: boolean;
   hidden: boolean;
@@ -96,7 +96,7 @@ export function Settings() {
     description: '', 
     type: 'hazard', 
     isstandard: 0, 
-    contexts: [] as number[],
+    contexts: [] as number[][],
     includes: [] as number[]
   });
   const [classificationError, setClassificationError] = useState<string | null>(null);
@@ -303,7 +303,7 @@ export function Settings() {
       icon: '', 
       type: 'hazard', 
       isstandard: 0, 
-      contexts: [],
+      contexts: [] as number[][], // Start with no classification sets
       includes: []
     });
     if (classification) {
@@ -317,7 +317,7 @@ export function Settings() {
         includes: classification.includes || []
       } as Classification);
       // Load selected classifications
-      const selected = classifications.filter(c => classification.contexts.includes(c.id));
+      const selected = classifications.filter(c => classification.contexts.some(set => set.includes(c.id)));
       setSelectedContexts(selected);
       setSelectedIncludes(classifications.filter(c => classification.includes.includes(c.id)));
     }
@@ -502,16 +502,8 @@ export function Settings() {
     setClassificationSearchResults(filtered);
   };
 
-  const handleClassificationSelect = (classification: Classification) => {
-    // This function is now only used for the old single classification system
-    // The new classification sets system handles selection differently
-    if (!selectedClassifications.find(c => c.id === classification.id)) {
-      setSelectedClassifications([...selectedClassifications, classification]);
-    }
-    setClassificationSearch('');
-    setClassificationSearchResults([]);
-  };
 
+/*
   const handleContextSelect = (context: Classification) => {
     if (!selectedContexts.find(c => c.id === context.id)) {
       setSelectedContexts([...selectedContexts, context]);
@@ -521,6 +513,8 @@ export function Settings() {
   const handleContextRemove = (context: Classification) => {
     setSelectedContexts(selectedContexts.filter(c => c.id !== context.id));
   };
+*/
+
 
   const handleIncludeSelect = (include: Classification) => {
     if (!selectedIncludes.find(c => c.id === include.id)) {
@@ -1031,7 +1025,7 @@ export function Settings() {
                   >
                     <Table.Thead>
                       <Table.Tr>
-                        <Table.Th style={{ minWidth: '250px' }}>Classifications</Table.Th>
+                        <Table.Th style={{ minWidth: '250px' }}>Classifications.</Table.Th>
                         <Table.Th>Hazard</Table.Th>
                         <Table.Th>Risk Rating (Before)</Table.Th>
                         <Table.Th>Control Measures</Table.Th>
@@ -1046,7 +1040,7 @@ export function Settings() {
                         <Table.Tr key={risk.id}>
                           <Table.Td>
                             <Stack gap="xs">
-                              {risk.classification_sets.map((classificationSet, setIndex) => (
+                              {/*risk.classification_sets.map((classificationSet, setIndex) => (
                                 <div key={`set-${setIndex}`} className="bg-gray-100 p-2 rounded-md">
                                   <Group gap="xs">
                                     {classificationSet.map((classificationId) => {
@@ -1059,7 +1053,22 @@ export function Settings() {
                                     })}
                                   </Group>
                                 </div>
-                              ))}
+                              ))*/}
+
+                              {risk.classification_sets.map((classificationSet, setIndex) => {
+                                return (
+                                  <div key={`set-${setIndex}`} className="bg-gray-100 p-2 rounded-md">
+                                    <Text size="sm">
+                                      { classificationSet.map((classificationId) => {
+                                          return classifications.find(c => c.id === classificationId)?.name
+                                        }).join(' / ')
+                                      }
+                                    </Text>
+                                  </div>
+                                )
+                              })}
+
+
                             </Stack>
                           </Table.Td>
                           <Table.Td>
@@ -1170,7 +1179,7 @@ export function Settings() {
                       <Table.Th>Name</Table.Th>
                       <Table.Th style={{ width: '90px' }}>Type</Table.Th>
                       <Table.Th style={{ width: '90px' }}>Standard</Table.Th>
-                      <Table.Th style={{ width: '200px' }}>Contexts</Table.Th>
+                      <Table.Th style={{ width: '200px' }}>Contexts used</Table.Th>
                       <Table.Th style={{ width: '110px' }}>Actions</Table.Th>
                     </Table.Tr>
                   </Table.Thead>
@@ -1215,7 +1224,18 @@ export function Settings() {
                           )}
                         </Table.Td>
                         <Table.Td>
-                          <Text size="sm">{classification.contexts.map((context) => classifications.find(c => c.id === context)?.name).join(', ')}</Text>
+                          
+                          {classification.contexts.map((context, contextIndex) => {
+                            return (
+                              <Text size="sm" key={contextIndex}>
+                                { context.map((classid) => {
+                                    return classifications.find(c => c.id === classid)?.name
+                                  }).join('/')
+                                }
+                              </Text>
+                            )
+                          })}
+                    
                         </Table.Td>
                         <Table.Td>
                           <Group gap="1">
@@ -1426,8 +1446,12 @@ export function Settings() {
               >
               </Select>
 
+              
+
               {classificationForm.type === 'hazard' && (
                 <>
+
+                 {/*
                   <div className="mb-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Text fz="sm" fw={500}>Contexts</Text>
@@ -1505,7 +1529,7 @@ export function Settings() {
                       </Combobox.Dropdown>
                     </Combobox>
                   </div>
-
+                  */}
 
 
 

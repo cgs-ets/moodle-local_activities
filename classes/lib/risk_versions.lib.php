@@ -537,15 +537,44 @@ class risk_versions_lib {
         ]);
 
         foreach ($records as &$record) {
+
+            // Determine the contexts for this classification.
+            $contexts = [];
+            $contexts_unique = [];
+            if ($record->type == 'hazard') {
+                // Get the sets where this classification is a member.
+                $sql = "SELECT set_id FROM {" . static::TABLE_RISK_CLASSIFICATION_SET_MEMBERS . "} WHERE classificationid = ? AND version = ?";
+                $sets = $DB->get_fieldset_sql($sql, [$record->id, $version]);
+
+                foreach ($sets as $set) {
+                    // Get the classifications from this set, excluding this classification.
+                    $sql = "SELECT classificationid 
+                            FROM {" . static::TABLE_RISK_CLASSIFICATION_SET_MEMBERS . "} 
+                            WHERE set_id = ? 
+                            AND classificationid != ? 
+                            AND version = ?";
+                    $contextids = $DB->get_fieldset_sql($sql, [$set, $record->id, $version]);
+                    if (!in_array(implode('|', $contextids), $contexts_unique)) {
+                        $contexts_unique[] = implode('|', $contextids);
+                        $contextids = array_map('intval', $contextids);
+                        $contexts[] = $contextids;
+                    }
+                }
+                $record->contexts = $contexts;
+            } else {
+                $record->contexts = [];
+            }
+
+
             // Get contexts and order them by sortorder
-            $sql = "SELECT cc.contextid
+            /*$sql = "SELECT cc.contextid
                     FROM {" . static::TABLE_CLASSIFICATIONS_CONTEXTS . "} cc 
                     LEFT JOIN {" . static::TABLE_CLASSIFICATIONS . "} c ON cc.contextid = c.id 
                     WHERE cc.classificationid = ? 
                     AND cc.version = ? 
                     ORDER BY c.sortorder ASC";
             $contexts = $DB->get_fieldset_sql($sql, [$record->id, $version]);
-            $record->contexts = array_map('intval', $contexts);
+            $record->contexts = array_map('intval', $contexts);*/
 
             // Get includes and order them by sortorder
             $sql = "SELECT ci.includeid

@@ -15,9 +15,6 @@ export function Approval({
   approval: any,
   activityid: number,
 }) {
-
-  console.log("approval", approval)
-
   if (!approval) {
     return null
   }

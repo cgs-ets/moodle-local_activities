@@ -81,7 +81,6 @@ export function StaffSelector({staff, setStaff, label, sublabel, tip, multiple, 
   ));
 
   // The selected pills
-  console.log("staff is array?", Array.isArray(staff))
   const values = Array.isArray(staff)
   ? staff.map((item, i) => {
     const user = decorateStaff(item)

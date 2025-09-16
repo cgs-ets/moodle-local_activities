@@ -66,7 +66,7 @@ foreach ($rows as $row) {
         }
 
         // If this is the last classification, add the previous classifications as contexts.
-        if ($i == count($classification_names) - 1) {
+        /*if ($i == count($classification_names) - 1) {
             foreach ($classification_ids as $classification_id) {
                 // Get the classification
                 $existing = $DB->get_record('activities_classifications', ['id' => $classification_id, 'version' => 99]);
@@ -85,7 +85,7 @@ foreach ($rows as $row) {
                 }
 
             }
-        }
+        }*/
         
         $classification_ids[] = $classification->id;
     }
