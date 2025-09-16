@@ -31,7 +31,6 @@ export const excursionStatus = () => {
 
 export const entryStatus = () => {
   const status = useFormStore((state) => state.status) 
-  console.log("status", status)
   return status == statuses.draft ? "Draft" :
          status >= statuses.saved ? "Saved" : "";
 }
@@ -59,3 +58,11 @@ export const getMonthFromTerm = (term: string) => {
     : 1
 }
 
+export const isRiskTester = () => {
+  return (
+    getConfig().user.un == '43563' || 
+    getConfig().user.un == 'admin' ||
+    getConfig().user.un == '57056' ||
+    getConfig().user.un == '61460'
+  )
+}

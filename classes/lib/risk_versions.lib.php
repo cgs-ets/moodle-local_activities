@@ -44,6 +44,13 @@ class risk_versions_lib {
     /** Table to store classifications includes relationships. */
     const TABLE_CLASSIFICATIONS_INCLUDES = 'activities_classifications_includes';
 
+    public static function check_risk_settings_access() {
+        global $USER;
+        if ($USER->username != '43563' && $USER->username != 'admin' && $USER->username != '57056' && $USER->username != '61460') {
+            throw new \Exception("Permission denied.");
+        }
+    }
+
     /**
      * Get the current published version.
      *
@@ -76,11 +83,6 @@ class risk_versions_lib {
     public static function get_versions() {
         global $DB;
         
-        // Only allow cal reviewers.
-        if (!workflow_lib::is_cal_reviewer()) {
-            throw new \Exception("Permission denied.");
-        }
-        
         $records = array_values($DB->get_records(static::TABLE_RISK_VERSIONS, [], 'version DESC'));
 
         if (empty($records)) {
@@ -111,11 +113,6 @@ class risk_versions_lib {
     public static function get_version_details($version) {
         global $DB;
         
-        // Only allow cal reviewers.
-        if (!workflow_lib::is_cal_reviewer()) {
-            throw new \Exception("Permission denied.");
-        }
-        
         $version_record = $DB->get_record(static::TABLE_RISK_VERSIONS, ['version' => $version]);
         if (!$version_record) {
             throw new \Exception("Version not found.");
@@ -138,11 +135,6 @@ class risk_versions_lib {
      */
     public static function delete_version($version) {
         global $DB;
-        
-        // Only allow cal reviewers.
-        if (!workflow_lib::is_cal_reviewer()) {
-            throw new \Exception("Permission denied.");
-        }
         
         $version_record = $DB->get_record(static::TABLE_RISK_VERSIONS, ['version' => $version]);
         if (!$version_record) {
@@ -265,11 +257,6 @@ class risk_versions_lib {
     private static function create_initial_version() {
         global $DB;
         
-        // Only allow cal reviewers.
-        if (!workflow_lib::is_cal_reviewer()) {
-            throw new \Exception("Permission denied.");
-        }
-        
         $version = 1;
         
         // Create version record
@@ -293,11 +280,6 @@ class risk_versions_lib {
     public static function create_draft_version($version) {
         global $DB;
         
-        // Only allow cal reviewers.
-        if (!workflow_lib::is_cal_reviewer()) {
-            throw new \Exception("Permission denied.");
-        }
-
         $latest_version = self::get_latest_version();
         $new_version = $latest_version + 1;
 
@@ -407,11 +389,6 @@ class risk_versions_lib {
     public static function publish_version($version) {
         global $DB, $USER;
         
-        // Only allow cal reviewers.
-        if (!workflow_lib::is_cal_reviewer()) {
-            throw new \Exception("Permission denied.");
-        }
-
         // Check if version exists
         $version_record = $DB->get_record(static::TABLE_RISK_VERSIONS, ['version' => $version]);
         if (!$version_record) {
@@ -440,11 +417,6 @@ class risk_versions_lib {
     public static function save_classification($data) {
         global $DB;
 
-        // Only allow cal reviewers.
-        if (!workflow_lib::is_cal_reviewer()) {
-            throw new \Exception("Permission denied.");
-        }
-        
         $data = (object) $data;
 
         // If editing icon, update the icon only.
@@ -512,11 +484,6 @@ class risk_versions_lib {
      */
     public static function get_classifications($version = null, $standard_only = false) {
         global $DB;
-        
-        // Only allow cal reviewers.
-        if (!workflow_lib::is_cal_reviewer()) {
-            throw new \Exception("Permission denied.");
-        }
         
         // If no version specified, check URL parameter or get the latest version
         if ($version === null) {
@@ -602,11 +569,6 @@ class risk_versions_lib {
     public static function get_classification($id, $version = null) {
         global $DB;
 
-        // Only allow cal reviewers.
-        if (!workflow_lib::is_cal_reviewer()) {
-            throw new \Exception("Permission denied.");
-        }
-        
         // If no version specified, get the latest version
         if ($version === null) {
             require_once(__DIR__.'/risk_versions.lib.php');
@@ -627,11 +589,6 @@ class risk_versions_lib {
     public static function delete_classification($id) {
         global $DB;
         
-        // Only allow cal reviewers.
-        if (!workflow_lib::is_cal_reviewer()) {
-            throw new \Exception("Permission denied.");
-        }
-
         // Get the risk
         $data = $DB->get_record(static::TABLE_CLASSIFICATIONS, ['id' => $id]);
 
@@ -658,11 +615,6 @@ class risk_versions_lib {
      */
     public static function get_risks($version = null) {
         global $DB;
-        
-        // Only allow people who can generate risks (staff, cal reviewers, etc)
-        if (!utils_lib::is_user_staff()) {
-            throw new \Exception("Permission denied.");
-        }
         
         // If no version specified, check URL parameter or get the latest version
         if ($version === null) {
@@ -787,11 +739,6 @@ class risk_versions_lib {
     public static function save_risk($data) {
         global $DB;
         
-        // Only allow cal reviewers.
-        if (!workflow_lib::is_cal_reviewer()) {
-            throw new \Exception("Permission denied.");
-        }
-        
         $data = (object) $data;
         $classification_sets = isset($data->classification_sets) ? $data->classification_sets : [[]];
         unset($data->classification_sets);
@@ -828,11 +775,6 @@ class risk_versions_lib {
     public static function delete_risk($id) {
         global $DB;
         
-        // Only allow cal reviewers.
-        if (!workflow_lib::is_cal_reviewer()) {
-            throw new \Exception("Permission denied.");
-        }
-
         // Get the risk
         $risk = $DB->get_record(static::TABLE_RISKS, ['id' => $id]);
 
@@ -864,11 +806,6 @@ class risk_versions_lib {
      */
     private static function update_risk_classification_sets($riskid, $classification_sets, $version) {
         global $DB;
-
-        // Only allow cal reviewers.
-        if (!workflow_lib::is_cal_reviewer()) {
-            throw new \Exception("Permission denied.");
-        }
 
         // Get the risk
         $risk = $DB->get_record(static::TABLE_RISKS, ['id' => $riskid]);
@@ -921,11 +858,6 @@ class risk_versions_lib {
     public static function update_classification_sort($sortorder) {
         global $DB;
         
-        // Only allow cal reviewers.
-        if (!workflow_lib::is_cal_reviewer()) {
-            throw new \Exception("Permission denied.");
-        }
-        
         foreach ($sortorder as $index => $classificationid) {
             $DB->update_record(static::TABLE_CLASSIFICATIONS, [
                 'id' => $classificationid,
@@ -945,11 +877,6 @@ class risk_versions_lib {
      */
     public static function search_classifications($query, $version) {
         global $DB;
-        
-        // Only allow cal reviewers.
-        if (!workflow_lib::is_cal_reviewer()) {
-            throw new \Exception("Permission denied.");
-        }
         
         $sql = "SELECT * FROM {" . static::TABLE_CLASSIFICATIONS . "} 
                 WHERE name LIKE ? AND version = ?

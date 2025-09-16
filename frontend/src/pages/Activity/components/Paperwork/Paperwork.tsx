@@ -10,6 +10,7 @@ import dayjs from 'dayjs';
 import { Link, useSearchParams } from 'react-router-dom';
 import { getConfig, statuses } from '../../../../utils';
 import { User } from '../../../../types/types';
+import { isRiskTester } from '../../../../utils/utils';
 
 export function Paperwork() {
   const [searchParams] = useSearchParams()
@@ -125,7 +126,7 @@ export function Paperwork() {
 
         <Card.Section>
 
-          {(getConfig().user.un == '43563' || getConfig().user.un == 'admin') &&
+          {isRiskTester() &&
 
             <>
               { (activityid && status >= statuses.inreview && !haschanges) ?

@@ -33,6 +33,7 @@ import { Footer } from "../../components/Footer";
 import useFetch from "../../hooks/useFetch";
 import { SvgRenderer } from "../../components/SvgRenderer";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { isRiskTester } from '../../utils/utils';
 
 export interface Classification {
   id: number;
@@ -76,6 +77,12 @@ export interface Version {
 }
 
 export function Settings() {
+
+  if (!isRiskTester()) {
+    return null
+  }
+
+
   const api = useFetch();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
