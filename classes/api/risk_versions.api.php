@@ -224,6 +224,7 @@ trait risk_versions_api {
      */
     static public function get_version_diff($args) {
         ['version1' => $version1, 'version2' => $version2] = $args;
-        return risk_versions_lib::diff_versions_html($version1, $version2);
+        //return risk_versions_lib::diff_versions_html($version1, $version2);
+        return "Sorry... needs to be implemented.";
     }
 } 

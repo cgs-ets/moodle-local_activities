@@ -813,8 +813,7 @@ class risk_versions_lib {
         }
         
         // Delete risk classification sets first (this will cascade to members)
-        $memberssql = "SELECT * 
-        FROM {" . static::TABLE_RISK_CLASSIFICATION_SET_MEMBERS . "} WHERE set_id IN (SELECT id FROM {" . static::TABLE_RISK_CLASSIFICATION_SETS . "} WHERE riskid = ?)";
+        $memberssql = "SELECT * FROM {" . static::TABLE_RISK_CLASSIFICATION_SET_MEMBERS . "} WHERE set_id IN (SELECT id FROM {" . static::TABLE_RISK_CLASSIFICATION_SETS . "} WHERE riskid = ?)";
         $members = $DB->get_records_sql($memberssql, [$id]);
         foreach ($members as $member) {
             $DB->delete_records(static::TABLE_RISK_CLASSIFICATION_SET_MEMBERS, ['id' => $member->id]);
@@ -851,6 +850,11 @@ class risk_versions_lib {
         }
         
         // Delete existing classification sets for this version
+        $memberssql = "SELECT * FROM {" . static::TABLE_RISK_CLASSIFICATION_SET_MEMBERS . "} WHERE set_id IN (SELECT id FROM {" . static::TABLE_RISK_CLASSIFICATION_SETS . "} WHERE riskid = ?)";
+        $members = $DB->get_records_sql($memberssql, [$riskid]);
+        foreach ($members as $member) {
+            $DB->delete_records(static::TABLE_RISK_CLASSIFICATION_SET_MEMBERS, ['id' => $member->id]);
+        }
         $DB->delete_records(static::TABLE_RISK_CLASSIFICATION_SETS, ['riskid' => $riskid, 'version' => $version]);
         
         // Add new classification sets

@@ -1031,12 +1031,12 @@ export function Settings() {
                   >
                     <Table.Thead>
                       <Table.Tr>
+                        <Table.Th style={{ minWidth: '250px' }}>Classifications</Table.Th>
                         <Table.Th>Hazard</Table.Th>
                         <Table.Th>Risk Rating (Before)</Table.Th>
                         <Table.Th>Control Measures</Table.Th>
                         <Table.Th>Risk Rating (After)</Table.Th>
                         <Table.Th>Responsible Person</Table.Th>
-                        <Table.Th style={{ minWidth: '250px' }}>Classifications</Table.Th>
                         <Table.Th>Benefit</Table.Th>
                         <Table.Th style={{ width: '90px' }}>Actions</Table.Th>
                       </Table.Tr>
@@ -1044,6 +1044,24 @@ export function Settings() {
                     <Table.Tbody>
                       {filteredRisks.map((risk) => (
                         <Table.Tr key={risk.id}>
+                          <Table.Td>
+                            <Stack gap="xs">
+                              {risk.classification_sets.map((classificationSet, setIndex) => (
+                                <div key={`set-${setIndex}`} className="bg-gray-100 p-2 rounded-md">
+                                  <Group gap="xs">
+                                    {classificationSet.map((classificationId) => {
+                                      const classification = classifications.find(c => c.id === classificationId);
+                                      return classification ? (
+                                        <Badge key={classificationId} variant="light" size="sm" color={classification.type === 'hazard' ? 'red' : 'blue'}>
+                                          {classification.name}
+                                        </Badge>
+                                      ) : null;
+                                    })}
+                                  </Group>
+                                </div>
+                              ))}
+                            </Stack>
+                          </Table.Td>
                           <Table.Td>
                             <Text size="sm">{risk.hazard}</Text>
                           </Table.Td>
@@ -1076,24 +1094,6 @@ export function Settings() {
                           </Table.Td>
                           <Table.Td>
                             <Text size="sm">{risk.responsible_person}</Text>
-                          </Table.Td>
-                          <Table.Td>
-                            <Stack gap="xs">
-                              {risk.classification_sets.map((classificationSet, setIndex) => (
-                                <div key={`set-${setIndex}`} className="bg-gray-100 p-2 rounded-md">
-                                  <Group gap="xs">
-                                    {classificationSet.map((classificationId) => {
-                                      const classification = classifications.find(c => c.id === classificationId);
-                                      return classification ? (
-                                        <Badge key={classificationId} variant="light" size="sm" color={classification.type === 'hazard' ? 'red' : 'blue'}>
-                                          {classification.name}
-                                        </Badge>
-                                      ) : null;
-                                    })}
-                                  </Group>
-                                </div>
-                              ))}
-                            </Stack>
                           </Table.Td>
                           <Table.Td>
                             <Text size="sm">{risk.risk_benefit}</Text>
