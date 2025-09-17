@@ -153,8 +153,10 @@ class risks_lib {
         
         list($activity, $classifications) = static::prepare_ra_data($ra_gen);
         $htmlContent = static::generate_html($activity, $classifications);
-        $htmlFile = 'html_risk_assessment.html';
-        file_put_contents($htmlFile, $htmlContent);
+        
+        //$exportdir = str_replace('\\\\', '\\', $CFG->dataroot) . '\local_activities\exports\\';
+        //$htmlfile = $exportdir . $ra_gen->id . ".html";
+        //file_put_contents($htmlFile, $htmlContent);
 
         // Create Dompdf instance
         $dompdf = new \Dompdf\Dompdf();
