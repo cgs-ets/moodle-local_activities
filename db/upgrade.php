@@ -449,5 +449,17 @@ function xmldb_local_activities_upgrade($oldversion) {
     }
 
 
+    if ($oldversion < 2025082106) {
+        $table = new xmldb_table('activities_ra_gens');
+        $field = new xmldb_field('deleted', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, 0, null, 'approved');
+
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+       
+        upgrade_plugin_savepoint(true, 2025082106, 'local', 'activities');
+    }
+
+
     return true;
 }
