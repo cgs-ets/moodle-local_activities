@@ -38,8 +38,7 @@
       
       .cover-page {
         page-break-after: always;
-        margin-bottom: 30px;
-        padding: 20px;
+        margin-bottom: 60px;
         background: #fff;
       }
       
@@ -311,18 +310,35 @@
         page-break-before: always;
       }
 
+      .header-image {
+        margin-top: -45px; 
+        margin-left: -45px;    /* Extends left beyond page margin */
+        margin-right: -45px;   /* Extends right beyond page margin */
+        margin-bottom: 30px;
+        width: calc(100% + 90px);  /* Compensates for negative margins */
+        max-width: none;
+        page-break-after: never;
+      }
+
+      .header-image img {
+        width: 100%;           /* Fills the extended container */
+        height: auto;
+        display: block;
+      }
+
       .risk-matrix-image {
         page-break-after: always;
-        margin-bottom: 30px;
-        padding: 20px;
+        margin-bottom: 60px;
         background: #fff;
       }
       
     </style>
   </head>
 <body>
+  <div class="header-image">
+    <img src="{{header_image}}" height="114" />
+  </div>
   <div class='container'>
-    
     <div class="header">
       <h1 class="title">Risk Assessment</h1>
       <div class="subtitle">{{activity.activityname}}</div>
@@ -425,7 +441,7 @@
     </div>
 
     <div class="risk-matrix-image">
-      <img src="{{risk_matrix_image}}" width="591" height="482" />
+      <img src="{{risk_matrix_image}}" width="700" height="590" />
     </div>
 
     <div class="table-container">

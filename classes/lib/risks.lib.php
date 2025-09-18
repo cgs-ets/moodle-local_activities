@@ -153,10 +153,11 @@ class risks_lib {
         
         list($activity, $classifications) = static::prepare_ra_data($ra_gen);
         $htmlContent = static::generate_html($activity, $classifications);
-        
+
         //$exportdir = str_replace('\\\\', '\\', $CFG->dataroot) . '\local_activities\exports\\';
         //$htmlfile = $exportdir . $ra_gen->id . ".html";
-        //file_put_contents($htmlFile, $htmlContent);
+        $htmlFile = 'html_risk_assessment.html';
+        file_put_contents($htmlFile, $htmlContent);
 
         // Create Dompdf instance
         $dompdf = new \Dompdf\Dompdf();
@@ -334,13 +335,22 @@ class risks_lib {
 
     private static function generate_html($activity, $classifications) {
         global $OUTPUT;
-        $path = __DIR__ . '/../../images/risk-matrix-test.png';
-        $data = file_get_contents($path);
-        $base64 = 'data:image/png;base64,' . base64_encode($data);
+
+        $ristmatriximage = __DIR__ . '/../../images/risk-matrix-test.jpg';
+        $ristmatriximagedata = file_get_contents($ristmatriximage);
+        $ristmatriximagebase64 = 'data:image/jpg;base64,' . base64_encode($ristmatriximagedata);
+
+        
+        $headerimage = __DIR__ . '/../../images/header.png';
+        $headerimagedata = file_get_contents($headerimage);
+        $headerimagebase64 = 'data:image/png;base64,' . base64_encode($headerimagedata);
+
+        
         $data = [
             'activity' => $activity,
             'classifications' => array_values($classifications),
-            'risk_matrix_image' => $base64,
+            'risk_matrix_image' => $ristmatriximagebase64,
+            'header_image' => $headerimagebase64,
         ];
         return $OUTPUT->render_from_template('local_activities/risk_assessment', $data);
     }
