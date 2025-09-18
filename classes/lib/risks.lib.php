@@ -341,9 +341,9 @@ class risks_lib {
         $ristmatriximagebase64 = 'data:image/jpg;base64,' . base64_encode($ristmatriximagedata);
 
         
-        $headerimage = __DIR__ . '/../../images/header.png';
+        $headerimage = __DIR__ . '/../../images/header.jpg';
         $headerimagedata = file_get_contents($headerimage);
-        $headerimagebase64 = 'data:image/png;base64,' . base64_encode($headerimagedata);
+        $headerimagebase64 = 'data:image/jpg;base64,' . base64_encode($headerimagedata);
 
         
         $data = [
