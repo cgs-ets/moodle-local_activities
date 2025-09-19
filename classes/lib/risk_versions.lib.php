@@ -345,7 +345,7 @@ class risk_versions_lib {
         }
 
         // Copy classification-context relationships with updated IDs
-        $classification_contexts = $DB->get_records(static::TABLE_CLASSIFICATIONS_CONTEXTS, ['version' => $version]);
+        /*$classification_contexts = $DB->get_records(static::TABLE_CLASSIFICATIONS_CONTEXTS, ['version' => $version]);
         foreach ($classification_contexts as $cc) {
             unset($cc->id);
             $cc->version = $new_version;
@@ -355,7 +355,7 @@ class risk_versions_lib {
             $cc->classificationid = $classification_id_mapping[$cc->classificationid];
             
             $DB->insert_record(static::TABLE_CLASSIFICATIONS_CONTEXTS, $cc);
-        }
+        }*/
 
         // Copy classification-include relationships with updated IDs
         $classification_includes = $DB->get_records(static::TABLE_CLASSIFICATIONS_INCLUDES, ['version' => $version]);
