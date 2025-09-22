@@ -117,6 +117,7 @@ export function EditActivity() {
       planningstaff: JSON.parse(fetchResponse.data.planningstaffjson || '[]'),
       accompanyingstaff: JSON.parse(fetchResponse.data.accompanyingstaffjson || '[]'),
       staffincharge: [JSON.parse(fetchResponse.data.staffinchargejson || null)].filter(item => item !== null),
+      secondincharge: [JSON.parse(fetchResponse.data.secondinchargejson || null)].filter(item => item !== null),
       initialCampus: fetchResponse.data.campus,
       initialActivitytype: fetchResponse.data.activitytype,
       displaypublic: !!Number(fetchResponse.data.displaypublic),
@@ -184,6 +185,7 @@ export function EditActivity() {
     formData.planningstaffjson = JSON.stringify(formData.planningstaff)
     formData.accompanyingstaffjson = JSON.stringify(formData.accompanyingstaff)
     formData.staffinchargejson = JSON.stringify(formData.staffincharge.length ? formData.staffincharge[0] : '')
+    formData.secondinchargejson = JSON.stringify(formData.secondincharge.length ? formData.secondincharge[0] : '')
     formData.assessmentid = searchParams.get('assessment') || null
 
     // If activity is new, accept recurring settings by default.

@@ -30,6 +30,7 @@ export function ActivityDetails({activity, isPublic}: {activity: Form, isPublic:
       ]
 
   const staffincharge = JSON.parse(activity.staffinchargejson || '{}');
+  const secondincharge = JSON.parse(activity.secondinchargejson || '{}');
   const planning = JSON.parse(activity.planningstaffjson || '[]');
   const accompanying = JSON.parse(activity.accompanyingstaffjson || '[]');
 
@@ -75,6 +76,22 @@ export function ActivityDetails({activity, isPublic}: {activity: Form, isPublic:
               </Badge>
             </div>
           </Card.Section>
+
+          {!!secondincharge.length &&
+            <Card.Section pos="relative" className='m-0 border-b  flex items-center gap-1 px-4 py-2'>
+              <div className='w-36 font-bold'>Second in charge</div>
+              <div className='flex gap-2 items-center flex-wrap'> 
+                { secondincharge.map((staff: User) => 
+                  <Badge variant='filled' key={staff.un} pl={0} size="lg" h={28} color="gray.2" radius="xl" leftSection={
+                    <Avatar size="sm" radius="xl" src={'/local/activities/avatar.php?username=' + staff.un}><IconUser /></Avatar>
+                  }
+                >
+                  <Text className="normal-case font-normal text-black text-sm">{staff.fn} {staff.ln}</Text>
+                </Badge>
+                )}
+              </div>
+            </Card.Section>
+          }
 
           {!!planning.length &&
             <Card.Section pos="relative" className='m-0 border-b  flex items-center gap-1 px-4 py-2'>

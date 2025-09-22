@@ -68,6 +68,7 @@ export function Risk() {
     proposedActivities: '',
     anticipatedStudents: '',
     anticipatedAdults: '',
+    supervisionRatio: '',
     leader: '',
     leaderContact: '',
     secondInCharge: '',
@@ -77,7 +78,7 @@ export function Risk() {
     siteVisitReviewer: '',
     siteVisitDate: dayjs().unix().toString(),
     waterHazardsPresent: '',
-    staffQualifications: [] as string[],
+    staffQualifications: '',
     otherQualifications: ''
   })
 
@@ -148,6 +149,7 @@ export function Risk() {
       setAdditionalFields({
         ...additionalFields,
         leader: data.staffinchargedata?.fn + ' ' + data.staffinchargedata?.ln + ' (' + data.staffinchargedata?.un + ')',
+        secondInCharge: data.secondinchargedata?.fn + ' ' + data.secondinchargedata?.ln + ' (' + data.secondinchargedata?.un + ')',
       })
     }
 
@@ -160,6 +162,7 @@ export function Risk() {
           proposedActivities: lastGenRes.data.proposed_activities,
           anticipatedStudents: lastGenRes.data.anticipated_students,
           anticipatedAdults: lastGenRes.data.anticipated_adults,
+          supervisionRatio: lastGenRes.data.supervision_ratio,
           leader: lastGenRes.data.leader,
           leaderContact: lastGenRes.data.leader_contact,
           secondInCharge: lastGenRes.data.second_in_charge,
@@ -223,14 +226,13 @@ export function Risk() {
         !additionalFields.proposedActivities || 
         !additionalFields.anticipatedStudents || 
         !additionalFields.anticipatedAdults || 
+        !additionalFields.supervisionRatio || 
         !additionalFields.leader || 
         !additionalFields.leaderContact || 
         !additionalFields.secondInCharge || 
         !additionalFields.secondInChargeContact || 
         !additionalFields.locationContactPerson || 
         !additionalFields.locationContactNumber || 
-        !additionalFields.siteVisitReviewer || 
-        !additionalFields.siteVisitDate || 
         !additionalFields.waterHazardsPresent || 
         !additionalFields.staffQualifications || 
         (!additionalFields.otherQualifications && additionalFields.staffQualifications.includes('Other')) || 
@@ -255,6 +257,7 @@ export function Risk() {
           proposedActivities: additionalFields.proposedActivities,
           anticipatedStudents: additionalFields.anticipatedStudents,
           anticipatedAdults: additionalFields.anticipatedAdults,
+          supervisionRatio: additionalFields.supervisionRatio,
           leader: additionalFields.leader,
           leaderContact: additionalFields.leaderContact,
           secondInCharge: additionalFields.secondInCharge,
@@ -349,20 +352,20 @@ export function Risk() {
                           <Text fz="md" fw={500}>Additional Information</Text>
                           
                           <Textarea
-                            label="Reason for undertaking the activity"
-                            placeholder="Describe the reason for undertaking this activity..."
-                            value={additionalFields.reasonForActivity || ''}
-                            onChange={(e) => setAdditionalFields({ ...additionalFields, reasonForActivity: e.target.value })}
+                            label="Proposed activities"
+                            placeholder="Describe the proposed activities..."
+                            value={additionalFields.proposedActivities || ''}
+                            onChange={(e) => setAdditionalFields({ ...additionalFields, proposedActivities: e.target.value })}
                             autosize
                             minRows={3}
                             required
                           />
 
                           <Textarea
-                            label="Proposed activities"
-                            placeholder="Describe the proposed activities..."
-                            value={additionalFields.proposedActivities || ''}
-                            onChange={(e) => setAdditionalFields({ ...additionalFields, proposedActivities: e.target.value })}
+                            label="Reason for undertaking the activity"
+                            placeholder="Describe the reason for undertaking this activity..."
+                            value={additionalFields.reasonForActivity || ''}
+                            onChange={(e) => setAdditionalFields({ ...additionalFields, reasonForActivity: e.target.value })}
                             autosize
                             minRows={3}
                             required
@@ -388,6 +391,13 @@ export function Risk() {
                               required
                             />
                           </Group>
+
+                          <TextInput
+                            label="Supervision ratio required (refer to CGS Policies, Procedures and Guidelines)"
+                            value={additionalFields.supervisionRatio || ''}
+                            onChange={(e) => setAdditionalFields({ ...additionalFields, supervisionRatio: e.target.value })}
+                            required
+                          />
 
                           <Group grow>
                             <TextInput
@@ -446,7 +456,6 @@ export function Risk() {
                               placeholder="Site visit reviewer name"
                               value={additionalFields.siteVisitReviewer || ''}
                               onChange={(e) => setAdditionalFields({ ...additionalFields, siteVisitReviewer: e.target.value })}
-                              required
                             />
 
                             <DatePickerInput
@@ -456,7 +465,6 @@ export function Risk() {
                               onChange={(newValue) => {
                                 setAdditionalFields({ ...additionalFields, siteVisitDate: dayjs(newValue).unix().toString() })
                               }}
-                              required
                             />
 
                           </Group>
@@ -473,32 +481,16 @@ export function Risk() {
                             required
                           />
 
-                          <div>
-                            <Text fz="sm" fw={500} mb="xs">
-                              Supervising staff relevant qualifications (select all that apply) <span className="text-red-500">*</span>
-                            </Text>
-                            <Checkbox.Group
-                              value={additionalFields.staffQualifications || []}
-                              onChange={(value) => setAdditionalFields({ ...additionalFields, staffQualifications: value })}
-                            >
-                              <Group gap="md">
-                                <Checkbox value="First Aid" label="First Aid" />
-                                <Checkbox value="CPR" label="CPR" />
-                                <Checkbox value="Bronze Medallion" label="Bronze Medallion" />
-                                <Checkbox value="Other" label="Other" />
-                              </Group>
-                            </Checkbox.Group>
-                            {additionalFields.staffQualifications?.includes('Other') && (
-                              <TextInput
-                                label="Other qualifications"
-                                placeholder="Specify other qualifications..."
-                                value={additionalFields.otherQualifications || ''}
-                                onChange={(e) => setAdditionalFields({ ...additionalFields, otherQualifications: e.target.value })}
-                                mt="xs"
-                                required
-                              />
-                            )}
-                          </div>
+                          <Textarea
+                            label="Supervising staff relevant qualifications (select all that apply)"
+                            placeholder="E.g. First Aid, CPR, Bronze Medallion, etc"
+                            value={additionalFields.staffQualifications || ''}
+                            onChange={(e) => setAdditionalFields({ ...additionalFields, staffQualifications: e.target.value })}
+                            autosize
+                            minRows={2}
+                            required
+                          />
+                          
                         </Card>
                       </Box>
 

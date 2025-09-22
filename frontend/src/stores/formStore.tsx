@@ -46,6 +46,8 @@ export type Form = {
   planningstaffjson: string;
   accompanyingstaff: any[];
   accompanyingstaffjson: string;
+  secondincharge: any[];
+  secondinchargejson: string;
 
   otherparticipants: string;
   categories: string[];
@@ -119,7 +121,8 @@ const defaults: Form = {
   planningstaffjson: '',
   accompanyingstaff: [],
   accompanyingstaffjson: '',
-  
+  secondincharge: [],
+  secondinchargejson: '',
   otherparticipants: '',
   categories: [],
   categoriesjson: '',

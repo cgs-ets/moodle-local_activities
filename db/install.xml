@@ -31,6 +31,7 @@
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="staffincharge" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="staffinchargejson" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="secondinchargejson" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="planningstaffjson" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="accompanyingstaffjson" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="otherparticipants" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
@@ -287,6 +288,7 @@
         <FIELD NAME="proposed_activities" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="anticipated_students" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="anticipated_adults" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="supervision_ratio" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="leader" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="leader_contact" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="second_in_charge" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"/>

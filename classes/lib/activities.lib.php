@@ -296,6 +296,7 @@ class activities_lib {
 
             $activity->set('planningstaffjson', $data->planningstaffjson);
             $activity->set('accompanyingstaffjson', $data->accompanyingstaffjson);
+            $activity->set('secondinchargejson', $data->secondinchargejson);
             $activity->save();
 
             // If categoriesjson is empty, set a default value based on campus.

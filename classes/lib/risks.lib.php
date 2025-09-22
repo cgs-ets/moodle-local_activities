@@ -98,6 +98,7 @@ class risks_lib {
                 'proposed_activities' => isset($data->proposedActivities) ? $data->proposedActivities : '',
                 'anticipated_students' => isset($data->anticipatedStudents) ? intval($data->anticipatedStudents) : 0,
                 'anticipated_adults' => isset($data->anticipatedAdults) ? intval($data->anticipatedAdults) : 0,
+                'supervision_ratio' => isset($data->supervisionRatio) ? $data->supervisionRatio : '',
                 'leader' => isset($data->leader) ? $data->leader : '',
                 'leader_contact' => isset($data->leaderContact) ? $data->leaderContact : '',
                 'second_in_charge' => isset($data->secondInCharge) ? $data->secondInCharge : '',
@@ -153,6 +154,11 @@ class risks_lib {
         
         list($activity, $classifications) = static::prepare_ra_data($ra_gen);
         $htmlContent = static::generate_html($activity, $classifications);
+
+        // Normalize the text.
+        $htmlContent = utils_lib::normalize_text($htmlContent);
+
+
 
         //$exportdir = str_replace('\\\\', '\\', $CFG->dataroot) . '\local_activities\exports\\';
         //$htmlfile = $exportdir . $ra_gen->id . ".html";
@@ -221,7 +227,6 @@ class risks_lib {
         // Append additional fields to activity.
         $activity = (object) array_merge((array) $activity, (array) $ra_gen);
         $activity->staff_qualifications = json_decode($activity->staff_qualifications);
-        $activity->is_other_qualification = in_array('Other', $activity->staff_qualifications);
 
         // Get the risks for the classifications.
         $risks = static::get_risks_for_classifications($classifications, $ra_gen->riskversion);
@@ -410,6 +415,7 @@ class risks_lib {
             $ra_generation->proposedActivities = $ra_generation->proposed_activities ?? '';
             $ra_generation->anticipatedStudents = $ra_generation->anticipated_students ?? 0;
             $ra_generation->anticipatedAdults = $ra_generation->anticipated_adults ?? 0;
+            $ra_generation->supervisionRatio = $ra_generation->supervision_ratio ?? '';
             $ra_generation->leader = $ra_generation->leader ?? '';
             $ra_generation->leaderContact = $ra_generation->leader_contact ?? '';
             $ra_generation->secondInCharge = $ra_generation->second_in_charge ?? '';
@@ -464,6 +470,7 @@ class risks_lib {
         $ra_generation->proposedActivities = $ra_generation->proposed_activities ?? '';
         $ra_generation->anticipatedStudents = $ra_generation->anticipated_students ?? 0;
         $ra_generation->anticipatedAdults = $ra_generation->anticipated_adults ?? 0;
+        $ra_generation->supervisionRatio = $ra_generation->supervision_ratio ?? '';
         $ra_generation->leader = $ra_generation->leader ?? '';
         $ra_generation->leaderContact = $ra_generation->leader_contact ?? '';
         $ra_generation->secondInCharge = $ra_generation->second_in_charge ?? '';

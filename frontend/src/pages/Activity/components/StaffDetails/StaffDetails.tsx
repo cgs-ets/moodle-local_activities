@@ -9,6 +9,7 @@ export function StaffDetails() {
   const accompanyingstaff = useFormStore((state) => state.accompanyingstaff) 
   const planningstaff = useFormStore((state) => state.planningstaff) 
   const staffincharge = useFormStore((state) => state.staffincharge) 
+  const secondincharge = useFormStore((state) => state.secondincharge) 
   const activitytype = useFormStore((state) => state.activitytype) 
   const otherparticipants = useFormStore((state) => state.otherparticipants) 
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
@@ -24,7 +25,9 @@ export function StaffDetails() {
   const setStaffInCharge = (value: any[]) => {
     setState({['staffincharge']: value} as Form)
   }
-
+  const setSecondInCharge = (value: any[]) => {
+    setState({['secondincharge']: value} as Form)
+  }
   return (
     <Card withBorder radius="sm" className="p-0 overflow-visible">
       <div className="px-4 py-3">
@@ -43,6 +46,7 @@ export function StaffDetails() {
           />
           { isActivity(activitytype) &&
             <>
+              <StaffSelector staff={secondincharge} setStaff={setSecondInCharge} label="Second in Charge" multiple={false} readOnly={viewStateProps.readOnly} />
               <StaffSelector staff={planningstaff} setStaff={setPlanning} label="Planning" multiple={true} readOnly={viewStateProps.readOnly} />
               <StaffSelector 
                 staff={accompanyingstaff} 

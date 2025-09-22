@@ -714,4 +714,32 @@ class utils_lib {
 
         return $activities;
     }
+
+    public static function normalize_text($text) {
+        // First, ensure UTF-8
+        $text = mb_convert_encoding($text, 'UTF-8', 'UTF-8');
+
+        // Fix Windows-1252 / smart quotes / dashes / ellipsis
+        $map = [
+            "\xE2\x80\x98" => "'",   // left single quote
+            "\xE2\x80\x99" => "'",   // right single quote / apostrophe
+            "\xE2\x80\x9C" => '"',   // left double quote
+            "\xE2\x80\x9D" => '"',   // right double quote
+            "\xE2\x80\x93" => "-",   // en dash
+            "\xE2\x80\x94" => "-",   // em dash
+            "\xE2\x80\xA6" => "...", // ellipsis
+            "\xC2\xA0"     => " ",   // non-breaking space
+            "\xE2\x80\x95" => "-",   // horizontal bar
+        ];
+
+        $text = strtr($text, $map);
+
+        // Optionally strip out control characters
+        $text = preg_replace('/[\x00-\x1F\x7F]/u', '', $text);
+
+        return $text;
+    }
+
+        
+
 }

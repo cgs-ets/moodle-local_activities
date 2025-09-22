@@ -119,6 +119,10 @@
       }
       
       /* Add visual separation for the 4-column rows */
+      .cover-table tbody tr:nth-child(1) th:nth-child(2),
+      .cover-table tbody tr:nth-child(1) td:nth-child(2),
+      .cover-table tbody tr:nth-child(6) th:nth-child(2),
+      .cover-table tbody tr:nth-child(6) td:nth-child(2),
       .cover-table tbody tr:nth-child(8) th:nth-child(2),
       .cover-table tbody tr:nth-child(8) td:nth-child(2),
       .cover-table tbody tr:nth-child(9) th:nth-child(2),
@@ -126,9 +130,7 @@
       .cover-table tbody tr:nth-child(10) th:nth-child(2),
       .cover-table tbody tr:nth-child(10) td:nth-child(2),
       .cover-table tbody tr:nth-child(11) th:nth-child(2),
-      .cover-table tbody tr:nth-child(11) td:nth-child(2),
-      .cover-table tbody tr:nth-child(12) th:nth-child(2),
-      .cover-table tbody tr:nth-child(12) td:nth-child(2) {
+      .cover-table tbody tr:nth-child(11) td:nth-child(2) {
         border-right: 1px solid #444;
       }
       
@@ -349,31 +351,30 @@
         <tbody>
         <tr>
           <th>Activity Name</th>
-          <td colspan="3">{{activity.activityname}}</td>
-        </tr>
-        <tr>
+          <td>{{activity.activityname}}</td>
           <th>Location</th>
-          <td colspan="3">{{activity.location}}</td>
+          <td>{{activity.location}}</td>
         </tr>
         <tr>
-          <th>Start Date & Time</th>
-          <td colspan="3">{{activity.startreadabletime}}</td>
-        </tr>
-        <tr>
-          <th>End Date & Time</th>
-          <td colspan="3">{{activity.endreadabletime}}</td>
-        </tr>
-        <tr>
-          <th>Transport</th>
-          <td colspan="3">{{activity.transport}}</td>
+          <th>Proposed activities</th>
+          <td colspan="3">{{activity.proposed_activities}}</td>
         </tr>
         <tr>
           <th>Reason for undertaking the activity</th>
           <td colspan="3">{{activity.reason_for_activity}}</td>
         </tr>
         <tr>
-          <th>Proposed activities</th>
-          <td colspan="3">{{activity.proposed_activities}}</td>
+          <th>Frequency of activity</th>
+          <td colspan="3">
+            {{#activity.recurring}}Series{{/activity.recurring}}
+            {{^activity.recurring}}One off{{/activity.recurring}}
+            <br>
+            For time and date refer to CAPMS Activity Form details. If the time and date changes after activity approval, Admin and Final activity approval will be required.
+          </td>
+        </tr>
+        <tr>
+          <th>Transport</th>
+          <td colspan="3">{{activity.transport}}</td>
         </tr>
         <tr>
           <th>Anticipated number of students attending</th>
@@ -382,7 +383,11 @@
           <td>{{activity.anticipated_adults}}</td>
         </tr>
         <tr>
-          <th>Leader</th>
+          <th>Supervision ratio required (refer to CGS Policies, Procedures and Guidelines)</th>
+          <td colspan="3">{{activity.supervision_ratio}}</td>
+        </tr>
+        <tr>
+          <th>Staff Member-in-Charge (must be attending the event)</th>
           <td>{{activity.leader}}</td>
           <th>Leader contact number</th>
           <td>{{activity.leader_contact}}</td>
@@ -422,20 +427,9 @@
         <tr>
           <th>Supervising staff relevant qualifications (select all that apply)</th>
           <td colspan="3">
-            {{#activity.staff_qualifications}}
-              {{#.}}
-                {{.}}{{^last}}, {{/last}}
-              {{/.}}
-            {{/activity.staff_qualifications}}
-            {{^activity.staff_qualifications}}None specified{{/activity.staff_qualifications}}
+            {{activity.staff_qualifications}}
           </td>
         </tr>
-        {{#activity.is_other_qualifications}}
-          <tr>
-            <th>Other qualifications</th>
-            <td colspan="3">{{activity.other_qualifications}}</td>
-          </tr>
-        {{/activity.is_other_qualifications}}
         </tbody>
       </table>
     </div>

@@ -135,24 +135,20 @@ export function Paperwork() {
                     <Accordion.Item value="acknowledgments">
                       <Accordion.Control>
                         <div className='flex items-center gap-2'>
-                          {hasUserAcknowledged 
-                            ? <IconCheck className='size-6 text-green-500' /> 
-                            : <IconCircle className='size-6 text-gray-400' />
-                          }
                           <Text className="font-semibold">Acknowledgments</Text>
                         </div>
                       </Accordion.Control>
                       <Accordion.Panel>
                         <Text className="font-semibold">STAFF IN CHARGE (LEADER)</Text>
-                        <Text className="text-sm">As the Staff Member in charge of the activity, I acknowledge that all Staff and Volunteers participating will be made aware of the risk mitigation strategies to be implemented and any additional activity documentation. I acknowledge I am responsible for all activity form updates in CAPMS to ensure all information is current for staff and school community reference. I understand I an actively responsible for engaging in the measures outlined in addition to CGS Policies, Procedures, and Guidelines.</Text>
+                        <Text className="text-sm">The Staff Member in Charge of the activity is responsible to ensure all Staff and Volunteers participating are be made aware of the risk mitigation strategies to be implemented and any additional y documentation. The Staff in Charge is responsible for all activity form updates in CAPMS to ensure information is current for staff and school community reference. The Staff in Charge is actively responsible for engaging in the risk assessment measures outlined in addition to all CGS Policies, Procedures, and Guidelines that apply to the activity or event.</Text>
 
                         <Text className="font-semibold">SECOND IN CHARGE (STAND BY LEADER)</Text>
-                        <Text className="text-sm">If the Staff Member in charge of the activity is unable to attend, I will take the responsibility as Staff in Charge. I acknowledge that all Staff and Volunteers participating will be made aware of the risk mitigation strategies to be implemented and any additional activity documentation. I understand I an actively responsible for engaging in the measures outlined in addition to CGS Policies, Procedures, and Guidelines.</Text>
+                        <Text className="text-sm">If the Staff Member in charge of the activity is unable to attend, the Second in Charge will take the responsibility as Staff in Charge. If stepping up to be Staff in Charge they are to ensure that all Staff and Volunteers participating will be made aware of the risk mitigation strategies to be implemented and any additional activity documentation. The Second in Charge is actively responsible for engaging in the risk assessment measures outlined in addition to all CGS Policies, Procedures, and Guidelines that apply to the activity or event.</Text>
 
-                        <Text className="font-semibold">ACCOMPANYING STAFF ACKNOWLEDGEMENT</Text>
-                        <Text className="text-sm">I have read and understood the activity details and risk assessment. I understand the possible hazards and what measures will be put in place to lower the risk. I understand I an actively responsible for engaging in the measures outlined in addition to CGS Policies, Procedures, and Guidelines.</Text>
+                        <Text className="font-semibold">ACCOMPANYING STAFF</Text>
+                        <Text className="text-sm">Accompanying staff are required to read the activity details and risk assessment. They are to understand the possible hazards and what measures will be put in place to lower the risk. Accompanying staff are actively responsible for engaging in the risk assessment measures outlined in addition to all CGS Policies, Procedures, and Guidelines that apply to the activity or event.</Text>
                       
-                        {isacknowledger && viewStateProps.editable && 
+                        {false && isacknowledger && viewStateProps.editable && 
                           <Checkbox 
                             checked={hasUserAcknowledged}
                             onChange={(v) => acknowledgeActivity(v.target.checked)} 
@@ -164,7 +160,7 @@ export function Paperwork() {
                     </Accordion.Item>
                   </Accordion>
                   
-                  { acknowledgers.length > 0 && 
+                  { false && acknowledgers.length > 0 && 
                     <div className='flex justify-start'>
                       <div className='flex items-center gap-2 py-2 px-4 bg-blue-50 border rounded-md cursor-pointer' onClick={() => setAcknowledgedModalOpened(true)}>
                         <Text className="text-sm font-semibold">Acknowledged by:</Text>

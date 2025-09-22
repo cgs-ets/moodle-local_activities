@@ -53,6 +53,7 @@ class Activity {
         'staffinchargejson' => '',
         'planningstaffjson' => '',
         'accompanyingstaffjson' => '',
+        'secondinchargejson' => '',
         'otherparticipants' => '',
         'absencesprocessed' => 0,
         'remindersprocessed' => 0,
@@ -545,6 +546,14 @@ class Activity {
             }
         }
 
+        $issecondincharge = false;
+        $secondincharge = json_decode($this->data->secondinchargejson ?? '');
+        if ($secondincharge) {
+            if ($usercontext->username == $secondincharge->un) {
+                $issecondincharge = true;
+            }
+        }
+
         $isapprover = workflow_lib::is_approver_of_activity($this->data->id);
         if ($isapprover) {
             $userapprovertypes = workflow_lib::get_approver_types($usercontext->username);
@@ -559,17 +568,17 @@ class Activity {
         $isuserapprover = utils_lib::is_user_approver();
         
         $usercanedit = false;
-        if ($isuserapprover || $iscreator || $isstaffincharge || $isplanner || has_capability('moodle/site:config', \context_user::instance($USER->id))) {
+        if ($isuserapprover || $iscreator || $isstaffincharge || $isplanner || $issecondincharge || has_capability('moodle/site:config', \context_user::instance($USER->id))) {
             $usercanedit = true;
         }
 
         $usercansendmail = false;
-        if ($iscreator || $isstaffincharge || $isplanner) {
+        if ($iscreator || $isstaffincharge || $isplanner || $issecondincharge) {
             $usercansendmail = true;
         }
 
         $isacknowledger = false;
-        if ($isstaffincharge || $isaccompanying) {
+        if ($isstaffincharge || $isaccompanying || $issecondincharge) {
             $isacknowledger = true;
         }
 
@@ -644,9 +653,11 @@ class Activity {
             'isapprover' => $isapprover,
             'isplanner' => $isplanner,
             'isaccompanying' => $isaccompanying,
+            'issecondincharge' => $issecondincharge,
             'isacknowledger' => $isacknowledger,
             'isstaffincharge' => $isstaffincharge,
             'staffinchargedata' => utils_lib::user_stub($this->data->staffincharge),
+            'secondinchargedata' => $secondincharge ? utils_lib::user_stub($secondincharge->un) : null,
             'usercanedit' => $usercanedit,
             'usercansendmail' => $usercansendmail,
             'ispast' => $ispast,

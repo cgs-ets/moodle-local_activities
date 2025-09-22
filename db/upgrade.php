@@ -215,7 +215,6 @@ function xmldb_local_activities_upgrade($oldversion) {
         
         $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
         $table->add_index('version_unique', XMLDB_INDEX_UNIQUE, array('version'));
-        $table->add_index('published_version', XMLDB_INDEX_UNIQUE, array('is_published'));
         
         if (!$dbman->table_exists($table)) {
             $dbman->create_table($table);
@@ -458,6 +457,25 @@ function xmldb_local_activities_upgrade($oldversion) {
         }
        
         upgrade_plugin_savepoint(true, 2025082106, 'local', 'activities');
+    }
+
+    // Add second in charge.
+    if ($oldversion < 2025082107) {
+        $table = new xmldb_table('activities');
+        $field = new xmldb_field('secondinchargejson', XMLDB_TYPE_TEXT, null, null, null, null, null, 'staffinchargejson');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2025082107, 'local', 'activities');
+    }
+
+    if ($oldversion < 2025082108) {
+        $table = new xmldb_table('activities_ra_gens');
+        $field = new xmldb_field('supervision_ratio', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'leader_contact');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2025082108, 'local', 'activities');
     }
 
 
