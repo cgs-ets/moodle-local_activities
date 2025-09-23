@@ -665,10 +665,12 @@ class risk_versions_lib {
 
             // Get the sort value based on the first hazard in the first set.
             $risk->sort = 99999;
-            foreach ($risk->classification_sets_sort[0] as $member) {
-                if ($member->type == 'hazard') {
-                    $risk->sort = $member->sortorder;
-                    break;
+            if (isset($risk->classification_sets_sort[0])) {
+                foreach ($risk->classification_sets_sort[0] as $member) {
+                    if ($member->type == 'hazard') {
+                        $risk->sort = $member->sortorder;
+                        break;
+                    }
                 }
             }
             

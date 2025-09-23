@@ -135,7 +135,7 @@ export function Paperwork() {
                     <Accordion.Item value="acknowledgments">
                       <Accordion.Control>
                         <div className='flex items-center gap-2'>
-                          <Text className="font-semibold">Acknowledgments</Text>
+                          <Text className="font-semibold">Staff Responsibilities</Text>
                         </div>
                       </Accordion.Control>
                       <Accordion.Panel>
