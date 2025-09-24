@@ -149,7 +149,7 @@ export function Risk() {
       setAdditionalFields({
         ...additionalFields,
         leader: data.staffinchargedata?.fn + ' ' + data.staffinchargedata?.ln + ' (' + data.staffinchargedata?.un + ')',
-        secondInCharge: data.secondinchargedata?.fn + ' ' + data.secondinchargedata?.ln + ' (' + data.secondinchargedata?.un + ')',
+        secondInCharge: data.secondinchargedata ? data.secondinchargedata?.fn + ' ' + data.secondinchargedata?.ln + ' (' + data.secondinchargedata?.un + ')' : '',
       })
     }
 

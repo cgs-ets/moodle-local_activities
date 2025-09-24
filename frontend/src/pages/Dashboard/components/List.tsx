@@ -171,7 +171,8 @@ export function List({setCaltype}: Props) {
           event.staffincharge, 
           ...JSON.parse(event.planningstaffjson || '[]').map((u: User) => u.un), 
           ...JSON.parse(event.accompanyingstaffjson || '[]').map((u: User) => u.un),
-          ...JSON.parse(event.secondinchargejson || '[]').map((u: User) => u.un)]
+          ...event.secondinchargejson ? [JSON.parse(event.secondinchargejson).un] : [],
+        ]
         const uniqueEventStaff = [...new Set(eventStaff.filter(item => item.trim() !== ""))];
         const matchesStaff =
           filterStaff.length === 0 || 
