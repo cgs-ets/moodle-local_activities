@@ -37,6 +37,7 @@ export function StudentListDIY() {
 
   const getStudents = async () => {
     console.log("get student list")
+    setStudentsLoaded(false)
     const fetchResponse = await api.call({
       query: {
         methodname: 'local_activities-get_students',
@@ -51,7 +52,8 @@ export function StudentListDIY() {
     if (fetchResponse.data) {
       setState({['studentlist']: fetchResponse.data} as Form)
     }
-    setStudentsLoaded()
+    setStudentsLoaded(true)
+    console.log("students loaded")
   }
 
   useEffect(() => {

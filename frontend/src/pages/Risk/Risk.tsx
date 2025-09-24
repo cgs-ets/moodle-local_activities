@@ -637,7 +637,6 @@ export function Risk() {
                                   <Table.Th>Risk Rating (After)</Table.Th>
                                   <Table.Th>Responsible Person</Table.Th>
                                   <Table.Th>Control Timing</Table.Th>
-                                  <Table.Th>Risk/Benefit</Table.Th>
                                   <Table.Th style={{ width: '90px' }}>Actions</Table.Th>
                                 </Table.Tr>
                               </Table.Thead>
@@ -679,9 +678,6 @@ export function Risk() {
                                     </Table.Td>
                                     <Table.Td>
                                       <Text size="sm">{risk.control_timing}</Text>
-                                    </Table.Td>
-                                    <Table.Td>
-                                      <Text size="sm">{risk.risk_benefit}</Text>
                                     </Table.Td>
                                     <Table.Td>
                                       <Group gap="xs">
@@ -837,16 +833,6 @@ export function Risk() {
               required
             />
           </Group>
-          
-          <Textarea
-            label="Risk/Benefit Analysis"
-            placeholder="Describe the risk vs benefit analysis..."
-            value={customRiskForm.risk_benefit}
-            onChange={(e) => setCustomRiskForm({ ...customRiskForm, risk_benefit: e.target.value })}
-            mb="md"
-            minRows={2}
-            autosize
-          />
           
           <Group justify="flex-end">
             <Button variant="light" onClick={() => setCustomRiskModalOpen(false)}>

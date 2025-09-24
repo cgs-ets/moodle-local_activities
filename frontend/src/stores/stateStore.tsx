@@ -30,7 +30,7 @@ type StateStore = State & {
   updateHash: () => void,
   resetHash: () => void,
   setFormLoaded: () => void,
-  setStudentsLoaded: () => void,
+  setStudentsLoaded: (loaded: boolean) => void,
   setFilesLoaded: () => void,
   updateSavedTime: () => void,
   updateViewStateProps: (props: ViewStateProps) => void,
@@ -60,7 +60,7 @@ const useStateStore = create<StateStore>((set, get) => ({
     const hash = exportActivityHash()
     set({
       oldhash: hash, 
-      hash: hash
+      hash: hash,
     })
   },
   clearHash: () => {
@@ -89,7 +89,7 @@ const useStateStore = create<StateStore>((set, get) => ({
     }))
   },
   setFormLoaded: () => set({formloaded: true}),
-  setStudentsLoaded: () => set({studentsloaded: true}),
+  setStudentsLoaded: (loaded: boolean) => set({studentsloaded: loaded}),
   setFilesLoaded: () => set({filesloaded: true}),
   updateSavedTime: () => set({savedtime: Date.now()}),
   updateViewStateProps: (vals: ViewStateProps) => set({viewStateProps: vals}),

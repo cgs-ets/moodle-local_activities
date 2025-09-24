@@ -28,6 +28,7 @@ export function Status({
   const initialActivitytype = useFormStore((state) => (state.initialActivitytype))
   const assessmentid = useFormStore((state) => (state.assessmentid))
   const haschanges = useStateStore((state) => (state.haschanges))
+
   const updateHash = useStateStore((state) => (state.updateHash))
   const baselineHash = useStateStore((state) => (state.baselineHash))
   const hash = useStateStore((state) => (state.hash))
@@ -44,6 +45,8 @@ export function Status({
   const studentsloaded = useStateStore((state) => (state.studentsloaded))
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
 
+  const studentlist = useFormStore((state) => (state.studentlist))
+
   const [duplicateOpened, { open: openDuplicate, close: closeDuplicate }] = useDisclosure(false);
   const [toDraftOpened, { open: openToDraft, close: closeToDraft }] = useDisclosure(false);
 
@@ -58,10 +61,10 @@ export function Status({
 
   // Whenever something changes, update the hash.
   useEffect(() => {
-    if (hash) {
+    if (formloaded && (isCalEntry(initialActivitytype) || (isActivity(initialActivitytype) && studentsloaded))) {
       updateHash()
     }
-  }, [formData])
+  }, [formData, studentsloaded, initialActivitytype])
 
   const [saveComplete, setSaveComplete] = useState(false);
   const { start, clear } = useTimeout(() => setSaveComplete(false), 5000);

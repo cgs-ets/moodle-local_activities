@@ -59,7 +59,6 @@ export function Paperwork() {
     if (response.error) {
       return;
     }
-    console.log(response.data);
     setRaGenerations(response.data);
   };
 

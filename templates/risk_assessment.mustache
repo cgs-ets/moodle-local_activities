@@ -178,6 +178,7 @@
       
       .table-container {
         overflow: hidden;
+        padding: 2px;
       }
 
 
@@ -466,13 +467,12 @@
             <th>After</th>
             <th>Responsible Person</th>
             <th>Control Timing</th>
-            <th>Risk Benefit</th>
           </tr>
         </thead>
         <tbody>
           {{#classifications}}
             <tr class="classification-row">
-              <td colspan="7">{{name}}</td>
+              <td colspan="6">{{name}}</td>
             </tr>
             {{#risks}}
               <tr class="risk-row">
@@ -486,7 +486,6 @@
                 </td>
                 <td class="responsible-person">{{responsible_person}}</td>
                 <td class="control-timing">{{control_timing}}</td>
-                <td class="risk-benefit">{{risk_benefit}}</td>
               </tr>
             {{/risks}}
           {{/classifications}}
