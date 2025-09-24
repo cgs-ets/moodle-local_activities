@@ -46,9 +46,14 @@ class risk_versions_lib {
 
     public static function check_risk_settings_access() {
         global $USER;
-        if ($USER->username != '43563' && $USER->username != 'admin' && $USER->username != '57056' && $USER->username != '61460') {
+        /*if ($USER->username != '43563' && 
+            $USER->username != 'admin' && 
+            $USER->username != '57056' && 
+            $USER->username != '61460' &&
+            $USER->username != '51668'
+        ) {
             throw new \Exception("Permission denied.");
-        }
+        }*/
     }
 
     /**
