@@ -47,6 +47,8 @@ export interface Classification {
   includes: number[];
   preselected: boolean;
   hidden: boolean;
+  risks_count?: number;
+  risks_count_string?: string;
 }
 
 export interface Risk {

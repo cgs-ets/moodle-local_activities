@@ -108,4 +108,15 @@ trait risks_api {
         $approved = required_param('approved', PARAM_INT);
         return risks_lib::approve_ra_generation($id, $approved);
     }
+
+    /**
+     * Get risks for a specific classification.
+     *
+     * @return array
+     */
+    static public function get_risks_for_classification() {
+        $classification_id = required_param('classification_id', PARAM_INT);
+        $version = required_param('version', PARAM_INT);
+        return risks_lib::get_risks_for_classification($classification_id, $version);
+    }
 }

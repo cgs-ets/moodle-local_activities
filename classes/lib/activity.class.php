@@ -624,19 +624,19 @@ class Activity {
         $canpermissionsend = false;
         // Check for remaining approvals and set activity status based on findings.
         $remainingapprovals = workflow_lib::get_unactioned_approvals($this->data->id);
-        // EXCLUDE senior_hod approval if this activity was created BEFORE September 2, 2025 10:36:13 AM
-        $createdbefore2sept2025 = $this->data->timecreated < 1756773373;
-        if ($createdbefore2sept2025) {
+        // EXCLUDE senior_hod approval if this activity was created BEFORE October 7, 2025 12:16:16 PM
+        $createdbeforecutover = $this->data->timecreated < 1759799776;
+        if ($createdbeforecutover) {
             $hod = array_search('senior_hod', array_column($remainingapprovals, 'type'));
             if ($hod !== false) {
                 unset($remainingapprovals[$hod]);
             }
         }
         // EXCLUDE senior_ra approval - we don't wait for that anymore.
-        $senior_ra = array_search('senior_ra', array_column($remainingapprovals, 'type'));
-        if ($senior_ra !== false) {
-            unset($remainingapprovals[$senior_ra]);
-        }
+        //$senior_ra = array_search('senior_ra', array_column($remainingapprovals, 'type'));
+        //if ($senior_ra !== false) {
+        //    unset($remainingapprovals[$senior_ra]);
+        //}
         if (empty($remainingapprovals)) {
             $canpermissionsend = true;
         }

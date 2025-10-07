@@ -391,9 +391,70 @@ class risks_lib {
             $classificationix = array_search('Commercial', array_column($classifications, 'name'));
             $classifications[$classificationix]->preselected = true;
         }
+
+        // Pre-select the standard classifications.
+        foreach ($classifications as $classification) {
+            if ($classification->isstandard) {
+                $classification->preselected = true;
+            }
+        }
+
+        // Add risk counts for each classification
+        $classifications = static::add_risk_counts_to_classifications($classifications, $version);
+
         return $classifications;
     }
 
+    /**
+     * Add risk counts to classifications
+     *
+     * @param array $classifications
+     * @param int $version
+     * @return array
+     */
+    private static function add_risk_counts_to_classifications($classifications, $version) {
+        // Get all risks for this version
+        $all_risks = risk_versions_lib::get_risks_with_classifications($version);
+        
+        // Count risks for each classification
+        foreach ($classifications as &$classification) {
+            $risk_count = 0;
+            
+            // Only count risks for hazard classifications (not contexts)
+            if ($classification->type === 'hazard') {
+                foreach ($all_risks as $risk) {
+                    // Check if this risk is associated with this classification
+                    if (in_array($classification->id, $risk->classification_ids)) {
+                        $risk_count++;
+                    }
+                }
+            }
+            
+            $classification->risks_count = $risk_count;
+            $classification->risks_count_string = $risk_count . ' ' . ($risk_count === 1 ? 'risk' : 'risks');
+        }
+        
+        return $classifications;
+    }
+
+    /**
+     * Get risks for a specific classification
+     *
+     * @param int $classification_id
+     * @param int $version
+     * @return array
+     */
+    public static function get_risks_for_classification($classification_id, $version) {
+        // Get all risks for this version
+        $all_risks = risk_versions_lib::get_risks_with_classifications($version);
+        
+        // Filter risks that are associated with this classification
+        $classification_risks = array_filter($all_risks, function($risk) use ($classification_id) {
+            return in_array($classification_id, $risk->classification_ids);
+        });
+        
+        return array_values($classification_risks);
+    }
 
     public static function get_ra_generations($activityid) {
         global $DB, $CFG;

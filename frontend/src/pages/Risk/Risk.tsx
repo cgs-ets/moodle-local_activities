@@ -61,6 +61,12 @@ export function Risk() {
     risk_benefit: ''
   })
 
+  // Risks modal state
+  const [risksModalOpen, setRisksModalOpen] = useState(false)
+  const [selectedClassification, setSelectedClassification] = useState<Classification | null>(null)
+  const [classificationRisks, setClassificationRisks] = useState<any[]>([])
+  const [risksLoading, setRisksLoading] = useState(false)
+
 
   // Additional fields local state
   const [additionalFields, setAdditionalFields] = useState({
@@ -220,6 +226,45 @@ export function Risk() {
     setCustomRisks(customRisks.filter(r => r !== risk))
   }
 
+  // Risks modal functions
+  const openRisksModal = async (classification: Classification) => {
+    setSelectedClassification(classification)
+    setRisksModalOpen(true)
+    setRisksLoading(true)
+    
+    try {
+      const response = await api.call({
+        query: {
+          methodname: 'local_activities-get_risks_for_classification',
+          classification_id: classification.id,
+          version: riskAssessment.riskVersion,
+        }
+      })
+      
+      if (!response.error) {
+        setClassificationRisks(response.data)
+      }
+    } catch (error) {
+      console.error('Error loading risks:', error)
+    } finally {
+      setRisksLoading(false)
+    }
+  }
+
+  const getClassificationsToShow = () => {
+    return classifications.filter(c => c.type === 'hazard').map((classification) => {
+      // Only display this classification if all of its contexts are selected
+      if (!isContextSelected(classification, riskAssessment.selectedClassifications)) {
+        return null;
+      }
+      // Don't display if standard or hidden
+      if (classification.hidden) {
+        return null;
+      }
+      return classification
+    }).filter(c => c !== null)
+  }
+
   const generateRiskAssessment = async () => {
     // Make sure all additional fields are provided, and that at least one context and classification is selected.
     if (!additionalFields.reasonForActivity || 
@@ -286,13 +331,21 @@ export function Risk() {
     const ids = value.map(id => parseInt(id))
 
     //Loop through selected, and for each one that is selected, check if it has any contexts that are not selected
-    const selected = ids.filter(id => {
+    let selected = ids.filter(id => {
       const classification = classifications.find(c => c.id === id)
       if (classification && isContextSelected(classification, ids)) {
         return true
       }
       return false
     })
+
+    // Make sure standard classifications are also selected
+    const standardClassifications = classifications.filter(c => c.isstandard == 1)
+    const standardClassificationsIds = standardClassifications.map(c => c.id)
+    selected = [...selected, ...standardClassificationsIds]
+
+    // Make it unique
+    selected = [...new Set(selected)]
 
     setRiskAssessment({
       ...riskAssessment,
@@ -516,7 +569,7 @@ export function Risk() {
                                     return null;
                                   }
                                   // Don't display if standard or hidden
-                                  if (classification.isstandard || classification.hidden) {
+                                  if (classification.hidden) {
                                     return null;
                                   }
                                   return (
@@ -548,59 +601,62 @@ export function Risk() {
                         </Card>
                       </Box>
 
-                      <Box className="flex flex-col gap-4">
-                        <Card withBorder className="">
-                          <Text fz="md">Select all that apply</Text>
-                          
-                          {classificationsLoading ? (
-                            <div className="flex justify-center py-4">
-                              <Loader size="sm" />
-                            </div>
-                          ) : (
+                      {getClassificationsToShow().length > 0 ? (
+                        <Box className="flex flex-col gap-4">
+                          <Card withBorder className="">
+                            <Text fz="md">Select all that apply</Text>
+                            
+                            {classificationsLoading ? (
+                              <div className="flex justify-center py-4">
+                                <Loader size="sm" />
+                              </div>
+                            ) : (
 
-                            <Checkbox.Group
-                              value={riskAssessment.selectedClassifications.map(id => id.toString())}
-                              onChange={handleRiskAssessmentChange}
-                              label=""
-                            >
-                              <Grid pt="md" gutter="md" columns={12}>
-                                {classifications.filter(c => c.type === 'hazard').map((classification) => {
-                                  // Only display this classification if all of its contexts are selected
-                                  if (!isContextSelected(classification, riskAssessment.selectedClassifications)) {
-                                    return null;
-                                  }
-                                  // Don't display if standard or hidden
-                                  if (classification.isstandard || classification.hidden) {
-                                    return null;
-                                  }
-                                  return (
-                                    <Grid.Col span={{ base: 12, sm: 6, md: 4, lg: 3 }} key={classification.id}>
-                                      <Checkbox.Card 
-                                        radius="md" 
-                                        value={classification.id.toString()} 
-                                        className="p-4 h-full flex items-start"
-                                      >
-                                        <div className="flex items-start gap-4">
-                                          <div className="pt-1">
-                                            <Checkbox.Indicator />
-                                          </div>
-                                          <div>
-                                            <div className="flex items-start gap-2">
-                                              {classification.icon && (<SvgRenderer svgString={classification.icon} className="w-6 h-6 flex-shrink-0" />)}
-                                              <Text className="font-semibold text-md">{classification.name}</Text>
+                              <Checkbox.Group
+                                value={riskAssessment.selectedClassifications.map(id => id.toString())}
+                                onChange={handleRiskAssessmentChange}
+                                label=""  
+                              >
+                                <Grid pt="md" gutter="md" columns={12}>
+                                  {getClassificationsToShow().map((classification) => {
+                                    return (
+                                      <Grid.Col span={{ base: 12, sm: 6, md: 4, lg: 3 }} key={classification.id}>
+                                        <Checkbox.Card 
+                                          radius="md"
+                                          value={classification.id.toString()} 
+                                          className={`p-4 h-full flex items-start ${classification.isstandard == 1 ? 'bg-gray-100' : ''}`}
+                                        >
+                                          <div className="flex items-start gap-4">
+                                            <div className="pt-1">
+                                              <Checkbox.Indicator />
                                             </div>
-                                            <Text c="dimmed" fz="sm">{classification.description}</Text>
+                                            <div>
+                                              <div className="flex items-start gap-2">
+                                                {classification.icon && (<SvgRenderer svgString={classification.icon} className="w-6 h-6 flex-shrink-0" />)}
+                                                <Text className="font-semibold text-md">{classification.name}</Text>
+                                              </div>
+                                              <Text c="dimmed" fz="sm">{classification.description}</Text>
+                                               <Text 
+                                                 className="inline-block text-xs underline cursor-pointer text-gray-500 hover:text-blue-600" 
+                                                 onClick={(e) => {
+                                                   e.stopPropagation();
+                                                   openRisksModal(classification);
+                                                 }}
+                                               >
+                                                 {classification.risks_count_string || '0 risks'}
+                                               </Text>
+                                            </div>
                                           </div>
-                                        </div>
-                                      </Checkbox.Card>
-                                    </Grid.Col>
-                                  )
-                                })}
-                              </Grid>
-                            </Checkbox.Group>
-                          )}
-                        </Card>
-                      </Box>
+                                        </Checkbox.Card>
+                                      </Grid.Col>
+                                    )
+                                  })}
+                                </Grid>
+                              </Checkbox.Group>
+                            )}
+                          </Card>
+                        </Box>
+                      ) : null}
 
                       <Box className="flex flex-col gap-4">
                         <Card withBorder>
@@ -728,7 +784,7 @@ export function Risk() {
    
                 
 
-                {false &&
+                {
                   <div>
                     <Text fz="sm" c="dimmed" mb="xs">Debug Information:</Text>
                     <pre className="text-xs bg-gray-100 p-2 rounded">
@@ -842,6 +898,85 @@ export function Risk() {
               {editingCustomRisk ? 'Update' : 'Create'}
             </Button>
           </Group>
+        </Box>
+      </Modal>
+
+      {/* Risks Modal */}
+      <Modal 
+        opened={risksModalOpen} 
+        onClose={() => setRisksModalOpen(false)}
+        title={`Risks for ${selectedClassification?.name || 'Classification'}`}
+        size="xl"
+      >
+        <Box>
+          {risksLoading ? (
+            <div className="flex justify-center py-4">
+              <Loader size="sm" />
+            </div>
+          ) : (
+            <div>
+              {classificationRisks.length === 0 ? (
+                <Text c="dimmed">No risks found for this classification.</Text>
+              ) : (
+                <div className="space-y-4">
+                  {classificationRisks.map((risk, index) => (
+                    <Card key={risk.id || index} withBorder p="md">
+                      <div className="space-y-2">
+                        <Text fw={600} fz="md">{risk.hazard}</Text>
+                        <Text c="dimmed" fz="sm">{risk.description}</Text>
+                        <Group gap="md">
+                          <Badge 
+                            variant="light" 
+                            color={
+                              risk.riskrating_before === 1 ? "red" :
+                              risk.riskrating_before === 2 ? "orange" :
+                              risk.riskrating_before === 3 ? "yellow" :
+                              risk.riskrating_before === 4 ? "lime" :
+                              risk.riskrating_before === 5 ? "green" :
+                              "gray"
+                            }
+                          >
+                            Before: {risk.riskrating_before}
+                          </Badge>
+                          <Badge 
+                            variant="light" 
+                            color={
+                              risk.riskrating_after === 1 ? "red" :
+                              risk.riskrating_after === 2 ? "orange" :
+                              risk.riskrating_after === 3 ? "yellow" :
+                              risk.riskrating_after === 4 ? "lime" :
+                              risk.riskrating_after === 5 ? "green" :
+                              "gray"
+                            }
+                          >
+                            After: {risk.riskrating_after}
+                          </Badge>
+                        </Group>
+                        {risk.controlmeasures && (
+                          <div>
+                            <Text fw={500} fz="sm">Control Measures:</Text>
+                            <Text fz="sm">{risk.controlmeasures}</Text>
+                          </div>
+                        )}
+                        {risk.responsible_person && (
+                          <div>
+                            <Text fw={500} fz="sm">Responsible Person:</Text>
+                            <Text fz="sm">{risk.responsible_person}</Text>
+                          </div>
+                        )}
+                        {risk.control_timing && (
+                          <div>
+                            <Text fw={500} fz="sm">Control Timing:</Text>
+                            <Text fz="sm">{risk.control_timing}</Text>
+                          </div>
+                        )}
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </Box>
       </Modal>
 
