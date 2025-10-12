@@ -20,6 +20,8 @@ require_capability('moodle/site:config', $context, $USER->id);
 
 global $DB;
 
+$version = 107;
+
 // Path to uploaded Excel (adjust if needed)
 $excelpath = $CFG->dirroot . '/local/activities/risks.xlsx';
 
@@ -47,7 +49,7 @@ foreach ($rows as $row) {
         
         $classification = $DB->get_record('activities_classifications', [
             'name' => $name,
-            'version' => 99
+            'version' => $version
         ]);
 
         // Classifications are "context" except for the last one, which is a hazard.
@@ -61,7 +63,7 @@ foreach ($rows as $row) {
             $classification->description = '';
             $classification->sortorder = $type == 'hazard' ? 2 : 1;
             $classification->isstandard = 0;
-            $classification->version = 99;
+            $classification->version = $version;
             $classification->id = $DB->insert_record('activities_classifications', $classification);
         }
 
@@ -69,17 +71,17 @@ foreach ($rows as $row) {
         /*if ($i == count($classification_names) - 1) {
             foreach ($classification_ids as $classification_id) {
                 // Get the classification
-                $existing = $DB->get_record('activities_classifications', ['id' => $classification_id, 'version' => 99]);
+                $existing = $DB->get_record('activities_classifications', ['id' => $classification_id, 'version' => $version]);
 
                 // if it is excursion or incursion, then add it as a context, if it doesn't already exist as a context.
                 if ($existing->name == 'Excursion' || $existing->name == 'Incursion' || $existing->name == 'Events') {
                     // Check if it already exists as a context.
-                    $existing_context = $DB->get_record('activities_classifications_contexts', ['classificationid' => $classification->id, 'contextid' => $classification_id, 'version' => 99]);
+                    $existing_context = $DB->get_record('activities_classifications_contexts', ['classificationid' => $classification->id, 'contextid' => $classification_id, 'version' => $version]);
                     if (!$existing_context) {
                         $DB->insert_record('activities_classifications_contexts', [
                             'classificationid' => $classification->id, 
                                 'contextid' => $classification_id, 
-                                'version' => 99
+                                'version' => $version
                         ]);
                     }
                 }
@@ -100,14 +102,14 @@ foreach ($rows as $row) {
     $risk->control_timing = $timing ? $timing : '';
     $risk->risk_benefit = $riskbenefit ? $riskbenefit : '';
     $risk->isstandard = 0;
-    $risk->version = 99;
+    $risk->version = $version;
     $riskid = $DB->insert_record('activities_risks', $risk);
 
     // 4. Create classification set for this risk
     $classification_set = new stdClass();
     $classification_set->riskid = $riskid;
     $classification_set->set_order = 1;
-    $classification_set->version = 99;
+    $classification_set->version = $version;
     $set_id = $DB->insert_record('activities_risk_classification_sets', $classification_set);
 
     // 5. Add all classifications to the set
@@ -115,7 +117,7 @@ foreach ($rows as $row) {
         $set_member = new stdClass();
         $set_member->set_id = $set_id;
         $set_member->classificationid = $classification_id;
-        $set_member->version = 99;
+        $set_member->version = $version;
         $DB->insert_record('activities_risk_classification_set_members', $set_member);
     }
 }

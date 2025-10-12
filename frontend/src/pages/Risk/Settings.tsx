@@ -944,6 +944,28 @@ export function Settings() {
 
                       <Button 
                         onClick={() => {
+                          handleRiskFilterPreset(['7 - 12', 'Incursion'])
+                        }} 
+                        size="compact-md"
+                        radius="xl"
+                        variant="outline"
+                      >
+                        7-12 Incursions
+                      </Button>
+
+                      <Button 
+                        onClick={() => {
+                          handleRiskFilterPreset(['7 - 12', 'Excursion'])
+                        }} 
+                        size="compact-md"
+                        radius="xl"
+                        variant="outline"
+                      >
+                        7-12 Excursions
+                      </Button>
+
+                      <Button 
+                        onClick={() => {
                           handleRiskFilterPreset(['Events'])
                         }} 
                         size="compact-md"
