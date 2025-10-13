@@ -463,12 +463,12 @@ class risk_versions_lib {
 
 
         // Update contexts
-        if (isset($contexts)) {
+        /*if (isset($contexts)) {
             $DB->delete_records(static::TABLE_CLASSIFICATIONS_CONTEXTS, ['classificationid' => $id, 'version' => $data->version]);
             foreach ($contexts as $contextid) {
                 $DB->insert_record(static::TABLE_CLASSIFICATIONS_CONTEXTS, ['classificationid' => $id, 'contextid' => $contextid, 'version' => $data->version]);
             }
-        }
+        }*/
 
         // Update includes
         if (isset($includes)) {
