@@ -20,7 +20,7 @@ require_capability('moodle/site:config', $context, $USER->id);
 
 global $DB;
 
-$version = 107;
+$version = 1;
 
 // Path to uploaded Excel (adjust if needed)
 $excelpath = $CFG->dirroot . '/local/activities/risks.xlsx';
