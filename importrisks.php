@@ -94,13 +94,13 @@ foreach ($rows as $row) {
 
     // 3. Insert risk
     $risk = new stdClass();
-    $risk->hazard = $hazard ? $hazard : '';
+    $risk->hazard = $hazard ? trim($hazard, " \"'") : '';
     $risk->riskrating_before = $riskbefore ? (int)$riskbefore : 0;
-    $risk->controlmeasures = $controlmeasures ? $controlmeasures : '';
+    $risk->controlmeasures = $controlmeasures ? trim($controlmeasures, " \"'") : '';
     $risk->riskrating_after = $riskafter ? (int)$riskafter : 0;
-    $risk->responsible_person = $responsible ? $responsible : '';
+    $risk->responsible_person = $responsible ? trim($responsible, " \"'") : '';
     $risk->control_timing = $timing ? $timing : '';
-    $risk->risk_benefit = $riskbenefit ? $riskbenefit : '';
+    $risk->risk_benefit = $riskbenefit ? trim($riskbenefit, " \"'") : '';
     $risk->isstandard = 0;
     $risk->version = $version;
     $riskid = $DB->insert_record('activities_risks', $risk);
