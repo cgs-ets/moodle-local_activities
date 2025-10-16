@@ -451,13 +451,13 @@ class risks_lib {
         
         // Filter risks that are associated with this classification
         $classification_risks = array_filter($all_risks, function($risk) use ($classification_id, $context) {
-            return in_array($classification_id, $risk->classification_ids) && static::isContextSelected($risk, $context);
+            return in_array($classification_id, $risk->classification_ids) && static::isContextSelected($risk, $context, $classification_id);
         });
         
         return array_values($classification_risks);
     }
 
-    private static function isContextSelected($risk, $context) {
+    private static function isContextSelected($risk, $context, $subject_classification_id) {
         if (empty($context)) {
             // No contexts were selected.
             return false;
@@ -470,6 +470,9 @@ class risks_lib {
         
         // Check if ANY of the classification sets match the selected contexts
         foreach ($risk->classification_sets as $classification_set) {
+            // Remove the subject classification from the classification set.
+            $classification_set = array_diff($classification_set, [$subject_classification_id]);
+            
             // Check if all of the risk's classifications in this set are in the selected contexts
             $classifications_in_common = array_intersect($classification_set, $context);
             
