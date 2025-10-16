@@ -116,7 +116,6 @@ export function Risk() {
         query: {
           methodname: 'local_activities-get_ra_classifications',
           id: activityid,
-          contexts: riskAssessment.selectedClassifications.map(id => id.toString()).join(','),
         }
       })
       
@@ -645,7 +644,7 @@ export function Risk() {
                                                    openRisksModal(classification);
                                                  }}
                                                >
-                                                 {classification.risks_count_string || '0 risks'}
+                                                 Preview risks
                                                </Text>
                                             </div>
                                           </div>
@@ -773,14 +772,6 @@ export function Risk() {
                           Generate Risk Assessment
                         </Button>
                       </div>
-
-
-
-
-
-
-
-                  
                     </>
                 }
    
@@ -907,10 +898,15 @@ export function Risk() {
       <Modal 
         opened={risksModalOpen} 
         onClose={() => setRisksModalOpen(false)}
-        title={`Risks for ${selectedClassification?.name || 'Classification'}`}
+        title={`Risks for ${selectedClassification?.name || 'Classification'} (${classificationRisks.length} risks)`}
         size="xl"
+        styles={{
+          content: {
+            backgroundColor: '#f2f4f6',
+          },
+        }}
       >
-        <Box>
+        <Box className="pt-4">
           {risksLoading ? (
             <div className="flex justify-center py-4">
               <Loader size="sm" />
