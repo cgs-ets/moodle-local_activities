@@ -320,8 +320,9 @@ export function Risk() {
     })
 
     if (response && !response.error) {
-      // Navigate back to the activity page, with a search query for "paperwork"
-      navigate(`/${activityid}?ra=${response.data.id}`)  
+      // Navigate back to the activity page, with a search query for "paperwork".
+      // Make sure nav is a true reload
+      navigate(`/${activityid}?ra=${response.data.id}`, { replace: false })  
     } else {
       setError(response.exception?.message ?? "Error")
     }
@@ -777,7 +778,7 @@ export function Risk() {
    
                 
 
-                {
+                { false &&
                   <div>
                     <Text fz="sm" c="dimmed" mb="xs">Debug Information:</Text>
                     <pre className="text-xs bg-gray-100 p-2 rounded">
@@ -898,7 +899,7 @@ export function Risk() {
       <Modal 
         opened={risksModalOpen} 
         onClose={() => setRisksModalOpen(false)}
-        title={`Risks for ${selectedClassification?.name || 'Classification'} (${classificationRisks.length} risks)`}
+        title={`Risks for ${selectedClassification?.name || 'Classification'} ${classificationRisks.length ? '(' + classificationRisks.length + ' risks)' : ''}`}
         size="xl"
         styles={{
           content: {

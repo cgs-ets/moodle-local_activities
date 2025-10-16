@@ -25,6 +25,10 @@ export function RecurrenceModal({opened, enable, close, timestart, timeend}: Pro
     }
   };
 
+  if (!recurrence) {
+    return null
+  }
+  
   return (
     <>
       <Modal.Root 
