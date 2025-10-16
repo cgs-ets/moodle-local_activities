@@ -231,7 +231,7 @@ export function Risk() {
     setSelectedClassification(classification)
     setRisksModalOpen(true)
     setRisksLoading(true)
-    
+    setClassificationRisks([])
     try {
       const response = await api.call({
         query: {
