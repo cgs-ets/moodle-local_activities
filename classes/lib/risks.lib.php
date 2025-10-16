@@ -361,7 +361,7 @@ class risks_lib {
     }
 
 
-    public static function get_classifications_preselected($version, $activityid) {
+    public static function get_classifications_preselected($version, $activityid, $context = []) {
         $classifications = risk_versions_lib::get_classifications($version);
         $activity = new Activity($activityid);
         $activity = $activity->export();
@@ -400,7 +400,7 @@ class risks_lib {
         }
 
         // Add risk counts for each classification
-        $classifications = static::add_risk_counts_to_classifications($classifications, $version);
+        $classifications = static::add_risk_counts_to_classifications($classifications, $version, $context);
 
         return $classifications;
     }
@@ -412,7 +412,7 @@ class risks_lib {
      * @param int $version
      * @return array
      */
-    private static function add_risk_counts_to_classifications($classifications, $version) {
+    private static function add_risk_counts_to_classifications($classifications, $version, $context) {
         // Get all risks for this version
         $all_risks = risk_versions_lib::get_risks_with_classifications($version);
         
@@ -424,7 +424,7 @@ class risks_lib {
             if ($classification->type === 'hazard') {
                 foreach ($all_risks as $risk) {
                     // Check if this risk is associated with this classification
-                    if (in_array($classification->id, $risk->classification_ids)) {
+                    if (in_array($classification->id, $risk->classification_ids) && static::isContextSelected($risk, $context)) {
                         $risk_count++;
                     }
                 }
@@ -442,18 +442,39 @@ class risks_lib {
      *
      * @param int $classification_id
      * @param int $version
+     * @param array $contexts
      * @return array
      */
-    public static function get_risks_for_classification($classification_id, $version) {
+    public static function get_risks_for_classification($classification_id, $version, $context = []) {
         // Get all risks for this version
         $all_risks = risk_versions_lib::get_risks_with_classifications($version);
         
         // Filter risks that are associated with this classification
         $classification_risks = array_filter($all_risks, function($risk) use ($classification_id) {
-            return in_array($classification_id, $risk->classification_ids);
+            return in_array($classification_id, $risk->classification_ids) && static::isContextSelected($risk, $context);
         });
         
         return array_values($classification_risks);
+    }
+
+    private static function isContextSelected($risk, $context) {
+        if (empty($risk->classification_sets)) {
+            // No classification sets were defined for this risk.
+            return false;
+        }
+        
+        // Check if ANY of the classification sets match the selected contexts
+        foreach ($risk->classification_sets as $classification_set) {
+            // Check if all of the risk's classifications in this set are in the selected contexts
+            $classifications_in_common = array_intersect($classification_set, $context);
+            
+            // Check if the number of classifications in common is the same as the number of classifications in the risk set
+            if (count($classifications_in_common) === count($classification_set)) {
+                return true; // This set matches, so include the risk
+            }
+        }
+        
+        return false; // No sets matched
     }
 
     public static function get_ra_generations($activityid) {

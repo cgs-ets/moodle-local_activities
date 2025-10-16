@@ -24,7 +24,8 @@ trait risks_api {
     static public function get_ra_classifications() {
         $activityid = required_param('id', PARAM_INT);
         $version = risk_versions_lib::get_published_version();
-        $classifications = risks_lib::get_classifications_preselected($version, $activityid);
+        $context = required_param('contexts', PARAM_RAW);
+        $classifications = risks_lib::get_classifications_preselected($version, $activityid, $context);
         return ['version' => $version, 'classifications' => $classifications];
     }
 
@@ -117,6 +118,7 @@ trait risks_api {
     static public function get_risks_for_classification() {
         $classification_id = required_param('classification_id', PARAM_INT);
         $version = required_param('version', PARAM_INT);
-        return risks_lib::get_risks_for_classification($classification_id, $version);
+        $context = required_param('contexts', PARAM_RAW);
+        return risks_lib::get_risks_for_classification($classification_id, $version, $context);
     }
 }

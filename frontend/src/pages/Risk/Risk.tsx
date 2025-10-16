@@ -116,6 +116,7 @@ export function Risk() {
         query: {
           methodname: 'local_activities-get_ra_classifications',
           id: activityid,
+          contexts: riskAssessment.selectedClassifications.map(id => id.toString()).join(','),
         }
       })
       
@@ -238,6 +239,7 @@ export function Risk() {
           methodname: 'local_activities-get_risks_for_classification',
           classification_id: classification.id,
           version: riskAssessment.riskVersion,
+          context: riskAssessment.selectedClassifications.map(id => id.toString()).join(','),
         }
       })
       
