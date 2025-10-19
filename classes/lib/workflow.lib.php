@@ -103,19 +103,20 @@ class workflow_lib extends \local_activities\local_activities_config {
                 case 'senior': {
                     $i = 0;
                     // Senior School.
-                    //$approvals[] = static::get_approval_clone('senior_hod', ++$i, $activityid);
-
-                    // When ready to cutover, move this to bottom of the list and uncomment the if statement.
-                    //if ($isovernight) {
-                        // RA.
-                        $approvals[] = static::get_approval_clone('senior_ra', ++$i, $activityid);
-                    //}
+                    $approvals[] = static::get_approval_clone('senior_hod', ++$i, $activityid);
 
                     // Admin.
                     $approvals[] = static::get_approval_clone('senior_admin', ++$i, $activityid);
 
                     // Head of Senior or Director.
                     $approvals[] = static::get_approval_clone('senior_hoss', ++$i, $activityid);
+
+                    // When ready to cutover, move this to bottom of the list and uncomment the if statement.
+                    if ($isovernight) {
+                        // RA.
+                        $approvals[] = static::get_approval_clone('senior_ra', ++$i, $activityid);
+                    }
+
                     break;
                 }
                 case 'primary': {
