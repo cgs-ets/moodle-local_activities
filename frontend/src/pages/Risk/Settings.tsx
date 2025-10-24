@@ -27,13 +27,14 @@ import {
   Select,
   Stack,
 } from '@mantine/core';
-import { IconPlus, IconEdit, IconTrash, IconAlertSquare, IconX, IconCheck, IconGripVertical, IconEye, IconEyeOff, IconGitBranch, IconAlertCircle, IconFirstAidKit, IconCategory2, IconSettings, IconCat, IconGitCommit, IconCheckbox, IconGitFork, IconPictureInPicture, IconPhotoCircle, IconPhoto } from '@tabler/icons-react';
+import { IconPlus, IconEdit, IconTrash, IconAlertSquare, IconX, IconCheck, IconGripVertical, IconEye, IconEyeOff, IconGitBranch, IconAlertCircle, IconFirstAidKit, IconCategory2, IconSettings, IconCat, IconGitCommit, IconCheckbox, IconGitFork, IconPictureInPicture, IconPhotoCircle, IconPhoto, IconDownload } from '@tabler/icons-react';
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
 import useFetch from "../../hooks/useFetch";
 import { SvgRenderer } from "../../components/SvgRenderer";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { isRiskTester } from '../../utils/utils';
+import * as XLSX from 'xlsx';
 
 export interface Classification {
   id: number;
@@ -169,6 +170,7 @@ export function Settings() {
   const [diffLoading, setDiffLoading] = useState(false);
 
   const [tab, setTab] = useState('risks');
+  const [downloadingVersion, setDownloadingVersion] = useState<number | null>(null);
 
   document.title = 'Risk Settings';
 
@@ -784,6 +786,98 @@ export function Settings() {
     navigate(`/risk/settings?v=${version}`);
   };
 
+  const downloadDB = async (version: number) => {
+    try {
+      setDownloadingVersion(version);
+      
+      // Get risks data for the specified version
+      const risksRes = await api.call({ 
+        query: { 
+          methodname: 'local_activities-get_risks', 
+          version: version 
+        } 
+      });
+      
+      if (risksRes.error) {
+        console.error('Error fetching risks:', risksRes.exception?.message);
+        return;
+      }
+      
+      const risks = risksRes.data;
+      
+      // Get classifications data for the specified version
+      const classificationsRes = await api.call({ 
+        query: { 
+          methodname: 'local_activities-get_classifications', 
+          version: version 
+        } 
+      });
+      
+      if (classificationsRes.error) {
+        console.error('Error fetching classifications:', classificationsRes.exception?.message);
+        return;
+      }
+      
+      const classifications = classificationsRes.data;
+      
+      // Create a mapping of classification IDs to names
+      const classificationMap = new Map();
+      classifications.forEach((classification: Classification) => {
+        classificationMap.set(classification.id, classification.name);
+      });
+      
+      // Format the data for Excel and sort by classification names
+      const excelData = risks.map((risk: Risk) => {
+        // Format classification names with double pipe separators
+        const classificationNames = risk.classification_sets.map((set: number[]) => {
+          return set.map((id: number) => classificationMap.get(id) || '').join(' || ');
+        }).join(' ++ ');
+        
+        return {
+          'Classification': classificationNames,
+          'Hazard': risk.hazard,
+          'Risk Before': risk.riskrating_before,
+          'Control Measures': risk.controlmeasures,
+          'Risk After': risk.riskrating_after,
+          'Responsible Person': risk.responsible_person,
+          'When': risk.control_timing,
+          'Benefit': risk.risk_benefit
+        };
+      }).sort((a: { Classification: string }, b: { Classification: string }) => a.Classification.localeCompare(b.Classification));
+      
+      // Create Excel file
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      
+      // Set column widths for better formatting
+      const colWidths = [
+        { wch: 30 }, // Classification
+        { wch: 40 }, // Hazard
+        { wch: 12 }, // Risk Before
+        { wch: 50 }, // Control Measures
+        { wch: 12 }, // Risk After
+        { wch: 20 }, // Responsible Person
+        { wch: 20 }, // When
+        { wch: 30 }  // Benefit
+      ];
+      worksheet['!cols'] = colWidths;
+      
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Risks');
+      
+      // Generate filename with version and timestamp
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filename = `risks_v${version}_${timestamp}.xlsx`;
+      
+      // Download the file
+      XLSX.writeFile(workbook, filename);
+      
+    } catch (error) {
+      console.error('Error downloading risks:', error);
+    } finally {
+      setDownloadingVersion(null);
+    }
+  };
+
   return (
     <>
       <Header />
@@ -1333,10 +1427,9 @@ export function Settings() {
                       <Table.Tr 
                         key={version.id} 
                         style={{ cursor: 'pointer' }} 
-                        onClick={() => switchToVersion(version.version)}
                       >
                         <Table.Td>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2" onClick={() => switchToVersion(version.version)}>
                             <Text fw={500}>v{version.version}</Text>
                             {currentVersion?.version === version.version && (
                               <Badge size="xs" color="blue" ml="xs">Viewing</Badge>
@@ -1399,7 +1492,19 @@ export function Settings() {
                                 <IconTrash size={16} />
                               </ActionIcon>
                             )}
-                      
+
+                             <ActionIcon 
+                                 variant="subtle" 
+                                 onClick={() => downloadDB(version.version)}
+                                 title="Download version"
+                                 disabled={downloadingVersion === version.version}
+                               >
+                               {downloadingVersion === version.version ? (
+                                 <Loader size="xs" />
+                               ) : (
+                                 <IconDownload size={16} />
+                               )}
+                             </ActionIcon>
                           </Group>
                         </Table.Td>
                       </Table.Tr>
