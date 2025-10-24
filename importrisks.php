@@ -20,7 +20,8 @@ require_capability('moodle/site:config', $context, $USER->id);
 
 global $DB;
 
-$version = 1;
+// Get next version number
+$version = risk_versions_lib::get_draft_version();
 
 // Path to uploaded Excel (adjust if needed)
 $excelpath = $CFG->dirroot . '/local/activities/risks.xlsx';
@@ -66,28 +67,6 @@ foreach ($rows as $row) {
             $classification->version = $version;
             $classification->id = $DB->insert_record('activities_classifications', $classification);
         }
-
-        // If this is the last classification, add the previous classifications as contexts.
-        /*if ($i == count($classification_names) - 1) {
-            foreach ($classification_ids as $classification_id) {
-                // Get the classification
-                $existing = $DB->get_record('activities_classifications', ['id' => $classification_id, 'version' => $version]);
-
-                // if it is excursion or incursion, then add it as a context, if it doesn't already exist as a context.
-                if ($existing->name == 'Excursion' || $existing->name == 'Incursion' || $existing->name == 'Events') {
-                    // Check if it already exists as a context.
-                    $existing_context = $DB->get_record('activities_classifications_contexts', ['classificationid' => $classification->id, 'contextid' => $classification_id, 'version' => $version]);
-                    if (!$existing_context) {
-                        $DB->insert_record('activities_classifications_contexts', [
-                            'classificationid' => $classification->id, 
-                                'contextid' => $classification_id, 
-                                'version' => $version
-                        ]);
-                    }
-                }
-
-            }
-        }*/
         
         $classification_ids[] = $classification->id;
     }
