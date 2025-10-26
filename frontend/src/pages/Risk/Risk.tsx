@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Box, Container, Center, Text, Loader, Card, Checkbox, Group, Stack, Grid, Button, Table, Badge, ActionIcon, Modal, Textarea, TextInput, Select, Alert } from '@mantine/core';
+import { Box, Container, Center, Text, Loader, Card, Checkbox, Group, Stack, Grid, Button, Table, Badge, ActionIcon, Modal, Textarea, TextInput, Select, Alert, CloseButton } from '@mantine/core';
 import { useNavigate, useParams } from "react-router-dom";
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
@@ -8,7 +8,7 @@ import { ActivityDetails } from "./Components/ActivityDetails";
 import useFetch from "../../hooks/useFetch";
 import { PageHeader } from "./Components/PageHeader";
 import { SvgRenderer } from "../../components/SvgRenderer";
-import { IconPlus, IconEdit, IconTrash, IconCloudUp } from "@tabler/icons-react";
+import { IconPlus, IconEdit, IconTrash, IconCloudUp, IconEye } from "@tabler/icons-react";
 import { Classification } from "./Settings";
 import { DatePickerInput } from '@mantine/dates';
 import dayjs from 'dayjs';
@@ -67,6 +67,9 @@ export function Risk() {
   const [classificationRisks, setClassificationRisks] = useState<any[]>([])
   const [risksLoading, setRisksLoading] = useState(false)
 
+  // Preview state
+  const [htmlPreview, setHtmlPreview] = useState<string | null>(null)
+  const [previewModalOpen, setPreviewModalOpen] = useState(false)
 
   // Additional fields local state
   const [additionalFields, setAdditionalFields] = useState({
@@ -98,13 +101,6 @@ export function Risk() {
   }, [activityid]);
 
   useEffect(() => {
-    if (id) {
-      // TODO: Load existing generation?
-      //getRiskAssessment()
-    }
-  }, [id]);
-
-  useEffect(() => {
     loadPublishedRA()
     // Scroll page to top
     window.scrollTo(0, 0)
@@ -134,6 +130,7 @@ export function Risk() {
     }
   }
 
+  // Get activity and last risk assessment generation.
   const getActivity = async () => {
     setLoading(true)
 
@@ -268,7 +265,7 @@ export function Risk() {
     }).filter(c => c !== null)
   }
 
-  const generateRiskAssessment = async () => {
+  const generateRiskAssessment = async (preview: boolean = false) => {
     // Make sure all additional fields are provided, and that at least one context and classification is selected.
     if (!additionalFields.reasonForActivity || 
         !additionalFields.proposedActivities || 
@@ -292,7 +289,7 @@ export function Risk() {
     const response = await api.call({
       method: 'POST',
       body: {
-        methodname: 'local_activities-save_ra',
+        methodname: preview ? 'local_activities-generate_preview' : 'local_activities-save_ra',
         args: {
           activityid: activityid,
           riskassessment: riskAssessment,
@@ -319,12 +316,19 @@ export function Risk() {
       }
     })
 
-    if (response && !response.error) {
+    if (response && response.error) {
+      setError(response.exception?.message ?? "Error")
+    }
+
+    if (!preview && response && !response.error) {
       // Navigate back to the activity page, with a search query for "paperwork".
       // Make sure nav is a true reload
       navigate(`/${activityid}?ra=${response.data.id}`, { replace: false })  
-    } else {
-      setError(response.exception?.message ?? "Error")
+    } 
+    
+    if (preview && response && !response.error) {
+      setHtmlPreview(response.data)
+      setPreviewModalOpen(true)
     }
   }
 
@@ -668,15 +672,15 @@ export function Risk() {
                                                 <Text className="font-semibold text-md">{classification.name}</Text>
                                               </div>
                                               <Text c="dimmed" fz="sm">{classification.description}</Text>
-                                               <Text 
-                                                 className="inline-block text-xs underline cursor-pointer text-gray-500 hover:text-blue-600" 
-                                                 onClick={(e) => {
-                                                   e.stopPropagation();
-                                                   openRisksModal(classification);
-                                                 }}
-                                               >
-                                                 Preview risks
-                                               </Text>
+                                              <Text 
+                                                className="inline-block text-xs underline cursor-pointer text-gray-500 hover:text-blue-600" 
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  openRisksModal(classification);
+                                                }}
+                                              >
+                                                Preview risks
+                                              </Text>
                                             </div>
                                           </div>
                                         </Checkbox.Card>
@@ -793,20 +797,30 @@ export function Risk() {
                         </Card>
                       </Box>
 
-                      <div>
+                      <div className="flex gap-2 items-center">
                         <Button 
-                          onClick={() => generateRiskAssessment()}
+                          onClick={() => generateRiskAssessment(true)}
                           size="compact-lg"
                           radius="xl"
-                          loading={api.state.loading}
+                          disabled={api.state.loading}
+                          variant="light"
+                          leftSection={<IconEye size={16} />}
                         >
-                          Generate Risk Assessment
+                          Preview
                         </Button>
+                        <Button 
+                          onClick={() => generateRiskAssessment(false)}
+                          size="compact-lg"
+                          radius="xl"
+                          disabled={api.state.loading}
+                          leftSection={<IconCloudUp size={16} />}
+                        >
+                          Save
+                        </Button>
+                        {api.state.loading && <Loader size="sm" />}
                       </div>
                     </>
                 }
-   
-                
 
                 { false &&
                   <div>
@@ -827,6 +841,7 @@ export function Risk() {
                     </pre>
                   </div>
                 }
+
               </Container>
             </> : null
         }
@@ -1007,6 +1022,37 @@ export function Risk() {
             </div>
           )}
         </Box>
+      </Modal>
+
+
+      {/* Preview Modal */}
+      <Modal 
+        opened={previewModalOpen} 
+        onClose={() => setPreviewModalOpen(false)}
+        title="Risk Assessment Preview"
+        size="90%"
+        styles={{
+          header: {
+            display: 'none',
+          },
+          content: {
+            backgroundColor: '#ffffff',
+          },
+          body: {
+            padding: 0,
+          }
+        }}
+      >
+        <CloseButton
+          onClick={() => setPreviewModalOpen(false)}
+          size="md"
+          color="gray"
+          variant="subtle"
+          className="absolute top-2 right-2"
+        />
+          <div className="rendered-ra text-base p-12">
+            <div dangerouslySetInnerHTML={ {__html: htmlPreview || ''} }></div>
+          </div>
       </Modal>
 
       <Footer />

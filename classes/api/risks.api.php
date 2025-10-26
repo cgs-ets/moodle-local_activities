@@ -48,6 +48,15 @@ trait risks_api {
     }
 
     /**
+     * Generate a preview for a risk assessment.
+     * @param array $args
+     * @return string
+     */
+    static public function generate_preview($args) {
+        return risks_lib::generate_preview((object) $args);
+    }
+
+    /**
      * Generate a PDF for a risk assessment.
      *
      * @return object

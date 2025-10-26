@@ -26,42 +26,6 @@ class risks_lib {
     const TABLE_RA_GENS = 'activities_ra_gens';
     const TABLE_RA_GENS_RISKS = 'activities_ra_gens_risks';
 
-    public static function preview_ra($id) {
-        global $DB;
-        
-        $ra_gen = $DB->get_record(static::TABLE_RA_GENS, ['id' => $id]);
-        if (!$ra_gen) {
-            throw new \Exception("Risk assessment generation not found.");
-        }
-        $ra_gen->classifications = json_decode($ra_gen->classifications);
-        list($activity, $classifications) = static::prepare_ra_data($ra_gen);
-        $htmlContent = static::generate_html($activity, $classifications);
-
-        return $htmlContent;
-    }
-
-    /**
-     * Generate a risk assessment.
-     *
-     * @param object $data
-     * @return array
-     */
-    public static function generate_pdf($id) {
-        global $DB;
-        
-        $ra_gen = $DB->get_record(static::TABLE_RA_GENS, ['id' => $id]);
-        if (!$ra_gen) {
-            throw new \Exception("Risk assessment generation not found.");
-        }
-        $ra_gen->classifications = json_decode($ra_gen->classifications);
-        // Generate the PDF based on the risk assessment JSON.
-        $pdf = static::generate_pdf_from_ra($ra_gen);
-
-        return $pdf;
-    }
-
-
-
     public static function save_ra($data){
         global $DB;
 
@@ -141,6 +105,106 @@ class risks_lib {
         return ['id' => $id, 'success' => true];
     }
 
+    /**
+     * Generate a risk assessment.
+     *
+     * @param object $data
+     * @return array
+     */
+    public static function generate_pdf($id) {
+        global $DB;
+        
+        $ra_gen = $DB->get_record(static::TABLE_RA_GENS, ['id' => $id]);
+        if (!$ra_gen) {
+            throw new \Exception("Risk assessment generation not found.");
+        }
+        $ra_gen->classifications = json_decode($ra_gen->classifications);
+        // Generate the PDF based on the risk assessment JSON.
+        $pdf = static::generate_pdf_from_ra($ra_gen);
+
+        return $pdf;
+    }
+
+
+    public static function preview_ra($id) {
+        global $DB;
+        
+        $ra_gen = $DB->get_record(static::TABLE_RA_GENS, ['id' => $id]);
+        if (!$ra_gen) {
+            throw new \Exception("Risk assessment generation not found.");
+        }
+        $ra_gen->classifications = json_decode($ra_gen->classifications);
+        $custom_risks = array_values($DB->get_records(static::TABLE_RA_GENS_RISKS, ['ra_gen_id' => $ra_gen->id]));
+        $ra_gen->custom_risks = $custom_risks;
+        list($activity, $classifications) = static::prepare_ra_data($ra_gen);
+        $htmlContent = static::generate_html($activity, $classifications);
+
+        return $htmlContent;
+    }
+
+
+    public static function generate_preview($data){
+        global $DB;
+
+        $data = json_decode(json_encode($data), false);
+        $activityid = $data->activityid;
+        $riskversion = $data->riskassessment->riskVersion;
+        $classifications = $data->riskassessment->selectedClassifications;
+        $customRisks = isset($data->customRisks) ? $data->customRisks : [];
+
+        // Validate the data.
+        if (empty($activityid) || empty($riskversion) || empty($classifications)) {
+            throw new \Exception("Invalid risk assessment data.");
+        }
+
+        // Get the activity.
+        $activity = new Activity($activityid);
+        if (!$activity) {
+            throw new \Exception("Activity not found.");
+        }
+
+        // Check if user can edit activity.
+        if (!utils_lib::has_capability_edit_activity($activityid)) {
+            throw new \Exception("You do not have permission to generate a risk assessment for this activity.");
+        }
+
+        
+            // Prepare the additional fields data
+            $data = [
+                'activityid' => $activityid,
+                'riskversion' => $riskversion,
+                'classifications' => $classifications,
+                'custom_risks' => $customRisks,
+                'timecreated' => time(),
+                'reason_for_activity' => isset($data->reasonForActivity) ? $data->reasonForActivity : '',
+                'proposed_activities' => isset($data->proposedActivities) ? $data->proposedActivities : '',
+                'anticipated_students' => isset($data->anticipatedStudents) ? intval($data->anticipatedStudents) : 0,
+                'anticipated_adults' => isset($data->anticipatedAdults) ? intval($data->anticipatedAdults) : 0,
+                'supervision_ratio' => isset($data->supervisionRatio) ? $data->supervisionRatio : '',
+                'leader' => isset($data->leader) ? $data->leader : '',
+                'leader_contact' => isset($data->leaderContact) ? $data->leaderContact : '',
+                'second_in_charge' => isset($data->secondInCharge) ? $data->secondInCharge : '',
+                'second_in_charge_contact' => isset($data->secondInChargeContact) ? $data->secondInChargeContact : '',
+                'location_contact_person' => isset($data->locationContactPerson) ? $data->locationContactPerson : '',
+                'location_contact_number' => isset($data->locationContactNumber) ? $data->locationContactNumber : '',
+                'site_visit_reviewer' => isset($data->siteVisitReviewer) ? $data->siteVisitReviewer : '',
+                'site_visit_date' => isset($data->siteVisitDate) ? $data->siteVisitDate : 0,
+                'water_hazards_present' => isset($data->waterHazardsPresent) ? $data->waterHazardsPresent : '',
+                'staff_qualifications' => isset($data->staffQualifications) ? $data->staffQualifications : '',
+                'duration' => isset($data->duration) ? $data->duration : '',
+                'proposed_route' => isset($data->proposedRoute) ? $data->proposedRoute : '',
+            ];
+
+            try {
+                list($activity, $classifications) = static::prepare_ra_data((object) $data);
+                $htmlContent = static::generate_html($activity, $classifications);
+            } catch (\Exception $e) {
+                throw new \Exception("Failed to generate preview.");
+            }
+
+            return $htmlContent;
+    }
+
 
 
     /**
@@ -152,7 +216,9 @@ class risks_lib {
     public static function generate_pdf_from_ra($ra_gen) {
         global $DB, $USER;
 
-        
+        $custom_risks = array_values($DB->get_records(static::TABLE_RA_GENS_RISKS, ['ra_gen_id' => $ra_gen->id]));
+        $ra_gen->custom_risks = $custom_risks;
+
         list($activity, $classifications) = static::prepare_ra_data($ra_gen);
         $htmlContent = static::generate_html($activity, $classifications);
 
@@ -265,13 +331,12 @@ class risks_lib {
         }
 
         // Add custom risks to the classifications.
-        $custom_risks = array_values($DB->get_records(static::TABLE_RA_GENS_RISKS, ['ra_gen_id' => $ra_gen->id]));
-        if ($custom_risks) {
+        if (!empty($ra_gen->custom_risks)) {
             $used_classifications[] = (object) [
                 'name' => 'Additional Risks',
-                'risks' => $custom_risks,
-                'risks_count' => count($custom_risks),
-                'risks_count_string' => count($custom_risks) . ' ' . (count($custom_risks) === 1 ? 'risk' : 'risks'),
+                'risks' => $ra_gen->custom_risks,
+                'risks_count' => count($ra_gen->custom_risks),
+                'risks_count_string' => count($ra_gen->custom_risks) . ' ' . (count($ra_gen->custom_risks) === 1 ? 'risk' : 'risks'),
             ];
         }
 
@@ -361,6 +426,7 @@ class risks_lib {
 
 
     public static function get_classifications_preselected($version, $activityid) {
+        global $DB;
         $classifications = risk_versions_lib::get_classifications($version);
         $activity = new Activity($activityid);
         $activity = $activity->export();
@@ -391,15 +457,24 @@ class risks_lib {
             $classifications[$classificationix]->preselected = true;
         }
 
-        // Pre-select the standard classifications.
+        // Get the latest ra generation for the activity.
+        $ra_generation = $DB->get_records(static::TABLE_RA_GENS, ['activityid' => $activityid, 'deleted' => 0], 'timecreated DESC', '*', 0, 1);
+        if (!$ra_generation) {
+            return null;
+        }
+        $ra_generation = reset($ra_generation);
+        $ra_generation->classifications = json_decode($ra_generation->classifications);
+
         foreach ($classifications as $classification) {
+            // Pre-select the standard classifications.
             if ($classification->isstandard) {
                 $classification->preselected = true;
             }
+            // Pre-select the classifications that were selected in the previous ra generation.
+            if (in_array($classification->id, $ra_generation->classifications)) {
+                $classification->preselected = true;
+            }
         }
-
-        // Add risk counts for each classification
-        //$classifications = static::add_risk_counts_to_classifications($classifications, $version, $context);
 
         return $classifications;
     }
