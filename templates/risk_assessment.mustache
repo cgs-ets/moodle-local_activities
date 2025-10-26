@@ -368,7 +368,9 @@
         </tr>
         <tr>
           <th>Proposed activities</th>
-          <td colspan="3">{{activity.proposed_activities}}</td>
+          <td>{{activity.proposed_activities}}</td>
+          <th>Duration</th>
+          <td>{{activity.duration}}</td>
         </tr>
         <tr>
           <th>Reason for undertaking the activity</th>
@@ -436,9 +438,15 @@
           </td>
         </tr>
         <tr>
-          <th>Supervising staff relevant qualifications (select all that apply)</th>
+          <th>Specialised skills or qualifications required for the activity</th>
           <td colspan="3">
             {{activity.staff_qualifications}}
+          </td>
+        </tr>
+        <tr>
+          <th>Proposed route</th>
+          <td colspan="3">
+            {{activity.proposed_route}}
           </td>
         </tr>
         </tbody>

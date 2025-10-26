@@ -625,14 +625,15 @@ class Activity {
         // Check for remaining approvals and set activity status based on findings.
         $remainingapprovals = workflow_lib::get_unactioned_approvals($this->data->id);
         
-        // EXCLUDE senior_hod approval if this activity was created BEFORE October 7, 2025 12:16:16 PM
-        $createdbeforecutover = $this->data->timecreated < 1759799776;
+        // EXCLUDE senior_hod approval if this activity was created BEFORE November 3, 2025 4:01:01 AM
+        $createdbeforecutover = $this->data->timecreated < 1762102861;
         if ($createdbeforecutover) {
             $hod = array_search('senior_hod', array_column($remainingapprovals, 'type'));
             if ($hod !== false) {
                 unset($remainingapprovals[$hod]);
             }
         }
+        
         // EXCLUDE senior_ra approval - we don't wait for that anymore.
         // Actually, yes, comment this out because in circumstances where senior_ra is needed we should wait before permissions can be sent.
         //$senior_ra = array_search('senior_ra', array_column($remainingapprovals, 'type'));

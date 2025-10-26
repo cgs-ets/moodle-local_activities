@@ -109,7 +109,8 @@ class risks_lib {
                 'site_visit_date' => isset($data->siteVisitDate) ? $data->siteVisitDate : 0,
                 'water_hazards_present' => isset($data->waterHazardsPresent) ? $data->waterHazardsPresent : '',
                 'staff_qualifications' => isset($data->staffQualifications) ? $data->staffQualifications : '',
-                'other_qualifications' => isset($data->otherQualifications) ? $data->otherQualifications : '',
+                'duration' => isset($data->duration) ? $data->duration : '',
+                'proposed_route' => isset($data->proposedRoute) ? $data->proposedRoute : '',
             ];
 
             $id = $DB->insert_record(static::TABLE_RA_GENS, $additionalFields);
@@ -157,8 +158,6 @@ class risks_lib {
 
         // Normalize the text.
         $htmlContent = utils_lib::normalize_text($htmlContent);
-
-
 
         //$exportdir = str_replace('\\\\', '\\', $CFG->dataroot) . '\local_activities\exports\\';
         //$htmlfile = $exportdir . $ra_gen->id . ".html";
@@ -226,7 +225,7 @@ class risks_lib {
 
         // Append additional fields to activity.
         $activity = (object) array_merge((array) $activity, (array) $ra_gen);
-        $activity->staff_qualifications = json_decode($activity->staff_qualifications);
+        $activity->site_visit_date = $activity->site_visit_date ? date('Y-m-d', $activity->site_visit_date) : '';
 
         // Get the risks for the classifications.
         $risks = static::get_risks_for_classifications($classifications, $ra_gen->riskversion);
@@ -515,8 +514,9 @@ class risks_lib {
             $ra_generation->siteVisitReviewer = $ra_generation->site_visit_reviewer ?? '';
             $ra_generation->siteVisitDate = $ra_generation->site_visit_date ? date('Y-m-d', $ra_generation->site_visit_date) : '';
             $ra_generation->waterHazardsPresent = $ra_generation->water_hazards_present ?? '';
-            $ra_generation->staffQualifications = $ra_generation->staff_qualifications ? json_decode($ra_generation->staff_qualifications) : [];
-            $ra_generation->otherQualifications = $ra_generation->other_qualifications ?? '';
+            $ra_generation->staffQualifications = $ra_generation->staff_qualifications ?? '';
+            $ra_generation->duration = $ra_generation->duration ?? '';
+            $ra_generation->proposedRoute = $ra_generation->proposed_route ?? '';
 
             // Download url
             $fs = get_file_storage();
@@ -570,9 +570,10 @@ class risks_lib {
         $ra_generation->siteVisitReviewer = $ra_generation->site_visit_reviewer ?? '';
         $ra_generation->siteVisitDate = $ra_generation->site_visit_date ? date('Y-m-d', $ra_generation->site_visit_date) : '';
         $ra_generation->waterHazardsPresent = $ra_generation->water_hazards_present ?? '';
-        $ra_generation->staffQualifications = $ra_generation->staff_qualifications ? json_decode($ra_generation->staff_qualifications) : [];
-        $ra_generation->otherQualifications = $ra_generation->other_qualifications ?? '';
-
+        $ra_generation->staffQualifications = $ra_generation->staff_qualifications ?? '';
+        $ra_generation->duration = $ra_generation->duration ?? '';
+        $ra_generation->proposedRoute = $ra_generation->proposed_route ?? '';
+        
         // Download url
         $fs = get_file_storage();
         $files = $fs->get_area_files(1, 'local_activities', 'ra_generations', $ra_generation->id, "filename", false);

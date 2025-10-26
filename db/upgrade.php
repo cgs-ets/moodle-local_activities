@@ -478,6 +478,19 @@ function xmldb_local_activities_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2025082108, 'local', 'activities');
     }
 
+    if ($oldversion < 2025082109) {
+        $table = new xmldb_table('activities_ra_gens');
+        $durationfield = new xmldb_field('duration', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'supervision_ratio');
+        if (!$dbman->field_exists($table, $durationfield)) {
+            $dbman->add_field($table, $durationfield);
+        }
+        $proposedroutefield = new xmldb_field('proposed_route', XMLDB_TYPE_TEXT, null, null, null, null, null, 'duration');
+        if (!$dbman->field_exists($table, $proposedroutefield)) {
+            $dbman->add_field($table, $proposedroutefield);
+        }
+        upgrade_plugin_savepoint(true, 2025082109, 'local', 'activities');
+    }
+
 
     return true;
 }

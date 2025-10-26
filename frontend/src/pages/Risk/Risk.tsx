@@ -85,7 +85,8 @@ export function Risk() {
     siteVisitDate: dayjs().unix().toString(),
     waterHazardsPresent: '',
     staffQualifications: '',
-    otherQualifications: ''
+    duration: '',
+    proposedRoute: ''
   })
 
   document.title = 'Risk Assessment'
@@ -178,8 +179,9 @@ export function Risk() {
           siteVisitReviewer: lastGenRes.data.site_visit_reviewer,
           siteVisitDate: Number(lastGenRes.data.site_visit_date) > 0 ? lastGenRes.data.site_visit_date : dayjs().unix().toString(),
           waterHazardsPresent: lastGenRes.data.water_hazards_present,
-          staffQualifications: lastGenRes.data.staff_qualifications ? JSON.parse(lastGenRes.data.staff_qualifications) : [],
-          otherQualifications: lastGenRes.data.other_qualifications,
+          staffQualifications: lastGenRes.data.staff_qualifications,
+          duration: lastGenRes.data.duration,
+          proposedRoute: lastGenRes.data.proposed_route,
         }
       )
       setCustomRisks(lastGenRes.data.custom_risks)
@@ -277,11 +279,8 @@ export function Risk() {
         !additionalFields.leaderContact || 
         !additionalFields.secondInCharge || 
         !additionalFields.secondInChargeContact || 
-        !additionalFields.locationContactPerson || 
         !additionalFields.locationContactNumber || 
-        !additionalFields.waterHazardsPresent || 
         !additionalFields.staffQualifications || 
-        (!additionalFields.otherQualifications && additionalFields.staffQualifications.includes('Other')) || 
         riskAssessment.selectedClassifications.length <= 1 // Noting, 1 because exc/inc always selected by default.
       ) {
       setError('All "Additional Information" fields are required, and that at least one context or risk must be selected.')
@@ -313,8 +312,9 @@ export function Risk() {
           siteVisitReviewer: additionalFields.siteVisitReviewer,
           siteVisitDate: Number(additionalFields.siteVisitDate),
           waterHazardsPresent: additionalFields.waterHazardsPresent,
-          staffQualifications: JSON.stringify(additionalFields.staffQualifications),
-          otherQualifications: additionalFields.otherQualifications,
+          staffQualifications: additionalFields.staffQualifications,
+          duration: additionalFields.duration,
+          proposedRoute: additionalFields.proposedRoute,
         }
       }
     })
@@ -405,7 +405,7 @@ export function Risk() {
                       <Box className="flex flex-col gap-4">
                         <Card withBorder className="space-y-4">
                           <Text fz="md" fw={500}>Additional Information</Text>
-                          
+                      
                           <Textarea
                             label="Proposed activities"
                             placeholder="Describe the proposed activities..."
@@ -414,6 +414,13 @@ export function Risk() {
                             autosize
                             minRows={3}
                             required
+                          />
+                          
+                          <TextInput
+                            label="Duration"
+                            placeholder="Duration"
+                            value={additionalFields.duration || ''}
+                            onChange={(e) => setAdditionalFields({ ...additionalFields, duration: e.target.value })}
                           />
 
                           <Textarea
@@ -448,10 +455,20 @@ export function Risk() {
                           </Group>
 
                           <TextInput
-                            label="Supervision ratio required (refer to CGS Policies, Procedures and Guidelines)"
+                            label="Supervision ratio required"
+                            description="Standard excursion/off campus ratios include 1:5 PS, 1:6 PK, 1:8 CGS Care, 1:15 Year K-2; 1:20 Year 3-12. On campus ratios are to suit the activity type and age group involved to maintain appropriate supervision. Ratios will need to be adjusted to suit if additional risks such as student behaviour, additional activity specific risks, or water hazards/swimming are involved – refer to CGS Policies and Procedures for guidance."
                             value={additionalFields.supervisionRatio || ''}
                             onChange={(e) => setAdditionalFields({ ...additionalFields, supervisionRatio: e.target.value })}
                             required
+                            styles={{
+                              label: {
+                                paddingBottom: '2px',
+                              },
+                              description: {
+                                fontSize: '13px',
+                                color: '#000',
+                              }
+                            }}
                           />
 
                           <Group grow>
@@ -494,7 +511,6 @@ export function Risk() {
                               placeholder="Contact person name"
                               value={additionalFields.locationContactPerson || ''}
                               onChange={(e) => setAdditionalFields({ ...additionalFields, locationContactPerson: e.target.value })}
-                              required
                             />
                             <TextInput
                               label="Contact number at location of activity"
@@ -533,17 +549,31 @@ export function Risk() {
                               { value: 'Yes', label: 'Yes' },
                               { value: 'No', label: 'No' },
                             ]}
-                            required
                           />
 
                           <Textarea
-                            label="Supervising staff relevant qualifications (select all that apply)"
-                            placeholder="E.g. First Aid, CPR, Bronze Medallion, etc"
+                            label="Specialised skills or qualifications required for the activity"
+                            description="E.g. First Aid, CPR, Bronze Medallion, etc"
                             value={additionalFields.staffQualifications || ''}
                             onChange={(e) => setAdditionalFields({ ...additionalFields, staffQualifications: e.target.value })}
                             autosize
                             minRows={2}
                             required
+                            styles={{
+                              label: {
+                                paddingBottom: '2px',
+                              },
+                              description: {
+                                fontSize: '13px',
+                                color: '#000',
+                              }
+                            }}
+                          />
+
+                          <TextInput
+                            label="Proposed route (PS, PK, CGS Care)"
+                            value={additionalFields.proposedRoute || ''}
+                            onChange={(e) => setAdditionalFields({ ...additionalFields, proposedRoute: e.target.value })}
                           />
                           
                         </Card>
