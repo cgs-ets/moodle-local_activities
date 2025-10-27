@@ -8,7 +8,7 @@ import { ActivityDetails } from "./Components/ActivityDetails";
 import useFetch from "../../hooks/useFetch";
 import { PageHeader } from "./Components/PageHeader";
 import { SvgRenderer } from "../../components/SvgRenderer";
-import { IconPlus, IconEdit, IconTrash, IconCloudUp, IconEye } from "@tabler/icons-react";
+import { IconPlus, IconEdit, IconTrash, IconCloudUp, IconEye, IconFileExport } from "@tabler/icons-react";
 import { Classification } from "./Settings";
 import { DatePickerInput } from '@mantine/dates';
 import dayjs from 'dayjs';
@@ -725,7 +725,7 @@ export function Risk() {
                                 <Table.Tr>
                                   <Table.Th>Hazard</Table.Th>
                                   <Table.Th>Risk Rating (Before)</Table.Th>
-                                  <Table.Th>Control Measures</Table.Th>
+                                  <Table.Th>Control Measures (Risk Mitigation Strategies)</Table.Th>
                                   <Table.Th>Risk Rating (After)</Table.Th>
                                   <Table.Th>Responsible Person</Table.Th>
                                   <Table.Th>Control Timing</Table.Th>
@@ -799,6 +799,15 @@ export function Risk() {
 
                       <div className="flex gap-2 items-center">
                         <Button 
+                          onClick={() => generateRiskAssessment(false)}
+                          size="compact-lg"
+                          radius="xl"
+                          disabled={api.state.loading}
+                          leftSection={<IconFileExport size={16} />}
+                        >
+                          Generate
+                        </Button>
+                        <Button 
                           onClick={() => generateRiskAssessment(true)}
                           size="compact-lg"
                           radius="xl"
@@ -807,15 +816,6 @@ export function Risk() {
                           leftSection={<IconEye size={16} />}
                         >
                           Preview
-                        </Button>
-                        <Button 
-                          onClick={() => generateRiskAssessment(false)}
-                          size="compact-lg"
-                          radius="xl"
-                          disabled={api.state.loading}
-                          leftSection={<IconCloudUp size={16} />}
-                        >
-                          Save
                         </Button>
                         {api.state.loading && <Loader size="sm" />}
                       </div>

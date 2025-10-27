@@ -24,7 +24,7 @@ class assessments_lib {
         }
 
         $assessment->usercanedit = false;
-        if ($assessment->creator == $USER->username || has_capability('moodle/site:config', \context_user::instance($USER->id))) {
+        if (static::can_user_edit($assessment)) {
             $assessment->usercanedit = true;
         }
 
@@ -259,7 +259,7 @@ class assessments_lib {
             //$record->module = $DB->get_record('course_modules', array('id' => $record->cmid));
             //$record->modulename = $record->module->name;
             $record->usercanedit = false;
-            if ($record->creator == $USER->username || has_capability('moodle/site:config', \context_user::instance($USER->id))) {
+            if (static::can_user_edit($record)) {
                 $record->usercanedit = true;
             }
             $assessments[] = $record;            
@@ -287,7 +287,7 @@ class assessments_lib {
         }
 
         $usercanedit = false;
-        if ($assessment->creator == $USER->username || has_capability('moodle/site:config', \context_user::instance($USER->id))) {
+        if (static::can_user_edit($assessment)) {
             $usercanedit = true;
         }
 
@@ -822,6 +822,22 @@ class assessments_lib {
                 )";
     
         return array_values($DB->get_records_sql($sql));
+    }
+
+
+	public static function can_user_edit($assessment) {
+        global $DB, $USER;
+
+		if ($assessment->creator == $USER->username || 
+			has_capability('moodle/site:config', \context_user::instance($USER->id)) ||
+			$USER->username == '73445' || // B Robins
+			$USER->username == '21213' || // G Maltby
+			$USER->username == '68429' // A Hall
+		) {
+			return true;
+		}
+
+	    return false;
     }
 
 

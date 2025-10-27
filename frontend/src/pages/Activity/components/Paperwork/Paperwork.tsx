@@ -1,7 +1,7 @@
 import { Accordion, ActionIcon, Anchor, Avatar, Box, Button, Card, Checkbox, Collapse, Grid, Group, Loader, Modal, Switch, Table, Text, Tooltip } from '@mantine/core';
 import { FileUploader } from './components/FileUploader/FileUploader';
 import '@mantine/dropzone/styles.css';
-import { IconArchive, IconBrandAdobe, IconCheck, IconCircle, IconDownload, IconExternalLink, IconEye, IconFileTypePdf, IconPlus, IconSquare, IconSquareCheck, IconTrash, IconUser } from '@tabler/icons-react';
+import { IconArchive, IconBrandAdobe, IconCheck, IconCircle, IconDownload, IconExternalLink, IconEye, IconFileTypePdf, IconPlus, IconRefresh, IconSquare, IconSquareCheck, IconTrash, IconUser } from '@tabler/icons-react';
 import { useFormStore } from '../../../../stores/formStore';
 import { useStateStore } from '../../../../stores/stateStore';
 import { useEffect, useState } from 'react';
@@ -185,7 +185,7 @@ export function Paperwork() {
                   
                     <div className='flex items-center justify-between'>
                       <Text className="font-semibold">Digital Risk Assessment</Text>
-                      {viewStateProps.editable && raGenerations.length > 0 && <Link to={`/${activityid}/risk`}><Button leftSection={<IconPlus className='size-4' />} radius='xl' variant='filled' size='compact-sm'>Generate</Button></Link>}
+                      {viewStateProps.editable && raGenerations.length > 0 && <Link to={`/${activityid}/risk`}><Button leftSection={<IconRefresh className='size-4' />} radius='xl' variant='filled' size='compact-sm'>Regenerate</Button></Link>}
                     </div>
 
                     {!raGenerations.length && api.state.loading && <Loader className='mx-auto' size='sm' />}
