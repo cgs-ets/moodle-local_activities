@@ -2,9 +2,11 @@
 
 require_once(dirname(__FILE__) . '/../../config.php');
 require_once(dirname(__FILE__) . '/classes/lib/activities.lib.php');
+require_once(dirname(__FILE__) . '/classes/lib/risk_versions.lib.php');
 require_once($CFG->dirroot . '/local/activities/vendor/autoload.php');
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use \local_activities\lib\risk_versions_lib;
 
 $context = context_system::instance();
 $PAGE->set_context($context);
@@ -22,6 +24,10 @@ global $DB;
 
 // Get next version number
 $version = risk_versions_lib::get_draft_version();
+var_export($version); exit;
+
+// Create the new version in the db
+risk_versions_lib::create_version_entry($version);
 
 // Path to uploaded Excel (adjust if needed)
 $excelpath = $CFG->dirroot . '/local/activities/risks.xlsx';

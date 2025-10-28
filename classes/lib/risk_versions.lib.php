@@ -46,7 +46,6 @@ class risk_versions_lib {
 
     public static function check_risk_settings_access() {
         global $USER;
-        return true;
         /*if ($USER->username != '43563' && 
             $USER->username != 'admin' && 
             $USER->username != '57056' && 
@@ -55,6 +54,10 @@ class risk_versions_lib {
         ) {
             throw new \Exception("Permission denied.");
         }*/
+
+        if (! has_capability('moodle/site:config', \context_user::instance($USER->id))) {
+            throw new \Exception("Permission denied.");
+        }
     }
 
     /**
@@ -276,6 +279,23 @@ class risk_versions_lib {
         ]);
         
         return $version;
+    }
+
+    /**
+     * Create initial version (version 1).
+     *
+     * @return int
+     */
+    public static function create_version_entry($version) {
+        global $DB;
+        $DB->insert_record(static::TABLE_RISK_VERSIONS, [
+            'version' => $version,
+            'is_published' => 0,
+            'published_by' => null,
+            'timepublished' => 0,
+            'timecreated' => time(),
+            'description' => 'Draft version'
+        ]);
     }
 
     /**

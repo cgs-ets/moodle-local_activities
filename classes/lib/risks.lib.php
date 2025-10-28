@@ -457,21 +457,21 @@ class risks_lib {
             $classifications[$classificationix]->preselected = true;
         }
 
-        // Get the latest ra generation for the activity.
+        // Get the latest ra generation for the activity to prefill the selections based on that.
+        $previous_selections = [];
         $ra_generation = $DB->get_records(static::TABLE_RA_GENS, ['activityid' => $activityid, 'deleted' => 0], 'timecreated DESC', '*', 0, 1);
-        if (!$ra_generation) {
-            return null;
+        if ($ra_generation) {
+            $ra_generation = reset($ra_generation);
+            $previous_selections = json_decode($ra_generation->classifications);
         }
-        $ra_generation = reset($ra_generation);
-        $ra_generation->classifications = json_decode($ra_generation->classifications);
 
-        foreach ($classifications as $classification) {
+        foreach ($classifications as &$classification) {
             // Pre-select the standard classifications.
             if ($classification->isstandard) {
                 $classification->preselected = true;
             }
             // Pre-select the classifications that were selected in the previous ra generation.
-            if (in_array($classification->id, $ra_generation->classifications)) {
+            if (in_array($classification->id, $previous_selections)) {
                 $classification->preselected = true;
             }
         }
