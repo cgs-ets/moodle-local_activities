@@ -280,7 +280,7 @@ export function Risk() {
         !additionalFields.staffQualifications || 
         riskAssessment.selectedClassifications.length <= 1 // Noting, 1 because exc/inc always selected by default.
       ) {
-      setError('All "Additional Information" fields are required, and that at least one context or risk must be selected.')
+      setError('Required fields must be filled in, and at least one context or risk must be selected.')
       // Scroll to top
       window.scrollTo(0, 0)
       return;
