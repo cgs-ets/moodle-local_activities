@@ -52,9 +52,14 @@ class cron_sync_events extends \core\task\scheduled_task {
         // Loop through assessments and structure them like events.
         $assessments = [];
         foreach ($rawassessments as $assessment) {
+            $coursefullname = '';
+            $course = $DB->get_record('course', array('id' => $assessment->courseid));
+            if ($course) {
+                $coursefullname = $course->fullname;
+            }
             $assessments[] = (object) [
                 'id' => $assessment->id,
-                'activityname' => $assessment->name,
+                'activityname' => $assessment->name . ' - ' . $coursefullname,
                 'timestart' => $assessment->timestart,
                 'timeend' => $assessment->timeend,
                 'location' => '',
