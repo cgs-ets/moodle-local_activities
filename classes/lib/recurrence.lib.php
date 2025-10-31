@@ -55,7 +55,7 @@ class recurrence_lib {
             $activity->set('timestart', $occurrence->timestart);
             $activity->set('timeend', $occurrence->timeend);
             $activity->set('recurring', false);
-            $activity->set('recurrence', null);
+            $activity->set('recurrence', '{}');
             $activity->set('timesynclive', 0);
             $activity->set('timesyncplanning', 0);
             $activity->set('absencesprocessed', 0);
@@ -102,10 +102,29 @@ class recurrence_lib {
                 }
                 $DB->insert_records('activities_permissions', $permissions);
             }
+                
+            // Copy the risk assessments
+            $ragens = $DB->get_records('activities_ra_gens', array('activityid' => $activityid));
+            $mappedragens = array();
+            if ($ragens) {
+                foreach ($ragens as $ragen) {
+                    $ragen->activityid = $activity->get('id');
+                    $newnewragenid = $DB->insert_record('activities_ra_gens', $ragen);
+                    $mappedragens[$ragen->id] = $newnewragenid;
+                    // Copy the custom risks
+                    $customrisks = $DB->get_records('activities_ra_gens_risks', array('ra_gen_id' => $ragen->id));
+                    if ($customrisks) {
+                        foreach ($customrisks as $customrisk) {
+                            $customrisk->ra_gen_id = $newnewragenid;
+                            $DB->insert_record('activities_ra_gens_risks', $customrisk); 
+                        }
+                    }
+                }
+            }
 
+            // Copy the files...
             ob_start();
             try {
-                // Copy the files...
                 // Get the file storage instance
                 $fs = get_file_storage();
 
@@ -142,6 +161,35 @@ class recurrence_lib {
                         'filename'  => $file->get_filename(),
                     );
                     $fs->create_file_from_storedfile($newfile, $file);
+                }
+
+                // Get all RA generations from the original activity
+                $ragens = array();
+                $ragenids = array_keys($mappedragens);
+                foreach ($ragenids as $ragenid) {
+                    $singlegen = $fs->get_area_files(
+                        1, 
+                        'local_activities', 
+                        'ra_generations', 
+                        $ragenid,
+                        'id',
+                        false
+                    );
+                    $ragens[$ragenid] = array_pop($singlegen);
+                }
+
+                foreach ($ragenids as $ragenid) {
+                    $ragennewid = $mappedragens[$ragenid];
+                    $ragen = $ragens[$ragenid];
+                    $newfile = array(
+                        'contextid' => $ragen->get_contextid(),
+                        'component' => $ragen->get_component(),
+                        'filearea'  => $ragen->get_filearea(),
+                        'itemid'    => $ragennewid,
+                        'filepath'  => $ragen->get_filepath(),
+                        'filename'  => $ragen->get_filename(),
+                    );
+                    $fs->create_file_from_storedfile($newfile, $ragen);
                 }
 
                 ob_end_clean();
