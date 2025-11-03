@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { TextInput, Text, SegmentedControl, Card, Button, Switch, Alert, Checkbox, Anchor, Tooltip, Notification, NotificationProps, rem, ActionIcon, CloseButton } from '@mantine/core';
+import { TextInput, Text, SegmentedControl, Card, Button, Switch, Alert, Checkbox, Anchor, Tooltip, Notification, NotificationProps, rem, ActionIcon, CloseButton, Textarea } from '@mantine/core';
 import { RichTextEditor, Link } from '@mantine/tiptap';
 import { Link as RouterLink } from 'react-router-dom';
 import { useEditor } from '@tiptap/react';
@@ -559,13 +559,15 @@ export function BasicDetails() {
           {(activitytype == 'excursion' || activitytype == 'incursion') &&
             <>
               <div>
-                <TextInput
-                  placeholder="E.g. walking, bus, taxi, including authorised driver."
-                  label="Transport"
-                  value={formData.transport}
-                  onChange={(e) => updateField('transport', e.target.value)}
-                  readOnly={viewStateProps.readOnly}
-                />
+                <Textarea
+                    placeholder="E.g. walking, bus, taxi, including authorised driver."
+                    label="Transport"
+                    value={formData.transport}
+                    onChange={(e) => updateField('transport', e.target.value)}
+                    readOnly={viewStateProps.readOnly}
+                    autosize
+                    minRows={1}
+                  />
               </div>
 
               <div>
