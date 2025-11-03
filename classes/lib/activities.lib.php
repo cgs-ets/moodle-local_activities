@@ -296,6 +296,9 @@ class activities_lib {
 
             $activity->set('planningstaffjson', $data->planningstaffjson);
             $activity->set('accompanyingstaffjson', $data->accompanyingstaffjson);
+            if ($data->secondinchargejson == '""') {
+                $data->secondinchargejson = null;
+            }
             $activity->set('secondinchargejson', $data->secondinchargejson);
             $activity->save();
 
