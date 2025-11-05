@@ -60,7 +60,7 @@ class workflow_lib extends \local_activities\local_activities_config {
         return $approvers;
     }
 
-    private static function get_approval_clone($name, $sequence, $activityid, $staffincharge) {
+    private static function get_approval_clone($name, $sequence, $activityid, $staffincharge = '9999999') {
         global $CFG, $USER;
         // Approval stub.
         $approval = new \stdClass();
@@ -92,13 +92,13 @@ class workflow_lib extends \local_activities\local_activities_config {
         //} else 
         if ($activitytype == 'commercial') {
             // commercial_ra - 1st approver.
-            $approvals[] =  static::get_approval_clone('commercial_ra', 1, $activityid, $staffincharge);
+            $approvals[] =  static::get_approval_clone('commercial_ra', 1, $activityid);
 
             // commercial_admin - 2nd approver.
-            $approvals[] =  static::get_approval_clone('commercial_admin', 2, $activityid, $staffincharge);
+            $approvals[] =  static::get_approval_clone('commercial_admin', 2, $activityid);
 
             // commercial_final - 3rd approver.
-            $approvals[] =  static::get_approval_clone('commercial_final', 3, $activityid, $staffincharge);
+            $approvals[] =  static::get_approval_clone('commercial_final', 3, $activityid);
         } else  {
             switch ($campus) {
                 case 'senior': {
@@ -107,15 +107,15 @@ class workflow_lib extends \local_activities\local_activities_config {
                     $approvals[] = static::get_approval_clone('senior_hod', ++$i, $activityid, $staffincharge);
 
                     // Admin.
-                    $approvals[] = static::get_approval_clone('senior_admin', ++$i, $activityid, $staffincharge);
+                    $approvals[] = static::get_approval_clone('senior_admin', ++$i, $activityid);
 
                     // Head of Senior or Director.
-                    $approvals[] = static::get_approval_clone('senior_hoss', ++$i, $activityid, $staffincharge);
+                    $approvals[] = static::get_approval_clone('senior_hoss', ++$i, $activityid);
 
                     // When ready to cutover, move this to bottom of the list and uncomment the if statement.
                     if ($isovernight) {
                         // RA.
-                        $approvals[] = static::get_approval_clone('senior_ra', ++$i, $activityid, $staffincharge);
+                        $approvals[] = static::get_approval_clone('senior_ra', ++$i, $activityid);
                     }
 
                     break;
@@ -146,7 +146,7 @@ class workflow_lib extends \local_activities\local_activities_config {
         }
 
         // Remove nulls, which could come from workflows where no approvers were listed of found in the sql.
-        return array_values(array_filter($approvals, fn($item) => !is_null($item)));
+        return array_values(array_filter($approvals, fn($item) => !is_null($item->approvers)));
     }
 
     public static function generate_approvals($originalactivity, $newactivity) {
