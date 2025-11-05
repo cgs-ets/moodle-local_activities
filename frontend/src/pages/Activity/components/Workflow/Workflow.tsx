@@ -106,7 +106,7 @@ export function Workflow({
         campus: campus,
         assessmentid: assessmentid,
         isovernight: timestart && timeend && dayjs.unix(timestart).format('YYYYMMDD') != dayjs.unix(timeend).format('YYYYMMDD'),
-        staffincharge: staffincharge,
+        staffincharge: staffincharge[0].un ?? null,
       }
     })
   }
