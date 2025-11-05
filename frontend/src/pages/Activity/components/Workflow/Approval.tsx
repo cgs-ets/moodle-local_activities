@@ -25,6 +25,7 @@ export function Approval({
   const setApprovals = useWorkflowStore((state) => state.setApprovals)
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
   const [opened, {open, close}] = useDisclosure(false)
+  const staffincharge = useFormStore((state) => (state.staffincharge))
 
   
   const saveApproval = (id: string, checked: boolean) => {
@@ -154,7 +155,11 @@ export function Approval({
                   placeholder={approval.description}
                   value={approval.tempnominated ? approval.tempnominated : approval.currentnominated}
                   onChange={(value) => updateNominated(approval.id, value)}
-                  data={Object.keys(approval.approvers).map((a: any) => ({value: approval.approvers[a].username, label: approval.approvers[a].fullname}))}
+                  data={Object
+                    .keys(approval.approvers)
+                    .filter((a: any) => a !== staffincharge[0].un) // Remove the staff in charge from the list.
+                    .map((a: any) => ({value: approval.approvers[a].username, label: approval.approvers[a].fullname}))
+                  }
                   className="flex-1"
                   searchable
                 />

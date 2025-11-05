@@ -41,7 +41,8 @@ class workflow_lib extends \local_activities\local_activities_config {
         try {
             $externalDB = \moodle_database::get_driver_instance($config->dbtype, 'native', true);
             @$externalDB->connect($config->dbhost, $config->dbuser, $config->dbpass, $config->dbname, '');
-            $rows = $externalDB->get_records_sql($sql, array($USER->username));
+            //$rows = $externalDB->get_records_sql($sql, array($USER->username));
+            $rows = $externalDB->get_records_sql($sql, array('9999999')); // Cannot filter out the current user because the UI fails when the assigned HoD comes into the activity to approve.
             if (empty($rows)) {
                 return null;
             }
