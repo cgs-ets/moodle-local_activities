@@ -21,7 +21,7 @@ class workflow_lib extends \local_activities\local_activities_config {
     const APPROVAL_STATUS_APPROVED = 1;
     const APPROVAL_STATUS_REJECTED = 2;
 
-    private static function get_approvers_from_proc($approvaltype) {
+    private static function get_approvers_from_proc($approvaltype, $username = '9999999') {
         global $CFG, $USER;
         // Load approvers from SQL.
         $approvers = [];
@@ -41,8 +41,8 @@ class workflow_lib extends \local_activities\local_activities_config {
         try {
             $externalDB = \moodle_database::get_driver_instance($config->dbtype, 'native', true);
             @$externalDB->connect($config->dbhost, $config->dbuser, $config->dbpass, $config->dbname, '');
-            //$rows = $externalDB->get_records_sql($sql, array($USER->username));
-            $rows = $externalDB->get_records_sql($sql, array('9999999')); // Cannot filter out the current user because the UI fails when the assigned HoD comes into the activity to approve.
+            $rows = $externalDB->get_records_sql($sql, array($username));
+            //$rows = $externalDB->get_records_sql($sql, array('9999999')); // Cannot filter out the current user because the UI fails when the assigned HoD comes into the activity to approve.
             if (empty($rows)) {
                 return null;
             }
@@ -60,7 +60,7 @@ class workflow_lib extends \local_activities\local_activities_config {
         return $approvers;
     }
 
-    private static function get_approval_clone($name, $sequence, $activityid) {
+    private static function get_approval_clone($name, $sequence, $activityid, $staffincharge) {
         global $CFG, $USER;
         // Approval stub.
         $approval = new \stdClass();
@@ -72,7 +72,7 @@ class workflow_lib extends \local_activities\local_activities_config {
         $approval->description = static::WORKFLOW[$approval->type]['name'];
         
         if (isset(static::WORKFLOW[$approval->type]['fromsqlproc'])) {
-            $approval->approvers = static::get_approvers_from_proc($approval->type);
+            $approval->approvers = static::get_approvers_from_proc($approval->type, $staffincharge);
         } else {
             // Get approves from config.
             $approval->approvers = array_filter(
@@ -84,7 +84,7 @@ class workflow_lib extends \local_activities\local_activities_config {
         return $approval;
     }
 
-    private static function get_approval_stubs($activityid, $activitytype, $campus, $assessmentid, $isovernight) {
+    private static function get_approval_stubs($activityid, $activitytype, $campus, $assessmentid, $isovernight, $staffincharge) {
         $approvals = array();
 
         //if ($activitytype == 'incursion' && $assessmentid) {
@@ -92,30 +92,30 @@ class workflow_lib extends \local_activities\local_activities_config {
         //} else 
         if ($activitytype == 'commercial') {
             // commercial_ra - 1st approver.
-            $approvals[] =  static::get_approval_clone('commercial_ra', 1, $activityid);
+            $approvals[] =  static::get_approval_clone('commercial_ra', 1, $activityid, $staffincharge);
 
             // commercial_admin - 2nd approver.
-            $approvals[] =  static::get_approval_clone('commercial_admin', 2, $activityid);
+            $approvals[] =  static::get_approval_clone('commercial_admin', 2, $activityid, $staffincharge);
 
             // commercial_final - 3rd approver.
-            $approvals[] =  static::get_approval_clone('commercial_final', 3, $activityid);
+            $approvals[] =  static::get_approval_clone('commercial_final', 3, $activityid, $staffincharge);
         } else  {
             switch ($campus) {
                 case 'senior': {
                     $i = 0;
                     // Senior School.
-                    $approvals[] = static::get_approval_clone('senior_hod', ++$i, $activityid);
+                    $approvals[] = static::get_approval_clone('senior_hod', ++$i, $activityid, $staffincharge);
 
                     // Admin.
-                    $approvals[] = static::get_approval_clone('senior_admin', ++$i, $activityid);
+                    $approvals[] = static::get_approval_clone('senior_admin', ++$i, $activityid, $staffincharge);
 
                     // Head of Senior or Director.
-                    $approvals[] = static::get_approval_clone('senior_hoss', ++$i, $activityid);
+                    $approvals[] = static::get_approval_clone('senior_hoss', ++$i, $activityid, $staffincharge);
 
                     // When ready to cutover, move this to bottom of the list and uncomment the if statement.
                     if ($isovernight) {
                         // RA.
-                        $approvals[] = static::get_approval_clone('senior_ra', ++$i, $activityid);
+                        $approvals[] = static::get_approval_clone('senior_ra', ++$i, $activityid, $staffincharge);
                     }
 
                     break;
@@ -177,7 +177,7 @@ class workflow_lib extends \local_activities\local_activities_config {
         if ($newactivity->get('timestart') > 0 && $newactivity->get('timeend') > 0) {
             $isovernight = date('Ymd', $newactivity->get('timestart')) != date('Ymd', $newactivity->get('timeend'));
         }
-        $approvals = static::get_approval_stubs($newactivity->get('id'), $newactivity->get('activitytype'), $newactivity->get('campus'), $assessmentid ? $assessmentid : 0, $isovernight);
+        $approvals = static::get_approval_stubs($newactivity->get('id'), $newactivity->get('activitytype'), $newactivity->get('campus'), $assessmentid ? $assessmentid : 0, $isovernight, $newactivity->get('staffincharge'));
 
         // Invalidate approvals that should not be there.
         $approvaltypes = array_column($approvals, 'type');
@@ -944,7 +944,7 @@ class workflow_lib extends \local_activities\local_activities_config {
             if ($approval->isapprover || $exported->usercanedit) {
                 // Get step approvers.
                 if (isset(static::WORKFLOW[$approval->type]['fromsqlproc'])) {
-                    $approvers = static::get_approvers_from_proc($approval->type);
+                    $approvers = static::get_approvers_from_proc($approval->type, $exported->staffincharge);
                 } else {
                     $approvers = static::WORKFLOW[$approval->type]['approvers'];
                 }
@@ -1010,8 +1010,8 @@ class workflow_lib extends \local_activities\local_activities_config {
     }
 
 
-    public static function get_draft_workflow($activitytype, $campus, $assessmentid, $isovernight) {
-        $approvals = static::get_approval_stubs(0, $activitytype, $campus, $assessmentid, $isovernight);
+    public static function get_draft_workflow($activitytype, $campus, $assessmentid, $isovernight, $staffincharge) {
+        $approvals = static::get_approval_stubs(0, $activitytype, $campus, $assessmentid, $isovernight, $staffincharge);
 
         // Pull in approver fullnames.
         foreach ($approvals as $approval) {

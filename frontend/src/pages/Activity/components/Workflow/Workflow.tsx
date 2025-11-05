@@ -32,6 +32,7 @@ export function Workflow({
   const initialTimeend = useFormStore((state) => state.initialTimeend)
   const timestart = useFormStore((state) => state.timestart)
   const timeend = useFormStore((state) => state.timeend)
+  const staffincharge = useFormStore((state) => state.staffincharge)
 
   const [draftApprovals, setDraftApprovals] = useState<any[]>([])
   const savedtime = useStateStore((state) => (state.savedtime))
@@ -105,6 +106,7 @@ export function Workflow({
         campus: campus,
         assessmentid: assessmentid,
         isovernight: timestart && timeend && dayjs.unix(timestart).format('YYYYMMDD') != dayjs.unix(timeend).format('YYYYMMDD'),
+        staffincharge: staffincharge,
       }
     })
   }
