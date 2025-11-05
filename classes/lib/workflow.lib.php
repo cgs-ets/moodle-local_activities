@@ -1003,6 +1003,10 @@ class workflow_lib extends \local_activities\local_activities_config {
                 $approval->selectable = true;
                 $approval->selectablebywho = 'planner';
             }
+
+            // If the first step is a selectable... then the planner must select. This is the case whem a Sen HoD or HoSH submit an activity 
+            // because the first step is skipped for them, and the next step (admin approval) is a selectable.
+            
             
         }
 
