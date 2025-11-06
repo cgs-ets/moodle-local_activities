@@ -50,6 +50,7 @@ class risk_versions_lib {
             && $USER->username != 'admin' // Local admin
             && $USER->username != '57056' // Erum
             && $USER->username != '61460' // Kristen
+            && $USER->username != '67769' // Anna
         ) {
             throw new \Exception("Permission denied.");
         }

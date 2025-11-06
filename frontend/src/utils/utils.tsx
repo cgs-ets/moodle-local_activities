@@ -66,7 +66,7 @@ export const isRiskTester = () => {
     || getConfig().user.un == 'admin'
     || getConfig().user.un == '57056'
     || getConfig().user.un == '61460'
-
+    || getConfig().user.un == '67769' // Anna
     || getConfig().user.un == '41544' // Tanya Alcorn
     || getConfig().user.un == '41895' // Kate Watson
     || getConfig().user.un == '73125' // Jess Kalinowski
