@@ -20,7 +20,7 @@ export function EmailModal({opened, close, students}: Props) {
   const permissions = useFormStore((state) => (state.permissions))
   const [message, setMessage] = useState<string>('')
   const [audiences, setAudiences] = useState<string[]>(['students', 'parents', 'staff'])
-  const [includes, setIncludes] = useState<string[]>(['details', 'permissions'])
+  const [includes, setIncludes] = useState<string[]>(['details'])
   const [recipients, setRecipients] = useState<User[]>([])
   const [showSuccess, setShowSuccess] = useState(false)
   const [submitResponse, submitError, submitLoading, submitAjax, setSubmitData] = useAjax();
@@ -30,6 +30,11 @@ export function EmailModal({opened, close, students}: Props) {
     if (opened) {
       setMessage('')
       setShowSuccess(false)
+      let includes = ['details']
+      if (permissions) {
+        includes.push('permissions')
+      }
+      setIncludes(includes)
     }
   }, [opened])
 
@@ -117,7 +122,11 @@ export function EmailModal({opened, close, students}: Props) {
   const onClose = () => {
     setMessage('')
     setAudiences(['students', 'parents', 'staff'])
-    setIncludes(['details'])
+    let includes = ['details']
+    if (permissions) {
+      includes.push('permissions')
+    }
+    setIncludes(includes)
     setSubmitData({
       response: null,
       error: false,
