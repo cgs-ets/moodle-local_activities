@@ -1890,6 +1890,11 @@ class activities_lib {
         $emails = $DB->get_records_sql($sql, $params);
         foreach ($emails as $email) {
             $email->sender = utils_lib::user_stub($email->username);
+            $email->audiences = json_decode($email->audiences);
+            $email->students = json_decode($email->studentsjson);
+            $email->students = array_map(function($un) {
+                return utils_lib::user_stub($un);
+            }, $email->students);
         }
 
         return array_values($emails);

@@ -1,13 +1,18 @@
-import { Card, Text, Avatar, Group, Textarea, ActionIcon, Loader, LoadingOverlay, Modal } from '@mantine/core';
-import { IconEye, IconEyeCode, IconFileSearch, IconLiveView, IconMailSearch, IconMessage2Search, IconMessageSearch, IconSearch, IconSend, IconTrash, IconView360 } from '@tabler/icons-react';
+import { Card, Text, Avatar, Group, Textarea, ActionIcon, Loader, LoadingOverlay, Modal, ScrollArea, Box, Badge, Flex, CloseButton } from '@mantine/core';
+import { IconEye, IconEyeCode, IconFileSearch, IconLiveView, IconMailSearch, IconMessage2Search, IconMessageSearch, IconSearch, IconSend, IconTrash, IconUser, IconView360 } from '@tabler/icons-react';
 import { useFormStore } from '../../../../stores/formStore';
 import { statuses } from '../../../../utils';
 import { useAjax } from '../../../../hooks/useAjax';
 import { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
+import { parse } from 'path';
+import { User } from '../../../../types/types';
 
 type Email = {
   rendered: string,
+  id: number,
+  students: User[],
+  audiences: string[],
 }
 
 export function EmailHistory() {
@@ -39,6 +44,19 @@ export function EmailHistory() {
       console.log("fetched emails:", fetchResponse.data)
     }
   }, [fetchResponse]);
+
+  const student = (data: User) => {
+    return (
+        <Badge key={data.un} variant='filled' pl={0} color="gray.2" size="lg" radius="xl" leftSection={
+          <Avatar alt={data.fn + " " + data.ln} size={24} mr={5} src={'/local/activities/avatar.php?username=' + data.un} radius="xl"><IconUser /></Avatar>
+        }>
+          <Flex gap={4}>
+            <Text className="normal-case font-normal text-black text-sm">{data.ln + ", " + data.fn}</Text>
+          </Flex>
+        </Badge>
+    )
+  }
+
 
   if (status < statuses.approved || !emails.length) {
     return null
@@ -80,24 +98,44 @@ export function EmailHistory() {
             }
           </Card.Section>
       </Card>
-      <Modal
-        opened={!!selectedEmail} 
-        onClose={() => setSelectedEmail(null)} 
-        title="Email" 
-        size="xl" 
-        styles={{
-          header: {
-            borderBottom: '0.0625rem solid #dee2e6',
-          },
-          title: {
-            fontWeight: 600,
-          }
-        }}
-        >
-          <div className="rendered-email text-base py-4">
-            <div dangerouslySetInnerHTML={ {__html: selectedEmail?.rendered || ''} }></div>
-          </div>
-      </Modal>
+      {selectedEmail &&
+        <Modal
+          opened={!!selectedEmail} 
+          onClose={() => setSelectedEmail(null)} 
+          title="Email" 
+          size="xl" 
+          styles={{
+            header: {
+              borderBottom: '0.0625rem solid #dee2e6',
+            },
+            title: {
+              fontWeight: 600,
+            }
+          }}
+          >
+            <Box my="md">
+              <Text fz="sm" mb={5} fw={500} c="#212529">Scope</Text>
+              <ScrollArea h={selectedEmail.students.length > 12 ? 100 : 'auto'} type="auto">
+                <Group gap="xs">
+                  { selectedEmail.students.map(item => student(item)) }
+                </Group>
+              </ScrollArea>
+            </Box>
+            <Box>
+              <Text fz="sm" mb={5} fw={500} c="#212529">Audiences</Text>
+              <Group gap="5">
+                {selectedEmail.audiences.map((item, index) => (
+                  <span key={index} className="capitalize">
+                    {item}{index < selectedEmail.audiences.length - 1 ? ', ' : ''}
+                  </span>
+                ))}
+              </Group>
+            </Box>
+            <div className="rendered-email text-base py-4 border-t mt-4">
+              <div dangerouslySetInnerHTML={ {__html: selectedEmail?.rendered || ''} }></div>
+            </div>
+        </Modal>
+      }
     </>
   );
 }
