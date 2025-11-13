@@ -221,7 +221,7 @@ export function Approval({
             <div className="flex flex-col">
               {Object
                 .keys(approval.approvers)
-                .filter((a: any) => a !== staffincharge[0].un) // Remove the staff in charge from the list.
+                .filter((a: any) => a !== staffincharge[0]?.un || '9999999') // Remove the staff in charge from the list.
                 .map((approverusername: string) => {
                 return (
                   <div key={approverusername} className="flex gap-2 border-b px-4 py-2">
