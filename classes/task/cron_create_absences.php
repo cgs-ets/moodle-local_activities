@@ -120,9 +120,9 @@ class cron_create_absences extends \core\task\scheduled_task {
                 }
 
                 // Delete absences for students no longer attending event.
-                if (empty($attending)) {
-                    $this->log("No students attending activity " . $activity->get('id') . ". Skipping deletion of absences just incase something is amiss.", 2);
-                } else {
+                //if (empty($attending)) {
+                //    $this->log("No students attending activity " . $activity->get('id') . ". Skipping deletion of absences just incase something is amiss.", 2);
+                //} else {
                     $studentscsv = implode(',', $attending);
                     $this->log("Delete absences for students not in the following list: " . $studentscsv, 2);
                     $sql = $config->deleteabsencessql . ' :leavingdate, :returningdate, :comment, :studentscsv';
@@ -133,7 +133,7 @@ class cron_create_absences extends \core\task\scheduled_task {
                         'studentscsv' => implode(',', $attending),
                     );
                     $externalDB->execute($sql, $params);
-                }
+                //}
                 
                 
                 // Mark as processed.
