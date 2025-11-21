@@ -146,7 +146,7 @@ export function Approval({
           ? approval.nominated
             ? <div className="flex gap-1 items-center">
                 <Avatar onClick={open} className="cursor-pointer" alt="Nominated approver" title="Nominated approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.nominated} radius="xl"><IconUser /></Avatar> 
-                {approval.approvers[approval.nominated].fullname} ({approval.description})
+                {approval.approvers[approval.nominated] ? approval.approvers[approval.nominated].fullname : approval.nominated} ({approval.description})
                 <ActionIcon variant="transparent"><IconPencil onClick={() => unsetNominated(approval.id)} className="size-4" /></ActionIcon>
               </div>
             : <div className="flex gap-2 items-center">
@@ -226,7 +226,7 @@ export function Approval({
                 return (
                   <div key={approverusername} className="flex gap-2 border-b px-4 py-2">
                     <Avatar size={24} key={approverusername} src={'/local/activities/avatar.php?username=' + approverusername}><IconUser /></Avatar>
-                    <Text>{approval.approvers[approverusername].fullname}</Text>
+                    <Text>{approval.approvers[approverusername] ? approval.approvers[approverusername].fullname : approverusername}</Text>
                   </div>
                 )
               })}
