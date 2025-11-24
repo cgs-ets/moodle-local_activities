@@ -20,6 +20,8 @@ $PAGE->navbar->add($title);
 require_login();
 require_capability('moodle/site:config', $context, $USER->id);
 
+$run = optional_param('run', 0, PARAM_INT);
+
 global $DB;
 
 // Get next version number
@@ -39,6 +41,9 @@ $rows = $sheet->toArray();
 
 // Skip header row
 array_shift($rows);
+
+
+echo $OUTPUT->header();
 
 foreach ($rows as $row) {
     list($classificationname, $hazard, $riskbefore, $controlmeasures, $riskafter,
@@ -71,7 +76,10 @@ foreach ($rows as $row) {
             $classification->sortorder = $type == 'hazard' ? 2 : 1;
             $classification->isstandard = 0;
             $classification->version = $version;
-            $classification->id = $DB->insert_record('activities_classifications', $classification);
+            if ($run) {
+                //$classification->id = $DB->insert_record('activities_classifications', $classification);
+            }
+            echo html_writer::div("Insert classification: " . $name);
         }
         
         $classification_ids[] = $classification->id;
@@ -88,14 +96,20 @@ foreach ($rows as $row) {
     $risk->risk_benefit = $riskbenefit ? trim($riskbenefit, " \"'") : '';
     $risk->isstandard = 0;
     $risk->version = $version;
-    $riskid = $DB->insert_record('activities_risks', $risk);
+    if ($run) {
+        //$riskid = $DB->insert_record('activities_risks', $risk);
+    }
+    echo html_writer::div("Insert risk: " . $risk->hazard);
 
     // 4. Create classification set for this risk
     $classification_set = new stdClass();
     $classification_set->riskid = $riskid;
     $classification_set->set_order = 1;
     $classification_set->version = $version;
-    $set_id = $DB->insert_record('activities_risk_classification_sets', $classification_set);
+    if ($run) {
+        //$set_id = $DB->insert_record('activities_risk_classification_sets', $classification_set);
+    }
+    echo html_writer::div("Insert classification set");
 
     // 5. Add all classifications to the set
     foreach ($classification_ids as $classification_id) {
@@ -103,11 +117,13 @@ foreach ($rows as $row) {
         $set_member->set_id = $set_id;
         $set_member->classificationid = $classification_id;
         $set_member->version = $version;
-        $DB->insert_record('activities_risk_classification_set_members', $set_member);
+        if ($run) {
+            //$DB->insert_record('activities_risk_classification_set_members', $set_member);
+        }
+        echo html_writer::div("Insert classification set member: " . $classification_id);
     }
 }
 
-echo $OUTPUT->header();
 echo html_writer::div("Risks imported successfully!");
 echo $OUTPUT->footer();
 exit;
