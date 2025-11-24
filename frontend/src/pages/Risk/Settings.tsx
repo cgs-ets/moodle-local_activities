@@ -1016,7 +1016,7 @@ export function Settings() {
 
                       <Button 
                         onClick={() => {
-                          handleRiskFilterPreset(['K - 6', 'Incursion'])
+                          handleRiskFilterPreset(['K – 6', 'Incursion'])
                         }} 
                         size="compact-md"
                         radius="xl"
@@ -1027,7 +1027,7 @@ export function Settings() {
                       
                       <Button 
                         onClick={() => {
-                          handleRiskFilterPreset(['K - 6', 'Excursion'])
+                          handleRiskFilterPreset(['K – 6', 'Excursion'])
                         }} 
                         size="compact-md"
                         radius="xl"
@@ -1038,7 +1038,7 @@ export function Settings() {
 
                       <Button 
                         onClick={() => {
-                          handleRiskFilterPreset(['7 - 12', 'Incursion'])
+                          handleRiskFilterPreset(['7 – 12', 'Incursion'])
                         }} 
                         size="compact-md"
                         radius="xl"
@@ -1049,7 +1049,7 @@ export function Settings() {
 
                       <Button 
                         onClick={() => {
-                          handleRiskFilterPreset(['7 - 12', 'Excursion'])
+                          handleRiskFilterPreset(['7 – 12', 'Excursion'])
                         }} 
                         size="compact-md"
                         radius="xl"

@@ -61,10 +61,10 @@ foreach ($buttonsRows as $row) {
         'name' => $name,
         'version' => $version
     ]);
-    $type = empty($type) ? 'context' : 'hazard';
+    $type = empty($type) ? 'context' : $type;
     $isstandard = !$isstandard ? 0 : 1;
     $sorti++;
-    if (!$classification) {
+    if (empty($classification) && $name) {
         $classification = new stdClass();
         $classification->name = $name;
         $classification->icon = '';
@@ -74,7 +74,7 @@ foreach ($buttonsRows as $row) {
         $classification->isstandard = $isstandard;
         $classification->version = $version;
         if ($run) {
-            //$classification->id = $DB->insert_record('activities_classifications', $classification);
+            $classification->id = $DB->insert_record('activities_classifications', $classification);
         }
         echo html_writer::div("Insert classification button: " . $name . ", " . $type . ", " . $isstandard . ", " . $sorti);
     }
@@ -114,9 +114,9 @@ foreach ($risksRows as $row) {
             $classification->isstandard = 0;
             $classification->version = $version;
             if ($run) {
-                //$classification->id = $DB->insert_record('activities_classifications', $classification);
+                $classification->id = $DB->insert_record('activities_classifications', $classification);
             }
-            echo html_writer::div("Insert unfound classification: " . $name);
+            echo html_writer::div("Not Found - classification: " . $name);
         }
         
         $classification_ids[] = $classification->id;
@@ -134,7 +134,7 @@ foreach ($risksRows as $row) {
     $risk->isstandard = 0;
     $risk->version = $version;
     if ($run) {
-        //$riskid = $DB->insert_record('activities_risks', $risk);
+        $riskid = $DB->insert_record('activities_risks', $risk);
     }
     echo html_writer::div("Insert risk: " . $risk->hazard);
 
@@ -144,7 +144,7 @@ foreach ($risksRows as $row) {
     $classification_set->set_order = 1;
     $classification_set->version = $version;
     if ($run) {
-        //$set_id = $DB->insert_record('activities_risk_classification_sets', $classification_set);
+        $set_id = $DB->insert_record('activities_risk_classification_sets', $classification_set);
     }
 
     // 5. Add all classifications to the set
@@ -154,7 +154,7 @@ foreach ($risksRows as $row) {
         $set_member->classificationid = $classification_id;
         $set_member->version = $version;
         if ($run) {
-            //$DB->insert_record('activities_risk_classification_set_members', $set_member);
+            $DB->insert_record('activities_risk_classification_set_members', $set_member);
         }
     }
 }
