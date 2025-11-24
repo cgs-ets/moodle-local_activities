@@ -35,16 +35,53 @@ $excelpath = $CFG->dirroot . '/local/activities/risks.xlsx';
 
 // Load spreadsheet
 $spreadsheet = IOFactory::load($excelpath);
-$sheet = $spreadsheet->getActiveSheet();
-$rows = $sheet->toArray();
+
+// Get a specific sheet by name
+$risksSheet = $spreadsheet->getSheetByName('Risks');
+$templatesSheet = $spreadsheet->getSheetByName('Templates');
+$buttonsSheet = $spreadsheet->getSheetByName('Buttons');
+
+// Convert to array if needed
+$risksRows = $risksSheet->toArray();
+$templatesRows = $templatesSheet->toArray();
+$buttonsRows = $buttonsSheet->toArray();
 
 // Skip header row
-array_shift($rows);
+array_shift($risksRows);
+array_shift($buttonsRows);
 
 
 echo $OUTPUT->header();
 
-foreach ($rows as $row) {
+// First, create all of the classifications/buttons.
+$sorti = 0;
+foreach ($buttonsRows as $row) {
+    list($name, $desc, $type, $isstandard) = $row;
+    $classification = $DB->get_record('activities_classifications', [
+        'name' => $name,
+        'version' => $version
+    ]);
+    $type = empty($type) ? 'context' : 'hazard';
+    $isstandard = !$isstandard ? 0 : 1;
+    $sorti++;
+    if (!$classification) {
+        $classification = new stdClass();
+        $classification->name = $name;
+        $classification->icon = '';
+        $classification->type = $type;
+        $classification->description = '';
+        $classification->sortorder = $sorti;
+        $classification->isstandard = $isstandard;
+        $classification->version = $version;
+        if ($run) {
+            //$classification->id = $DB->insert_record('activities_classifications', $classification);
+        }
+        echo html_writer::div("Insert classification button: " . $name . ", " . $type . ", " . $isstandard . ", " . $sorti);
+    }
+}
+
+// Insert the risks
+foreach ($risksRows as $row) {
     list($classificationname, $hazard, $riskbefore, $controlmeasures, $riskafter,
          $responsible, $timing, $riskbenefit) = $row;
 
@@ -63,22 +100,23 @@ foreach ($rows as $row) {
             'version' => $version
         ]);
 
-        // Classifications are "context" except for the last one, which is a hazard.
-        $type = ($i < count($classification_names) -1) ? 'context' : 'hazard';
-
+        
+        // If this classification was not listed in the buttons sheet, we need to create it now..
         if (!$classification) {
+            // Classifications are "context" except for the last one, which is a hazard.
+            $type = ($i < count($classification_names) -1) ? 'context' : 'hazard';
             $classification = new stdClass();
             $classification->name = $name;
             $classification->icon = '';
             $classification->type = $type;
             $classification->description = '';
-            $classification->sortorder = $type == 'hazard' ? 2 : 1;
+            $classification->sortorder = $type == 'hazard' ? 999 : 888;
             $classification->isstandard = 0;
             $classification->version = $version;
             if ($run) {
                 //$classification->id = $DB->insert_record('activities_classifications', $classification);
             }
-            echo html_writer::div("Insert classification: " . $name);
+            echo html_writer::div("Insert unfound classification: " . $name);
         }
         
         $classification_ids[] = $classification->id;
