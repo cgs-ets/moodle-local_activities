@@ -490,8 +490,8 @@ class cron_create_classes extends \core\task\scheduled_task {
         foreach ($activities as $activity) {
             try {
                 $this->log("Processing deleted activity: " . $activity->id);
-                $activitydata = $activity->export();
-                $this->delete_activity_classes($activitydata);
+                //$activitydata = $activity->export();
+                $this->delete_activity_classes($activity);
             } catch (Exception $ex) {
                 $this->log("Error processing deleted activity {$activity->id}: " . $ex->getMessage());
             }
