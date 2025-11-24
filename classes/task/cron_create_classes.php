@@ -134,13 +134,20 @@ class cron_create_classes extends \core\task\scheduled_task {
 
                 // Get current attending students
                 $attending = activities_lib::get_all_attending($activitydata->id);
+
+                // If no students, delete any existing classes and mark as processed
+                if (empty($attending)) {
+                    $this->log("Activity {$activitydata->id} has no students - deleting any existing classes");
+                    $this->delete_activity_classes($activitydata);
+                    $DB->execute("UPDATE {activities} SET classrollprocessed = 1 WHERE id = ?", [$activitydata->id]);
+                    continue;
+                }
                 
                 // Determine if we need to reprocess
                 // Strategy: Always reprocess if classrollprocessed = 0 (never processed)
                 // Also reprocess if it was processed but modified recently (within last 2 days)
                 // This catches date/time changes and student list changes
                 $needsreprocess = ($record->classrollprocessed == 0);
-                
                 if (!$needsreprocess) {
                     // Check if activity was modified recently - if so, it likely changed
                     // We use 2 days to catch any changes that might have happened
@@ -152,24 +159,12 @@ class cron_create_classes extends \core\task\scheduled_task {
                     }
                 }
 
-                // If no students, delete any existing classes and mark as processed
-                if (empty($attending)) {
-                    $this->log("Activity {$activitydata->id} has no students - deleting any existing classes");
-                    $this->delete_activity_classes($activitydata);
-                    $DB->execute("UPDATE {activities} SET classrollprocessed = 1 WHERE id = ?", [$activitydata->id]);
-                    continue;
-                }
-
                 // Process the activity (create or update classes)
                 // Always delete old classes first to handle date changes properly
                 if ($needsreprocess) {
-                    if ($record->classrollprocessed == 1) {
-                        $this->log("Deleting old classes for activity {$activitydata->id} before recreating (dates may have changed)");
-                        $this->delete_activity_classes($activitydata);
-                    }
-                    
+                    $this->log("Deleting old classes for activity {$activitydata->id} before recreating (dates may have changed)");
+                    $this->delete_activity_classes($activitydata);
                     $success = $this->create_class_roll($activitydata, $attending, 'activity');
-                    
                     if ($success) {
                         $DB->execute("UPDATE {activities} SET classrollprocessed = 1 WHERE id = ?", [$activitydata->id]);
                     }
@@ -223,11 +218,18 @@ class cron_create_classes extends \core\task\scheduled_task {
                 $rawattending = assessments_lib::get_assessment_students($assessmentdata->id);
                 $attending = array_values(array_column($rawattending, 'un'));
 
+                // If no students, delete any existing classes and mark as processed
+                if (empty($attending)) {
+                    $this->log("Assessment {$assessmentdata->id} has no students - deleting any existing classes");
+                    $this->delete_assessment_classes($assessmentdata);
+                    $DB->execute("UPDATE {activities_assessments} SET classrollprocessed = 1 WHERE id = ?", [$assessmentdata->id]);
+                    continue;
+                }
+
                 // Determine if we need to reprocess
                 // Strategy: Always reprocess if classrollprocessed = 0 (never processed)
                 // Also reprocess if it was processed but modified recently (within last 2 days)
                 $needsreprocess = ($record->classrollprocessed == 0);
-                
                 if (!$needsreprocess) {
                     // Check if assessment was modified recently
                     if ($record->timemodified > (time() - 172800)) {
@@ -238,24 +240,12 @@ class cron_create_classes extends \core\task\scheduled_task {
                     }
                 }
 
-                // If no students, delete any existing classes and mark as processed
-                if (empty($attending)) {
-                    $this->log("Assessment {$assessmentdata->id} has no students - deleting any existing classes");
-                    $this->delete_assessment_classes($assessmentdata);
-                    $DB->execute("UPDATE {activities_assessments} SET classrollprocessed = 1 WHERE id = ?", [$assessmentdata->id]);
-                    continue;
-                }
-
                 // Process the assessment (create or update classes)
                 // Always delete old classes first to handle date changes properly
                 if ($needsreprocess) {
-                    if ($record->classrollprocessed == 1) {
-                        $this->log("Deleting old classes for assessment {$assessmentdata->id} before recreating (dates may have changed)");
-                        $this->delete_assessment_classes($assessmentdata);
-                    }
-                    
+                    $this->log("Deleting old classes for assessment {$assessmentdata->id} before recreating (dates may have changed)");
+                    $this->delete_assessment_classes($assessmentdata);
                     $success = $this->create_class_roll($assessmentdata, $attending, 'assessment');
-                    
                     if ($success) {
                         $DB->execute("UPDATE {activities_assessments} SET classrollprocessed = 1 WHERE id = ?", [$assessmentdata->id]);
                     }
