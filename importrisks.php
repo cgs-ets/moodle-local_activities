@@ -26,7 +26,6 @@ global $DB;
 
 // Get next version number
 $version = risk_versions_lib::get_draft_version();
-var_export($version); exit;
 
 // Create the new version in the db
 risk_versions_lib::create_version_entry($version);
@@ -109,7 +108,6 @@ foreach ($rows as $row) {
     if ($run) {
         //$set_id = $DB->insert_record('activities_risk_classification_sets', $classification_set);
     }
-    echo html_writer::div("Insert classification set");
 
     // 5. Add all classifications to the set
     foreach ($classification_ids as $classification_id) {
@@ -120,7 +118,6 @@ foreach ($rows as $row) {
         if ($run) {
             //$DB->insert_record('activities_risk_classification_set_members', $set_member);
         }
-        echo html_writer::div("Insert classification set member: " . $classification_id);
     }
 }
 
