@@ -69,7 +69,7 @@ foreach ($buttonsRows as $row) {
         $classification->name = $name;
         $classification->icon = '';
         $classification->type = $type;
-        $classification->description = '';
+        $classification->description = $desc;
         $classification->sortorder = $sorti;
         $classification->isstandard = $isstandard;
         $classification->version = $version;

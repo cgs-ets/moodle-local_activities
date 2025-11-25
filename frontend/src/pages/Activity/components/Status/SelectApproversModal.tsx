@@ -18,12 +18,15 @@ export function SelectApproversModal({save}: Props) {
   // Check to see if any of the approval steps require a selection by the user.
   let active = false
   for (let i = 0; i < approvals.length; i++) {
-    if (approvals[i].selectable 
-      && approvals[i].selectablebywho == 'planner' 
-      && Object.keys(approvals[i].approvers).length > 0 
-      && !approvals[i].nominated
-      && !approvals[i].currentnominated
-      && !Number(approvals[i].invalidated)
+    const a = approvals[i]
+
+    if (
+      a.selectable &&
+      a.selectablebywho === 'planner' &&
+      Object.keys(a.approvers ?? {}).length > 0 &&   // FIX
+      !a.nominated &&
+      !a.currentnominated &&
+      !Number(a.invalidated)
     ) {
       active = true
       break

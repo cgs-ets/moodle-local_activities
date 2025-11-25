@@ -35,6 +35,7 @@ import { SvgRenderer } from "../../components/SvgRenderer";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { isRiskTester } from '../../utils/utils';
 import * as XLSX from 'xlsx';
+import { exit } from "process";
 
 export interface Classification {
   id: number;
@@ -860,9 +861,32 @@ export function Settings() {
         { wch: 30 }  // Benefit
       ];
       worksheet['!cols'] = colWidths;
+
+      // Create ANOTHER sheet called "Buttons" that lists the classifications with 4 columns (name, description, type, isstandard)
+      const buttonsData = classifications.map((classification: Classification) => {
+        return {
+          'name': classification.name,
+          'description': classification.description,
+          'type': classification.type,
+          'isstandard': classification.isstandard
+        };
+      });
+      
+      // Create Buttons worksheet
+      const buttonsWorksheet = XLSX.utils.json_to_sheet(buttonsData);
+      
+      // Set column widths for Buttons sheet
+      const buttonsColWidths = [
+        { wch: 30 }, // name
+        { wch: 50 }, // description
+        { wch: 15 }, // type
+        { wch: 12 }  // isstandard
+      ];
+      buttonsWorksheet['!cols'] = buttonsColWidths;
       
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Risks');
+      XLSX.utils.book_append_sheet(workbook, buttonsWorksheet, 'Buttons');
       
       // Generate filename with version and timestamp
       const timestamp = new Date().toISOString().split('T')[0];
