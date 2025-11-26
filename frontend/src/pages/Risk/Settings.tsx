@@ -46,11 +46,11 @@ export interface Classification {
   type: string;
   isstandard: number;
   contexts: number[][];
-  includes: number[];
   preselected: boolean;
   hidden: boolean;
   risks_count?: number;
   risks_count_string?: string;
+  includes: string;
 }
 
 export interface Risk {
@@ -108,7 +108,7 @@ export function Settings() {
     type: 'hazard', 
     isstandard: 0, 
     contexts: [] as number[][],
-    includes: [] as number[]
+    includes: '' as string
   });
   const [classificationError, setClassificationError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -316,7 +316,7 @@ export function Settings() {
       type: 'hazard', 
       isstandard: 0, 
       contexts: [] as number[][], // Start with no classification sets
-      includes: []
+      includes: '' as string
     });
     if (classification) {
       setEditingClassification(classification);
@@ -326,12 +326,11 @@ export function Settings() {
         type: classification.type, 
         isstandard: classification.isstandard, 
         contexts: classification.contexts || [],
-        includes: classification.includes || []
+        includes: classification.includes || ''
       } as Classification);
       // Load selected classifications
       const selected = classifications.filter(c => classification.contexts.some(set => set.includes(c.id)));
       setSelectedContexts(selected);
-      setSelectedIncludes(classifications.filter(c => classification.includes.includes(c.id)));
     }
     setClassificationError(null);
     setClassificationModalOpen(true);
@@ -340,7 +339,7 @@ export function Settings() {
   const openClassificationIconModal = (classification: Classification) => {
     setEditingClassification(null);
     setEditingClassificationIcon(classification);
-    setClassificationForm({icon: classification.icon, contexts: classification.contexts, includes: classification.includes } as Classification);
+    setClassificationForm({icon: classification.icon, contexts: classification.contexts, includes: classification.includes || ''} as Classification);
     setClassificationError(null);
     setClassificationModalOpen(true);
   };
@@ -355,7 +354,6 @@ export function Settings() {
         version: currentVersion?.version,
         editingIcon: editingClassificationIcon !== null,
         contexts: selectedContexts.map(c => c.id),
-        includes: selectedIncludes.map(c => c.id)
       };
 
       const response = await api.call({
@@ -526,17 +524,6 @@ export function Settings() {
     setSelectedContexts(selectedContexts.filter(c => c.id !== context.id));
   };
 */
-
-
-  const handleIncludeSelect = (include: Classification) => {
-    if (!selectedIncludes.find(c => c.id === include.id)) {
-      setSelectedIncludes([...selectedIncludes, include]);
-    }
-  };
-
-  const handleIncludeRemove = (include: Classification) => {
-    setSelectedIncludes(selectedIncludes.filter(c => c.id !== include.id));
-  };
 
   // Helper functions for adding classification sets
   const addClassificationToCurrentSet = (classification: Classification) => {
@@ -868,7 +855,8 @@ export function Settings() {
           'name': classification.name,
           'description': classification.description,
           'type': classification.type,
-          'isstandard': classification.isstandard
+          'isstandard': classification.isstandard,
+          'includes': classification.includes
         };
       });
       
@@ -880,7 +868,8 @@ export function Settings() {
         { wch: 30 }, // name
         { wch: 50 }, // description
         { wch: 15 }, // type
-        { wch: 12 }  // isstandard
+        { wch: 12 },  // isstandard
+        { wch: 30 }  // includes
       ];
       buttonsWorksheet['!cols'] = buttonsColWidths;
       
@@ -1612,7 +1601,8 @@ export function Settings() {
               {classificationForm.type === 'hazard' && (
                 <>
 
-                 {/*
+
+                  {/*
                   <div className="mb-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Text fz="sm" fw={500}>Contexts</Text>
@@ -1692,10 +1682,6 @@ export function Settings() {
                   </div>
                   */}
 
-
-
-
-
                   <div className="mb-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Text fz="sm" fw={500}>Includes</Text>
@@ -1706,75 +1692,14 @@ export function Settings() {
                         </div>
                       </Tooltip>
                     </div>
-                    
-                    <Combobox 
-                      store={includesCombobox} 
-                      onOptionSubmit={(optionValue: string) => {
-                        const classification = JSON.parse(optionValue);
-                        handleIncludeSelect(classification);
-                        includesCombobox.closeDropdown();
-                      }}
-                      withinPortal={false}
-                    >
-                      <Combobox.DropdownTarget>
-                        <PillsInput 
-                          pointer 
-                          leftSection={<IconCategory2 size={18} />}
-                        >
-                          <Pill.Group>
-                            {selectedIncludes.map((include) => (
-                              <Badge key={include.id} variant='filled' pr={0} color={include.type === 'hazard' ? 'red.2' : 'blue.2'} size="lg" radius="xl">
-                                <Flex gap={4}>
-                                  <Text className="normal-case font-normal text-black text-sm">{include.name}</Text>
-                                  <CloseButton
-                                    onMouseDown={() => handleIncludeRemove(include)}
-                                    variant="transparent"
-                                    size={22}
-                                    iconSize={14}
-                                    tabIndex={-1}
-                                  />
-                                </Flex>
-                              </Badge>
-                            ))}
-                            <Combobox.EventsTarget>
-                              <PillsInput.Field
-                                onFocus={() => {
-                                  setClassificationSearchResults(classifications);
-                                  includesCombobox.openDropdown();
-                                }}
-                                onClick={() => {
-                                  setClassificationSearchResults(classifications);
-                                  includesCombobox.openDropdown();
-                                }}
-                                onBlur={() => includesCombobox.closeDropdown()}
-                                value={classificationSearch}
-                                placeholder="Search classifications"
-                                onChange={(event) => {
-                                  searchClassifications(event.currentTarget.value);
-                                  includesCombobox.openDropdown();
-                                }}
-                              />
-                            </Combobox.EventsTarget>
-                          </Pill.Group>
-                        </PillsInput>
-                      </Combobox.DropdownTarget>
-
-                      <Combobox.Dropdown>
-                        <Combobox.Options style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                          {classificationSearchResults.length > 0 
-                            ? classificationSearchResults.filter((classification) => classification.type === 'hazard').map((classification) => (
-                                <Combobox.Option value={JSON.stringify(classification)} key={classification.id}>
-                                  <Text className="normal-case font-normal text-black text-sm">{classification.name}</Text>
-                                </Combobox.Option>
-                              ))
-                            : <Combobox.Empty>Nothing found...</Combobox.Empty>
-                          }
-                        </Combobox.Options>
-                      </Combobox.Dropdown>
-                    </Combobox>
+                    <Textarea
+                      value={classificationForm.includes}
+                      onChange={(e) => setClassificationForm({ ...classificationForm, includes: e.target.value })}
+                      mb="md"
+                      autosize
+                      minRows={2}
+                    />
                   </div>
-
-
 
 
                 

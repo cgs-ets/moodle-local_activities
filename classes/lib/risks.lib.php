@@ -279,53 +279,69 @@ class risks_lib {
 
     private static function prepare_ra_data($ra_gen) {
         global $DB;
+
         $activity = new Activity($ra_gen->activityid);
         if (!$activity) {
             throw new \Exception("Activity not found.");
         }
         $activity = $activity->export();
 
-        // Get the includes for the selected classifications.
-        $includes = risk_versions_lib::get_includes_for_classifications($ra_gen->classifications, $ra_gen->riskversion);
-        $classifications = array_merge($ra_gen->classifications, array_column($includes, 'includeid'));
-
         // Append additional fields to activity.
         $activity = (object) array_merge((array) $activity, (array) $ra_gen);
         $activity->site_visit_date = $activity->site_visit_date ? date('Y-m-d', $activity->site_visit_date) : '';
 
-        // Get the risks for the classifications.
-        $risks = static::get_risks_for_classifications($classifications, $ra_gen->riskversion);
+        $selected_classification_ids = $ra_gen->classifications;
 
+        // Get the includes for the selected classifications.
+        $includes = risk_versions_lib::get_includes_for_classifications($selected_classification_ids, $ra_gen->riskversion);
+
+        // Get the risks for the classifications.
+        $risks = static::get_risks_for_classifications($selected_classification_ids, $ra_gen->riskversion, $includes);
+        
+        // Extract the classification records from the risks.
+        $classifications_in_risks = array_column($risks, 'classifications');
+        
         // Group risks by classification. 
-        $hazard_risks = [];
+        $risks_by_classification = [];
         $risks_processed = [];
         foreach ($risks as $risk) {
+            // Skip risks that do not have hazard text.
+            if (empty($risk->hazard)) {
+                continue;
+            }
+
             foreach ($risk->classifications as $classification) {
+
+                // RISKS DO NOT APPEAR IN CONTEXTS!
+                if ($classification->type === 'context') {
+                    continue;
+                }
+
                 // If the risk has a qualifying set, and the qualifying set is not in the selected classifications, skip it.
                 if (isset($risk->qualifying_set) && !in_array($classification->id, $risk->qualifying_set)) {
                     continue;
                 }
 
-                // RISKS DO NOT APPEAR FOR CONTEXTS!
-                if ($classification->type === 'context') {
-                    continue;
-                }
-                // Only add the risk if it hasn't been added yet.
+                // Only add the risk if it hasn't already been added.
                 if (in_array($risk->id, $risks_processed)) {
                     break;
                 }
-                $hazard_risks[$classification->id][] = $risk;
+
+                $risks_by_classification[$classification->id][] = $risk;
+
                 // Keep track of risks that have been added to an array because I only want to add each risk once.
                 $risks_processed[] = $risk->id;
             }
         }
 
+        // This causes the classifications to be sorted by the sortorder, because get_classifications returns them in the order of the sortorder.
         $all_classifications = risk_versions_lib::get_classifications($ra_gen->riskversion);
-        $used_classifications = array_filter($all_classifications, function($classification) use ($hazard_risks) {
-            return isset($hazard_risks[$classification->id]);
+        $used_classifications = array_filter($all_classifications, function($classification) use ($risks_by_classification) {
+            return isset($risks_by_classification[$classification->id]);
         });
+        
         foreach ($used_classifications as $classification) {
-            $classification->risks = $hazard_risks[$classification->id];
+            $classification->risks = $risks_by_classification[$classification->id];
             $classification->risks_count = count($classification->risks);
             $classification->risks_count_string = $classification->risks_count . ' ' . ($classification->risks_count === 1 ? 'risk' : 'risks');
         }
@@ -351,34 +367,38 @@ class risks_lib {
      * @param int $riskversion
      * @return array
      */
-    private static function get_risks_for_classifications($selected, $riskversion) {
+    private static function get_risks_for_classifications($selected, $riskversion, $includes = []) {
         global $DB;
-        
         // First get all the risks for this version.
         $risks = risk_versions_lib::get_risks_with_classifications($riskversion);
         $standard_classifications = risk_versions_lib::get_classifications($riskversion, true);
         $standard_classification_ids = array_column($standard_classifications, 'id');
 
+
         // Then filter the risks to only include those that match the classifications.
-        $risks = array_filter($risks, function($risk) use ($selected, $standard_classification_ids) {
+        $risks = array_filter($risks, function($risk) use ($selected, $standard_classification_ids, $includes) {
             if (empty($risk->classification_sets)) {
-                // No classification sets were defined for this.
+                // No classification sets were defined for this risk.
                 return false;
             }
-            // Check if ANY of the classification sets match the selected classifications
+
+
+            // Check if ANY of the classification sets match the selected classifications or includes.
             foreach ($risk->classification_sets as $classification_set) {
-                // We need to exclude standard classifications from the check as they are not selectable.
-                $risk_classification_ids = array_diff($classification_set, $standard_classification_ids);
+
+                // Exclude standard classifications from the check as they are "selected" by default.
+                $classification_set_non_standard = array_diff($classification_set, $standard_classification_ids);
+
                 
-                if (empty($risk_classification_ids)) {
+                if (empty($classification_set_non_standard)) {
                     // If nothing left to select, this is a standard classification.
                     return true;
                 }
 
                 // Check if all of the risk's classifications in this set are in the selected classifications.
                 // Get the classifications in common.
-                $classifications_in_common = array_intersect($risk_classification_ids, $selected);
-                
+                $classifications_in_common = array_intersect($classification_set_non_standard, $selected);
+
                 // Check if the number of classifications in common is the same as the number of classifications in the risk set.
                 // Example 1: 
                 // - The risk has set ["K-2", "Walk"], and the selected are ["K-2", "Walk", "Playground"].
@@ -389,14 +409,32 @@ class risks_lib {
                 //   - The number of common classifications is 2, and the number of classifications in the risk set is 3.
                 //   - So this set doesn't match, but we continue checking other sets.
                 
-                if (count($classifications_in_common) === count($risk_classification_ids)) {
+                if (count($classifications_in_common) === count($classification_set_non_standard)) {
                     $risk->qualifying_set = $classification_set;
                     return true; // This set matches, so include the risk
                 }
+
+                // Check if any of the includes match the classification set.
+                foreach ($includes as $include) {
+                    if (count(array_intersect($classification_set, $include)) === count($classification_set)) {
+                        $risk->qualifying_set = $classification_set;
+                        return true; // This set matches, so include the risk
+                    }
+                }
+
+
             }
             
             return false; // No sets matched
         });
+
+
+        /*if ($risk->hazard === 'Medical Issues - Illness - existing medical condition requiring assistance while on the excursion - including Asthma and Anaphylaxis') {
+            var_export($selected);
+            var_export($classifications_in_common);
+            var_export($classification_set_non_standard);
+            exit;
+        }*/
 
         return $risks;
     }

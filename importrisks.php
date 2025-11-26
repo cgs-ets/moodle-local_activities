@@ -43,7 +43,6 @@ $buttonsSheet = $spreadsheet->getSheetByName('Buttons');
 
 // Convert to array if needed
 $risksRows = $risksSheet->toArray();
-$templatesRows = $templatesSheet->toArray();
 $buttonsRows = $buttonsSheet->toArray();
 
 // Skip header row
@@ -56,7 +55,7 @@ echo $OUTPUT->header();
 // First, create all of the classifications/buttons.
 $sorti = 0;
 foreach ($buttonsRows as $row) {
-    list($name, $desc, $type, $isstandard) = $row;
+    list($name, $desc, $type, $isstandard, $includes) = $row;
     $classification = $DB->get_record('activities_classifications', [
         'name' => $name,
         'version' => $version
@@ -73,6 +72,7 @@ foreach ($buttonsRows as $row) {
         $classification->sortorder = $sorti;
         $classification->isstandard = $isstandard;
         $classification->version = $version;
+        $classification->includes = $includes;
         if ($run) {
             $classification->id = $DB->insert_record('activities_classifications', $classification);
         }
@@ -87,6 +87,9 @@ foreach ($risksRows as $row) {
 
     // 1. Split classification names by '||' and trim whitespace
     $classification_names = array_map('trim', explode('||', $classificationname));
+    if (empty($classification_names)) {
+        continue;
+    }
     $classification_ids = [];
 
     // 2. Find or create each classification
@@ -113,6 +116,7 @@ foreach ($risksRows as $row) {
             $classification->sortorder = $type == 'hazard' ? 999 : 888;
             $classification->isstandard = 0;
             $classification->version = $version;
+            $classification->includes = '';
             if ($run) {
                 $classification->id = $DB->insert_record('activities_classifications', $classification);
             }
@@ -159,6 +163,10 @@ foreach ($risksRows as $row) {
     }
 }
 
+if ($run) {
 echo html_writer::div("Risks imported successfully!");
+} else {
+echo html_writer::div("Dry run successful!");
+}
 echo $OUTPUT->footer();
 exit;

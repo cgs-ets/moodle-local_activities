@@ -334,6 +334,7 @@
         <FIELD NAME="icon" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="type" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="description" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="includes" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="isstandard" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="version" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -361,21 +362,6 @@
         <KEY NAME="fk_contextid" TYPE="foreign" FIELDS="contextid" REFTABLE="activities_classifications" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
-
-    <TABLE NAME="activities_classifications_includes" COMMENT="Join table linking classifications to includes">
-      <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="classificationid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="includeid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="version" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-      </FIELDS>
-      <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-        <KEY NAME="fk_classificationid" TYPE="foreign" FIELDS="classificationid" REFTABLE="activities_classifications" REFFIELDS="id"/>
-        <KEY NAME="fk_includeid" TYPE="foreign" FIELDS="includeid" REFTABLE="activities_classifications" REFFIELDS="id"/>
-      </KEYS>
-    </TABLE>
-
 
     <TABLE NAME="activities_risk_classification_sets" COMMENT="Stores classification sets for risks">
       <FIELDS>

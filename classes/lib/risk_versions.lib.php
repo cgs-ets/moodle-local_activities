@@ -40,10 +40,6 @@ class risk_versions_lib {
     /** Table to store classifications contexts relationships. */
     const TABLE_CLASSIFICATIONS_CONTEXTS = 'activities_classifications_contexts';
 
-
-    /** Table to store classifications includes relationships. */
-    const TABLE_CLASSIFICATIONS_INCLUDES = 'activities_classifications_includes';
-
     public static function check_risk_settings_access() {
         global $USER;
         if (   $USER->username != '43563' // Michael
@@ -382,16 +378,6 @@ class risk_versions_lib {
             $DB->insert_record(static::TABLE_CLASSIFICATIONS_CONTEXTS, $cc);
         }*/
 
-        // Copy classification-include relationships with updated IDs
-        $classification_includes = $DB->get_records(static::TABLE_CLASSIFICATIONS_INCLUDES, ['version' => $version]);
-        foreach ($classification_includes as $ci) {
-            unset($ci->id);
-            $ci->version = $new_version;
-            $ci->classificationid = $classification_id_mapping[$ci->classificationid];
-            $ci->includeid = $classification_id_mapping[$ci->includeid];
-            $DB->insert_record(static::TABLE_CLASSIFICATIONS_INCLUDES, $ci);
-        }
-
         // Create version record
         $DB->insert_record(static::TABLE_RISK_VERSIONS, [
             'version' => $new_version,
@@ -461,10 +447,10 @@ class risk_versions_lib {
             throw new \Exception("A classification with this name already exists in this version.");
         }
 
-        $contexts = $data->contexts;
-        unset($data->contexts);
-        $includes = $data->includes;
-        unset($data->includes);
+        //$contexts = $data->contexts;
+        //unset($data->contexts);
+        //$includes = $data->includes;
+        //unset($data->includes);
 
         if (isset($data->id) && $data->id) {
             // Update existing
@@ -488,14 +474,6 @@ class risk_versions_lib {
                 $DB->insert_record(static::TABLE_CLASSIFICATIONS_CONTEXTS, ['classificationid' => $id, 'contextid' => $contextid, 'version' => $data->version]);
             }
         }*/
-
-        // Update includes
-        if (isset($includes)) {
-            $DB->delete_records(static::TABLE_CLASSIFICATIONS_INCLUDES, ['classificationid' => $id, 'version' => $data->version]);
-            foreach ($includes as $includeid) {
-                $DB->insert_record(static::TABLE_CLASSIFICATIONS_INCLUDES, ['classificationid' => $id, 'includeid' => $includeid, 'version' => $data->version]);
-            }
-        }
         
         return ['id' => $id, 'success' => true];
     }
@@ -567,16 +545,6 @@ class risk_versions_lib {
                     ORDER BY c.sortorder ASC";
             $contexts = $DB->get_fieldset_sql($sql, [$record->id, $version]);
             $record->contexts = array_map('intval', $contexts);*/
-
-            // Get includes and order them by sortorder
-            $sql = "SELECT ci.includeid
-                    FROM {" . static::TABLE_CLASSIFICATIONS_INCLUDES . "} ci 
-                    LEFT JOIN {" . static::TABLE_CLASSIFICATIONS . "} c ON ci.includeid = c.id 
-                    WHERE ci.classificationid = ? 
-                    AND ci.version = ? 
-                    ORDER BY c.sortorder ASC";
-            $includes = $DB->get_fieldset_sql($sql, [$record->id, $version]);
-            $record->includes = array_map('intval', $includes);
         }
 
 
@@ -737,14 +705,14 @@ class risk_versions_lib {
         
 
         foreach ($risks as &$risk) {
-            $risk->classifications = static::get_classifications_for_risk($risk->classification_ids, $version);
+            $risk->classifications = static::get_classifications_by_ids($risk->classification_ids, $version);
         }
 
         return $risks;
     }
 
 
-    public static function get_classifications_for_risk($classification_ids, $version) {
+    public static function get_classifications_by_ids($classification_ids, $version) {
         global $DB;
 
         if (empty($classification_ids)) {
@@ -1016,15 +984,42 @@ class risk_versions_lib {
     }
 
 
-    public static function get_includes_for_classifications($classifications, $version) {
+    public static function get_includes_for_classifications($classification_ids, $version) {
         global $DB;
-        $sql = "SELECT * FROM {" . static::TABLE_CLASSIFICATIONS_INCLUDES . "} WHERE classificationid IN (" . implode(',', $classifications) . ") AND version = ?";
-        $includes = array_values($DB->get_records_sql($sql, [$version]));
-        service_lib::cast_fields($includes, [
-            'version' => 'int',
-            'includeid' => 'int',
-        ]);
+        // Get the classifications.
+        $classifications = self::get_classifications_by_ids($classification_ids, $version);
+
+        // Expand the includes.
+        $includes = [];
+        foreach ($classifications as $classification) {
+            if (empty($classification->includes)) {
+                continue;
+            }
+
+            $targets = array_map('trim', explode('##', $classification->includes));
+
+            foreach ($targets as $target) {
+                if (empty($target)) {
+                    continue;
+                }
+
+                /// I might need to add a qualifying set here...
+                $classification_set = self::get_classifications_from_names(array_map('trim', explode('||', $target)), $version);
+                $includes[] = array_column($classification_set, 'id');
+            }
+        }
         return $includes;
+    }
+
+    public static function get_classifications_from_names($names, $version) {
+        global $DB;
+        if (empty($names)) {
+            return [];
+        }
+        [$insql, $inparams] = $DB->get_in_or_equal($names);
+        $sql = "SELECT * FROM {" . static::TABLE_CLASSIFICATIONS . "} WHERE name $insql AND version = ?";
+        $classifications = $DB->get_records_sql($sql, array_merge($inparams, [$version]));
+        return $classifications;
     }
 
 } 

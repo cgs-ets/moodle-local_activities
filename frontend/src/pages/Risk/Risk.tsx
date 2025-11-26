@@ -117,6 +117,7 @@ export function Risk() {
       })
       
       if (!response.error) {
+        console.log(response.data.classifications)
         setClassifications(response.data.classifications)
         setRiskAssessment({
           riskVersion: response.data.version,
@@ -286,6 +287,8 @@ export function Risk() {
       return;
     }
 
+    console.log(riskAssessment.selectedClassifications)
+
     const response = await api.call({
       method: 'POST',
       body: {
@@ -332,7 +335,7 @@ export function Risk() {
     }
   }
 
-  const handleRiskAssessmentChange = (value: string[]) => {
+  const handleRiskAssessmentChange = (value: string[]) => {    
     // conver to ints
     const ids = value.map(id => parseInt(id))
 
