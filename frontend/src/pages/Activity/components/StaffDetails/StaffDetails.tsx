@@ -1,8 +1,11 @@
-import { Card, Text, Textarea } from "@mantine/core";
+import { Button, Card, Text, Textarea } from "@mantine/core";
 import { Form, useFormStore } from "../../../../stores/formStore";
 import { StaffSelector } from "./components/StaffSelector/StaffSelector";
 import { isActivity } from "../../../../utils/utils";
 import { useStateStore } from "../../../../stores/stateStore";
+import { StaffReports } from "./components/StaffReports";
+import { useDisclosure } from "@mantine/hooks";
+import { IconReport } from "@tabler/icons-react";
 
 export function StaffDetails() {
 
@@ -13,7 +16,8 @@ export function StaffDetails() {
   const activitytype = useFormStore((state) => state.activitytype) 
   const otherparticipants = useFormStore((state) => state.otherparticipants) 
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
-
+  const [isOpenReports, {close: closeReports, open: openReports}] = useDisclosure(false)
+  
   const setState = useFormStore(state => state.setState)
 
   const setAccompanying = (value: any[]) => {
@@ -30,8 +34,9 @@ export function StaffDetails() {
   }
   return (
     <Card withBorder radius="sm" className="p-0 overflow-visible">
-      <div className="px-4 py-3">
+      <div className="px-4 py-3 flex justify-between items-center">
         <span className="text-base">Staff</span>
+        <Button variant="light" onClick={openReports} size="compact-sm" radius="xl" leftSection={<IconReport size={14} />}>Reports</Button>
       </div>
       <div className="flex flex-col gap-6 p-4 border-t border-gray-300">
         <div className="flex flex-col gap-4">
@@ -68,6 +73,7 @@ export function StaffDetails() {
           }
         </div>
       </div>
+      <StaffReports opened={isOpenReports} close={closeReports} />
     </Card>
   );
 };
