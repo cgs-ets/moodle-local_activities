@@ -142,7 +142,7 @@ export function Approval({
     >
       <LoadingOverlay visible={submitLoading} />
       <div className="flex items-center gap-2">
-        { approval.status == '0' && approval.skip == '0' && approval.selectable
+        { approval.status == '0' && approval.skip == '0' && approval.selectable && approval.approvers
           ? approval.nominated
             ? <div className="flex gap-1 items-center">
                 <Avatar onClick={open} className="cursor-pointer" alt="Nominated approver" title="Nominated approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.nominated} radius="xl"><IconUser /></Avatar> 
