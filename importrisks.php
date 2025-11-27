@@ -28,7 +28,10 @@ global $DB;
 $version = risk_versions_lib::get_draft_version();
 
 // Create the new version in the db
-risk_versions_lib::create_version_entry($version);
+if ($run) {
+    risk_versions_lib::create_version_entry($version);
+    echo html_writer::div("Inserted version: " . $version);
+}
 
 // Path to uploaded Excel (adjust if needed)
 $excelpath = $CFG->dirroot . '/local/activities/risks.xlsx';
