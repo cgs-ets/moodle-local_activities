@@ -675,7 +675,7 @@ export function Risk() {
                                                 <Text className="font-semibold text-md">{classification.name}</Text>
                                               </div>
                                               <Text c="dimmed" fz="sm">{classification.description}</Text>
-                                              <Text 
+                                              {false && <Text 
                                                 className="inline-block text-xs underline cursor-pointer text-gray-500 hover:text-blue-600" 
                                                 onClick={(e) => {
                                                   e.stopPropagation();
@@ -683,7 +683,7 @@ export function Risk() {
                                                 }}
                                               >
                                                 Preview risks
-                                              </Text>
+                                              </Text>}
                                             </div>
                                           </div>
                                         </Checkbox.Card>
