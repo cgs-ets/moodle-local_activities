@@ -643,7 +643,7 @@ export function Risk() {
                       {getClassificationsToShow().length > 0 ? (
                         <Box className="flex flex-col gap-4">
                           <Card withBorder className="">
-                            <Text fz="md">Select all that apply</Text>
+                            <Text fz="md">Select ALL that apply</Text>
                             
                             {classificationsLoading ? (
                               <div className="flex justify-center py-4">

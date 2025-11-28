@@ -157,7 +157,7 @@ export function Approval({
                   onChange={(value) => updateNominated(approval.id, value)}
                   data={Object
                     .keys(approval.approvers)
-                    .filter((a: any) => a !== staffincharge[0].un) // Remove the staff in charge from the list.
+                    .filter((a: any) => a !== staffincharge?.[0]?.un) // Remove the staff in charge from the list.
                     .map((a: any) => ({value: approval.approvers[a].username, label: approval.approvers[a].fullname}))
                   }
                   className="flex-1"
