@@ -156,7 +156,7 @@ export function Status({
       options.push(<Menu.Item key={1} onMouseDown={() => openToDraft()} leftSection={<IconArrowMoveLeft size={14} />}>Return to draft</Menu.Item>)
     }
 
-    if (status == statuses.saved) {
+    if (status >= statuses.saved) {
       options.push(<Menu.Item key={2} onMouseDown={() => handleDelete()} leftSection={<IconTrash size={14} />}>Delete</Menu.Item>)
     }
 
@@ -269,7 +269,7 @@ export function Status({
             { getExtraOptions().length 
               ? <Menu shadow="lg" position="bottom">
                   <Menu.Target>
-                    <Button size="compact-md" variant="subtle" radius="xl"><IconDots size="1rem" /></Button>
+                    <Button size="compact-sm" variant="light" radius="xl" leftSection={<IconDots size="1rem" />}>Actions</Button>
                   </Menu.Target>
                   <Menu.Dropdown> 
                     {getExtraOptions()}
