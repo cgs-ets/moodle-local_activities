@@ -1,4 +1,22 @@
 <?php
+/*
+    Important info about the Databank Excel:
+    There are 2 tabs - *Risks* and *Buttons*
+        *Risks* is pretty self-explanatory - this is where all the risks reside and all wording can be edited here.
+            *Classification* column - this defines the context the risk appears under. It also reflects the buttons that a user must select for the risk to be picked up and included. 
+                Each classification/button, such as "Cooking", must correspond to a record on the Buttons sheet.
+                This column contains a very specific syntax: <Classification> || <Classification || ...
+            You may notice there are empty rows for "Templates". Templates that do not have any of there own risks (they merely include other risks) still need to be represented in the Risks sheet.
+        *Buttons* is a list of all the classifications. CAPMS relies on this tab to understand how to present the buttons in the interface.
+            Can have a *description*
+            *type* is used to determine whether the button sits under "Specify the context" or "Select ALL that apply" 
+            Some risks, such as Health and Medical, are always included in risk assessments. *isstandard* is what determines this.
+            *includes* is used by Template buttons to define what risks should be pulled in. It does this by referencing one or more classification combinations. This requires a specific syntax similar to the Risks > Classification column, with "##" at the start of a classification context.
+            The order of button rows in the sheet determines the display order in the interface.
+            Buttons should correspond to the classifications in the Risks sheet. Spelling is important.
+ */
+
+
 
 require_once(dirname(__FILE__) . '/../../config.php');
 require_once(dirname(__FILE__) . '/classes/lib/activities.lib.php');

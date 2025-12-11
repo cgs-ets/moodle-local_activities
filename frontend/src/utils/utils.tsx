@@ -67,18 +67,19 @@ export const isRiskTester = () => {
     || getConfig().user.un == '57056'
     || getConfig().user.un == '61460'
     || getConfig().user.un == '67769' // Anna
-    || getConfig().user.un == '41544' // Tanya Alcorn
-    || getConfig().user.un == '41895' // Kate Watson
-    || getConfig().user.un == '73125' // Jess Kalinowski
-    || getConfig().user.un == '71753' // Dahee Kim
-    || getConfig().user.un == '73749' // Safa Ibrahim
-    || getConfig().user.un == '71140' // Faith Tagab
-    || getConfig().user.un == '76741' // Hannah Shaw
-    || getConfig().user.un == '61460' // Kristen Murray
-    || getConfig().user.un == '70774' // Mary Wickham
-    || getConfig().user.un == '36291' // Louise Nancarrow
-    || getConfig().user.un == '68130' // Lauren Frankham
-    || getConfig().user.un == '21016' // Angela Turner
+    || getConfig().user.un == '41544' // Tanya
+    || getConfig().user.un == '41895' // Kate
+    || getConfig().user.un == '73125' // Jess
+    || getConfig().user.un == '71753' // Dahee
+    || getConfig().user.un == '73749' // Safa
+    || getConfig().user.un == '71140' // Faith
+    || getConfig().user.un == '76741' // Hannah
+    || getConfig().user.un == '61460' // Kristen 
+    || getConfig().user.un == '70774' // Mary
+    || getConfig().user.un == '36291' // Louise
+    || getConfig().user.un == '68130' // Lauren
+    || getConfig().user.un == '21016' // Angela
+    || getConfig().user.un == '61946' // Rob
 
   )
 }
