@@ -232,7 +232,7 @@ export function EditActivity() {
         error: true,
         loading: false,
       })
-      console.log("Form has errors, not submitting.")
+      console.log("Form has errors, not submitting.", errors)
       return
     }
 

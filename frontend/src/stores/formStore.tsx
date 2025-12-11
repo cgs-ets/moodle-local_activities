@@ -90,7 +90,7 @@ const defaults: Form = {
   timemodified: dayjs().unix(),
   activityname: '',
   initialCampus: '',
-  campus: 'primary',
+  campus: '', //'primary',
   initialActivitytype: '',
   activitytype: 'excursion',
   location: '',
@@ -202,8 +202,14 @@ const useFormValidationStore = create<FormValidationStore>((set) => ({
     activityname: [
       (value: string, formData: Form) => (value.length ? null : 'Activity name is required. '),
     ],
+    campus: [
+      (value: string, formData: Form) => (value.length ? null : 'Campus is required. '),
+    ],
     timestart: [
       (value: string, formData: Form) => (Number(value) == formData.timeend || Number(value) > formData.timeend ? 'End time must be greater than start time. ' : null),
+    ],
+    location: [
+      (value: string, formData: Form) => (value.length ? null : 'Location is required. '),
     ],
     /*categories: [
       (value: string[], formData: Form) => (value.length ? null : 'At least one category is required. '),

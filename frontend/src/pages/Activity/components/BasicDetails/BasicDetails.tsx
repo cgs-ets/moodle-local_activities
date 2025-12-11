@@ -316,7 +316,13 @@ export function BasicDetails() {
               ]}
               className="border"
               readOnly={viewStateProps.readOnly}
+              styles={{
+                root: {
+                  borderColor: errors.campus ? 'red' : undefined,
+                },
+              }}
             />
+            {errors.campus ? <div className="text-red-500 text-xs mt-1">{errors.campus}</div> : null}
           </div>
           
           {!formData.recurring && (
@@ -507,7 +513,7 @@ export function BasicDetails() {
               placeholder="Snow Concert Hall"
               label=""
               value={formData.location}
-              error={errors.Location}
+              error={errors.location}
               onChange={(e) => updateField('location', e.target.value)}
               readOnly={viewStateProps.readOnly}
             />
