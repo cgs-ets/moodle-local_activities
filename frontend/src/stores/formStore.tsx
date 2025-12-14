@@ -209,7 +209,7 @@ const useFormValidationStore = create<FormValidationStore>((set) => ({
       (value: string, formData: Form) => (Number(value) == formData.timeend || Number(value) > formData.timeend ? 'End time must be greater than start time. ' : null),
     ],
     location: [
-      (value: string, formData: Form) => (value.length ? null : 'Location is required. '),
+      (value: string, formData: Form) => ((formData.activitytype == 'excursion' || formData.activitytype == 'incursion') && value.length === 0 ? 'Location is required. ' : null),
     ],
     /*categories: [
       (value: string[], formData: Form) => (value.length ? null : 'At least one category is required. '),
