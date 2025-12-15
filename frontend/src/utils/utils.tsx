@@ -80,6 +80,45 @@ export const isRiskTester = () => {
     || getConfig().user.un == '68130' // Lauren
     || getConfig().user.un == '21016' // Angela
     || getConfig().user.un == '61946' // Rob
+    
+    || getConfig().user.un == '76352'
+    || getConfig().user.un == '76558'
+    || getConfig().user.un == '73228'
+    || getConfig().user.un == '76446'
+    || getConfig().user.un == '57301'
+    || getConfig().user.un == '71058'
+    || getConfig().user.un == '74815'
+    || getConfig().user.un == '72748'
+    || getConfig().user.un == '76210'
+    || getConfig().user.un == '70774'
+    || getConfig().user.un == '76778'
+    || getConfig().user.un == '74196'
+    || getConfig().user.un == '76140'
+    || getConfig().user.un == '16494'
+    || getConfig().user.un == '68767'
+    || getConfig().user.un == '74577'
+    || getConfig().user.un == '73970'
+    || getConfig().user.un == '67018'
+    || getConfig().user.un == '77487'
+    || getConfig().user.un == '39835'
+    || getConfig().user.un == '68130'
+    || getConfig().user.un == '74612'
+    || getConfig().user.un == '76557'
+    || getConfig().user.un == '72845'
+    || getConfig().user.un == '71661'
+    || getConfig().user.un == '74980'
+    || getConfig().user.un == '16396'
+    || getConfig().user.un == '75813'
+    || getConfig().user.un == '74630'
+    || getConfig().user.un == '41585'
+    || getConfig().user.un == '77188'
+    || getConfig().user.un == '58102'
+    || getConfig().user.un == '52387'
+    || getConfig().user.un == '73114'
+    || getConfig().user.un == '43144'
+    || getConfig().user.un == '74907'
+    || getConfig().user.un == '73716'
+
 
   )
 }
