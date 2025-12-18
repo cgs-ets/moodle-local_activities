@@ -70,10 +70,12 @@ class cron_emails_user extends \core\task\scheduled_task {
 
         $this->log("Queueing relevant permissions for sending.", 2);
         foreach ($emails as $email) {
+            
+            $audiences = json_decode($email->audiences);
 
             // Get the scope.
             $scope = json_decode($email->studentsjson);
-            if (empty($scope)) {
+            if (empty($scope) && !in_array('staff', $audiences)) { // Scope needs to be for students and parents.
                 $this->log("That's odd, no student scope for this email, skipping.", 2);
                 continue;
             }
@@ -122,7 +124,6 @@ class cron_emails_user extends \core\task\scheduled_task {
                 $students = [];
                 $parents = [];
                 $staff = [];
-                $audiences = json_decode($email->audiences);
 
                 if (in_array('students', $audiences)) {
                     // Add students.
