@@ -11,27 +11,34 @@ import { useFormStore } from '../../../../stores/formStore';
 type Props = {
   opened: boolean,
   close: () => void,
-  students: Student[]
+  students: Student[],
+  defaultAudiences?: string[],
+  visibleAudiences?: string[]
 }
 
-export function EmailModal({opened, close, students}: Props) {
+export function EmailModal({opened, close, students, defaultAudiences, visibleAudiences}: Props) {
   const activityid = useFormStore((state) => (state.id))
   const activityname = useFormStore((state) => (state.activityname))
   const permissions = useFormStore((state) => (state.permissions))
   const [message, setMessage] = useState<string>('')
-  const [audiences, setAudiences] = useState<string[]>(['students', 'parents', 'staff'])
+  const [audiences, setAudiences] = useState<string[]>(defaultAudiences ?? ['students', 'parents', 'staff'])
   const [includes, setIncludes] = useState<string[]>(['details'])
   const [recipients, setRecipients] = useState<User[]>([])
   const [showSuccess, setShowSuccess] = useState(false)
   const [submitResponse, submitError, submitLoading, submitAjax, setSubmitData] = useAjax();
   const {start, clear} = useTimeout(() => onClose(), 3000);
 
+  const isOnlyStaffSelected = () => audiences.length === 1 && audiences.includes('staff')
+
+
+
   useEffect(() => {
     if (opened) {
       setMessage('')
       setShowSuccess(false)
       let includes = ['details']
-      if (permissions) {
+      // Tick on permissions.
+      if (permissions && !isOnlyStaffSelected()  ) {
         includes.push('permissions')
       }
       setIncludes(includes)
@@ -54,7 +61,7 @@ export function EmailModal({opened, close, students}: Props) {
       body: {
         methodname: 'local_activities-send_email',
         args: {
-          scope: recipients,
+          scope: isOnlyStaffSelected() ? [] : recipients,
           activityid: activityid,
           extratext: message,
           includes: includes,
@@ -121,7 +128,7 @@ export function EmailModal({opened, close, students}: Props) {
 
   const onClose = () => {
     setMessage('')
-    setAudiences(['students', 'parents', 'staff'])
+    setAudiences(defaultAudiences ?? ['students', 'parents', 'staff'])
     let includes = ['details']
     if (permissions) {
       includes.push('permissions')
@@ -136,9 +143,9 @@ export function EmailModal({opened, close, students}: Props) {
   }
 
   
-  
   const messageForm = (
     <Box>
+      { !isOnlyStaffSelected() ? (
       <Box mb="md">
         <Text fz="sm" mb={5} fw={500} c="#212529">Scope</Text>
         <ScrollArea h={recipients.length > 12 ? 100 : 'auto'} type="auto">
@@ -147,6 +154,7 @@ export function EmailModal({opened, close, students}: Props) {
           </Group>
         </ScrollArea>
       </Box>
+      ) : null }
 
       <Box mb="md">
         <Text fz="sm" mb={5} fw={500}>Options</Text>
@@ -156,7 +164,7 @@ export function EmailModal({opened, close, students}: Props) {
         >
           <Flex mt="xs" gap="xs" direction="column">
             <Checkbox value="details" label="Include activity details" />
-            <Checkbox disabled={!permissions} value="permissions" label="Include permission request link" />
+            { !isOnlyStaffSelected() && <Checkbox disabled={!permissions} value="permissions" label="Include permission request link" /> }
           </Flex>
         </Checkbox.Group>
       </Box>
@@ -198,9 +206,9 @@ export function EmailModal({opened, close, students}: Props) {
           onChange={setAudiences}
         >
           <Flex mt="xs" gap="xs" direction="column">
-            <Checkbox value="students" label="Students" disabled={includes.includes("permissions")} />
-            <Checkbox value="parents" label="Parents" disabled={includes.includes("permissions")} />
-            <Checkbox value="staff" label="Activity staff" disabled={includes.includes("permissions")} />
+            { !visibleAudiences || visibleAudiences.includes("students") ? <Checkbox value="students" label="Students" disabled={includes.includes("permissions") || isOnlyStaffSelected()} /> : null }
+            { !visibleAudiences || visibleAudiences.includes("parents") ? <Checkbox value="parents" label="Parents" disabled={includes.includes("permissions") || isOnlyStaffSelected()} /> : null }
+            { !visibleAudiences || visibleAudiences.includes("staff") ? <Checkbox value="staff" label="Activity staff" disabled={includes.includes("permissions") || isOnlyStaffSelected()} /> : null }
           </Flex>
         </Checkbox.Group>
       </Box>
@@ -210,6 +218,7 @@ export function EmailModal({opened, close, students}: Props) {
       </Flex>
     </Box>
   )
+
 
   return (
     <Modal 

@@ -5,7 +5,8 @@ import { isActivity } from "../../../../utils/utils";
 import { useStateStore } from "../../../../stores/stateStore";
 import { StaffReports } from "./components/StaffReports";
 import { useDisclosure } from "@mantine/hooks";
-import { IconReport } from "@tabler/icons-react";
+import { IconMail, IconReport } from "@tabler/icons-react";
+import { EmailModal } from "../EmailModal/EmailModal";
 
 export function StaffDetails() {
 
@@ -17,7 +18,9 @@ export function StaffDetails() {
   const otherparticipants = useFormStore((state) => state.otherparticipants) 
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
   const [isOpenReports, {close: closeReports, open: openReports}] = useDisclosure(false)
-  
+  const [isOpenEmailModal, {close: closeEmailModal, open: openEmailModal}] = useDisclosure(false)
+  const haschanges = useStateStore((state) => (state.haschanges))
+
   const setState = useFormStore(state => state.setState)
 
   const setAccompanying = (value: any[]) => {
@@ -71,9 +74,18 @@ export function StaffDetails() {
               </div>
             </>
           }
+          <div className="flex justify-end">
+            <Button variant="filled" onClick={openEmailModal} size="compact-sm" radius="xl" leftSection={<IconMail size={14} />}>Message staff</Button>
+          </div>
         </div>
       </div>
       <StaffReports opened={isOpenReports} close={closeReports} />
+      <EmailModal
+          students={[]} 
+          opened={isOpenEmailModal} close={closeEmailModal} 
+          defaultAudiences={['staff']}
+          visibleAudiences={['staff']}
+        />
     </Card>
   );
 };
