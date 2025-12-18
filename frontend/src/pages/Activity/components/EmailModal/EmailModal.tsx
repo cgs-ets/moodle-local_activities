@@ -121,16 +121,16 @@ export function EmailModal({opened, close, students, defaultAudiences, visibleAu
   }
 
   useEffect(() => {
-    if (includes.includes("permissions")) {
+    if (includes.includes("permissions") && !isOnlyStaffSelected()) {
       setAudiences(['parents'])
     }
   }, [includes])
 
   const onClose = () => {
     setMessage('')
-    setAudiences(defaultAudiences ?? ['students', 'parents', 'staff'])
+    setAudiences(defaultAudiences ?? (isOnlyStaffSelected() ? ['staff'] : ['students', 'parents', 'staff']))
     let includes = ['details']
-    if (permissions) {
+    if (permissions && !isOnlyStaffSelected()) {
       includes.push('permissions')
     }
     setIncludes(includes)
