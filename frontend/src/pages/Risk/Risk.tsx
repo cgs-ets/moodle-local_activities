@@ -8,7 +8,7 @@ import { ActivityDetails } from "./Components/ActivityDetails";
 import useFetch from "../../hooks/useFetch";
 import { PageHeader } from "./Components/PageHeader";
 import { SvgRenderer } from "../../components/SvgRenderer";
-import { IconPlus, IconEdit, IconTrash, IconCloudUp, IconEye, IconFileExport } from "@tabler/icons-react";
+import { IconPlus, IconEdit, IconTrash, IconCloudUp, IconEye, IconFileExport, IconCheck } from "@tabler/icons-react";
 import { Classification } from "./Settings";
 import { DatePickerInput } from '@mantine/dates';
 import dayjs from 'dayjs';
@@ -802,23 +802,14 @@ export function Risk() {
 
                       <div className="flex gap-2 items-center">
                         <Button 
-                          onClick={() => generateRiskAssessment(false)}
-                          size="compact-lg"
-                          radius="xl"
-                          disabled={api.state.loading}
-                          leftSection={<IconFileExport size={16} />}
-                        >
-                          Generate
-                        </Button>
-                        <Button 
                           onClick={() => generateRiskAssessment(true)}
                           size="compact-lg"
                           radius="xl"
                           disabled={api.state.loading}
-                          variant="light"
-                          leftSection={<IconEye size={16} />}
+                          //variant="light"
+                          //leftSection={<IconEye size={16} />}
                         >
-                          Preview
+                          Next – Preview
                         </Button>
                         {api.state.loading && <Loader size="sm" />}
                       </div>
@@ -1036,7 +1027,11 @@ export function Risk() {
         size="90%"
         styles={{
           header: {
-            display: 'none',
+            //display: 'none',
+            borderBottom: '0.0625rem solid #dee2e6',
+          },
+          title: {
+            fontWeight: '600',
           },
           content: {
             backgroundColor: '#ffffff',
@@ -1055,6 +1050,19 @@ export function Risk() {
         />
           <div className="rendered-ra text-base p-12">
             <div dangerouslySetInnerHTML={ {__html: htmlPreview || ''} }></div>
+          </div>
+          <div className="flex gap-2 items-center sticky bottom-0 bg-white p-4 border-t border-gray-200">
+            <Button 
+              onClick={() => generateRiskAssessment(false)}
+              size="compact-lg"
+              radius="xl"
+              disabled={api.state.loading}
+              leftSection={<IconCheck size={16} />}
+            >
+              Finish – Generate
+            </Button>
+           
+            {api.state.loading && <Loader size="sm" />}
           </div>
       </Modal>
 
