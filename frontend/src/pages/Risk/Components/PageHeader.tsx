@@ -1,6 +1,7 @@
-import { Breadcrumbs, Container, Text } from '@mantine/core';
+import { Breadcrumbs, Button, Container, Text } from '@mantine/core';
 import { Link } from "react-router-dom";
 import { defaults, useFormStore } from '../../../stores/formStore';
+import { IconArrowLeft, IconMessageCircle } from '@tabler/icons-react';
 
 interface Props {
   id: string;
@@ -19,7 +20,8 @@ export function PageHeader(props: Props) {
     <>
       <div className="page-header">
         <Container size="xl" my="md" p={0}>
-            <Breadcrumbs fz="sm" mb="sm">
+          <div className="flex justify-between items-center">
+            <Breadcrumbs fz="sm">
               <Link to="/">
                 <Text c="blue">Activities</Text>
               </Link>
@@ -28,6 +30,8 @@ export function PageHeader(props: Props) {
               </Link>
               <Text c="gray.6">{props.id ? `Risk Assessment` : `New Risk Assessment` }</Text>
             </Breadcrumbs>
+            <Link to="https://forms.office.com/r/eV7M90beDS" target='_blank'><Button  color='orange' leftSection={<IconMessageCircle size={16} />} radius='xl' size='compact-md'>Feedback</Button></Link>
+          </div>
         </Container>
       </div>
     </>
