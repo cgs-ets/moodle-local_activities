@@ -33,7 +33,7 @@ import { Footer } from "../../components/Footer";
 import useFetch from "../../hooks/useFetch";
 import { SvgRenderer } from "../../components/SvgRenderer";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { isRiskTester } from '../../utils/utils';
+import { isDigitalRisksEnabled } from '../../utils/utils';
 import * as XLSX from 'xlsx';
 import { exit } from "process";
 
@@ -82,7 +82,7 @@ export interface Version {
 
 export function Settings() {
 
-  if (!isRiskTester()) {
+  if (!isDigitalRisksEnabled()) {
     return null
   }
 

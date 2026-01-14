@@ -10,7 +10,7 @@ import dayjs from 'dayjs';
 import { Link, useSearchParams } from 'react-router-dom';
 import { getConfig, statuses } from '../../../../utils';
 import { User } from '../../../../types/types';
-import { isRiskTester } from '../../../../utils/utils';
+import { isDigitalRisksEnabled } from '../../../../utils/utils';
 
 export function Paperwork() {
   const [searchParams] = useSearchParams()
@@ -30,6 +30,8 @@ export function Paperwork() {
   const setHasUserAcknowledged = useFormStore((state) => (state.setHasUserAcknowledged))
   const [acknowledgedModalOpened, setAcknowledgedModalOpened] = useState(false);
   const haschanges = useStateStore((state) => (state.haschanges))
+  const existingfilera = useFormStore((state) => state['existingriskassessment'])
+  console.log(existingfilera);
 
   useEffect(() => {
     getRaGenerations();
@@ -125,7 +127,7 @@ export function Paperwork() {
 
         <Card.Section>
 
-          {isRiskTester() &&
+          {isDigitalRisksEnabled() &&
 
             <>
               { (activityid && status >= statuses.inreview && !haschanges) ?
@@ -246,11 +248,14 @@ export function Paperwork() {
             </>
           }
 
-          <div className='border-b p-4'>
-            <Text className="font-semibold inline">Risk Assessment</Text>
-            <Anchor target='_blank' href="https://cgsacteduau.sharepoint.com/:f:/r/sites/cgssharedfolders/Primary%20School/Activity-Excursion%20Planning/Risk%20Assessment%20Templates?csf=1&web=1&e=0gnCbm" className="text-sm inline ml-2 inline-flex items-center gap-1">PS Templates <IconExternalLink className='size-3' /></Anchor>
-            <FileUploader inputName="riskassessment" desc="or Drag file. The file must not exceed 10mb." maxFiles={1} maxSize={10} />
-          </div>
+          { /* this is a legacy feature. Only display it if the activity already has a file uploaded for the risk assessment */ 
+            (existingfilera.length > 0 || !isDigitalRisksEnabled()) ?
+            <div className='border-b p-4'>
+              <Text className="font-semibold inline">Risk Assessment</Text>
+              <Anchor target='_blank' href="https://cgsacteduau.sharepoint.com/:f:/r/sites/cgssharedfolders/Primary%20School/Activity-Excursion%20Planning/Risk%20Assessment%20Templates?csf=1&web=1&e=0gnCbm" className="text-sm inline ml-2 inline-flex items-center gap-1">PS Templates <IconExternalLink className='size-3' /></Anchor>
+              <FileUploader inputName="riskassessment" desc="or Drag file. The file must not exceed 10mb." maxFiles={1} maxSize={10} />
+            </div> : null
+          }
 
           <div className='border-b p-4'>
             <Text className="font-semibold">Other Documentation</Text>

@@ -58,9 +58,9 @@ export const getMonthFromTerm = (term: string) => {
     : 1
 }
 
-export const isRiskTester = () => {
-  //return true
-  return (
+export const isDigitalRisksEnabled = () => {
+  return true
+  /*return (
     //true ||
        getConfig().user.un == '43563'
     || getConfig().user.un == 'admin'
@@ -118,7 +118,5 @@ export const isRiskTester = () => {
     || getConfig().user.un == '43144'
     || getConfig().user.un == '74907'
     || getConfig().user.un == '73716'
-
-
-  )
+  )*/
 }

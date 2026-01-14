@@ -8,7 +8,7 @@ import { ActivityDetails } from "./Components/ActivityDetails";
 import useFetch from "../../hooks/useFetch";
 import { PageHeader } from "./Components/PageHeader";
 import { SvgRenderer } from "../../components/SvgRenderer";
-import { IconPlus, IconEdit, IconTrash, IconCloudUp, IconEye, IconFileExport, IconCheck } from "@tabler/icons-react";
+import { IconPlus, IconEdit, IconTrash, IconCloudUp, IconEye, IconFileExport, IconCheck, IconArrowLeft } from "@tabler/icons-react";
 import { Classification } from "./Settings";
 import { DatePickerInput } from '@mantine/dates';
 import dayjs from 'dayjs';
@@ -1052,6 +1052,16 @@ export function Risk() {
             <div dangerouslySetInnerHTML={ {__html: htmlPreview || ''} }></div>
           </div>
           <div className="flex gap-2 items-center sticky bottom-0 bg-white p-4 border-t border-gray-200">
+            <Button 
+              onClick={() => setPreviewModalOpen(false)}
+              size="compact-lg"
+              radius="xl"
+              disabled={api.state.loading}
+              leftSection={<IconArrowLeft size={16} />}
+              variant="light"
+            >
+              Back
+            </Button>
             <Button 
               onClick={() => generateRiskAssessment(false)}
               size="compact-lg"
