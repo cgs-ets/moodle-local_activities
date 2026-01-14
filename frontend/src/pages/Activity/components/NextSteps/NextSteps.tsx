@@ -1,11 +1,12 @@
-import { Card, Timeline, Text, Anchor, List } from '@mantine/core';
+import { Card, Timeline, Text, Anchor, List, Button } from '@mantine/core';
 
 import { statuses } from '../../../../utils';
 import { useFormStore } from '../../../../stores/formStore';
 import { isActivity } from '../../../../utils/utils';
 import { Accordion } from '@mantine/core';
-import { IconAd2, IconAward, IconBuilding, IconBuildingPavilion, IconChecklist, IconCircle, IconCircleDashedCheck, IconCloudComputing, IconMeat, IconReportMoney, IconToolsKitchen2, IconTruckLoading } from '@tabler/icons-react';
+import { IconAd2, IconArrowUpRight, IconAward, IconBuilding, IconBuildingPavilion, IconChecklist, IconCircle, IconCircleDashedCheck, IconCloudComputing, IconMeat, IconReportMoney, IconToolsKitchen2, IconTruckLoading } from '@tabler/icons-react';
 import { useStateStore } from '../../../../stores/stateStore';
+import { Link } from 'react-router-dom';
 
 
 export function NextSteps() {
@@ -171,6 +172,10 @@ export function NextSteps() {
 
 
       </Accordion>
+
+      <div className="flex justify-end p-3">
+        <Link to="https://forms.office.com/r/eV7M90beDS" target='_blank'><Button variant='light'  color='orange' rightSection={<IconArrowUpRight size={16} />} radius='xl' size='compact-md'>Feedback</Button></Link>
+      </div>
 
 
           
