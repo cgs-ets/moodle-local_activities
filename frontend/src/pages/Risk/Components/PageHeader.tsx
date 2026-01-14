@@ -30,7 +30,6 @@ export function PageHeader(props: Props) {
               </Link>
               <Text c="gray.6">{props.id ? `Risk Assessment` : `New Risk Assessment` }</Text>
             </Breadcrumbs>
-            <Link to="https://forms.office.com/r/eV7M90beDS" target='_blank'><Button  color='orange' leftSection={<IconMessageCircle size={16} />} radius='xl' size='compact-md'>Feedback</Button></Link>
           </div>
         </Container>
       </div>

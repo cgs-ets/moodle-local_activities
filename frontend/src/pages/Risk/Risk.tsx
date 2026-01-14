@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Box, Container, Center, Text, Loader, Card, Checkbox, Group, Stack, Grid, Button, Table, Badge, ActionIcon, Modal, Textarea, TextInput, Select, Alert, CloseButton } from '@mantine/core';
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
 import { defaults, useFormStore } from "../../stores/formStore";
@@ -8,7 +8,7 @@ import { ActivityDetails } from "./Components/ActivityDetails";
 import useFetch from "../../hooks/useFetch";
 import { PageHeader } from "./Components/PageHeader";
 import { SvgRenderer } from "../../components/SvgRenderer";
-import { IconPlus, IconEdit, IconTrash, IconCloudUp, IconEye, IconFileExport, IconCheck, IconArrowLeft } from "@tabler/icons-react";
+import { IconPlus, IconEdit, IconTrash, IconCloudUp, IconEye, IconFileExport, IconCheck, IconArrowLeft, IconMessageCircle, IconArrowUpRight } from "@tabler/icons-react";
 import { Classification } from "./Settings";
 import { DatePickerInput } from '@mantine/dates';
 import dayjs from 'dayjs';
@@ -800,18 +800,19 @@ export function Risk() {
                         </Card>
                       </Box>
 
-                      <div className="flex gap-2 items-center">
+                      <div className="flex gap-2 items-center justify-between">
                         <Button 
                           onClick={() => generateRiskAssessment(true)}
                           size="compact-lg"
                           radius="xl"
                           disabled={api.state.loading}
+                          rightSection={api.state.loading ? <Loader size="sm" /> : null}
                           //variant="light"
                           //leftSection={<IconEye size={16} />}
                         >
                           Next – Preview
                         </Button>
-                        {api.state.loading && <Loader size="sm" />}
+                        <Link to="https://forms.office.com/r/eV7M90beDS" target='_blank'><Button  color='orange' rightSection={<IconArrowUpRight size={16} />} radius='xl' size='compact-md'>Feedback</Button></Link>
                       </div>
                     </>
                 }
