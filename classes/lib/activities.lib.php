@@ -1677,11 +1677,18 @@ class activities_lib {
 
         $now = time();
         $sql = "SELECT id
-                  FROM {" . static::TABLE . "}
-                 WHERE remindersprocessed = 0
-                   AND deleted = 0
-                   AND timeend <= {$now}
-                   AND status = " . static::ACTIVITY_STATUS_APPROVED;
+                FROM {" . static::TABLE . "} a
+                WHERE a.remindersprocessed = 0
+                AND a.deleted = 0
+                AND a.timeend <= {$now}
+                AND a.status = " . static::ACTIVITY_STATUS_APPROVED . "
+                AND EXISTS (
+                    SELECT 1
+                    FROM {" . static::TABLE_ACTIVITY_STUDENTS . "} s
+                    WHERE s.activityid = a.id
+                );
+        ";
+
         $records = $DB->get_records_sql($sql, null);
         $activities = array();
         foreach ($records as $record) {            
