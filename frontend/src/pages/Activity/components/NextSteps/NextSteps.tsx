@@ -178,8 +178,6 @@ export function NextSteps() {
       </div>
 
 
-          
-
       </Card.Section>
     </Card>
   );

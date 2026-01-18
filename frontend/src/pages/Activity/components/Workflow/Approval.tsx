@@ -1,4 +1,4 @@
-import { ActionIcon, Avatar, Button, LoadingOverlay, Modal, Select, Switch, Text } from "@mantine/core"
+import { ActionIcon, Avatar, Button, LoadingOverlay, Modal, Select, Switch, Text, Radio, Group } from "@mantine/core"
 import { IconCancel, IconPencil, IconUser, IconUserCheck } from "@tabler/icons-react"
 import { cn } from "../../../../utils/utils"
 import { useEffect } from "react";
@@ -28,7 +28,7 @@ export function Approval({
   const staffincharge = useFormStore((state) => (state.staffincharge))
 
   
-  const saveApproval = (id: string, checked: boolean) => {
+  const saveApproval = (id: string, status: string) => {
     console.log("save approval...")
     return submitAjax({
       method: "POST", 
@@ -37,7 +37,7 @@ export function Approval({
         args: {
           activityid: activityid,
           approvalid: id,
-          status: checked ? 1 : 0
+          status: status
         },
       }
     })
@@ -52,17 +52,17 @@ export function Approval({
     }
   }, [submitResponse]);
 
-  const onApprove = (id: string, checked: boolean) => {
+  const onApprove = (id: string, status: string) => {
     if (viewStateProps.readOnly) {
       return
     }
     const newApprovals = approvals.map((approval: { id: string }) => 
       approval.id === id
-        ? { ...approval, status: checked ? "1" : "0" } 
+        ? { ...approval, status: status } 
         : approval
     )
     setApprovals(newApprovals)
-    saveApproval(id, checked);
+    saveApproval(id, status);
   }
 
   const skipApproval = (id: string, skip: number) => {
@@ -132,11 +132,13 @@ export function Approval({
           ? "bg-[#d4edda]" 
           : approval.skip == '1' 
             ? "bg-gray-200" 
-            : approval.status == "0" 
-              ? approval.canapprove
-                ? "border-b border-orange-500 bg-[#ffc885]"
-                : "bg-[#ffe8cc]" 
-              : "",
+            : approval.status == "2"
+              ? "bg-[#ffa1a1]"
+              : approval.status == "0" 
+                ? approval.canapprove
+                  ? "border-b border-orange-500 bg-[#ffc885]"
+                  : "bg-[#ffe8cc]" 
+                : "",
         )
       }
     >
@@ -168,7 +170,7 @@ export function Approval({
           : <span>{approval.description}</span>
         }
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         {!approval.selectable || approval.username && (approval.status == '1' || approval.skip == '1') // Not a selectable step, or approved
           ? approval.username && (approval.status == '1' || approval.skip == '1') // approved
             ? <Avatar onClick={open} className="cursor-pointer" alt="Approver" title="Approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.username}><IconUser /></Avatar>
@@ -194,10 +196,26 @@ export function Approval({
           </ActionIcon>
         }
         { approval.skip == '0' && approval.isapprover && approval.canapprove && 
-          <Switch
-            checked={approval.status == "1"}
-            onChange={(event) => onApprove(approval.id, event.currentTarget.checked)}
-          />
+          
+          
+          <>
+            <Switch
+              checked={approval.status == "1"}
+              onChange={(event) => onApprove(approval.id, event.currentTarget.checked ? "1" : "0")}
+            />
+
+            {/*<Radio.Group
+              value={approval.status}
+              name={"approval" + approval.id}
+            >
+              <Group gap="xs">
+                <Radio onClick={() => onApprove(approval.id, approval.status == "2" ? "0" : "2")} label="N" value="2" checked={approval.status == "2"} color="red" styles={{label: {paddingInlineStart: "3px"}}} />
+                <Radio onClick={() => onApprove(approval.id, approval.status == "1" ? "0" : "1")} label="Y" value="1" checked={approval.status == "1"} color="green" styles={{label: {paddingInlineStart: "3px"}}} />
+              </Group>
+            </Radio.Group>*/}
+          </>
+
+
         }
       </div>
       <Modal

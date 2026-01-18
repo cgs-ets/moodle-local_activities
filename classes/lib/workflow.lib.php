@@ -349,7 +349,7 @@ class workflow_lib extends \local_activities\local_activities_config {
     /*
     * Save approval
     */
-    public static function save_approval($activityid, $approvalid, $checked) {
+    public static function save_approval($activityid, $approvalid, $status) {
         global $DB, $USER;
 
         // Check if user is allowed to do this.
@@ -368,12 +368,18 @@ class workflow_lib extends \local_activities\local_activities_config {
                    AND activityid = ?
                    AND invalidated = 0";
                    //AND type $insql";
-        $params = array($checked, $USER->username, time(), $approvalid, $activityid);
+        $params = array($status, $USER->username, time(), $approvalid, $activityid);
         //$params = array_merge($params, $inparams);
         $DB->execute($sql, $params);
 
         // Check for approval finalisation and return new status.
-        $newstatusinfo = static::check_status($activityid, null, true);
+        $progressed = $status === '1';
+        $newstatusinfo = static::check_status($activityid, null, $progressed);
+
+        // If rejected, send email to staff in charge.
+        if ($status === '2') {
+            //static::send_rejected_email($activityid);
+        }
 
         return $newstatusinfo;
     }
