@@ -232,6 +232,7 @@ class service_lib {
         $data->body = $body;
         $messageHtml = $OUTPUT->render_from_template('local_activities/email_template', $data);
         $result = static::real_email_to_user($recipient, $fromUser, $subject, '', $messagehtml);
+        //var_export($messageHtml); exit;
     }
 
     /**

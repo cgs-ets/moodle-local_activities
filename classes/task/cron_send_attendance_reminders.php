@@ -47,17 +47,11 @@ class cron_send_attendance_reminders extends \core\task\scheduled_task {
             $data = $activity->export();
 
             // Mark as processed.
-            $DB->execute("UPDATE {activities} SET remindersprocessed = 1 WHERE id = $data->id");
+            //$DB->execute("UPDATE {activities} SET remindersprocessed = 1 WHERE id = $data->id");
 
             // Add staff in charge to list of recipients.
             $recipients = array();
             $recipients[$data->staffincharge] = \core_user::get_user_by_username($data->staffincharge);
-
-            // Send the reminders.
-            foreach ($recipients as $recipient) {
-                $this->log("Sending reminder for activity " . $data->id . " to " . $recipient->username);
-                $this->send_reminder($data, $recipient);
-            }
 
             try {
                 foreach ($recipients as $recipient) {
@@ -67,10 +61,7 @@ class cron_send_attendance_reminders extends \core\task\scheduled_task {
             } catch (Exception $ex) {
                 // Error.
             }
-                
-            
-            // Mark as processed.
-            $DB->execute("UPDATE {activities} SET remindersprocessed = 1 WHERE id = $data->id");
+
             $this->log("Finished sending reminders for activity " . $data->id);
         }
 
