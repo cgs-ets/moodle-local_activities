@@ -47,7 +47,7 @@ class cron_send_attendance_reminders extends \core\task\scheduled_task {
             $data = $activity->export();
 
             // Mark as processed.
-            //$DB->execute("UPDATE {activities} SET remindersprocessed = 1 WHERE id = $data->id");
+            $DB->execute("UPDATE {activities} SET remindersprocessed = 1 WHERE id = $data->id");
 
             // Add staff in charge to list of recipients.
             $recipients = array();
