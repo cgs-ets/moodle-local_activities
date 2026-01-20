@@ -2128,7 +2128,7 @@ class activities_lib {
         $params = array($activityid, $response);
         $students = $DB->get_records_sql($sql, $params);
 
-        return $students;
+        return array_values($students);
     }
 
     /*
