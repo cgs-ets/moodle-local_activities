@@ -1722,6 +1722,35 @@ class activities_lib {
         return $activities;
     }
 
+    public static function get_for_permission_reminders($rangestart, $rangeend) {
+        global $DB;
+
+        /* Activies must:
+        * - be approved.
+        * - have permissions enabled.
+        * - starting in x days ($rangestart)
+        */
+        $sql = "SELECT id
+                  FROM {" . static::TABLE . "} a
+                 WHERE a.timestart >= {$rangestart} AND a.timestart <= {$rangeend}
+                   AND a.status = " . static::ACTIVITY_STATUS_APPROVED . "
+                   AND a.permissions = 1
+                   AND a.deleted = 0
+                   AND EXISTS (
+                        SELECT 1
+                        FROM {" . static::TABLE_ACTIVITY_PERMISSIONS . "} p
+                        WHERE p.activityid = a.id
+                        AND p.response = 0
+                    )";
+        $records = $DB->get_records_sql($sql, null);
+        $activities = array();
+        foreach ($records as $record) {
+            $activities[] = new Activity($record->id);
+        }
+        
+        return $activities;
+    }
+
 
     /**
     * Gets all of the activity students.
@@ -2085,6 +2114,21 @@ class activities_lib {
         $permissions = $DB->get_records_sql($sql, $params);
 
         return $permissions;
+    }
+
+    public static function get_students_details_by_response($activityid, $response) {
+        global $DB;
+
+        $sql = "SELECT DISTINCT u.username, u.firstname, u.lastname
+                  FROM {" . static::TABLE_ACTIVITY_PERMISSIONS . "} p
+            INNER JOIN mdl_user u
+                ON p.studentusername = u.username
+                 WHERE p.activityid = ?
+                   AND p.response = ?";
+        $params = array($activityid, $response);
+        $students = $DB->get_records_sql($sql, $params);
+
+        return $students;
     }
 
     /*

@@ -65,6 +65,15 @@ $tasks = array(
         'dayofweek' => '*'
     ),
     array(
+        'classname' => 'local_activities\task\cron_send_permission_reminders',
+        'blocking' => 0,
+        'minute' => '30',
+        'hour' => '5',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*'
+    ),
+    array(
         'classname' => 'local_activities\task\cron_sync_reconciliation',
         'blocking' => 0,
         'minute' => '0',

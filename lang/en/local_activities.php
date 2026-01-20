@@ -51,3 +51,4 @@ $string['cron_emails_user'] = 'Send user messages';
 $string['cron_emails_sys'] = 'Send emails from queue';
 $string['cron_sync_live'] = 'Sync events to calendars';
 $string['cron_sync_reconciliation'] = 'Daily full reconciliation between system events and Outlook calendars';
+$string['cron_send_permission_reminders'] = 'Send permission reminders to organisers';
