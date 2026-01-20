@@ -2178,6 +2178,25 @@ class activities_lib {
     }
 
     
+    public static function cancel($activityid) {
+        global $DB;
+
+        if (!activity::exists($activityid)) {
+            return;
+        }
+        if (!utils_lib::has_capability_edit_activity($activityid)) {
+            throw new \Exception("Permission denied.");
+            exit;
+        }
+
+        $originalactivity = new Activity($activityid);
+        $activity = new Activity($activityid);
+        $activity->cancel();
+
+       return 1;
+    }
+
+
     public static function status_helper($status) {
         $statushelper = new \stdClass();
         $statushelper->status = $status;

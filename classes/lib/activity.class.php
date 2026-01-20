@@ -435,6 +435,22 @@ class Activity {
     }
 
 
+    
+    /**
+     * Cancel team
+     *
+     * @return string randomised idnumber
+     */
+    public function cancel() {
+        global $DB;
+        
+        $this->set('status', activities_lib::ACTIVITY_STATUS_CANCELLED);
+        $this->update();
+        
+        return 1;
+    }
+
+
     /**
      * Load the data from the DB.
      *

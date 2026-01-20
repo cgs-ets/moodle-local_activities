@@ -184,6 +184,17 @@ trait activities_api {
     }
 
     /**
+     * Cancel an activity.
+     *
+     * @return array containing comment id.
+     */
+    static public function cancel_activity($args) { 
+        $data = (object) $args;
+        return activities_lib::cancel($data->id);
+    }
+
+
+    /**
      * Get activities for sync verification.
      *
      * @return array Array of activities with student sync status

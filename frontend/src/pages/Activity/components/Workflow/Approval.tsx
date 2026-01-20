@@ -197,14 +197,13 @@ export function Approval({
         }
         { approval.skip == '0' && approval.isapprover && approval.canapprove && 
           
-          
+
           <>
-            <Switch
+            {/*<Switch
               checked={approval.status == "1"}
               onChange={(event) => onApprove(approval.id, event.currentTarget.checked ? "1" : "0")}
-            />
-
-            {/*<Radio.Group
+            />*/}
+            <Radio.Group
               value={approval.status}
               name={"approval" + approval.id}
             >
@@ -212,7 +211,7 @@ export function Approval({
                 <Radio onClick={() => onApprove(approval.id, approval.status == "2" ? "0" : "2")} label="N" value="2" checked={approval.status == "2"} color="red" styles={{label: {paddingInlineStart: "3px"}}} />
                 <Radio onClick={() => onApprove(approval.id, approval.status == "1" ? "0" : "1")} label="Y" value="1" checked={approval.status == "1"} color="green" styles={{label: {paddingInlineStart: "3px"}}} />
               </Group>
-            </Radio.Group>*/}
+            </Radio.Group>
           </>
 
 

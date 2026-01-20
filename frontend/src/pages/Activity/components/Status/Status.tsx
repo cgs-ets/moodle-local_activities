@@ -1,5 +1,5 @@
 import { Card, Group, Button, Text, Menu, Loader, Transition, Box, Modal, Flex, Switch } from '@mantine/core';
-import { IconDots, IconCloudUp, IconCheckbox, IconArrowMoveLeft, IconCheck, IconTrash, IconCopy, IconUsersPlus } from '@tabler/icons-react';
+import { IconDots, IconCloudUp, IconCheckbox, IconArrowMoveLeft, IconCheck, IconTrash, IconCopy, IconUsersPlus, IconCancel } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import { useDisclosure, useTimeout } from '@mantine/hooks';
 import { statuses } from '../../../../utils';
@@ -102,6 +102,24 @@ export function Status({
     }
   }, [deleteResponse]);
 
+  const [cancelResponse, cancelError, cancelLoading, cancelAjax, setCancelData] = useAjax(); // destructure state and fetch function
+  const handleCancel = () => {
+    cancelAjax({
+      method: "POST", 
+      body: {
+        methodname: 'local_activities-cancel_activity',
+        args: {
+          id: id,
+        },
+      }
+    })
+  }
+  useEffect(() => {
+    if (cancelResponse) {
+      // Reload the page
+      window.location.reload();
+    }
+  }, [cancelResponse]);
 
 
   const [pubResponse, pubError, pubLoading, pubAjax] = useAjax(); // destructure state and fetch function
@@ -156,12 +174,16 @@ export function Status({
       options.push(<Menu.Item key={1} onMouseDown={() => openToDraft()} leftSection={<IconArrowMoveLeft size={14} />}>Return to draft</Menu.Item>)
     }
 
-    if (status >= statuses.saved) {
-      options.push(<Menu.Item key={2} onMouseDown={() => handleDelete()} leftSection={<IconTrash size={14} />}>Delete</Menu.Item>)
+    if (status >= statuses.saved && status != statuses.cancelled) {
+      options.push(<Menu.Item key={2} onMouseDown={() => handleCancel()} leftSection={<IconCancel size={14} />}>Cancel</Menu.Item>)
     }
 
     if (status >= statuses.saved) {
-      options.push(<Menu.Item key={3} onMouseDown={() => openDuplicate()} leftSection={<IconCopy size={14} />}>Duplicate</Menu.Item>)
+      options.push(<Menu.Item key={3} onMouseDown={() => handleDelete()} leftSection={<IconTrash size={14} />}>Delete</Menu.Item>)
+    }
+
+    if (status >= statuses.saved) {
+      options.push(<Menu.Item key={4} onMouseDown={() => openDuplicate()} leftSection={<IconCopy size={14} />}>Duplicate</Menu.Item>)
     }
 
     return options
@@ -200,7 +222,9 @@ export function Status({
             ? "orange.1" 
             : (status == statuses.approved 
               ? "apprgreen.1" 
-              : ''
+              : status == statuses.cancelled
+                ? "red.1"
+                : ''
             )
           : ""
         }
@@ -233,6 +257,8 @@ export function Status({
                 ? "Activity is under review. Information may be updated by planners."
                 : status == statuses.approved 
                   ? "Activity is approved!"
+                  : status == statuses.cancelled
+                    ? "Activity is cancelled."
                   : "Get started by entering the details for this activity."
             : status > statuses.saved
               ? "All information is saved."
