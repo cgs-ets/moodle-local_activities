@@ -2131,6 +2131,24 @@ class activities_lib {
         return array_values($students);
     }
 
+    public static function get_final_approver($activityid) {
+        global $DB;
+        $sql = "SELECT username
+        FROM mdl_activities_approvals a
+        WHERE a.activityid = ?
+          AND a.invalidated = 0
+          AND a.sequence = (
+                SELECT MAX(sequence)
+                FROM mdl_activities_approvals
+                WHERE activityid = ?
+                  AND invalidated = 0
+          );";
+        $params = array($activityid, $activityid);
+        $approver = $DB->get_record_sql($sql, $params);
+
+        return $approver;
+    }
+
     /*
     * Save permission
     */
