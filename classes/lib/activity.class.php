@@ -527,7 +527,7 @@ class Activity {
         $permissionsurl = new \moodle_url("/local/activities/{$this->data->id}/permission");
 
         $isactivity = false;
-        if ($this->data->activitytype == 'excursion' || $this->data->activitytype == 'incursion' || $this->data->activitytype == 'commercial') {
+        if ($this->data->activitytype == 'excursion' || $this->data->activitytype == 'incursion') {
             $isactivity = true;
         }
 

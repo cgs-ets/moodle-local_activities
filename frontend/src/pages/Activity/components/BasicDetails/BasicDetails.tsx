@@ -275,7 +275,6 @@ export function BasicDetails() {
                   { value: 'excursion', label: 'Excursion' },
                   { value: 'incursion', label: 'Incursion' },
                   { value: 'calendar', label: 'Calendar entry' },
-                  { value: 'commercial', label: 'Commercial' },
                 ]}
                 className="border"
                 readOnly={viewStateProps.readOnly}
@@ -294,17 +293,11 @@ export function BasicDetails() {
               {formData.activitytype == "calendar" &&
                 <span>Do not select this option if admin/budget approval, staffing list, student list, parent permissions, or risk assessment approval is required.</span>
               }
-              {formData.activitytype == "commercial" &&
-                <span>An external party is hiring CGS venues.</span>
-              }
-              {formData.activitytype == "assessment" &&
-                <span>This entry is for assessment planning.</span>
-              }
             </div>
           </div>
 
           <div>
-            <Text fz="sm" mb="5px" fw={500} c="#212529">Campus Workflow</Text>
+            <Text fz="sm" mb="5px" fw={500} c="#212529">Workflow</Text>
             <SegmentedControl
               color="blue"
               value={formData.campus}
@@ -313,6 +306,7 @@ export function BasicDetails() {
                 { value: 'primary', label: 'Primary School' },
                 { value: 'senior', label: 'Senior School' },
                 { value: 'whole', label: 'Whole School' },
+                { value: 'commercial', label: 'Commercial' },
               ]}
               className="border"
               readOnly={viewStateProps.readOnly}
@@ -324,6 +318,12 @@ export function BasicDetails() {
             />
             {errors.campus ? <div className="text-red-500 text-xs mt-1">{errors.campus}</div> : null}
           </div>
+
+          <Switch
+            checked={formData.cocurr}
+            onChange={(event) => updateField('cocurr', event.currentTarget.checked)}
+            label={<Text fz="sm" mb="5px" fw={500} c="#212529">Is this a cocurricular activity?</Text>}
+          />
           
           {!formData.recurring && (
             <>

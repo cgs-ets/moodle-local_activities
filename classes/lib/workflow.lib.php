@@ -84,66 +84,75 @@ class workflow_lib extends \local_activities\local_activities_config {
         return $approval;
     }
 
-    private static function get_approval_stubs($activityid, $activitytype, $campus, $assessmentid, $isovernight, $staffincharge) {
+    private static function get_approval_stubs($activityid, $activitytype, $campus, $assessmentid, $isovernight, $staffincharge, $cocurr) {
         $approvals = array();
 
         //if ($activitytype == 'incursion' && $assessmentid) {
         //    return $approvals;
         //} else 
-        if ($activitytype == 'commercial') {
-            // commercial_ra - 1st approver.
-            $approvals[] =  static::get_approval_clone('commercial_ra', 1, $activityid);
 
-            // commercial_admin - 2nd approver.
-            $approvals[] =  static::get_approval_clone('commercial_admin', 2, $activityid);
+        if ($cocurr) {
+            $approvals[] = static::get_approval_clone('cocurr_ra', 1, $activityid);
+            $approvals[] = static::get_approval_clone('cocurr_admin', 2, $activityid);
+            $approvals[] = static::get_approval_clone('cocurr_final', 3, $activityid);
+            return $approvals;
+        }
 
-            // commercial_final - 3rd approver.
-            $approvals[] =  static::get_approval_clone('commercial_final', 3, $activityid);
-        } else  {
-            switch ($campus) {
-                case 'senior': {
-                    $i = 0;
-                    // Senior School.
-                    $approvals[] = static::get_approval_clone('senior_hod', ++$i, $activityid, $staffincharge);
+        switch ($campus) {
+            case 'senior': {
+                $i = 0;
+                // Senior School.
+                $approvals[] = static::get_approval_clone('senior_hod', ++$i, $activityid, $staffincharge);
 
-                    // Admin.
-                    $approvals[] = static::get_approval_clone('senior_admin', ++$i, $activityid);
+                // Admin.
+                $approvals[] = static::get_approval_clone('senior_admin', ++$i, $activityid);
 
-                    // Head of Senior or Director.
-                    $approvals[] = static::get_approval_clone('senior_hoss', ++$i, $activityid);
+                // Head of Senior or Director.
+                $approvals[] = static::get_approval_clone('senior_hoss', ++$i, $activityid);
 
-                    // When ready to cutover, move this to bottom of the list and uncomment the if statement.
-                    if ($isovernight) {
-                        // RA.
-                        $approvals[] = static::get_approval_clone('senior_ra', ++$i, $activityid);
-                    }
-
-                    break;
+                // When ready to cutover, move this to bottom of the list and uncomment the if statement.
+                if ($isovernight) {
+                    // RA.
+                    $approvals[] = static::get_approval_clone('senior_ra', ++$i, $activityid);
                 }
-                case 'primary': {
-                    // Primary School - 1st approver.
-                    $approvals[] = static::get_approval_clone('primary_ra', 1, $activityid);
 
-                    // Primary School - 2nd approver.
-                    $approvals[] = static::get_approval_clone('primary_admin', 2, $activityid);
+                break;
+            }
+            case 'primary': {
+                // Primary School - 1st approver.
+                $approvals[] = static::get_approval_clone('primary_ra', 1, $activityid);
 
-                    // Primary School - 3rd approver.
-                    $approvals[] = static::get_approval_clone('primary_hops', 3, $activityid);
-                    break;
-                }
-                case 'whole': {    
-                    // Whole School - 1st approver.
-                    $approvals[] = static::get_approval_clone('whole_ra', 1, $activityid);
+                // Primary School - 2nd approver.
+                $approvals[] = static::get_approval_clone('primary_admin', 2, $activityid);
 
-                    // Whole School - 2nd approver.
-                    $approvals[] = static::get_approval_clone('whole_admin', 2, $activityid);
+                // Primary School - 3rd approver.
+                $approvals[] = static::get_approval_clone('primary_hops', 3, $activityid);
+                break;
+            }
+            case 'whole': {    
+                // Whole School - 1st approver.
+                $approvals[] = static::get_approval_clone('whole_ra', 1, $activityid);
 
-                    // Whole School - 3rd approver.
-                    $approvals[] = static::get_approval_clone('whole_final', 3, $activityid);
-                    break;
-                }
+                // Whole School - 2nd approver.
+                $approvals[] = static::get_approval_clone('whole_admin', 2, $activityid);
+
+                // Whole School - 3rd approver.
+                $approvals[] = static::get_approval_clone('whole_final', 3, $activityid);
+                break;
+            }
+            case 'commercial': {
+                // commercial_ra - 1st approver.
+                $approvals[] =  static::get_approval_clone('commercial_ra', 1, $activityid);
+
+                // commercial_admin - 2nd approver.
+                $approvals[] =  static::get_approval_clone('commercial_admin', 2, $activityid);
+
+                // commercial_final - 3rd approver.
+                $approvals[] =  static::get_approval_clone('commercial_final', 3, $activityid);
+                break;
             }
         }
+        
 
         // Remove nulls, which could come from workflows where no approvers were listed of found in the sql.
         return array_values(array_filter($approvals, fn($item) => !is_null($item->approvers)));
@@ -1022,8 +1031,8 @@ class workflow_lib extends \local_activities\local_activities_config {
     }
 
 
-    public static function get_draft_workflow($activitytype, $campus, $assessmentid, $isovernight, $staffincharge) {
-        $approvals = static::get_approval_stubs(0, $activitytype, $campus, $assessmentid, $isovernight, $staffincharge);
+    public static function get_draft_workflow($activitytype, $campus, $assessmentid, $isovernight, $staffincharge, $cocurr) {
+        $approvals = static::get_approval_stubs(0, $activitytype, $campus, $assessmentid, $isovernight, $staffincharge, $cocurr);
 
         // Pull in approver fullnames.
         foreach ($approvals as $approval) {

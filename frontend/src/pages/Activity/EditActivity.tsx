@@ -120,6 +120,7 @@ export function EditActivity() {
       secondincharge: [JSON.parse(fetchResponse.data.secondinchargejson || null)].filter(item => item !== null),
       initialCampus: fetchResponse.data.campus,
       initialActivitytype: fetchResponse.data.activitytype,
+      initialCocurr: fetchResponse.data.cocurr,
       displaypublic: !!Number(fetchResponse.data.displaypublic),
       pushpublic: !!Number(fetchResponse.data.pushpublic),
       // Convert to bool.
@@ -249,6 +250,7 @@ export function EditActivity() {
     })
     setFormData({initialActivitytype: formData.activitytype} as Form)
     setFormData({initialCampus: formData.campus} as Form)
+    setFormData({initialCocurr: formData.cocurr} as Form)
     setFormData({initialTimestart: formData.timestart} as Form)
     setFormData({initialTimeend: formData.timeend} as Form)
     setFormData({recurringAcceptChanges: false} as Form)

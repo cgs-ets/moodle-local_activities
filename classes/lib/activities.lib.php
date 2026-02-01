@@ -44,8 +44,7 @@ class activities_lib {
     public static function is_activity($activitytype) {
         return (
             $activitytype == 'excursion' || 
-            $activitytype == 'incursion' ||
-            $activitytype == 'commercial'
+            $activitytype == 'incursion'
         );
     }
 

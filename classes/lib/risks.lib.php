@@ -472,8 +472,7 @@ class risks_lib {
         // Do not show excursion or incursion. These are not selectable.
         $classifications = array_map(function($classification) {
             if ($classification->name === 'Excursion' || 
-                $classification->name === 'Incursion' || 
-                $classification->name === 'Commercial'
+                $classification->name === 'Incursion'
             ) {
                 $classification->hidden = true;
             }
@@ -488,10 +487,6 @@ class risks_lib {
         } else if ($activity->activitytype === 'incursion') {
             // Search for the classification with the name "Incursion" and set the "preselected" property to true.
             $classificationix = array_search('Incursion', array_column($classifications, 'name'));
-            $classifications[$classificationix]->preselected = true;
-        } else if ($activity->activitytype === 'commercial') {
-            // Search for the classification with the name "Commercial" and set the "preselected" property to true.
-            $classificationix = array_search('Commercial', array_column($classifications, 'name'));
             $classifications[$classificationix]->preselected = true;
         }
 

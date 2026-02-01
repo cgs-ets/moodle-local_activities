@@ -27,12 +27,14 @@ export function Workflow({
   const status = useFormStore((state) => state.status)
   const initialCampus = useFormStore((state) => state.initialCampus)
   const initialActivitytype = useFormStore((state) => state.initialActivitytype)
+  const initialCocurr = useFormStore((state) => state.initialCocurr)
   const assessmentid = useFormStore((state) => state.assessmentid)
   const initialTimestart = useFormStore((state) => state.initialTimestart)
   const initialTimeend = useFormStore((state) => state.initialTimeend)
   const timestart = useFormStore((state) => state.timestart)
   const timeend = useFormStore((state) => state.timeend)
   const staffincharge = useFormStore((state) => state.staffincharge)
+  const cocurr = useFormStore((state) => state.cocurr)
 
   const [draftApprovals, setDraftApprovals] = useState<any[]>([])
   const savedtime = useStateStore((state) => (state.savedtime))
@@ -46,7 +48,7 @@ export function Workflow({
     if (expectNewWorkflow()) {
       getDraftWorkflow()
     }
-  }, [campus, activityid, status, savedtime, initialCampus, activitytype, timestart, timeend])
+  }, [campus, activityid, status, savedtime, initialCampus, activitytype, timestart, timeend, cocurr, initialCocurr])
 
   
   const getWorkflow = () => {
@@ -77,7 +79,8 @@ export function Workflow({
            (initialCampus && initialCampus != campus) || 
            (initialActivitytype && initialActivitytype != activitytype) ||
            (initialTimestart && initialTimestart != timestart) ||
-           (initialTimeend && initialTimeend != timeend)
+           (initialTimeend && initialTimeend != timeend) ||
+           (initialCocurr && initialCocurr != cocurr)
     ) {
       /*console.log("Expecting new workflow")
       console.log("Status", status)
@@ -104,6 +107,7 @@ export function Workflow({
         id: activityid,
         activitytype: activitytype,
         campus: campus,
+        cocurr: cocurr,
         assessmentid: assessmentid,
         isovernight: timestart && timeend && dayjs.unix(timestart).format('YYYYMMDD') != dayjs.unix(timeend).format('YYYYMMDD'),
         staffincharge: staffincharge[0].un ?? null,

@@ -36,7 +36,8 @@ trait workflow_api {
         $assessmentid = optional_param('assessmentid', 0, PARAM_INT);
         $isovernight = optional_param('isovernight', false, PARAM_BOOL);
         $staffincharge = optional_param('staffincharge', null, PARAM_TEXT);
-        return workflow_lib::get_draft_workflow($activitytype, $campus, $assessmentid, $isovernight, $staffincharge);
+        $cocurr = optional_param('cocurr', false, PARAM_BOOL);
+        return workflow_lib::get_draft_workflow($activitytype, $campus, $assessmentid, $isovernight, $staffincharge, $cocurr);
     } 
 
     /**

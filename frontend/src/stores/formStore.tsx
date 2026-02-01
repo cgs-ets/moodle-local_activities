@@ -16,6 +16,8 @@ export type Form = {
   activityname: string;
   initialCampus: string;
   campus: string;
+  cocurr: boolean;
+  initialCocurr: boolean;
   initialActivitytype: string;
   activitytype: string;
   location: string;
@@ -91,6 +93,8 @@ const defaults: Form = {
   activityname: '',
   initialCampus: '',
   campus: '', //'primary',
+  cocurr: false,
+  initialCocurr: false,
   initialActivitytype: '',
   activitytype: 'excursion',
   location: '',

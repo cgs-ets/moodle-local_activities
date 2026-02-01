@@ -279,6 +279,74 @@ class local_activities_config {
 
 
 
+        // CAMPUSMNG
+        'cocurr_ra' => array(
+            'name' => 'RA Approval',
+            'invalidated_on_edit' => array(
+                'location',
+                'timestart',
+                'timeend',
+                'riskassessment',
+            ),
+            'approvers' => array(
+                'admin' => array(
+                    'username' => 'admin',
+                    'contacts' => null,
+                ),
+            ),
+            'prerequisites' => null
+        ),
+        'cocurr_admin' => array(
+            'name' => 'Operations Approval',
+            'invalidated_on_edit' => array(
+                'location',
+                'timestart',
+                'timeend',
+                'riskassessment',
+            ),
+            'approvers' => array(
+                'admin' => array(
+                    'username' => 'admin',
+                    'contacts' => null,
+                ),
+            ),
+            'prerequisites' => null,
+        ),
+        'cocurr_final' => array(
+            'name' => 'Final Approval',
+            'invalidated_on_edit' => array (
+                'location',
+                'timestart',
+                'timeend',
+                'riskassessment',
+            ),
+            'approvers' => array(
+                'admin' => array(
+                    'username' => 'admin',
+                    'contacts' => null,
+                ),
+            ),
+            'prerequisites' => array(
+                'whole_admin',
+            ),
+        ),
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	);
 	
