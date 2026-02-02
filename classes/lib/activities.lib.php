@@ -249,6 +249,7 @@ class activities_lib {
             $activity->set('activityname', $data->activityname);
             $activity->set('campus', $data->campus);
             $activity->set('activitytype', $data->activitytype);
+            $activity->set('cocurr', $data->cocurr ? 1 : 0);
             $activity->set('location', $data->location);
             $activity->set('timestart', intval($data->timestart / 60) * 60); // Remove seconds.
             $activity->set('timeend', $timeend); // Remove seconds.

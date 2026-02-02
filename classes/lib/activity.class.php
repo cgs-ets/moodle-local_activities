@@ -33,6 +33,7 @@ class Activity {
         'idnumber' => '',
         'campus' => 'senior',
         'activitytype' => 'excursion',
+        'cocurr' => 0,
         'location' => '',
         'timestart' => 0,
         'timeend' => 0,

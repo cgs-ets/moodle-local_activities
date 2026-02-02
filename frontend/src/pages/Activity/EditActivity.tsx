@@ -107,6 +107,7 @@ export function EditActivity() {
     document.title = fetchResponse.data.activityname
     const data = {
       ...fetchResponse.data,
+      cocurr: !!Number(fetchResponse.data.cocurr),
       categories: JSON.parse(fetchResponse.data.categoriesjson || '[]'),
       timecreated: Number(fetchResponse.data.timecreated) ? fetchResponse.data.timecreated : dayjs().unix(),
       timemodified: Number(fetchResponse.data.timemodified) ? fetchResponse.data.timemodified : dayjs().unix(),
