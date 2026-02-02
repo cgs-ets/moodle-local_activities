@@ -186,7 +186,7 @@ class workflow_lib extends \local_activities\local_activities_config {
         if ($newactivity->get('timestart') > 0 && $newactivity->get('timeend') > 0) {
             $isovernight = date('Ymd', $newactivity->get('timestart')) != date('Ymd', $newactivity->get('timeend'));
         }
-        $approvals = static::get_approval_stubs($newactivity->get('id'), $newactivity->get('activitytype'), $newactivity->get('campus'), $assessmentid ? $assessmentid : 0, $isovernight, $newactivity->get('staffincharge'));
+        $approvals = static::get_approval_stubs($newactivity->get('id'), $newactivity->get('activitytype'), $newactivity->get('campus'), $assessmentid ? $assessmentid : 0, $isovernight, $newactivity->get('staffincharge'), $newactivity->get('cocurr'));
 
         // Invalidate approvals that should not be there.
         $approvaltypes = array_column($approvals, 'type');
