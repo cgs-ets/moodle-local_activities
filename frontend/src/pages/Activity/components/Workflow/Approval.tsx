@@ -148,7 +148,10 @@ export function Approval({
           ? approval.nominated
             ? <div className="flex gap-1 items-center">
                 <Avatar onClick={open} className="cursor-pointer" alt="Nominated approver" title="Nominated approver" size={24} mr={5} src={'/local/activities/avatar.php?username=' + approval.nominated} radius="xl"><IconUser /></Avatar> 
-                {approval.approvers[approval.nominated] ? approval.approvers[approval.nominated].fullname : approval.nominated} ({approval.description})
+                <div className="flex flex-col">
+                  <span>{approval.approvers[approval.nominated] ? approval.approvers[approval.nominated].fullname : approval.nominated}</span>
+                  <span className="text-xs text-gray-600">{approval.description}</span>
+                </div>
                 <ActionIcon variant="transparent"><IconPencil onClick={() => unsetNominated(approval.id)} className="size-4" /></ActionIcon>
               </div>
             : <div className="flex gap-2 items-center">
@@ -206,8 +209,9 @@ export function Approval({
             <Radio.Group
               value={approval.status}
               name={"approval" + approval.id}
+              
             >
-              <Group gap="xs">
+              <Group gap="xs" wrap="nowrap">
                 <Radio onClick={() => onApprove(approval.id, approval.status == "2" ? "0" : "2")} label="N" value="2" checked={approval.status == "2"} color="red" styles={{label: {paddingInlineStart: "3px"}}} />
                 <Radio onClick={() => onApprove(approval.id, approval.status == "1" ? "0" : "1")} label="Y" value="1" checked={approval.status == "1"} color="green" styles={{label: {paddingInlineStart: "3px"}}} />
               </Group>
