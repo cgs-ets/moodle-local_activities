@@ -1382,15 +1382,49 @@ class activities_lib {
 
         $activities = array();
 
+        // Get where specifically nominated.
         $sql = "SELECT id, activityid, type
                     FROM mdl_activities_approvals
                     WHERE nominated = ?
                     AND invalidated = 0
                     AND skip = 0
                     AND status = 0";
-        $approvals = $DB->get_records_sql($sql, array($username));
-        $approvals = workflow_lib::filter_approvals_with_prerequisites($approvals);
-        $activities = static::get_by_ids(array_column($approvals, 'activityid'), null, $period); // All statuses and future only.
+        $approvals1 = $DB->get_records_sql($sql, array($username));
+        $approvals1 = workflow_lib::filter_approvals_with_prerequisites($approvals1);
+
+
+        // Get where approver is the only real choice.
+        $approvertypes = array();
+        foreach (workflow_lib::WORKFLOW as $code => $type) {
+            foreach ($type['approvers'] as $approver) {
+                if ($approver['username'] == $username && (!isset($approver['silent']) || !$approver['silent'])) {
+                    // Check to see if there are any OTHER approvers at this level.
+                    $elephantintheroom = false;
+                    foreach ($type['approvers'] as $other) {
+                        if ($other['username'] != $username && (!isset($other['silent']) || !$other['silent'])) {
+                            $elephantintheroom = true;
+                        }
+                    }
+                    if (!$elephantintheroom) {
+                        $approvertypes[] = $code;
+                    }
+                }
+            }
+        }
+        if ($approvertypes) {
+            // The user has approver types. Check if any activities need this approval.
+            list($insql, $inparams) = $DB->get_in_or_equal($approvertypes);
+            $sql = "SELECT id, activityid, type
+                      FROM mdl_activities_approvals
+                     WHERE type $insql
+                       AND invalidated = 0
+                       AND skip = 0
+                       AND status = 0";
+            $approvals2 = $DB->get_records_sql($sql, $inparams);
+            $approvals2 = workflow_lib::filter_approvals_with_prerequisites($approvals2);
+        }
+        $approvals = array_merge($approvals1, $approvals2);
+        $activities = static::get_by_ids(array_unique(array_column($approvals, 'activityid')), null, $period); // All statuses and future only.
 
         return $activities;
     }
