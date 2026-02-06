@@ -88,7 +88,7 @@ export function Permission() {
           </Container> : null
         }
 
-        { activityid && !permissions.length ?
+        { !api.state.loading && !api.state.error && activityid && !permissions.length ?
           <Container size="xl">
             <Center h={300}>
               <Text fw={600} fz="lg">Sorry, activity not found or you do not have access to this page.</Text>
