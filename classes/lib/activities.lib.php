@@ -1777,7 +1777,7 @@ class activities_lib {
                     WHERE p.activityid = a.id
                     GROUP BY p.studentusername
                     HAVING SUM(CASE WHEN p.response <> 0 THEN 1 ELSE 0 END) = 0
-                )"
+                )";
         $records = $DB->get_records_sql($sql, null);
         $activities = array();
         foreach ($records as $record) {
