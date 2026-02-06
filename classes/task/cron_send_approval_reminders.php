@@ -182,7 +182,7 @@ class cron_send_approval_reminders extends \core\task\scheduled_task {
         }
         $fromUser = \core_user::get_noreply_user();
         $fromUser->bccaddress = array("lms.archive@cgs.act.edu.au"); 
-        $result = service_lib::wrap_and_real_email_to_user($toUser, $fromUser, $subject, $messageHtml);
+        $result = service_lib::wrap_and_email_to_user($toUser, $fromUser, $subject, $messageHtml);
         return true;
     }
 

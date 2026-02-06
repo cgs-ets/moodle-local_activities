@@ -1764,18 +1764,20 @@ class activities_lib {
         * - have permissions enabled.
         * - starting in x days ($rangestart)
         */
-        $sql = "SELECT id
-                  FROM {" . static::TABLE . "} a
-                 WHERE a.timestart >= {$rangestart} AND a.timestart <= {$rangeend}
-                   AND a.status = " . static::ACTIVITY_STATUS_APPROVED . "
-                   AND a.permissions = 1
-                   AND a.deleted = 0
-                   AND EXISTS (
-                        SELECT 1
-                        FROM {" . static::TABLE_ACTIVITY_PERMISSIONS . "} p
-                        WHERE p.activityid = a.id
-                        AND p.response = 0
-                    )";
+
+        $sql = "SELECT a.id
+                FROM {" . static::TABLE . "} a
+                WHERE a.timestart >= {$rangestart} AND a.timestart <= {$rangeend}
+                AND a.status = " . static::ACTIVITY_STATUS_APPROVED . "
+                AND a.permissions = 1
+                AND a.deleted = 0
+                AND EXISTS (
+                    SELECT 1
+                    FROM {" . static::TABLE_ACTIVITY_PERMISSIONS . "} p
+                    WHERE p.activityid = a.id
+                    GROUP BY p.studentusername
+                    HAVING SUM(CASE WHEN p.response <> 0 THEN 1 ELSE 0 END) = 0
+                )"
         $records = $DB->get_records_sql($sql, null);
         $activities = array();
         foreach ($records as $record) {
@@ -2160,6 +2162,29 @@ class activities_lib {
                  WHERE p.activityid = ?
                    AND p.response = ?";
         $params = array($activityid, $response);
+        $students = $DB->get_records_sql($sql, $params);
+
+        return array_values($students);
+    }
+
+    public static function get_unresponded_students($activityid) {
+        global $DB;
+
+        $sql = "SELECT DISTINCT u.username, u.firstname, u.lastname
+                FROM mdl_activities_permissions p
+                INNER JOIN mdl_activities_students s ON s.activityid = p.activityid
+                INNER JOIN mdl_user u ON p.studentusername = u.username
+                WHERE p.activityid = ?
+                AND p.response =  0
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM mdl_activities_permissions p2
+                    WHERE p2.activityid = ?
+                    AND p2.studentusername = p.studentusername
+                    AND p2.response IN (1,2)
+                )
+                and s.username = p.studentusername";
+        $params = array($activityid, $activityid);
         $students = $DB->get_records_sql($sql, $params);
 
         return array_values($students);
