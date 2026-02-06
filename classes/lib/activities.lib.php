@@ -1411,6 +1411,7 @@ class activities_lib {
                 }
             }
         }
+        $approvals2 = [];
         if ($approvertypes) {
             // The user has approver types. Check if any activities need this approval.
             list($insql, $inparams) = $DB->get_in_or_equal($approvertypes);
