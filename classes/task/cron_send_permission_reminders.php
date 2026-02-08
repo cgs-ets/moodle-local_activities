@@ -109,7 +109,7 @@ class cron_send_permission_reminders extends \core\task\scheduled_task {
             //}
 
             // If this is 1 day reminder, CC the approving director.
-            if ($numdays = '1') {
+            if ($numdays == '1') {
                 $finalapproval = activities_lib::get_final_approver($data->id);
                 if ( ! array_key_exists($finalapproval->username, $recipients)) {
                     $recipients[$finalapproval->username] = null;
