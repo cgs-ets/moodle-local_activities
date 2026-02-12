@@ -1,5 +1,5 @@
-import { Group, Text, Box, Button, Anchor, ActionIcon, Modal, Loader, Pill, Drawer } from '@mantine/core';
-import { IconExternalLink, IconMenu, IconSearch, IconX } from '@tabler/icons-react';
+import { Group, Text, Box, Button, Anchor, ActionIcon, Modal, Loader, Pill, Drawer, TextInput, CopyButton, Tooltip } from '@mantine/core';
+import { IconExternalLink, IconMenu, IconSearch, IconX, IconCalendar, IconCheck, IconCopy } from '@tabler/icons-react';
 import { getConfig } from "../../../utils";
 import useFetch from "../../../hooks/useFetch";
 import dayjs from "dayjs";
@@ -28,6 +28,8 @@ export function Header({hideSearch, hideNav}: Props) {
   const calView = useCalViewStore((state) => state)
   const filters = useFilterStore((state) => state)
   const [menuOpened, setMenuOpened] = useState(false);
+  const [icalModalOpened, setIcalModalOpened] = useState(false);
+  const icalUrl = getConfig().wwwroot + '/local/activities/ical.php';
 
   const api = useFetch()
 
@@ -128,6 +130,16 @@ export function Header({hideSearch, hideNav}: Props) {
                 <IconSearch size={20} />
               </ActionIcon>
             }
+
+            <ActionIcon
+              variant="transparent"
+              color="white"
+              className="hidden mr-2"
+              onClick={() => setIcalModalOpened(true)}
+              title="Subscribe to calendar"
+            >
+              <IconCalendar size={20} />
+            </ActionIcon>
 
             {!hideNav && 
               <>
@@ -295,6 +307,51 @@ export function Header({hideSearch, hideNav}: Props) {
 
       <EventModal activity={selectedEvent} close={() => setSelectedEvent(null)} isPublic={true} />
 
+      <Modal
+        opened={icalModalOpened}
+        onClose={() => setIcalModalOpened(false)}
+        title="Subscribe to Calendar"
+        size="lg"
+      >
+        <div className="space-y-4">
+          <Text size="sm" c="dimmed">
+            You can subscribe to this calendar using the URL below. Add it to calendar clients such as Outlook, Google Calendar, Apple Calendar, or any other calendar application that supports iCal feeds.
+          </Text>
+          
+          <div>
+            <Text size="sm" fw={500} mb="xs">Calendar URL:</Text>
+            <TextInput
+              value={icalUrl}
+              readOnly
+              rightSection={
+                <CopyButton value={icalUrl} timeout={2000}>
+                  {({ copied, copy }) => (
+                    <Tooltip label={copied ? 'Copied' : 'Copy'} withArrow position="right">
+                      <ActionIcon color={copied ? 'teal' : 'gray'} onClick={copy}>
+                        {copied ? <IconCheck size={16} /> : <IconCopy size={16} />}
+                      </ActionIcon>
+                    </Tooltip>
+                  )}
+                </CopyButton>
+              }
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Text size="sm" fw={500}>How to add to your calendar:</Text>
+            <Text size="xs" c="dimmed">
+              <strong>Google Calendar:</strong> Settings → Add calendar → From URL → Paste the URL above
+            </Text>
+            <Text size="xs" c="dimmed">
+              <strong>Outlook:</strong> File → Account Settings → Internet Calendars → New → Paste the URL above
+            </Text>
+            <Text size="xs" c="dimmed">
+              <strong>Apple Calendar:</strong> File → New Calendar Subscription → Paste the URL above
+            </Text>
+          </div>
+        </div>
+      </Modal>
+
       <Drawer position="right" opened={menuOpened} onClose={() => setMenuOpened(false)}>
         <div className="flex flex-col gap-4">
           <Button
@@ -305,6 +362,16 @@ export function Header({hideSearch, hideNav}: Props) {
             size="md"
           >
             Search
+          </Button>
+
+          <Button
+            variant='transparent'
+            color="black"
+            onClick={() => {setIcalModalOpened(true); setMenuOpened(false)}}
+            leftSection={<IconCalendar size={20} />}
+            size="md"
+          >
+            Subscribe to Calendar
           </Button>
 
           <Anchor 

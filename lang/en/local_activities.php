@@ -52,3 +52,4 @@ $string['cron_emails_sys'] = 'Send emails from queue';
 $string['cron_sync_live'] = 'Sync events to calendars';
 $string['cron_sync_reconciliation'] = 'Daily full reconciliation between system events and Outlook calendars';
 $string['cron_send_permission_reminders'] = 'Send permission reminders to organisers';
+$string['cron_generate_ical'] = 'Generate iCal file for public calendar';
