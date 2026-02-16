@@ -561,8 +561,8 @@ class recurrence_lib {
                 // Update current date for next iteration
                 $currentDate = $newDate;
 
-                // Max 30 occurrences
-                if (count($dates) >= 30) {
+                // Max 60 occurrences
+                if (count($dates) >= 60) {
                     $finished = true;
                 }
             }

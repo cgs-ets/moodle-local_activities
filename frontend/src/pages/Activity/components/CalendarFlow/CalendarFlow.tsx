@@ -118,7 +118,7 @@ export function CalendarFlow({
   
   return (
     showCard()
-    ? <Card withBorder className="p-0 mt-4" mb="lg">
+    ? <Card withBorder className="p-0 mt-4 max-h-[200px] overflow-y-auto" mb="lg">
 
         <div className="px-4 py-3">
           <span className="text-base">Calendar flow</span>
