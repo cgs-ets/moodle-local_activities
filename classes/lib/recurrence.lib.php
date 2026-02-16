@@ -322,8 +322,8 @@ class recurrence_lib {
                 if (!isset($recurrence->range) && $currentWeek > 100) {
                     $finished = true; // Prevent infinite loop
                 }
-                // Max 30 occurrences
-                if (count($dates) >= 30) {
+                // Max 60 occurrences
+                if (count($dates) >= 60) {
                     $finished = true;
                 }
             }
@@ -439,8 +439,8 @@ class recurrence_lib {
                 // Update current date for next iteration
                 $currentDate = $newDate;
 
-                // Max 30 occurrences
-                if (count($dates) >= 30) {
+                // Max 60 occurrences
+                if (count($dates) >= 60) {
                     $finished = true;
                 }
             }
