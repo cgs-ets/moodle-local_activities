@@ -396,6 +396,16 @@ class activities_lib {
                 $DB->execute($sql, $params);
             }
 
+
+            // Log the change
+            $DB->insert_record('activities_logs', (object) array(
+                'activityid' => $activity->get('id'),
+                'action' => 'activity_saved',
+                'timecreated' => time(),
+                'datajson' => json_encode($data),
+            ));
+
+
         } catch (\Exception $e) {
             // Log and rethrow. 
             // https://stackoverflow.com/questions/5551668/what-are-the-best-practices-for-catching-and-re-throwing-exceptions
