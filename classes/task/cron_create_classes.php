@@ -117,13 +117,23 @@ class cron_create_classes extends \core\task\scheduled_task {
 
         // Get ALL activities in the time window (not just unprocessed ones)
         // This allows us to detect changes and update existing classes
-        $sql = "SELECT id, timestart, timeend, timemodified, classrollprocessed
-                FROM {activities}
+        $sql = "SELECT a.id, a.timestart, a.timeend, a.timemodified, a.classrollprocessed
+                FROM mdl_activities a
                 WHERE deleted = 0
                 AND (
-                    (timestart <= {$plusdays} AND timestart >= {$now}) OR
-                    (timestart <= {$now} AND timeend >= {$now})
-                )";
+					(
+						(timestart <= {$plusdays} AND timestart >= {$now}) OR
+                        (timestart <= {$now} AND timeend >= {$now})
+					)
+					OR EXISTS (
+						SELECT 1 
+						FROM mdl_activities_occurrences o
+						WHERE o.activityid = a.id AND (
+							(timestart <= {$plusdays} AND timestart >= {$now}) OR
+                            (timestart <= {$now} AND timeend >= {$now})
+						)
+					)
+				)";
         
         $activityrecords = $DB->get_records_sql($sql);
         
@@ -170,7 +180,8 @@ class cron_create_classes extends \core\task\scheduled_task {
                     }
 
                     // Sneak in the creation of classes for any recurrences of this activity.
-                    $this->create_recurrences($activitydata, $attending);
+                    $this->process_recurrences($activitydata, $attending);
+                    exit;
                 }
             } catch (Exception $ex) {
                 $this->log("Error processing activity {$record->id}: " . $ex->getMessage());
@@ -259,12 +270,21 @@ class cron_create_classes extends \core\task\scheduled_task {
         }
     }
 
-    private function create_recurrences($activity, $attending) {
+    private function process_recurrences($activity, $attending) {
         global $DB;
 
-        $this->log("Checking for recurrences of activity {$activity->id}...", 2);
-        var_export($activity); exit;
-
+        if (isset($activity->occurrences) && count($activity->occurrences->dates)) {
+            $this->log("Processing recurrences of activity {$activity->id}...", 2);
+            foreach ($activity->occurrences->dates as $occurrence) {
+                if ($activity->timestart == $occurrence['start']) {
+                    //ignore the first occurrence because we've already processed it.
+                    continue;
+                }
+                $activity->timestart = $occurrence['start'];
+                $activity->timeend = $occurrence['end'];
+                $this->create_class_roll($activity, $attending, 'activity');
+            }
+        }
     }
 
     /**
@@ -387,6 +407,7 @@ class cron_create_classes extends \core\task\scheduled_task {
      * @param object $activity Activity data
      */
     private function delete_activity_classes($activity) {
+        return;
         $activitystart = date('Y-m-d H:i', $activity->timestart);
         $activityend = date('Y-m-d H:i', $activity->timeend);
 
@@ -399,7 +420,7 @@ class cron_create_classes extends \core\task\scheduled_task {
             $classcode = $this->prefix . $activity->id . '_';
 
             $this->log("Deleting class {$classcode}", 2);
-            $sql = 'EXEC cgs.local_excursions_delete_class :fileyear, :filesemester, :classcampus, :classcode';
+            $sql = 'EXEC cgs.local_excursions_delete_clas->s :fileyear, :filesemester, :classcampus, :classcode';
             $params = array(
                 'fileyear' => $this->currentterminfo->fileyear,
                 'filesemester' => $this->currentterminfo->filesemester,
@@ -416,6 +437,7 @@ class cron_create_classes extends \core\task\scheduled_task {
      * @param object $assessment Assessment data
      */
     private function delete_assessment_classes($assessment) {
+        return;
         $assessmentstart = date('Y-m-d H:i', $assessment->timestart);
         $assessmentend = date('Y-m-d H:i', $assessment->timeend);
 
@@ -424,7 +446,7 @@ class cron_create_classes extends \core\task\scheduled_task {
         foreach ($days as $day) {
             $classcode = $this->prefix . $assessment->id . '_';
 
-            $this->log("Deleting class {$classcode}", 2);
+            $this->log("Deleting assessment {$classcode}", 2);
             $sql = 'EXEC cgs.local_excursions_delete_class :fileyear, :filesemester, :classcampus, :classcode';
             $params = array(
                 'fileyear' => $this->currentterminfo->fileyear,
