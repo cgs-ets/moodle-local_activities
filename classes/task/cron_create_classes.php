@@ -168,6 +168,9 @@ class cron_create_classes extends \core\task\scheduled_task {
                     if ($success) {
                         $DB->execute("UPDATE {activities} SET classrollprocessed = 1 WHERE id = ?", [$activitydata->id]);
                     }
+
+                    // Sneak in the creation of classes for any recurrences of this activity.
+                    $this->create_recurrences($activitydata, $attending);
                 }
             } catch (Exception $ex) {
                 $this->log("Error processing activity {$record->id}: " . $ex->getMessage());
@@ -254,6 +257,14 @@ class cron_create_classes extends \core\task\scheduled_task {
                 $this->log("Error processing assessment {$record->id}: " . $ex->getMessage());
             }
         }
+    }
+
+    private function create_recurrences($activity, $attending) {
+        global $DB;
+
+        $this->log("Checking for recurrences of activity {$activity->id}...", 2);
+        var_export($activity); exit;
+
     }
 
     /**
