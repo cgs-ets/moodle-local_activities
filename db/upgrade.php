@@ -486,7 +486,7 @@ function xmldb_local_activities_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2025082111, 'local', 'activities');
     }
 
-    if ($oldversion < 2026022000) {
+    /*if ($oldversion < 2026022000) {
         $table = new xmldb_table('activities_logs');
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
         $table->add_field('activityid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 0, null, 'id');
@@ -499,7 +499,7 @@ function xmldb_local_activities_upgrade($oldversion) {
             $dbman->create_table($table);
         }
         upgrade_plugin_savepoint(true, 2026022000, 'local', 'activities');
-    }
+    }*/
 
     return true;
 }

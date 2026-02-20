@@ -411,12 +411,12 @@ class activities_lib {
 
 
             // Log the change
-            $DB->insert_record('activities_logs', (object) array(
+            /*$DB->insert_record('activities_logs', (object) array(
                 'activityid' => $activity->get('id'),
                 'action' => 'activity_saved',
                 'timecreated' => time(),
                 'datajson' => json_encode($data),
-            ));
+            ));*/
 
 
         } catch (\Exception $e) {
