@@ -407,7 +407,6 @@ class cron_create_classes extends \core\task\scheduled_task {
      * @param object $activity Activity data
      */
     private function delete_activity_classes($activity) {
-        return;
         $activitystart = date('Y-m-d H:i', $activity->timestart);
         $activityend = date('Y-m-d H:i', $activity->timeend);
 
@@ -437,7 +436,6 @@ class cron_create_classes extends \core\task\scheduled_task {
      * @param object $assessment Assessment data
      */
     private function delete_assessment_classes($assessment) {
-        return;
         $assessmentstart = date('Y-m-d H:i', $assessment->timestart);
         $assessmentend = date('Y-m-d H:i', $assessment->timeend);
 
