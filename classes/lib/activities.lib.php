@@ -348,12 +348,25 @@ class activities_lib {
             static::sync_staff_from_data($activity->get('id'), 'planning', $data->planningstaff);
             static::sync_staff_from_data($activity->get('id'), 'accompany', $data->accompanyingstaff);
 
+
+            // We have an issue where students are dropping off activities for no reason.
+            // If the original activity has students, and this one suddenly does not, something could have gone wrong..
+            $processstudents = true;
+            if ($originalactivity && $originalactivity->get('studentlistjson') && empty($data->studentlist)) {
+                // Were students intentionally removed?
+                if (empty($data->studentsremoved)) {
+                    $processstudents = false;
+                }
+            }
+
             // Sync the student list.
-            $studentusernames = array_map(function($u) {
-                $u = (object) $u;
-                return $u->un;
-            }, $data->studentlist);
-            static::sync_students_from_data($activity->get('id'), $studentusernames);
+            if ($processstudents) {
+                $studentusernames = array_map(function($u) {
+                    $u = (object) $u;
+                    return $u->un;
+                }, $data->studentlist);
+                static::sync_students_from_data($activity->get('id'), $studentusernames);
+            }
 
             // Save recurring settings.
             $newdates = null;

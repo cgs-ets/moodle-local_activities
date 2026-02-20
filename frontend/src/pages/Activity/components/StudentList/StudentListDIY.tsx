@@ -75,6 +75,7 @@ export function StudentListDIY() {
 
     const filtered = studentlist.filter(u => !selectedUsernames.includes(u.un))
     setState({['studentlist']: filtered} as Form)
+    setState({['studentsremoved']: selectedUsernames} as Form) // Functions as a 'dirty' flag.
 
     setRowSelection({})
   }

@@ -75,6 +75,7 @@ export type Form = {
   recurringAcceptChanges: boolean;
   hasUserAcknowledged: boolean;
   acknowledgers: User[];
+  studentsremoved: string[];
 };
 
 type FormStore = Form & {
@@ -175,6 +176,7 @@ const defaults: Form = {
   recurringAcceptChanges: false,
   hasUserAcknowledged: false,
   acknowledgers: [],
+  studentsremoved: [],
 };
 
 const useFormStore = create<FormStore>((set) => ({
