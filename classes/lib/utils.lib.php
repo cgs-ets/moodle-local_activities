@@ -678,7 +678,7 @@ class utils_lib {
         foreach ($records as $record) {
             $activity = new Activity($record->id);
             $exported = $activity->export();
-            if((!$exported->usercanedit) && $exported->status < static::ACTIVITY_STATUS_INREVIEW) {
+            if((!$exported->usercanedit) && $exported->status < activities_lib::ACTIVITY_STATUS_INREVIEW) {
                 continue;
             }
             $activities[] = $exported;
