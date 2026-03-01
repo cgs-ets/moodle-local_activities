@@ -1098,6 +1098,9 @@ class activities_lib {
             ),
         );
 
+        // Past involvement is causing performance issues.
+        return $involvement;
+
         // Student participant
         $involvement['student']['events'] = static::get_for_student($USER->username, 'past');
 
