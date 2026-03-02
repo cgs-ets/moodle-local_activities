@@ -419,7 +419,7 @@ class cron_create_classes extends \core\task\scheduled_task {
             $classcode = $this->prefix . $activity->id . '_';
 
             $this->log("Deleting class {$classcode}", 2);
-            $sql = 'EXEC cgs.local_excursions_delete_clas->s :fileyear, :filesemester, :classcampus, :classcode';
+            $sql = 'EXEC cgs.local_excursions_delete_class :fileyear, :filesemester, :classcampus, :classcode';
             $params = array(
                 'fileyear' => $this->currentterminfo->fileyear,
                 'filesemester' => $this->currentterminfo->filesemester,
