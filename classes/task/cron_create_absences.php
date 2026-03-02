@@ -114,7 +114,7 @@ class cron_create_absences extends \core\task\scheduled_task {
                         'leavingdate' => $activitystart,
                         'returningdate' => $activityend,
                         'staffincharge' => $activity->get('staffincharge'),
-                        'comment' => $activity->get('activityname') . ' ' . $this->appendix . $activity->get('id'),
+                        'comment' => substr($activity->get('activityname'), 0, 40) . ' ' . $this->appendix . $activity->get('id'),
                     );
                     $externalDB->execute($sql, $params);
                 }
