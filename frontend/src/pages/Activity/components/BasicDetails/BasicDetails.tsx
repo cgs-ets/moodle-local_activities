@@ -320,7 +320,7 @@ export function BasicDetails() {
           </div>
 
           <Switch
-            checked={formData.cocurr}
+            checked={!!formData.cocurr}
             onChange={(event) => updateField('cocurr', event.currentTarget.checked)}
             label={<Text fz="sm" mb="5px" fw={500} c="#212529">Is this a cocurricular activity?</Text>}
           />

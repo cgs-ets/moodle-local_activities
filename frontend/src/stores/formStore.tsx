@@ -16,7 +16,7 @@ export type Form = {
   activityname: string;
   initialCampus: string;
   campus: string;
-  cocurr: boolean;
+  cocurr: boolean | number;
   initialCocurr: boolean;
   initialActivitytype: string;
   activitytype: string;
