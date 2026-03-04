@@ -171,7 +171,8 @@ export function Calendar({setCaltype}: Props) {
             
           const matchesCampus =
             filters.campus.length === 0 || 
-            filters.campus.includes(event.campus);
+            filters.campus.includes(event.campus) ||
+            (event.cocurr && filters.campus.includes('cocurricular'));
 
           const matchesStatus =
             filters.status.length === 0 || 

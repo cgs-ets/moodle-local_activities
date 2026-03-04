@@ -302,13 +302,12 @@ export function Assessment() {
   }
 
   // Update timeend when timestart changes
-  useEffect(() => {
+  // ISSUE: This is causing timeend to update when the assessment is loaded (not new)
+  /*useEffect(() => {
     if (!manuallyEdited.current) {
       updateField('timeend', (Number(formData.timestart) + 3600).toString());
     }
-  }, [formData.timestart]);
-
-
+  }, [formData.timestart]);*/
 
   const handleDelete = async () => {
     const response = await api3.call({

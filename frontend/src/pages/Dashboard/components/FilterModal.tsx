@@ -102,6 +102,7 @@ export function FilterModal({opened, filters, setFilters, close}: Props) {
                         <Checkbox value="senior" label="Senior School" />
                         <Checkbox value="whole" label="Whole School" />
                         <Checkbox value="commercial" label="Commercial" />
+                        <Checkbox value="cocurricular" label="Cocurricular" />
                       </div>
                     </Checkbox.Group>
                     { !!filters.campus?.length && <Button onClick={() => handleFilterChange('campus', [])} size="compact-md" className="rounded-full mt-3" variant="light" leftSection={<IconX className="size-5" />}>Clear</Button>}
