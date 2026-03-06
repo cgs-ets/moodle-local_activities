@@ -379,7 +379,11 @@ class cron_create_classes extends \core\task\scheduled_task {
                     'studentid' => $student,
                     'subjectclassesseq' => $seqnums->subjectclassesseq,
                 );
-                $this->externalDB->execute($sql, $params);
+                try {
+                    $this->externalDB->execute($sql, $params);
+                } catch (Exception $ex) {
+                    $this->log("Error inserting student {$student} into class {$classcode}: " . $ex->getMessage(), 2);
+                }
             }
 
             // 4. Remove students no longer attending.
