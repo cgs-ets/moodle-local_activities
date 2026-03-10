@@ -1617,6 +1617,12 @@ class activities_lib {
         $startofday = strtotime('midnight', $date);
         $endofday = strtotime('tomorrow', $startofday) - 1;
         
+
+
+
+
+
+
         $sql = "SELECT DISTINCT a.id
                 FROM {" . static::TABLE . "} a
                 JOIN {activities_students} ast ON a.id = ast.activityid
@@ -1631,7 +1637,37 @@ class activities_lib {
             'endofday' => $endofday
         ));
 
+        
         $activities = static::get_by_ids(array_column($activities, 'id'), static::ACTIVITY_STATUS_APPROVED, null, true);
+
+        // Get occurrences of recurring activities
+        $sql = "SELECT ao.id, ao.timestart, ao.timeend, a.id as activityid
+                FROM {" . static::TABLE . "} a
+                JOIN mdl_activities_occurrences ao ON ao.activityid = a.id
+                WHERE a.status = :status 
+                AND a.recurring = 1
+                AND ao.timestart >= :startofday 
+                AND ao.timestart <= :endofday";
+
+        $occurrences = $DB->get_records_sql($sql, array(
+            'status' => static::ACTIVITY_STATUS_APPROVED,
+            'startofday' => $startofday,
+            'endofday' => $endofday
+        ));
+
+
+
+        // Process recurring activity occurrences
+        foreach ($occurrences as $occurrence) {
+            $activity = new Activity($occurrence->activityid, true);
+            // Update timestamps to the occurrence's times
+            $activity->set('timestart', $occurrence->timestart);
+            $activity->set('timeend', $occurrence->timeend);
+            $activity->set('is_occurrence', true);
+            $activity->set('occurrenceid', $occurrence->id);
+            $activities[] = $activity;
+        }
+
 
         $result = array();
         $appendix = ($CFG->wwwroot != 'https://connect.cgs.act.edu.au') ? '#ID-UAT-' : '#ID-';
