@@ -1660,11 +1660,13 @@ class activities_lib {
         // Process recurring activity occurrences
         foreach ($occurrences as $occurrence) {
             $activity = new Activity($occurrence->activityid, true);
+            $activity = $activity->export_minimal();
             // Update timestamps to the occurrence's times
-            $activity->set('timestart', $occurrence->timestart);
-            $activity->set('timeend', $occurrence->timeend);
-            $activity->set('is_occurrence', true);
-            $activity->set('occurrenceid', $occurrence->id);
+            $activity->id = $occurrence->activityid;
+            $activity->timestart = $occurrence->timestart;
+            $activity->timeend = $occurrence->timeend;
+            $activity->is_occurrence = true;
+            $activity->occurrenceid = $occurrence->id;
             $activities[] = $activity;
         }
 
