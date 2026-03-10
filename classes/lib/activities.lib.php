@@ -2054,10 +2054,14 @@ class activities_lib {
 
         $recipients = array();
 
-        // Send the comment to the next approver in line.
+        // Send the comment to the next approver in line -- ONLY the nominated approver.
         $approvals = workflow_lib::get_unactioned_approvals($comment->activityid);
         foreach ($approvals as $nextapproval) {
-            $approvers = workflow_lib::WORKFLOW[$nextapproval->type]['approvers'];
+            if ($nextapproval->nominated) {
+                static::send_comment_email($activity, $comment, $nextapproval->nominated);
+                $recipients[] = $nextapproval->nominated;
+            }
+            /*$approvers = workflow_lib::WORKFLOW[$nextapproval->type]['approvers'];
             foreach($approvers as $approver) {
                 // Skip if approver does not want this notification.
                 if (isset($approver['notifications']) && !in_array('newcomment', $approver['notifications'])) {
@@ -2075,7 +2079,7 @@ class activities_lib {
                         $recipients[] = $approver['username'];
                     }
                 }
-            }
+            }*/
             // Break after sending to next approver in line. Comment is not sent to approvers down stream.
             break;
         }
@@ -2084,6 +2088,11 @@ class activities_lib {
         $approvals = workflow_lib::get_approvals($comment->activityid);
         foreach ($approvals as $approval) {
             if ( ! in_array($approval->username, $recipients)) {
+
+                // Not actioned yet.
+                if ((!$approval->status) || $approval->status == '0') {
+                    continue;
+                }
 
                 // Skip if approver does not want this notification.
                 $config = workflow_lib::WORKFLOW[$approval->type]['approvers'];
@@ -2099,10 +2108,10 @@ class activities_lib {
         }
 
         // Send comment to activity creator.
-        if ( ! in_array($activity->creator, $recipients)) {
-            static::send_comment_email($activity, $comment, $activity->creator);
-            $recipients[] = $activity->creator;
-        }
+        //if ( ! in_array($activity->creator, $recipients)) {
+        //    static::send_comment_email($activity, $comment, $activity->creator);
+        //    $recipients[] = $activity->creator;
+        //}
 
         // Send comment to the comment poster if they are not one of the above.
         if ( ! in_array($USER->username, $recipients)) {
