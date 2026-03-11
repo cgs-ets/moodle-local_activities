@@ -65,7 +65,7 @@ class cron_create_classes extends \core\task\scheduled_task {
         global $DB, $CFG;
 
         // Find activities that need roll marking.
-        $now = time();
+        $now = time() - 3600;
         $plusdays = strtotime('+7 day', $now);
         $readablenow = date('Y-m-d H:i:s', $now);
         $readableplusdays = date('Y-m-d H:i:s', $plusdays);
@@ -340,8 +340,7 @@ class cron_create_classes extends \core\task\scheduled_task {
                 'returningdate' => $dayend,
             );
             
-            $seqnums = $this->externalDB->get_records_sql($sql, $params);
-            $seqnums = array_pop($seqnums);
+            $seqnums = $this->externalDB->get_record_sql($sql, $params);
             $this->log("The sequence nums (staffscheduleseq, subjectclassesseq): " . json_encode($seqnums), 2);
 
             if (empty($seqnums) || empty($seqnums->staffscheduleseq) || empty($seqnums->subjectclassesseq)) {
