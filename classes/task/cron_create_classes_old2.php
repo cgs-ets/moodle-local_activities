@@ -325,10 +325,10 @@ class cron_create_classes extends \core\task\scheduled_task {
                 $daystart = date('Y-m-d 18:i', strtotime($daystart));
             }
 
-            // 1. Create the class and bulk insert/remove students.
+            // 1. Create the class.
             $this->log("Creating the class {$classcode}, with staff in charge {$activity->staffincharge}, start time {$daystart}", 2);
-            $sql = $this->config->createclasssql . ' :fileyear, :filesemester, :classcampus, :classcode, :description, :staffid, :leavingdate, :returningdate, :students';
-
+            $sql = $this->config->createclasssql . ' :fileyear, :filesemester, :classcampus, :classcode, :description, :staffid, :leavingdate, :returningdate';
+            
             $params = array(
                 'fileyear' => $this->currentterminfo->fileyear,
                 'filesemester' => $this->currentterminfo->filesemester,
@@ -338,9 +338,8 @@ class cron_create_classes extends \core\task\scheduled_task {
                 'staffid' => $activity->staffincharge,
                 'leavingdate' => $daystart,
                 'returningdate' => $dayend,
-                'students' => json_encode(array_values($attending)),
             );
-
+            
             $seqnums = $this->externalDB->get_record_sql($sql, $params);
             $this->log("The sequence nums (staffscheduleseq, subjectclassesseq): " . json_encode($seqnums), 2);
 
@@ -365,6 +364,39 @@ class cron_create_classes extends \core\task\scheduled_task {
                     $this->externalDB->execute($sql, $params);
                 }
             }
+
+            // 3. Insert the attending students.
+            foreach ($attending as $student) {
+                $this->log("Inserting class student: {$student}.", 2);
+                $sql = $this->config->insertclassstudentsql . ' :staffscheduleseq, :fileyear, :filesemester, :classcampus, :classcode, :studentid, :subjectclassesseq';
+                $params = array(
+                    'staffscheduleseq' => $seqnums->staffscheduleseq,
+                    'fileyear' => $this->currentterminfo->fileyear,
+                    'filesemester' => $this->currentterminfo->filesemester,
+                    'classcampus' => $activity->campus == 'senior' ? 'SEN' : 'PRI',
+                    'classcode' => $classcode,
+                    'studentid' => $student,
+                    'subjectclassesseq' => $seqnums->subjectclassesseq,
+                );
+                try {
+                    $this->externalDB->execute($sql, $params);
+                } catch (Exception $ex) {
+                    $this->log("Error inserting student {$student} into class {$classcode}: " . $ex->getMessage(), 2);
+                }
+            }
+
+            // 4. Remove students no longer attending.
+            $studentscsv = implode(',', $attending);
+            $this->log("Delete class students not in list: " . $studentscsv, 2);
+            $sql = $this->config->deleteclassstudentssql . ' :fileyear, :filesemester, :classcampus, :classcode, :studentscsv';
+            $params = array(
+                'fileyear' => $this->currentterminfo->fileyear,
+                'filesemester' => $this->currentterminfo->filesemester,
+                'classcampus' => $activity->campus == 'senior' ? 'SEN' : 'PRI',
+                'classcode' => $classcode,
+                'studentscsv' => $studentscsv,
+            );
+            $this->externalDB->execute($sql, $params);
         }
         
         $this->log("Finished creating class roll for {$type} " . $activity->id);

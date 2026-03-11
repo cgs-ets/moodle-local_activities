@@ -1,5 +1,6 @@
 <?php
     require(__DIR__.'/../../config.php');
+    $PAGE->set_url(new moodle_url($_SERVER['REQUEST_URI']));
     require_login();
     require_once __DIR__ . '/bootstrap.php';
     require_once(__DIR__.'/classes/lib/service.lib.php');
