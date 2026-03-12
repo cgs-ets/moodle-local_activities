@@ -72,6 +72,9 @@ class cron_create_classes extends \core\task\scheduled_task {
             // Phase 2: Sync (upsert) all expected classes to external DB.
             $synced = $this->sync_classes($expectedClasses);
 
+            var_export($synced);
+            exit;
+
             // Phase 3: Cleanup obsolete classes.
             $this->cleanup_obsolete_classes($expectedClasses);
 
@@ -296,6 +299,9 @@ class cron_create_classes extends \core\task\scheduled_task {
         $synced = ['activities' => [], 'assessments' => []];
 
         foreach ($expectedClasses as $classDef) {
+            if ($classDef->source_id != 12439) {
+                continue;
+            }
             try {
                 $this->log("Syncing class {$classDef->classcode} for {$classDef->source_type} {$classDef->source_id}, staff: {$classDef->staffid}, start: {$classDef->daystart}", 2);
 
@@ -342,7 +348,7 @@ class cron_create_classes extends \core\task\scheduled_task {
 
                 // Track successful sync.
                 $key = $classDef->source_type == 'activity' ? 'activities' : 'assessments';
-                $synced[$key][] = $classDef->source_id;
+                $synced[$key][] = $classDef->classcode;
 
             } catch (\Exception $ex) {
                 $this->log("Error syncing class {$classDef->classcode} for {$classDef->source_type} {$classDef->source_id}: " . $ex->getMessage());
@@ -357,8 +363,10 @@ class cron_create_classes extends \core\task\scheduled_task {
      * Phase 3: Cleanup obsolete classes that are no longer expected.
      *
      * @param array $expectedClasses Array of class definition objects
+     * @param int $now Start of the scanned time window (unix timestamp)
+     * @param int $plusdays End of the scanned time window (unix timestamp)
      */
-    private function cleanup_obsolete_classes($expectedClasses) {
+    private function cleanup_obsolete_classes($expectedClasses, $now, $plusdays) {
         if (empty($this->config->cleanupclassessql)) {
             $this->log("No cleanupclassessql configured, skipping cleanup.");
             return;
@@ -369,11 +377,13 @@ class cron_create_classes extends \core\task\scheduled_task {
         $this->log("Cleaning up obsolete classes. Valid class codes: " . count($validCodes));
 
         try {
-            $sql = $this->config->cleanupclassessql . ' :fileyear, :filesemester, :validclasscodes';
+            $sql = $this->config->cleanupclassessql . ' :fileyear, :filesemester, :validclasscodes, :datefrom, :dateto';
             $params = array(
                 'fileyear' => $this->currentterminfo->fileyear,
                 'filesemester' => $this->currentterminfo->filesemester,
                 'validclasscodes' => json_encode($validCodes),
+                'datefrom' => date('Y-m-d H:i:s', $now),
+                'dateto' => date('Y-m-d H:i:s', $plusdays),
             );
             $this->externalDB->execute($sql, $params);
             $this->log("Cleanup complete.");
