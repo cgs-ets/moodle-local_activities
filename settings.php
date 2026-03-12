@@ -103,4 +103,27 @@ if ($hassiteconfig) {
 
     $settings->add(new admin_setting_configtext('local_activities/getterminfosql', get_string('getterminfosql', 'local_activities'), '', ''));
 
+
+
+
+    // Synergetic DB connections
+    $settings->add(new admin_setting_heading(
+        'local_activities_synergeticdbheader', 
+        get_string('settingsheaderdb', 'local_activities'), 
+        ''
+    ));
+	$options = array('', "mariadb", "mysqli", "oci", "pdo", "pgsql", "sqlite3", "sqlsrv");
+    $options = array_combine($options, $options);
+    $settings->add(new admin_setting_configselect(
+        'local_activities/synergeticdbtype', 
+        get_string('dbtype', 'local_activities'), 
+        get_string('dbtype_desc', 'local_activities'), 
+        '', 
+        $options
+    ));
+    $settings->add(new admin_setting_configtext('local_activities/synergeticdbhost', get_string('dbhost', 'local_activities'), get_string('dbhost_desc', 'local_activities'), 'localhost'));
+    $settings->add(new admin_setting_configtext('local_activities/synergeticdbuser', get_string('dbuser', 'local_activities'), '', ''));
+    $settings->add(new admin_setting_configpasswordunmask('local_activities/synergeticdbpass', get_string('dbpass', 'local_activities'), '', ''));
+    $settings->add(new admin_setting_configtext('local_activities/synergeticdbname', get_string('dbname', 'local_activities'), '', ''));
+
 }
