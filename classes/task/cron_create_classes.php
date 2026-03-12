@@ -2,12 +2,9 @@
 
 /**
  * A scheduled task for creating and updating classes for rollmarking.
- * 
- * This improved version handles:
- * - Updating classes when dates/times change (deletes old, creates new)
- * - Deleting classes when all students are removed
- * - Detecting changes and reprocessing as needed
- * - Comprehensive cleanup of deleted activities/assessments
+ *
+ * Uses a BUILD → UPSERT → CLEANUP pipeline so classes always exist during processing.
+ * No DELETE → CREATE race conditions. No exit statements.
  *
  * @package   local_activities
  * @copyright 2024 Michael Vangelovski
@@ -25,51 +22,32 @@ use \local_activities\lib\assessments_lib;
 
 class cron_create_classes extends \core\task\scheduled_task {
 
-    // Use the logging trait to get some nice, juicy, logging.
     use \core\task\logging_trait;
 
-        
-    /**
-     * @var Class code prefix.
-     */
+    /** @var string Class code prefix. */
     protected $prefix = 'X';
 
-    /**
-     * @var The current term info.
-     */
+    /** @var object The current term info. */
     protected $currentterminfo = null;
 
-    /**
-     * @var The external database.
-     */
+    /** @var \moodle_database The external database. */
     protected $externalDB = null;
 
-    /**
-     * @var Configuration object.
-     */
+    /** @var object Configuration object. */
     protected $config = null;
 
-    /**
-     * Get a descriptive name for this task (shown to admins).
-     *
-     * @return string
-     */
     public function get_name() {
-        return get_string('cron_create_classes', 'local_activities') . ' (v2)';
+        return get_string('cron_create_classes', 'local_activities') . ' (v3 sync)';
     }
 
-    /**
-     * Execute the scheduled task.
-     */
     public function execute() {
         global $DB, $CFG;
 
-        // Find activities that need roll marking.
         $now = time() - 3600;
         $plusdays = strtotime('+7 day', $now);
         $readablenow = date('Y-m-d H:i:s', $now);
         $readableplusdays = date('Y-m-d H:i:s', $plusdays);
-        $this->log_start("Fetching activities and assessments within the next week (between {$readablenow} and {$readableplusdays}).");
+        $this->log_start("Syncing classes for rollmarking (between {$readablenow} and {$readableplusdays}).");
 
         try {
             $this->config = get_config('local_activities');
@@ -80,7 +58,6 @@ class cron_create_classes extends \core\task\scheduled_task {
             $this->externalDB = \moodle_database::get_driver_instance($this->config->dbtype, 'native', true);
             $this->externalDB->connect($this->config->dbhost, $this->config->dbuser, $this->config->dbpass, $this->config->dbname, '');
 
-            // Get term info.
             $currentterminfo = $this->externalDB->get_records_sql($this->config->getterminfosql);
             $this->currentterminfo = array_pop($currentterminfo);
 
@@ -88,129 +65,127 @@ class cron_create_classes extends \core\task\scheduled_task {
                 $this->prefix = 'XUAT_';
             }
 
-            // Process activities - get ALL activities in the time window, not just unprocessed ones
-            $this->process_activities($now, $plusdays);
+            // Phase 1: Build expected classes (pure data collection, no external DB writes).
+            $expectedClasses = $this->build_expected_classes($now, $plusdays);
+            $this->log("Built " . count($expectedClasses) . " expected class definitions.");
 
-            // Process assessments - get ALL assessments in the time window, not just unprocessed ones
-            $this->process_assessments($now, $plusdays);
+            // Phase 2: Sync (upsert) all expected classes to external DB.
+            $synced = $this->sync_classes($expectedClasses);
 
-            // Process deleted activities and assessments comprehensively
-            $this->process_deleted_items();
+            // Phase 3: Cleanup obsolete classes.
+            $this->cleanup_obsolete_classes($expectedClasses);
 
-        } catch (Exception $ex) {
+            // Bulk update classrollprocessed = 1 for synced IDs.
+            if (!empty($synced['activities'])) {
+                $activityids = array_unique($synced['activities']);
+                foreach ($activityids as $aid) {
+                    $DB->execute("UPDATE {activities} SET classrollprocessed = 1 WHERE id = ?", [$aid]);
+                }
+                $this->log("Marked " . count($activityids) . " activities as classrollprocessed.");
+            }
+            if (!empty($synced['assessments'])) {
+                $assessmentids = array_unique($synced['assessments']);
+                foreach ($assessmentids as $aid) {
+                    $DB->execute("UPDATE {activities_assessments} SET classrollprocessed = 1 WHERE id = ?", [$aid]);
+                }
+                $this->log("Marked " . count($assessmentids) . " assessments as classrollprocessed.");
+            }
+
+        } catch (\Exception $ex) {
             $this->log("Error in cron_create_classes: " . $ex->getMessage());
         }
 
-        $this->log_finish("Finished creating/updating class rolls");
+        $this->log_finish("Finished syncing class rolls");
     }
 
     /**
-     * Process all activities that need class rolls.
-     * 
+     * Phase 1: Build all expected class definitions from activities and assessments.
+     * Pure data collection — no external DB writes.
+     *
      * @param int $now Current timestamp
      * @param int $plusdays Timestamp for 7 days from now
+     * @return array Array of class definition objects
      */
-    private function process_activities($now, $plusdays) {
+    private function build_expected_classes($now, $plusdays) {
         global $DB;
 
-        $this->log("Processing activities...");
+        $classes = [];
 
-        // Get ALL activities in the time window (not just unprocessed ones)
-        // This allows us to detect changes and update existing classes
-        // Note, we process recurrences later in this script!!
+        // --- Activities ---
         $sql = "SELECT a.id, a.timestart, a.timeend, a.timemodified, a.classrollprocessed
                 FROM mdl_activities a
                 WHERE deleted = 0
                 AND (
-					(
-						(timestart <= {$plusdays} AND timestart >= {$now}) OR
+                    (
+                        (timestart <= {$plusdays} AND timestart >= {$now}) OR
                         (timestart <= {$now} AND timeend >= {$now})
-					)
-					OR EXISTS (
-						SELECT 1 
-						FROM mdl_activities_occurrences o
-						WHERE o.activityid = a.id AND (
-							(timestart <= {$plusdays} AND timestart >= {$now}) OR
+                    )
+                    OR EXISTS (
+                        SELECT 1
+                        FROM mdl_activities_occurrences o
+                        WHERE o.activityid = a.id AND (
+                            (timestart <= {$plusdays} AND timestart >= {$now}) OR
                             (timestart <= {$now} AND timeend >= {$now})
-						)
-					)
-				)";
+                        )
+                    )
+                )";
         $activityrecords = $DB->get_records_sql($sql);
-
-        $alreadydeleted = [];
+        $this->log("Found " . count($activityrecords) . " activities in time window.");
 
         foreach ($activityrecords as $record) {
             try {
                 $activity = new Activity($record->id, true);
                 $activitydata = $activity->export();
 
-                // Get current attending students
                 $attending = activities_lib::get_all_attending($activitydata->id);
-
-                // If no students, delete any existing classes and mark as processed
                 if (empty($attending)) {
-                    if (in_array($activitydata->id, $alreadydeleted)) {
-                        // Don't try to delete an activity twice...
-                        continue;
-                    }
-                    $alreadydeleted[] = $activitydata->id;
-                    $this->log("Activity {$activitydata->id} ({$activitydata->activityname}) has no students - deleting any existing classes");
-                    $this->delete_activity_classes($activitydata);
-                    $DB->execute("UPDATE {activities} SET classrollprocessed = 1 WHERE id = ?", [$activitydata->id]);
+                    $this->log("Activity {$activitydata->id} ({$activitydata->activityname}) has no students, skipping.");
                     continue;
                 }
-                
-                // Determine if we need to reprocess
-                // Strategy: Always reprocess if classrollprocessed = 0 (never processed)
-                // Also reprocess if it was processed but modified recently (within last 2 days)
-                // This catches date/time changes and student list changes
-                $needsreprocess = ($record->classrollprocessed == 0);
-                if (!$needsreprocess) {
-                    // Check if activity was modified recently - if so, it likely changed
-                    // We use 2 days to catch any changes that might have happened
-                    if ($record->timemodified > (time() - 172800)) {
-                        $needsreprocess = true;
-                        $this->log("Activity {$activitydata->id} was recently modified (timemodified: " . date('Y-m-d H:i:s', $record->timemodified) . "), will reprocess");
-                        // Reset the flag so it gets fully reprocessed
-                        $DB->execute("UPDATE {activities} SET classrollprocessed = 0 WHERE id = ?", [$activitydata->id]);
+
+                $extrastaff = $DB->get_records('activities_staff', array('activityid' => $activitydata->id));
+                $extrastaffusernames = array_values(array_map(function($e) { return $e->username; }, $extrastaff));
+
+                // Build class defs for the primary occurrence.
+                $primaryClasses = $this->build_class_defs_for_timerange(
+                    'activity',
+                    $activitydata->id,
+                    $activitydata->activityname,
+                    $activitydata->staffincharge,
+                    $activitydata->campus,
+                    $activitydata->timestart,
+                    $activitydata->timeend,
+                    array_values($attending),
+                    $extrastaffusernames
+                );
+                $classes = array_merge($classes, $primaryClasses);
+
+                // Build class defs for recurrences.
+                if (isset($activitydata->occurrences) && !empty($activitydata->occurrences->dates)) {
+                    foreach ($activitydata->occurrences->dates as $occurrence) {
+                        if ($activitydata->timestart == $occurrence['start']) {
+                            continue; // Skip first occurrence (already processed above).
+                        }
+                        $recurrenceClasses = $this->build_class_defs_for_timerange(
+                            'activity',
+                            $activitydata->id,
+                            $activitydata->activityname,
+                            $activitydata->staffincharge,
+                            $activitydata->campus,
+                            $occurrence['start'],
+                            $occurrence['end'],
+                            array_values($attending),
+                            $extrastaffusernames
+                        );
+                        $classes = array_merge($classes, $recurrenceClasses);
                     }
                 }
-
-                // Process the activity (create or update classes)
-                // Always delete old classes first to handle date changes properly
-                if ($needsreprocess) {
-                    $this->log("Deleting old classes for activity {$activitydata->id} before recreating (dates may have changed)");
-                    $this->delete_activity_classes($activitydata);
-                    $success = $this->create_class_roll($activitydata, $attending, 'activity');
-                    if ($success) {
-                        $DB->execute("UPDATE {activities} SET classrollprocessed = 1 WHERE id = ?", [$activitydata->id]);
-                    }
-
-                    // Sneak in the creation of classes for any recurrences of this activity.
-                    $this->process_recurrences($activitydata, $attending);
-                    exit;
-                }
-            } catch (Exception $ex) {
-                $this->log("Error processing activity {$record->id}: " . $ex->getMessage());
+            } catch (\Exception $ex) {
+                $this->log("Error building classes for activity {$record->id}: " . $ex->getMessage());
             }
-
-            // For testing, just do one class...
-            exit;
         }
-    }
 
-    /**
-     * Process all assessments that need class rolls.
-     * 
-     * @param int $now Current timestamp
-     * @param int $plusdays Timestamp for 7 days from now
-     */
-    private function process_assessments($now, $plusdays) {
-        global $DB;
-
-        $this->log("Processing assessments...");
-
-        // Get ALL assessments in the time window (not just unprocessed ones)
+        // --- Assessments ---
         $sql = "SELECT id, timestart, timeend, timemodified, classrollprocessed
                 FROM {activities_assessments}
                 WHERE deleted = 0
@@ -218,228 +193,198 @@ class cron_create_classes extends \core\task\scheduled_task {
                     (timestart <= {$plusdays} AND timestart >= {$now}) OR
                     (timestart <= {$now} AND timeend >= {$now})
                 )";
-        
         $assessmentrecords = $DB->get_records_sql($sql);
-        
+        $this->log("Found " . count($assessmentrecords) . " assessments in time window.");
+
         foreach ($assessmentrecords as $record) {
             try {
-                // Get assessment data
                 $assessment = $DB->get_record('activities_assessments', ['id' => $record->id]);
                 if (!$assessment) {
                     continue;
                 }
 
-                $assessmentdata = (object) [
-                    'id' => $assessment->id,
-                    'activityname' => $assessment->name,
-                    'timestart' => $assessment->timestart,
-                    'timeend' => $assessment->timeend,
-                    'campus' => 'senior',
-                    'staffincharge' => $assessment->staffinchargejson ? $assessment->staffincharge : $assessment->creator,
-                ];
-
-                // Get current attending students
-                $rawattending = assessments_lib::get_assessment_students($assessmentdata->id);
+                $rawattending = assessments_lib::get_assessment_students($assessment->id);
                 $attending = array_values(array_column($rawattending, 'un'));
-
-                // If no students, delete any existing classes and mark as processed
                 if (empty($attending)) {
-                    $this->log("Assessment {$assessmentdata->id} has no students - deleting any existing classes");
-                    $this->delete_assessment_classes($assessmentdata);
-                    $DB->execute("UPDATE {activities_assessments} SET classrollprocessed = 1 WHERE id = ?", [$assessmentdata->id]);
+                    $this->log("Assessment {$assessment->id} ({$assessment->name}) has no students, skipping.");
                     continue;
                 }
 
-                // Determine if we need to reprocess
-                // Strategy: Always reprocess if classrollprocessed = 0 (never processed)
-                // Also reprocess if it was processed but modified recently (within last 2 days)
-                $needsreprocess = ($record->classrollprocessed == 0);
-                if (!$needsreprocess) {
-                    // Check if assessment was modified recently
-                    if ($record->timemodified > (time() - 172800)) {
-                        $needsreprocess = true;
-                        $this->log("Assessment {$assessmentdata->id} was recently modified (timemodified: " . date('Y-m-d H:i:s', $record->timemodified) . "), will reprocess");
-                        // Reset the flag so it gets fully reprocessed
-                        $DB->execute("UPDATE {activities_assessments} SET classrollprocessed = 0 WHERE id = ?", [$assessmentdata->id]);
-                    }
-                }
+                $staffid = !empty($assessment->staffincharge) ? $assessment->staffincharge : $assessment->creator;
 
-                // Process the assessment (create or update classes)
-                // Always delete old classes first to handle date changes properly
-                if ($needsreprocess) {
-                    $this->log("Deleting old classes for assessment {$assessmentdata->id} before recreating (dates may have changed)");
-                    $this->delete_assessment_classes($assessmentdata);
-                    $success = $this->create_class_roll($assessmentdata, $attending, 'assessment');
-                    if ($success) {
-                        $DB->execute("UPDATE {activities_assessments} SET classrollprocessed = 1 WHERE id = ?", [$assessmentdata->id]);
-                    }
-                }
-            } catch (Exception $ex) {
-                $this->log("Error processing assessment {$record->id}: " . $ex->getMessage());
+                $assessmentClasses = $this->build_class_defs_for_timerange(
+                    'assessment',
+                    $assessment->id,
+                    $assessment->name,
+                    $staffid,
+                    'senior',
+                    $assessment->timestart,
+                    $assessment->timeend,
+                    $attending,
+                    []
+                );
+                $classes = array_merge($classes, $assessmentClasses);
+            } catch (\Exception $ex) {
+                $this->log("Error building classes for assessment {$record->id}: " . $ex->getMessage());
             }
         }
-    }
 
-    private function process_recurrences($activity, $attending) {
-        global $DB;
-
-        if (isset($activity->occurrences) && count($activity->occurrences->dates)) {
-            $this->log("Processing recurrences of activity {$activity->id}...", 2);
-            foreach ($activity->occurrences->dates as $occurrence) {
-                if ($activity->timestart == $occurrence['start']) {
-                    //ignore the first occurrence because we've already processed it.
-                    continue;
-                }
-                $activity->timestart = $occurrence['start'];
-                $activity->timeend = $occurrence['end'];
-                $this->create_class_roll($activity, $attending, 'activity');
-            }
-        }
+        return $classes;
     }
 
     /**
-     * Create class roll for an activity or assessment.
-     * 
-     * @param object $activity Activity or assessment data
-     * @param array $attending Array of student usernames
-     * @param string $type 'activity' or 'assessment'
-     * @return bool Success
+     * Build class definition objects for a given time range (splits multi-day events).
+     *
+     * @param string $sourcetype 'activity' or 'assessment'
+     * @param int $sourceid Activity or assessment ID
+     * @param string $description Activity/assessment name
+     * @param string $staffid Staff in charge username
+     * @param string $campus Campus name
+     * @param int $timestart Start timestamp
+     * @param int $timeend End timestamp
+     * @param array $students Array of student usernames
+     * @param array $extrastaff Array of extra staff usernames
+     * @return array Array of class definition objects
      */
-    private function create_class_roll($activity, $attending, $type = 'activity') {
-        global $DB;
+    private function build_class_defs_for_timerange($sourcetype, $sourceid, $description, $staffid, $campus, $timestart, $timeend, $students, $extrastaff) {
+        $start = date('Y-m-d H:i', $timestart);
+        $end = date('Y-m-d H:i', $timeend);
+        $days = $this->split_into_days($start, $end);
+        $defs = [];
 
-        $this->log("Creating class roll for {$type} " . $activity->id);
-        $activitystart = date('Y-m-d H:i', $activity->timestart);
-        $activityend = date('Y-m-d H:i', $activity->timeend);
-
-        // If this activity is multiple days, break it into days and create a class for each day
-        $days = $this->split_into_days($activitystart, $activityend);
-
-        // For each day of this event, create a class.
         foreach ($days as $day) {
             $daystart = $day['start'];
             $dayend = $day['end'];
-            
-            // Convert start time to DateTime object
-            $startDateTime = new \DateTime($daystart);
-            // Format the month and day as MMDD
-            $monthDay = $startDateTime->format('md');
-            $classcode = $this->prefix . $activity->id . '_' . $monthDay;
 
-            // Keep within schedule limits.
-            $activitystarthour = (int)date('H', strtotime($daystart));
-            if ($activitystarthour < 6) {
+            $startDateTime = new \DateTime($daystart);
+            $monthDay = $startDateTime->format('md');
+            $classcode = $this->prefix . $sourceid . '_' . $monthDay;
+
+            // Clamp start hour to 6-18.
+            $starthour = (int)date('H', strtotime($daystart));
+            if ($starthour < 6) {
                 $daystart = date('Y-m-d 06:i', strtotime($daystart));
             }
-            if ($activitystarthour > 18) {
+            if ($starthour > 18) {
                 $daystart = date('Y-m-d 18:i', strtotime($daystart));
             }
 
-            // 1. Create the class and bulk insert/remove students.
-            $this->log("Creating the class {$classcode}, with staff in charge {$activity->staffincharge}, start time {$daystart}", 2);
-            $sql = $this->config->createclasssql . ' :fileyear, :filesemester, :classcampus, :classcode, :description, :staffid, :leavingdate, :returningdate, :students';
+            $defs[] = (object)[
+                'source_type' => $sourcetype,
+                'source_id'   => $sourceid,
+                'classcode'   => $classcode,
+                'description' => $description,
+                'staffid'     => $staffid,
+                'campus'      => $campus == 'senior' ? 'SEN' : 'PRI',
+                'daystart'    => $daystart,
+                'dayend'      => $dayend,
+                'students'    => $students,
+                'extrastaff'  => $extrastaff,
+            ];
+        }
 
-            $params = array(
-                'fileyear' => $this->currentterminfo->fileyear,
-                'filesemester' => $this->currentterminfo->filesemester,
-                'classcampus' => $activity->campus == 'senior' ? 'SEN' : 'PRI',
-                'classcode' => $classcode,
-                'description' => $activity->activityname,
-                'staffid' => $activity->staffincharge,
-                'leavingdate' => $daystart,
-                'returningdate' => $dayend,
-                'students' => json_encode(array_values($attending)),
-            );
+        return $defs;
+    }
 
-            $seqnums = $this->externalDB->get_record_sql($sql, $params);
-            $this->log("The sequence nums (staffscheduleseq, subjectclassesseq): " . json_encode($seqnums), 2);
+    /**
+     * Phase 2: Sync (upsert) all expected classes to the external database.
+     *
+     * @param array $expectedClasses Array of class definition objects
+     * @return array ['activities' => [...ids], 'assessments' => [...ids]]
+     */
+    private function sync_classes($expectedClasses) {
+        $synced = ['activities' => [], 'assessments' => []];
 
-            if (empty($seqnums) || empty($seqnums->staffscheduleseq) || empty($seqnums->subjectclassesseq)) {
-                $this->log("No sequence nums found for {$type} " . $activity->id . ", skipping class creation.", 2);
-                return false;
-            }
+        foreach ($expectedClasses as $classDef) {
+            try {
+                $this->log("Syncing class {$classDef->classcode} for {$classDef->source_type} {$classDef->source_id}, staff: {$classDef->staffid}, start: {$classDef->daystart}", 2);
 
-            // 2. Insert the extra staff (only for activities).
-            if ($type == 'activity') {
-                $extrastaff = $DB->get_records('activities_staff', array('activityid' => $activity->id));
-                foreach ($extrastaff as $e) {
-                    $this->log("Inserting extra class teacher: " . $e->username, 2);
-                    $sql = $this->config->insertclassstaffsql . ' :fileyear, :filesemester, :classcampus, :classcode, :staffid';
-                    $params = array(
-                        'fileyear' => $this->currentterminfo->fileyear,
-                        'filesemester' => $this->currentterminfo->filesemester,
-                        'classcampus' => $activity->campus == 'senior' ? 'SEN' : 'PRI',
-                        'classcode' => $classcode,
-                        'staffid' => $e->username,
-                    );
-                    $this->externalDB->execute($sql, $params);
+                $sql = $this->config->createclasssql . ' :fileyear, :filesemester, :classcampus, :classcode, :description, :staffid, :leavingdate, :returningdate, :students';
+                $params = array(
+                    'fileyear' => $this->currentterminfo->fileyear,
+                    'filesemester' => $this->currentterminfo->filesemester,
+                    'classcampus' => $classDef->campus,
+                    'classcode' => $classDef->classcode,
+                    'description' => $classDef->description,
+                    'staffid' => $classDef->staffid,
+                    'leavingdate' => $classDef->daystart,
+                    'returningdate' => $classDef->dayend,
+                    'students' => json_encode(array_values($classDef->students)),
+                );
+
+                $seqnums = $this->externalDB->get_record_sql($sql, $params);
+                $this->log("Sequence nums (staffscheduleseq, subjectclassesseq): " . json_encode($seqnums), 2);
+
+                if (empty($seqnums) || empty($seqnums->staffscheduleseq) || empty($seqnums->subjectclassesseq)) {
+                    $this->log("No sequence nums for {$classDef->source_type} {$classDef->source_id} class {$classDef->classcode}, skipping.", 2);
+                    continue;
                 }
+
+                // Insert extra staff (activities only).
+                if ($classDef->source_type == 'activity' && !empty($classDef->extrastaff)) {
+                    foreach ($classDef->extrastaff as $staffusername) {
+                        try {
+                            $this->log("Inserting extra class teacher: {$staffusername} for {$classDef->classcode}", 2);
+                            $sql = $this->config->insertclassstaffsql . ' :fileyear, :filesemester, :classcampus, :classcode, :staffid';
+                            $params = array(
+                                'fileyear' => $this->currentterminfo->fileyear,
+                                'filesemester' => $this->currentterminfo->filesemester,
+                                'classcampus' => $classDef->campus,
+                                'classcode' => $classDef->classcode,
+                                'staffid' => $staffusername,
+                            );
+                            $this->externalDB->execute($sql, $params);
+                        } catch (\Exception $ex) {
+                            $this->log("Error inserting extra staff {$staffusername} for {$classDef->classcode}: " . $ex->getMessage());
+                        }
+                    }
+                }
+
+                // Track successful sync.
+                $key = $classDef->source_type == 'activity' ? 'activities' : 'assessments';
+                $synced[$key][] = $classDef->source_id;
+
+            } catch (\Exception $ex) {
+                $this->log("Error syncing class {$classDef->classcode} for {$classDef->source_type} {$classDef->source_id}: " . $ex->getMessage());
             }
         }
-        
-        $this->log("Finished creating class roll for {$type} " . $activity->id);
-        return true;
-    }
 
- 
-    /**
-     * Delete all classes for an activity.
-     * 
-     * @param object $activity Activity data
-     */
-    private function delete_activity_classes($activity) {
-        $activitystart = date('Y-m-d H:i', $activity->timestart);
-        $activityend = date('Y-m-d H:i', $activity->timeend);
-
-        // Get all possible days (including potential old dates)
-        // We need to delete classes for all possible date combinations
-        // For simplicity, we'll delete classes for a range of dates around the activity
-        //$days = $this->split_into_days($activitystart, $activityend);
-
-        //foreach ($days as $day) {
-            $classcode = $this->prefix . $activity->id . '_';
-
-            $this->log("Deleting class {$classcode}", 2);
-            $sql = 'EXEC cgs.local_excursions_delete_class :fileyear, :filesemester, :classcampus, :classcode';
-            $params = array(
-                'fileyear' => $this->currentterminfo->fileyear,
-                'filesemester' => $this->currentterminfo->filesemester,
-                'classcampus' => $activity->campus == 'senior' ? 'SEN' : 'PRI',
-                'classcode' => $classcode,
-            );
-            $this->externalDB->execute($sql, $params);
-        //}
+        $this->log("Synced " . count(array_unique($synced['activities'])) . " activities, " . count(array_unique($synced['assessments'])) . " assessments.");
+        return $synced;
     }
 
     /**
-     * Delete all classes for an assessment.
-     * 
-     * @param object $assessment Assessment data
+     * Phase 3: Cleanup obsolete classes that are no longer expected.
+     *
+     * @param array $expectedClasses Array of class definition objects
      */
-    private function delete_assessment_classes($assessment) {
-        $assessmentstart = date('Y-m-d H:i', $assessment->timestart);
-        $assessmentend = date('Y-m-d H:i', $assessment->timeend);
+    private function cleanup_obsolete_classes($expectedClasses) {
+        if (empty($this->config->cleanupclassessql)) {
+            $this->log("No cleanupclassessql configured, skipping cleanup.");
+            return;
+        }
 
-        $days = $this->split_into_days($assessmentstart, $assessmentend);
+        $validCodes = array_values(array_unique(array_map(function($c) { return $c->classcode; }, $expectedClasses)));
 
-        foreach ($days as $day) {
-            $classcode = $this->prefix . $assessment->id . '_';
+        $this->log("Cleaning up obsolete classes. Valid class codes: " . count($validCodes));
 
-            $this->log("Deleting assessment {$classcode}", 2);
-            $sql = 'EXEC cgs.local_excursions_delete_class :fileyear, :filesemester, :classcampus, :classcode';
+        try {
+            $sql = $this->config->cleanupclassessql . ' :fileyear, :filesemester, :validclasscodes';
             $params = array(
                 'fileyear' => $this->currentterminfo->fileyear,
                 'filesemester' => $this->currentterminfo->filesemester,
-                'classcampus' => $assessment->campus == 'senior' ? 'SEN' : 'PRI',
-                'classcode' => $classcode,
+                'validclasscodes' => json_encode($validCodes),
             );
             $this->externalDB->execute($sql, $params);
+            $this->log("Cleanup complete.");
+        } catch (\Exception $ex) {
+            $this->log("Error during cleanup: " . $ex->getMessage());
         }
     }
 
     /**
      * Split a date range into individual days.
-     * 
+     *
      * @param string $start Start date/time (Y-m-d H:i)
      * @param string $end End date/time (Y-m-d H:i)
      * @return array Array of day arrays with 'start' and 'end' keys
@@ -450,82 +395,35 @@ class cron_create_classes extends \core\task\scheduled_task {
         $result = [];
 
         if ($startDateTime->format('Y-m-d') === $endDateTime->format('Y-m-d')) {
-            // Single-day event
             $result[] = [
                 "start" => $startDateTime->format('Y-m-d H:i'),
                 "end" => $endDateTime->format('Y-m-d H:i')
             ];
         } else {
-            // Multiday event
             $currentDate = clone $startDateTime;
 
             while ($currentDate <= $endDateTime) {
-                // For the first day, use the actual start time
                 if ($currentDate->format('Y-m-d') == $startDateTime->format('Y-m-d')) {
                     $result[] = [
                         "start" => $startDateTime->format('Y-m-d H:i'),
                         "end" => $startDateTime->format('Y-m-d') . ' 23:59'
                     ];
                 } else if ($currentDate->format('Y-m-d') == $endDateTime->format('Y-m-d')) {
-                    // For the last day, use the actual end time
                     $result[] = [
                         "start" => $endDateTime->format('Y-m-d') . ' 00:00',
                         "end" => $endDateTime->format('Y-m-d H:i')
                     ];
                 } else {
-                    // For middle days, use the whole day
                     $result[] = [
                         "start" => $currentDate->format('Y-m-d') . ' 00:00',
                         "end" => $currentDate->format('Y-m-d') . ' 23:59'
                     ];
                 }
 
-                // Move to the next day
                 $currentDate->modify('+1 day');
             }
         }
 
         return $result;
     }
-
-    /**
-     * Process deleted activities and assessments comprehensively.
-     * This checks all deleted items, not just recent ones.
-     */
-    private function process_deleted_items() {
-        global $DB;
-
-        $this->log("Processing deleted activities and assessments...");
-
-        // Process all deleted activities (not just recent ones)
-        $activities = $DB->get_records_sql('SELECT * FROM {activities} WHERE deleted = 1');
-        foreach ($activities as $activity) {
-            try {
-                $this->log("Processing deleted activity: " . $activity->id);
-                //$activitydata = $activity->export();
-                $this->delete_activity_classes($activity);
-            } catch (Exception $ex) {
-                $this->log("Error processing deleted activity {$activity->id}: " . $ex->getMessage());
-            }
-        }
-        
-        // Process all deleted assessments (not just recent ones)
-        $assessments = $DB->get_records_sql('SELECT * FROM {activities_assessments} WHERE deleted = 1');
-        foreach ($assessments as $assessment) {
-            try {
-                $this->log("Processing deleted assessment: " . $assessment->id);
-                $assessmentdata = (object) [
-                    'id' => $assessment->id,
-                    'activityname' => $assessment->name,
-                    'timestart' => $assessment->timestart,
-                    'timeend' => $assessment->timeend,
-                    'campus' => 'senior',
-                ];
-                $this->delete_assessment_classes($assessmentdata);
-            } catch (Exception $ex) {
-                $this->log("Error processing deleted assessment {$assessment->id}: " . $ex->getMessage());
-            }
-        }
-    }
 }
-

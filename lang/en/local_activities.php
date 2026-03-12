@@ -35,6 +35,7 @@ $string['studentdatachecksql'] = 'Student Data Check SQL';
 $string['excursionconsentsql'] = 'Excursions consent SQL';
 $string['createclasssql'] = 'Create class SQL';
 $string['insertclassstaffsql'] = 'Insert class staff SQL';
+$string['cleanupclassessql'] = 'Cleanup classes SQL';
 $string['getterminfosql'] = 'Get term info SQL';
 $string['getdisalloweduserssql'] = 'Get disallowed users SQL';
 $string['deleteorphanedsql'] = 'Delete orphaned absences SQL';
