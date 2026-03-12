@@ -97,7 +97,7 @@ if ($hassiteconfig) {
 
     $settings->add(new admin_setting_configtext('local_activities/getdisalloweduserssql', get_string('getdisalloweduserssql', 'local_activities'), '', ''));
 
-    $settings->add(new admin_setting_configtext('local_activities/getterminfosql', get_string('getterminfosql', 'local_activities'), '', ''));
+    
 
 
 
@@ -126,6 +126,6 @@ if ($hassiteconfig) {
     $settings->add(new admin_setting_configtext('local_activities/createclasssql', get_string('createclasssql', 'local_activities'), '', ''));
     $settings->add(new admin_setting_configtext('local_activities/insertclassstaffsql', get_string('insertclassstaffsql', 'local_activities'), '', ''));
     $settings->add(new admin_setting_configtext('local_activities/cleanupclassessql', get_string('cleanupclassessql', 'local_activities'), '', ''));
-
+    $settings->add(new admin_setting_configtext('local_activities/getterminfosql', get_string('getterminfosql', 'local_activities'), '', ''));
 
 }

@@ -25,7 +25,7 @@ class cron_create_classes extends \core\task\scheduled_task {
     use \core\task\logging_trait;
 
     /** @var string Class code prefix. */
-    protected $prefix = 'XT';
+    protected $prefix = 'X';
 
     /** @var object The current term info. */
     protected $currentterminfo = null;
@@ -51,12 +51,12 @@ class cron_create_classes extends \core\task\scheduled_task {
 
         try {
             $this->config = get_config('local_activities');
-            if (empty($this->config->dbhost ?? '') || empty($this->config->dbuser ?? '') || empty($this->config->dbpass ?? '') || empty($this->config->dbname ?? '')) {
+            if (empty($this->config->synergeticdbhost ?? '') || empty($this->config->synergeticdbuser ?? '') || empty($this->config->synergeticdbpass ?? '') || empty($this->config->synergeticdbname ?? '')) {
                 $this->log("No config found for local_activities");
                 return;
             }
-            $this->externalDB = \moodle_database::get_driver_instance($this->config->dbtype, 'native', true);
-            $this->externalDB->connect($this->config->dbhost, $this->config->dbuser, $this->config->dbpass, $this->config->dbname, '');
+            $this->externalDB = \moodle_database::get_driver_instance($this->config->synergeticdbtype, 'native', true);
+            $this->externalDB->connect($this->config->synergeticdbhost, $this->config->synergeticdbuser, $this->config->synergeticdbpass, $this->config->synergeticdbname, '');
 
             $currentterminfo = $this->externalDB->get_records_sql($this->config->getterminfosql);
             $this->currentterminfo = array_pop($currentterminfo);
@@ -73,7 +73,7 @@ class cron_create_classes extends \core\task\scheduled_task {
             $synced = $this->sync_classes($expectedClasses);
 
             // Phase 3: Cleanup obsolete classes.
-            $this->cleanup_obsolete_classes($expectedClasses);
+            $this->cleanup_obsolete_classes($expectedClasses, $now, $plusdays);
 
             // Bulk update classrollprocessed = 1 for synced IDs.
             if (!empty($synced['activities'])) {
@@ -296,9 +296,6 @@ class cron_create_classes extends \core\task\scheduled_task {
         $synced = ['activities' => [], 'assessments' => []];
 
         foreach ($expectedClasses as $classDef) {
-            if ($classDef->source_id != 12439) {
-                continue;
-            }
             try {
                 $this->log("Syncing class {$classDef->classcode} for {$classDef->source_type} {$classDef->source_id}, staff: {$classDef->staffid}, start: {$classDef->daystart}", 2);
 
@@ -324,7 +321,7 @@ class cron_create_classes extends \core\task\scheduled_task {
                 }
 
                 // Insert extra staff (activities only).
-                /*if ($classDef->source_type == 'activity' && !empty($classDef->extrastaff)) {
+                if ($classDef->source_type == 'activity' && !empty($classDef->extrastaff)) {
                     foreach ($classDef->extrastaff as $staffusername) {
                         try {
                             $this->log("Inserting extra class teacher: {$staffusername} for {$classDef->classcode}", 2);
@@ -341,7 +338,7 @@ class cron_create_classes extends \core\task\scheduled_task {
                             $this->log("Error inserting extra staff {$staffusername} for {$classDef->classcode}: " . $ex->getMessage());
                         }
                     }
-                }*/
+                }
 
                 // Track successful sync.
                 $key = $classDef->source_type == 'activity' ? 'activities' : 'assessments';
