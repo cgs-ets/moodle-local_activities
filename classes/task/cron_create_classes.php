@@ -186,6 +186,9 @@ class cron_create_classes extends \core\task\scheduled_task {
             } catch (Exception $ex) {
                 $this->log("Error processing activity {$record->id}: " . $ex->getMessage());
             }
+
+            // For testing, just do one class...
+            //exit;
         }
     }
 
