@@ -25,7 +25,7 @@ class cron_create_classes extends \core\task\scheduled_task {
     use \core\task\logging_trait;
 
     /** @var string Class code prefix. */
-    protected $prefix = 'X';
+    protected $prefix = 'XT';
 
     /** @var object The current term info. */
     protected $currentterminfo = null;
@@ -44,7 +44,7 @@ class cron_create_classes extends \core\task\scheduled_task {
         global $DB, $CFG;
 
         $now = time() - 3600;
-        $plusdays = strtotime('+7 day', $now);
+        $plusdays = strtotime('+2 day', $now);
         $readablenow = date('Y-m-d H:i:s', $now);
         $readableplusdays = date('Y-m-d H:i:s', $plusdays);
         $this->log_start("Syncing classes for rollmarking (between {$readablenow} and {$readableplusdays}).");
@@ -71,9 +71,6 @@ class cron_create_classes extends \core\task\scheduled_task {
 
             // Phase 2: Sync (upsert) all expected classes to external DB.
             $synced = $this->sync_classes($expectedClasses);
-
-            var_export($synced);
-            exit;
 
             // Phase 3: Cleanup obsolete classes.
             $this->cleanup_obsolete_classes($expectedClasses);
@@ -327,7 +324,7 @@ class cron_create_classes extends \core\task\scheduled_task {
                 }
 
                 // Insert extra staff (activities only).
-                if ($classDef->source_type == 'activity' && !empty($classDef->extrastaff)) {
+                /*if ($classDef->source_type == 'activity' && !empty($classDef->extrastaff)) {
                     foreach ($classDef->extrastaff as $staffusername) {
                         try {
                             $this->log("Inserting extra class teacher: {$staffusername} for {$classDef->classcode}", 2);
@@ -344,11 +341,11 @@ class cron_create_classes extends \core\task\scheduled_task {
                             $this->log("Error inserting extra staff {$staffusername} for {$classDef->classcode}: " . $ex->getMessage());
                         }
                     }
-                }
+                }*/
 
                 // Track successful sync.
                 $key = $classDef->source_type == 'activity' ? 'activities' : 'assessments';
-                $synced[$key][] = $classDef->classcode;
+                $synced[$key][] = $classDef->source_id;
 
             } catch (\Exception $ex) {
                 $this->log("Error syncing class {$classDef->classcode} for {$classDef->source_type} {$classDef->source_id}: " . $ex->getMessage());
