@@ -1523,6 +1523,63 @@ class activities_lib {
         return $activities;
     }
 
+    public static function get_for_class_roll_creation($now, $plusdays) {
+        global $DB;
+
+
+        // Get ALL activities in the time window (not just unprocessed ones)
+        // This allows us to detect changes and update existing classes
+
+
+        $now = time();
+
+        // Get non-recurring activities
+        $sql = "SELECT a.id
+                FROM mdl_activities a
+                WHERE deleted = 0
+                AND recurring = 0
+                AND (
+					(timestart <= {$plusdays} AND timestart >= {$now}) OR
+                    (timestart <= {$now} AND timeend >= {$now})
+			    )";
+
+        $records = $DB->get_records_sql($sql, null);
+        $activities = array();
+        
+        // Process non-recurring activities
+        foreach ($records as $record) {
+            $activities[] = new Activity($record->id, true);
+        }
+
+        // Get occurrences of recurring activities
+        $sql = "SELECT ao.id, ao.timestart, ao.timeend, a.id as activityid
+                FROM {" . static::TABLE . "} a
+                JOIN mdl_activities_occurrences ao ON ao.activityid = a.id
+                WHERE a.deleted = 0
+                AND a.recurring = 1
+                AND (
+					(ao.timestart <= {$plusdays} AND ao.timestart >= {$now}) OR
+                    (ao.timestart <= {$now} AND ao.timeend >= {$now})
+                )";
+
+        $occurrences = $DB->get_records_sql($sql);
+
+        // Process recurring activity occurrences
+        foreach ($occurrences as $occurrence) {
+            $activity = new Activity($occurrence->activityid, true);
+            // Update timestamps to the occurrence's times
+            $activity->set('timestart', $occurrence->timestart);
+            $activity->set('timeend', $occurrence->timeend);
+            $activity->set('is_occurrence', true);
+            $activity->set('occurrenceid', $occurrence->id);
+            $activities[] = $activity;
+        }
+        
+        return $activities;
+
+
+    }
+
 
 
     public static function get_for_absences($now, $startlimit, $endlimit) {

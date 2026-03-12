@@ -135,12 +135,13 @@ class cron_create_classes extends \core\task\scheduled_task {
 					)
 				)";
         
-        $activityrecords = $DB->get_records_sql($sql);
+        $activityrecords = activities_lib::get_for_class_roll_creation($now, $plusdays);
+        var_export($activityrecords); exit;
         
         foreach ($activityrecords as $record) {
             try {
-                $activity = new Activity($record->id, true);
-                $activitydata = $activity->export();
+                //$activity = new Activity($record->id, true);
+                //$activitydata = $activity->export();
 
                 // Get current attending students
                 $attending = activities_lib::get_all_attending($activitydata->id);
