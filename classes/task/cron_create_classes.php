@@ -297,7 +297,7 @@ class cron_create_classes extends \core\task\scheduled_task {
 
         foreach ($expectedClasses as $classDef) {
             try {
-                $this->log("Syncing class {$classDef->classcode} for {$classDef->source_type} {$classDef->source_id}, staff: {$classDef->staffid}, start: {$classDef->daystart}", 2);
+                $this->log("Syncing class {$classDef->classcode} ({$classDef->description}) for {$classDef->source_type} {$classDef->source_id}, staff: {$classDef->staffid}, start: {$classDef->daystart}", 2);
 
                 $sql = $this->config->createclasssql . ' :fileyear, :filesemester, :classcampus, :classcode, :description, :staffid, :leavingdate, :returningdate, :students';
                 $params = array(
