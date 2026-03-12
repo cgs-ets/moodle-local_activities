@@ -95,10 +95,6 @@ if ($hassiteconfig) {
     $settings->add(new admin_setting_configtext('local_activities/deleteorphanedsql', get_string('deleteorphanedsql', 'local_activities'), '', ''));
 
 
-    $settings->add(new admin_setting_configtext('local_activities/createclasssql', get_string('createclasssql', 'local_activities'), '', ''));
-    $settings->add(new admin_setting_configtext('local_activities/insertclassstaffsql', get_string('insertclassstaffsql', 'local_activities'), '', ''));
-    $settings->add(new admin_setting_configtext('local_activities/cleanupclassessql', get_string('cleanupclassessql', 'local_activities'), '', ''));
-
     $settings->add(new admin_setting_configtext('local_activities/getdisalloweduserssql', get_string('getdisalloweduserssql', 'local_activities'), '', ''));
 
     $settings->add(new admin_setting_configtext('local_activities/getterminfosql', get_string('getterminfosql', 'local_activities'), '', ''));
@@ -125,5 +121,11 @@ if ($hassiteconfig) {
     $settings->add(new admin_setting_configtext('local_activities/synergeticdbuser', get_string('dbuser', 'local_activities'), '', ''));
     $settings->add(new admin_setting_configpasswordunmask('local_activities/synergeticdbpass', get_string('dbpass', 'local_activities'), '', ''));
     $settings->add(new admin_setting_configtext('local_activities/synergeticdbname', get_string('dbname', 'local_activities'), '', ''));
+
+    
+    $settings->add(new admin_setting_configtext('local_activities/createclasssql', get_string('createclasssql', 'local_activities'), '', ''));
+    $settings->add(new admin_setting_configtext('local_activities/insertclassstaffsql', get_string('insertclassstaffsql', 'local_activities'), '', ''));
+    $settings->add(new admin_setting_configtext('local_activities/cleanupclassessql', get_string('cleanupclassessql', 'local_activities'), '', ''));
+
 
 }
