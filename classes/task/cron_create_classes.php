@@ -117,6 +117,7 @@ class cron_create_classes extends \core\task\scheduled_task {
 
         // Get ALL activities in the time window (not just unprocessed ones)
         // This allows us to detect changes and update existing classes
+        // Note, we process recurrences later in this script!!
         $sql = "SELECT a.id, a.timestart, a.timeend, a.timemodified, a.classrollprocessed
                 FROM mdl_activities a
                 WHERE deleted = 0
@@ -134,21 +135,26 @@ class cron_create_classes extends \core\task\scheduled_task {
 						)
 					)
 				)";
-        
-        $activityrecords = activities_lib::get_for_class_roll_creation($now, $plusdays);
-        var_export($activityrecords); exit;
-        
+        $activityrecords = $DB->get_records_sql($sql);
+
+        $alreadydeleted = [];
+
         foreach ($activityrecords as $record) {
             try {
-                //$activity = new Activity($record->id, true);
-                //$activitydata = $activity->export();
+                $activity = new Activity($record->id, true);
+                $activitydata = $activity->export();
 
                 // Get current attending students
                 $attending = activities_lib::get_all_attending($activitydata->id);
 
                 // If no students, delete any existing classes and mark as processed
                 if (empty($attending)) {
-                    $this->log("Activity {$activitydata->id} has no students - deleting any existing classes");
+                    if (in_array($activitydata->id, $alreadydeleted)) {
+                        // Don't try to delete an activity twice...
+                        continue;
+                    }
+                    $alreadydeleted[] = $activitydata->id;
+                    $this->log("Activity {$activitydata->id} ({$activitydata->activityname}) has no students - deleting any existing classes");
                     $this->delete_activity_classes($activitydata);
                     $DB->execute("UPDATE {activities} SET classrollprocessed = 1 WHERE id = ?", [$activitydata->id]);
                     continue;
@@ -189,7 +195,7 @@ class cron_create_classes extends \core\task\scheduled_task {
             }
 
             // For testing, just do one class...
-            //exit;
+            exit;
         }
     }
 
@@ -388,9 +394,9 @@ class cron_create_classes extends \core\task\scheduled_task {
         // Get all possible days (including potential old dates)
         // We need to delete classes for all possible date combinations
         // For simplicity, we'll delete classes for a range of dates around the activity
-        $days = $this->split_into_days($activitystart, $activityend);
+        //$days = $this->split_into_days($activitystart, $activityend);
 
-        foreach ($days as $day) {
+        //foreach ($days as $day) {
             $classcode = $this->prefix . $activity->id . '_';
 
             $this->log("Deleting class {$classcode}", 2);
@@ -402,7 +408,7 @@ class cron_create_classes extends \core\task\scheduled_task {
                 'classcode' => $classcode,
             );
             $this->externalDB->execute($sql, $params);
-        }
+        //}
     }
 
     /**
