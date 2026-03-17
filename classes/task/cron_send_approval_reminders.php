@@ -66,7 +66,7 @@ class cron_send_approval_reminders extends \core\task\scheduled_task {
             }
 
             // Send to next approver in line.
-            $approvals = workflow_lib::get_unactioned_approvals($data->id);
+            /*$approvals = workflow_lib::get_unactioned_approvals($data->id);
             foreach ($approvals as $nextapproval) {
                 $approvers = workflow_lib::WORKFLOW[$nextapproval->type]['approvers'];
                 foreach($approvers as $approver) {
@@ -89,7 +89,22 @@ class cron_send_approval_reminders extends \core\task\scheduled_task {
                 }
                 // Break after sending to next approver in line. Comment is not sent to approvers down stream.
                 break;
+            }*/
+
+
+            // Send to the next approver in line -- ONLY the nominated approver.
+            $approvals = workflow_lib::get_unactioned_approvals($data->id);
+            foreach ($approvals as $nextapproval) {
+                if ($nextapproval->nominated) {
+                    if ( array_key_exists($nextapproval->nominated, $recipients)) {
+                        continue;
+                    }
+                    $recipients[$nextapproval->nominated] = null;
+                }
+                // Break after sending to next approver in line. Not sent to approvers down stream.
+                break;
             }
+
 
             // Send the reminders.
             foreach ($recipients as $username => $email) {
@@ -128,7 +143,7 @@ class cron_send_approval_reminders extends \core\task\scheduled_task {
             }
 
             // Send to next approver in line.
-            $approvals = workflow_lib::get_unactioned_approvals($data->id);
+            /*$approvals = workflow_lib::get_unactioned_approvals($data->id);
             foreach ($approvals as $nextapproval) {
                 $approvers = workflow_lib::WORKFLOW[$nextapproval->type]['approvers'];
                 foreach($approvers as $approver) {
@@ -150,6 +165,19 @@ class cron_send_approval_reminders extends \core\task\scheduled_task {
                     }
                 }
                 // Break after sending to next approver in line. Comment is not sent to approvers down stream.
+                break;
+            }*/
+
+            // Send to the next approver in line -- ONLY the nominated approver.
+            $approvals = workflow_lib::get_unactioned_approvals($data->id);
+            foreach ($approvals as $nextapproval) {
+                if ($nextapproval->nominated) {
+                    if ( array_key_exists($nextapproval->nominated, $recipients)) {
+                        continue;
+                    }
+                    $recipients[$nextapproval->nominated] = null;
+                }
+                // Break after sending to next approver in line. Not sent to approvers down stream.
                 break;
             }
 
