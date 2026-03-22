@@ -2182,6 +2182,15 @@ class activities_lib {
             $recipients[] = $activity->staffincharge;
         }
 
+        // Send comment to second in charge.
+        $secondincharge = json_decode($activity->secondincharge);
+        if (is_array($secondincharge)) {
+            $secondincharge = array_pop($secondincharge);
+            if ($secondincharge && !in_array($secondincharge->un, $recipients)) {   
+                static::send_comment_email($activity, $comment, $secondincharge->un);
+                $recipients[] = $secondincharge->un;
+            }
+        }
     }
 
     protected static function send_comment_email($activity, $comment, $recipient, $email = null) {
