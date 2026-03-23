@@ -2183,10 +2183,9 @@ class activities_lib {
         }
 
         // Send comment to second in charge.
-        $secondincharge = json_decode($activity->secondincharge);
-        if (is_array($secondincharge)) {
-            $secondincharge = array_pop($secondincharge);
-            if ($secondincharge && !in_array($secondincharge->un, $recipients)) {   
+        $secondincharge = json_decode($activity->secondinchargejson);
+        if (is_object($secondincharge)) {                
+            if (!in_array($secondincharge->un, $recipients)) {
                 static::send_comment_email($activity, $comment, $secondincharge->un);
                 $recipients[] = $secondincharge->un;
             }
