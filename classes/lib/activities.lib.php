@@ -381,8 +381,10 @@ class activities_lib {
                         $activity->set('timestart', $newdates->timestart);
                         $activity->set('timeend', $newdates->timeend);
                         $activity->save();
-                        $originalactivity->set('timestart', $newdates->timestart);
-                        $originalactivity->set('timeend', $newdates->timeend);
+                        if ($originalactivity) {
+                            $originalactivity->set('timestart', $newdates->timestart);
+                            $originalactivity->set('timeend', $newdates->timeend);
+                        }
                     }
                 } else {
                     static::delete_recurring_activities($activity->get('id'));
