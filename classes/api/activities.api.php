@@ -154,9 +154,17 @@ trait activities_api {
     /**
     * Submit parent permission.
     */
-    static public function submit_permission($args) { 
+    static public function submit_permission($args) {
         ['permissionid' => $permissionid, 'response' => $response] = $args;
         return activities_lib::submit_permission($permissionid, $response);
+    }
+
+    /**
+    * Submit "did not attend" flag for a student on an activity.
+    */
+    static public function submit_didnotattend($args) {
+        ['activityid' => $activityid, 'studentusername' => $studentusername, 'didnotattend' => $didnotattend] = $args;
+        return activities_lib::submit_didnotattend($activityid, $studentusername, $didnotattend);
     }
 
     /**

@@ -1,4 +1,4 @@
-import { Avatar, Badge, Flex, Text } from "@mantine/core";
+import { Avatar, Badge, Checkbox, Flex, Text } from "@mantine/core";
 import { IconUser } from "@tabler/icons-react";
 import { Student } from "../../../../types/types";
 
@@ -57,4 +57,24 @@ export const parentColumn = {
   },
   id: 'permissions',
   header: 'Permissions',
+}
+
+export const didNotAttendColumn = (onToggle: (un: string, val: boolean) => void) => {
+  return {
+    accessorFn: (row: Student) => {
+      if (row.permission != 1) {
+        return null;
+      }
+      return (
+        <Checkbox
+          size="xs"
+          checked={row.didnotattend == 1}
+          onClick={(e) => e.stopPropagation()}
+          onChange={(e) => onToggle(row.un, e.currentTarget.checked)}
+        />
+      );
+    },
+    id: 'didnotattend',
+    header: 'Did not attend',
+  }
 }

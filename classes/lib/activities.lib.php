@@ -2228,12 +2228,13 @@ class activities_lib {
         if ($activity->get('permissions')) {
             $sql = "SELECT DISTINCT p.studentusername
                       FROM mdl_activities_permissions p
-                INNER JOIN mdl_activities_students s ON p.studentusername = s.username
+                INNER JOIN mdl_activities_students s ON p.studentusername = s.username AND s.activityid = p.activityid
                 INNER JOIN mdl_activities a on a.id = p.activityid
                      WHERE p.activityid = ?
                        AND p.response = 1
+                       AND s.didnotattend != 1
                        AND a.deleted = 0
-                       AND p.studentusername NOT IN ( 
+                       AND p.studentusername NOT IN (
                            SELECT studentusername
                              FROM mdl_activities_permissions
                             WHERE activityid = ?
@@ -2246,7 +2247,9 @@ class activities_lib {
             $attending = array_values(array_column($attending, 'studentusername'));
         } else {
             $attending = static::get_activities_students($activityid, static::ACTIVITY_STATUS_APPROVED);
-            $attending = array_values(array_column($attending, 'username'));
+            $attending = array_values(array_filter(array_map(function($s) {
+                return empty($s->didnotattend) ? $s->username : null;
+            }, $attending)));
         }
 
         return $attending;
@@ -2383,6 +2386,34 @@ class activities_lib {
         }
 
         return $response;
+    }
+
+    /*
+    * Save "did not attend" flag for a student on an activity.
+    */
+    public static function submit_didnotattend($activityid, $studentusername, $didnotattend) {
+        global $DB;
+
+        $activity = new Activity($activityid);
+        if (empty($activity->get('id'))) {
+            return;
+        }
+
+        $didnotattend = $didnotattend ? 1 : 0;
+
+        $sql = "UPDATE {activities_students}
+                   SET didnotattend = ?
+                 WHERE activityid = ?
+                   AND username = ?";
+        $params = array($didnotattend, $activityid, $studentusername);
+        $DB->execute($sql, $params);
+
+        // Reset absences/class roll so cron re-syncs attendance.
+        $activity->set('absencesprocessed', 0);
+        $activity->set('classrollprocessed', 0);
+        $activity->update();
+
+        return $didnotattend;
     }
 
 

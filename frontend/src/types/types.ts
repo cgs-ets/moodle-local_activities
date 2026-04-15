@@ -40,10 +40,11 @@ export type Parent =
   User & {
     response?: number,
   }
-  
+
 export type Student =
   User & {
     permission?: number,
+    didnotattend?: number,
     parents?: Parent[],
     year: string,
   }

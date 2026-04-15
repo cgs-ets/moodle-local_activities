@@ -2,7 +2,7 @@ import { Card, Flex, Group, Text, Button, Tooltip, Chip, Loader, Table, Checkbox
 import { IconPlus, IconMinus, IconMail, IconChecks, IconReport } from '@tabler/icons-react';
 import { useEffect, useMemo, useState } from 'react';
 import { statuses } from '../../../../utils';
-import { parentColumn, studentColumn } from './columns';
+import { didNotAttendColumn, parentColumn, studentColumn } from './columns';
 import { AddStudentsModal } from '../Modals/AddStudentsModal';
 import { useDisclosure } from '@mantine/hooks';
 import { useStateStore } from '../../../../stores/stateStore';
@@ -24,6 +24,7 @@ export function StudentListDIY() {
   const setStudentsLoaded = useStateStore((state) => (state.setStudentsLoaded))
   const id = useFormStore((state) => (state.id))
   const activitytype = useFormStore((state) => (state.activitytype))
+  const timestart = useFormStore((state) => (state.timestart))
   const permissionsrequired = useFormStore((state) => (state.permissions))
   const canpermissionsend = useFormStore((state) => (state.canpermissionsend))
   const [isOpenAddStudentsModal, addStudentsModalHandlers] = useDisclosure(false)
@@ -81,11 +82,39 @@ export function StudentListDIY() {
   }
   
   const showPermissions = permissionsrequired && status == statuses.approved;
+  const activityStarted = !!timestart && (timestart * 1000) < Date.now();
+  const showDidNotAttend = showPermissions && activityStarted;
+
+  const toggleDidNotAttend = async (un: string, value: boolean) => {
+    // Optimistic update.
+    const updated = studentlist.map(s => s.un == un ? { ...s, didnotattend: value ? 1 : 0 } : s)
+    setState({['studentlist']: updated} as Form)
+
+    const fetchResponse = await api.call({
+      method: "POST",
+      body: {
+        methodname: 'local_activities-submit_didnotattend',
+        args: {
+          activityid: id,
+          studentusername: un,
+          didnotattend: value ? 1 : 0,
+        },
+      }
+    })
+    if (fetchResponse.error) {
+      // Revert on error.
+      setState({['studentlist']: studentlist} as Form)
+    }
+  }
+
   const columns = useMemo(
-    () => (showPermissions
-          ? [studentColumn(showPermissions), parentColumn]
-          : [studentColumn(showPermissions)]),
-    [showPermissions]
+    () => {
+      const cols: any[] = [studentColumn(showPermissions)]
+      if (showPermissions) cols.push(parentColumn)
+      if (showDidNotAttend) cols.push(didNotAttendColumn(toggleDidNotAttend))
+      return cols
+    },
+    [showPermissions, showDidNotAttend, studentlist]
   )
 
 
@@ -229,7 +258,8 @@ export function StudentListDIY() {
                           <div className='flex h-11 items-center bg-[#f8f9fa] border-b ps-4'>
                             <div className='w-12'><Checkbox onChange={(event) => handleGlobalAction(event.currentTarget.checked)} size="xs" checked={allSelected()} indeterminate={someSelected()} /></div>
                             <div className='w-72 font-semibold'>Student</div>
-                            {columns[1] ? <div className='flex-1 font-semibold'>Permissions</div> : null }
+                            {showPermissions ? <div className='flex-1 font-semibold'>Permissions</div> : null }
+                            {showDidNotAttend ? <div className='w-32 font-semibold'>Did not attend</div> : null }
                           </div>
                         </div>
 
@@ -237,11 +267,15 @@ export function StudentListDIY() {
                         <div>
                           {filteredStudents.map((student) => {
                             const selected = Object.keys(rowSelection).includes(student.un)
+                            const dna = student.didnotattend == 1
+                            const permCol = showPermissions ? columns[1] : null
+                            const dnaCol = showDidNotAttend ? columns[showPermissions ? 2 : 1] : null
                             return (
-                              <div key={student.un} onClick={() => handleStudentSelect(student)} className={cn('flex h-11 items-center border-b ps-4 cursor-pointer', selected ? 'bg-[rgba(34,139,230,0.1)]' : '')}>
+                              <div key={student.un} onClick={() => handleStudentSelect(student)} className={cn('flex h-11 items-center border-b ps-4 cursor-pointer', selected ? 'bg-[rgba(34,139,230,0.1)]' : '', dna ? 'opacity-50 bg-gray-100' : '')}>
                                 <div className='w-12'><Checkbox size="xs" checked={selected} onChange={() => {}} /></div>
                                 <div className='w-72'>{columns[0]?.accessorFn(student)}</div>
-                                <div className='flex-1'>{columns[1]?.accessorFn(student)}</div>
+                                {permCol ? <div className='flex-1'>{permCol.accessorFn(student)}</div> : null }
+                                {dnaCol ? <div className='w-32'>{dnaCol.accessorFn(student)}</div> : null }
                               </div>
                             )
                           })}

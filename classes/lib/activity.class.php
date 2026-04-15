@@ -234,6 +234,7 @@ class Activity {
                 continue;
             }
             $student->permission = -1;
+            $student->didnotattend = (int) $rec->didnotattend;
             $student->parents = [];
             $students[] = $student;
         }

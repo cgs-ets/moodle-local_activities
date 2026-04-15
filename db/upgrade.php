@@ -486,6 +486,22 @@ function xmldb_local_activities_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2025082111, 'local', 'activities');
     }
 
+    if ($oldversion < 2026041600) {
+        // Drop didnotattend from activities_permissions if it was added in an earlier dev iteration.
+        $permtable = new xmldb_table('activities_permissions');
+        $permfield = new xmldb_field('didnotattend');
+        if ($dbman->field_exists($permtable, $permfield)) {
+            $dbman->drop_field($permtable, $permfield);
+        }
+        // Add didnotattend to activities_students (one row per student — correct place for this flag).
+        $stutable = new xmldb_table('activities_students');
+        $stufield = new xmldb_field('didnotattend', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'username');
+        if (!$dbman->field_exists($stutable, $stufield)) {
+            $dbman->add_field($stutable, $stufield);
+        }
+        upgrade_plugin_savepoint(true, 2026041600, 'local', 'activities');
+    }
+
     /*if ($oldversion < 2026022000) {
         $table = new xmldb_table('activities_logs');
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
