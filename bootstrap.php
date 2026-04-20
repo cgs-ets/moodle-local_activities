@@ -21,8 +21,12 @@ function get_favicon(string $entry): string
         $manifest = getManifest();
         $src = isDev($entry)
             ? HOST . PLUGIN_DIR . "/frontend/" . $entry
-            : __DIR__ . DIST_DIR . '/' . $manifest[$entry]['file'];
+            : (isset($manifest[$entry]) ? __DIR__ . DIST_DIR . '/' . $manifest[$entry]['file'] : '');
 
+        if (!$src) {
+            return '';
+        }
+        
         $img = file_get_contents($src);
         $data = base64_encode($img);
         $favicon = 'data:image/x-icon;base64,' . $data;

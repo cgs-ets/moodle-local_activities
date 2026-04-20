@@ -7,11 +7,13 @@ defined('MOODLE_INTERNAL') || die();
 require_once(__DIR__.'/activities.lib.php');
 require_once(__DIR__.'/utils.lib.php');
 require_once(__DIR__.'/activity.class.php');
+require_once(__DIR__.'/workflow.lib.php');
 require_once($CFG->libdir.'/filelib.php');
 
 use \local_activities\lib\activities_lib;
 use \local_activities\lib\utils_lib;
 use \local_activities\lib\Activity;
+use \local_activities\lib\workflow_lib;
 
 class generator_lib {
 
@@ -113,6 +115,12 @@ class generator_lib {
 
     public static function make_export() {
         global $USER, $DB, $CFG, $PAGE;
+
+        // Check if user is a cal reviewer.
+        if (!workflow_lib::is_cal_reviewer()) {
+            echo 'You are not authorized to export activities.';
+            exit;
+        }
         
         $sql = "SELECT 
                     a.id,
