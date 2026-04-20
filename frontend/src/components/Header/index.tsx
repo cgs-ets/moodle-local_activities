@@ -1,12 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
 import { Avatar, Menu, UnstyledButton, Group, Text, Box, Button, Anchor, ActionIcon, Modal, Pill, Loader, Drawer } from '@mantine/core';
-import { IconHome2, IconLogout, IconPlus, IconSearch, IconX, IconMenu, IconExternalLink } from '@tabler/icons-react';
+import { IconHome2, IconLogout, IconPlus, IconSearch, IconX, IconMenu, IconExternalLink, IconTableExport } from '@tabler/icons-react';
 import { useInterval } from "@mantine/hooks";
 import { useEffect, useState } from "react";
 import { fetchData, getConfig, statuses } from "../../utils";
 import useFetch from "../../hooks/useFetch";
 import dayjs from "dayjs";
-import { cn } from "../../utils/utils";
+import { cn, isCalReviewer } from "../../utils/utils";
 import { StatusDot } from "../StatusDot";
 
 export function Header() {
@@ -125,6 +125,16 @@ export function Header() {
               <IconSearch size={20} />
             </ActionIcon>
 
+            { isCalReviewer() && 
+              <ActionIcon
+                variant="transparent"
+                color="white"
+                className="mr-2"
+                onClick={() => window.open('/local/activities/generate.php?doc=export', '_blank')}
+              >
+                <IconTableExport size={20} />
+              </ActionIcon>
+            }
 
             <ActionIcon
               variant="transparent"

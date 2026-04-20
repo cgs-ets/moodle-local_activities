@@ -7,7 +7,7 @@ require_once(__DIR__.'/classes/lib/generator.lib.php');
 use \local_activities\lib\utils_lib;
 use \local_activities\lib\generator_lib;
 
-$activityid = required_param('activityid', PARAM_INT);
+$activityid = optional_param('activityid', 0, PARAM_INT);
 $doc = required_param('doc', PARAM_RAW);
 
 require_login();
