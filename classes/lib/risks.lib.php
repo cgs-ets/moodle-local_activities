@@ -119,6 +119,7 @@ class risks_lib {
             throw new \Exception("Risk assessment generation not found.");
         }
         $ra_gen->classifications = json_decode($ra_gen->classifications);
+        $ra_gen->staff_qualifications = $ra_gen->staff_qualifications ? 'First Aid, CPR, ' . $ra_gen->staff_qualifications : 'First Aid, CPR';
         // Generate the PDF based on the risk assessment JSON.
         $pdf = static::generate_pdf_from_ra($ra_gen);
 
@@ -190,7 +191,7 @@ class risks_lib {
                 'site_visit_reviewer' => isset($data->siteVisitReviewer) ? $data->siteVisitReviewer : '',
                 'site_visit_date' => isset($data->siteVisitDate) ? $data->siteVisitDate : 0,
                 'water_hazards_present' => isset($data->waterHazardsPresent) ? $data->waterHazardsPresent : '',
-                'staff_qualifications' => isset($data->staffQualifications) ? $data->staffQualifications : '',
+                'staff_qualifications' => isset($data->staffQualifications) ? 'First Aid, CPR, ' . $data->staffQualifications : 'First Aid, CPR',
                 'duration' => isset($data->duration) ? $data->duration : '',
                 'proposed_route' => isset($data->proposedRoute) ? $data->proposedRoute : '',
             ];

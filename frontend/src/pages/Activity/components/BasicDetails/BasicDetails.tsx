@@ -322,7 +322,7 @@ export function BasicDetails() {
           <Switch
             checked={!!formData.cocurr}
             onChange={(event) => updateField('cocurr', event.currentTarget.checked)}
-            label={<Text fz="sm" mb="5px" fw={500} c="#212529">Is this a cocurricular activity?</Text>}
+            label={<Text fz="sm" mb="5px" fw={500} c="#212529">Is this co-curricular sports activity?</Text>}
           />
           
           {!formData.recurring && (
@@ -332,6 +332,7 @@ export function BasicDetails() {
                   checked={formData.isallday}
                   onChange={(event) => updateField('isallday', event.currentTarget.checked)}
                   label={<Text fz="sm" mb="5px" fw={500} c="#212529">All day</Text>}
+                  className="flex"
                 />
                 {formData.isallday 
                 ? <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">

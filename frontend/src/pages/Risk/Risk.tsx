@@ -71,10 +71,16 @@ export function Risk() {
   const [htmlPreview, setHtmlPreview] = useState<string | null>(null)
   const [previewModalOpen, setPreviewModalOpen] = useState(false)
 
+  const htmlToText = (html: string) => {
+    const doc = new DOMParser().parseFromString(html || '', 'text/html');
+    return doc.body.textContent || "";
+  }
+  const getDescriptionText = () => htmlToText(formData.description || '');
+
   // Additional fields local state
   const [additionalFields, setAdditionalFields] = useState({
     reasonForActivity: '',
-    proposedActivities: '',
+    proposedActivities: getDescriptionText(),
     anticipatedStudents: '',
     anticipatedAdults: '',
     supervisionRatio: '',
@@ -93,6 +99,17 @@ export function Risk() {
   })
 
   document.title = 'Risk Assessment'
+
+  useEffect(() => {
+    if (formData.description) {
+      setAdditionalFields(prev =>
+        prev.proposedActivities
+          ? prev
+          : { ...prev, proposedActivities: getDescriptionText() }
+      )
+    }
+  }, [formData.description]);
+
 
   useEffect(() => {
     if (activityid) {
@@ -143,6 +160,10 @@ export function Risk() {
       api.call({ query: { methodname: 'local_activities-get_last_ra_gen', activityid: activityid } }),
     ]);
   
+    const freshDescriptionText = activityRes.data?.description
+      ? htmlToText(activityRes.data.description)
+      : '';
+
     if (activityRes.data && !activityRes.error) {
       document.title = activityRes.data.activityname + " - Risk Assessment";
       const data = {
@@ -151,11 +172,12 @@ export function Risk() {
         timeend: Number(activityRes.data.timeend) ? activityRes.data.timeend : dayjs().unix(),
       }
       setFormData({...defaults, ...data})
-      setAdditionalFields({
-        ...additionalFields,
+      setAdditionalFields(prev => ({
+        ...prev,
         leader: data.staffinchargedata?.fn + ' ' + data.staffinchargedata?.ln + ' (' + data.staffinchargedata?.un + ')',
         secondInCharge: data.secondinchargedata ? data.secondinchargedata?.fn + ' ' + data.secondinchargedata?.ln + ' (' + data.secondinchargedata?.un + ')' : '',
-      })
+        proposedActivities: prev.proposedActivities || freshDescriptionText,
+      }))
     }
 
 
@@ -164,7 +186,7 @@ export function Risk() {
       setAdditionalFields(
         {
           reasonForActivity: lastGenRes.data.reason_for_activity,
-          proposedActivities: lastGenRes.data.proposed_activities,
+          proposedActivities: lastGenRes.data.proposed_activities || freshDescriptionText,
           anticipatedStudents: lastGenRes.data.anticipated_students,
           anticipatedAdults: lastGenRes.data.anticipated_adults,
           supervisionRatio: lastGenRes.data.supervision_ratio,
@@ -277,7 +299,6 @@ export function Risk() {
         !additionalFields.leaderContact || 
         !additionalFields.secondInCharge || 
         !additionalFields.secondInChargeContact || 
-        !additionalFields.locationContactNumber || 
         !additionalFields.staffQualifications || 
         riskAssessment.selectedClassifications.length <= 1 // Noting, 1 because exc/inc always selected by default.
       ) {
@@ -416,7 +437,7 @@ export function Risk() {
                           <Textarea
                             label="Proposed activities"
                             placeholder="Describe the proposed activities..."
-                            value={additionalFields.proposedActivities || ''}
+                            value={additionalFields.proposedActivities}
                             onChange={(e) => setAdditionalFields({ ...additionalFields, proposedActivities: e.target.value })}
                             autosize
                             minRows={3}
@@ -514,17 +535,16 @@ export function Risk() {
 
                           <Group grow>
                             <TextInput
-                              label="Contact person at the location of activity"
+                              label="Contact person at location of activity-if different to above"
                               placeholder="Contact person name"
                               value={additionalFields.locationContactPerson || ''}
                               onChange={(e) => setAdditionalFields({ ...additionalFields, locationContactPerson: e.target.value })}
                             />
                             <TextInput
-                              label="Contact number at location of activity"
+                              label="Contact number at location of activity if different to above"
                               placeholder="Location contact number"
                               value={additionalFields.locationContactNumber || ''}
                               onChange={(e) => setAdditionalFields({ ...additionalFields, locationContactNumber: e.target.value })}
-                              required
                             />
                           </Group>
 
@@ -558,25 +578,33 @@ export function Risk() {
                             ]}
                           />
 
-                          <Textarea
-                            label="Specialised skills or qualifications required for the activity"
-                            description="E.g. First Aid, CPR, Bronze Medallion, etc"
-                            value={additionalFields.staffQualifications || ''}
-                            onChange={(e) => setAdditionalFields({ ...additionalFields, staffQualifications: e.target.value })}
-                            autosize
-                            minRows={2}
-                            required
-                            styles={{
-                              label: {
-                                paddingBottom: '2px',
-                              },
-                              description: {
-                                fontSize: '13px',
-                                color: '#000',
-                              }
-                            }}
-                          />
+                          <div className="flex flex-col gap-2">
+                            <Text fz="md" fw={500}>Specialised skills or qualifications required for the activity</Text>
+                            
+                            <div className="flex gap-2">
+                              <Checkbox label="First Aid" disabled={true} defaultChecked={true} />
+                              <Checkbox label="CPR" disabled={true} defaultChecked={true} />
+                            </div>
 
+                            <Text fz="sm" c="gray.8">Additional skills or qualifications required for the activity, e.g. Bronze Medallion, etc</Text>
+
+                            <Textarea
+                              value={additionalFields.staffQualifications || ''}
+                              onChange={(e) => setAdditionalFields({ ...additionalFields, staffQualifications: e.target.value })}
+                              autosize
+                              minRows={2}
+                              required
+                              styles={{
+                                label: {
+                                  paddingBottom: '2px',
+                                },
+                                description: {
+                                  fontSize: '13px',
+                                  color: '#000',
+                                }
+                              }}
+                            />
+                          </div>
                           <TextInput
                             label="Proposed route (PS, PK, CGS Care)"
                             value={additionalFields.proposedRoute || ''}
