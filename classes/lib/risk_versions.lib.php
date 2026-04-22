@@ -42,17 +42,21 @@ class risk_versions_lib {
 
     public static function check_risk_settings_access() {
         global $USER;
-        if (   $USER->username != '43563' // Michael
-            && $USER->username != 'admin' // Local admin
-            && $USER->username != '57056' // Erum
-            && $USER->username != '61460' // Kristen
-            && $USER->username != '67769' // Anna
-        ) {
-            throw new \Exception("Permission denied.");
+        
+        if (has_capability('moodle/site:config', \context_user::instance($USER->id))) {
+            return;
         }
-        //if (! has_capability('moodle/site:config', \context_user::instance($USER->id))) {
-        //    throw new \Exception("Permission denied.");
-        //}
+
+        if ($USER->username == '43563' // Michael
+            || $USER->username == 'admin' // Local admin
+            || $USER->username == '57056' // Erum
+            || $USER->username == '61460' // Kristen
+            || $USER->username == '67769' // Anna
+        ) {
+            return;
+        }
+
+        throw new \Exception("Permission denied.");
     }
 
     /**

@@ -144,7 +144,7 @@ foreach ($risksRows as $row) {
             echo html_writer::div("Not Found - classification: " . $name);
         }
         
-        $classification_ids[] = $classification->id;
+        $classification_ids[] = $classification->id ?? 0;
     }
 
     // 3. Insert risk
@@ -165,7 +165,7 @@ foreach ($risksRows as $row) {
 
     // 4. Create classification set for this risk
     $classification_set = new stdClass();
-    $classification_set->riskid = $riskid;
+    $classification_set->riskid = $riskid ?? 0;
     $classification_set->set_order = 1;
     $classification_set->version = $version;
     if ($run) {
@@ -175,8 +175,8 @@ foreach ($risksRows as $row) {
     // 5. Add all classifications to the set
     foreach ($classification_ids as $classification_id) {
         $set_member = new stdClass();
-        $set_member->set_id = $set_id;
-        $set_member->classificationid = $classification_id;
+        $set_member->set_id = $set_id ?? 0;
+        $set_member->classificationid = $classification_id ?? 0;
         $set_member->version = $version;
         if ($run) {
             $DB->insert_record('activities_risk_classification_set_members', $set_member);
