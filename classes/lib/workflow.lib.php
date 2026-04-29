@@ -819,12 +819,19 @@ class workflow_lib extends \local_activities\local_activities_config {
         global $PAGE;
 
         $activity = new Activity($activityid);
-        $exported = $activity->export();
 
         $recipients = array();
 
+        // Send to staff in charge.
+        $usercontext = \core_user::get_user_by_username($exported->staffincharge);
+        $exported = $activity->export($usercontext);
+        $exported->fieldschanged = array_values($fieldschanged); // Inject fields changed for emails.
+        $exported->fieldschangedstring = json_encode($fieldschanged); // Inject fields changed for emails.
+        static::send_datachanged_email($exported, $exported->staffincharge);
+        $recipients[] = $exported->staffincharge;
+
         // Send to all approvers.
-        $approvals = static::get_approvals($activityid);
+        /*$approvals = static::get_approvals($activityid);
         foreach ($approvals as $nextapproval) {
             // Get the approvers for this approval step.
             $approvers = workflow_lib::WORKFLOW[$nextapproval->type]['approvers'];
@@ -855,10 +862,10 @@ class workflow_lib extends \local_activities\local_activities_config {
                     }
                 }
             }
-        }
+        }*/
 
         // Send to staff in charge, planning staff and accompanying staff.
-        $allstaff = activities_lib::get_all_staff($activityid);
+        /*$allstaff = activities_lib::get_all_staff($activityid);
         foreach ($allstaff as $staffun) {
             if ( ! in_array($staffun, $recipients)) {
                 $usercontext = \core_user::get_user_by_username($staffun);
@@ -868,17 +875,17 @@ class workflow_lib extends \local_activities\local_activities_config {
                 static::send_datachanged_email($exported, $staffun);
                 $recipients[] = $staffun;
             }
-        }
+        }*/
 
         // Send to activity creator.
-        if ( ! in_array($activity->get('creator'), $recipients)) {
+        /*if ( ! in_array($activity->get('creator'), $recipients)) {
             $usercontext = \core_user::get_user_by_username($activity->get('creator'));
             $exported = $activity->export($usercontext);
             $exported->fieldschanged = array_values($fieldschanged); // Inject fields changed for emails.
             $exported->fieldschangedstring = json_encode($fieldschanged); // Inject fields changed for emails.
             static::send_datachanged_email($exported, $exported->creator);
             $recipients[] = $exported->creator;
-        }
+        }*/
     }
 
     protected static function send_datachanged_email($activity, $recipient, $email = '') {
