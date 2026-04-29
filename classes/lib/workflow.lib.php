@@ -819,6 +819,7 @@ class workflow_lib extends \local_activities\local_activities_config {
         global $PAGE;
 
         $activity = new Activity($activityid);
+        $exported = $activity->export();
 
         $recipients = array();
 
