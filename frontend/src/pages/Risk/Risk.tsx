@@ -299,7 +299,6 @@ export function Risk() {
         !additionalFields.leaderContact || 
         !additionalFields.secondInCharge || 
         !additionalFields.secondInChargeContact || 
-        !additionalFields.staffQualifications || 
         riskAssessment.selectedClassifications.length <= 1 // Noting, 1 because exc/inc always selected by default.
       ) {
       setError('Required fields must be filled in, and at least one context or risk must be selected.')
