@@ -773,8 +773,9 @@ export function Risk() {
                                         risk.riskrating_before === 1 ? "red" :
                                         risk.riskrating_before === 2 ? "orange" :
                                         risk.riskrating_before === 3 ? "yellow" :
-                                        risk.riskrating_before === 4 ? "lime" :
-                                        risk.riskrating_before === 5 ? "green" :
+                                        risk.riskrating_before === 4 ? "yellow" :
+                                        risk.riskrating_before === 5 ? "lime" :
+                                        risk.riskrating_before === 6 ? "green" :
                                         "gray"
                                       }>
                                         {risk.riskrating_before}
@@ -788,8 +789,9 @@ export function Risk() {
                                         risk.riskrating_after === 1 ? "red" :
                                         risk.riskrating_after === 2 ? "orange" :
                                         risk.riskrating_after === 3 ? "yellow" :
-                                        risk.riskrating_after === 4 ? "lime" :
-                                        risk.riskrating_after === 5 ? "green" :
+                                        risk.riskrating_after === 4 ? "yellow" :
+                                        risk.riskrating_after === 5 ? "lime" :
+                                        risk.riskrating_after === 6 ? "green" :
                                         "gray"
                                       }>
                                         {risk.riskrating_after}
@@ -999,8 +1001,9 @@ export function Risk() {
                               risk.riskrating_before === 1 ? "red" :
                               risk.riskrating_before === 2 ? "orange" :
                               risk.riskrating_before === 3 ? "yellow" :
-                              risk.riskrating_before === 4 ? "lime" :
-                              risk.riskrating_before === 5 ? "green" :
+                              risk.riskrating_before === 4 ? "yellow" :
+                              risk.riskrating_before === 5 ? "lime" :
+                              risk.riskrating_before === 6 ? "green" :
                               "gray"
                             }
                           >
@@ -1012,8 +1015,9 @@ export function Risk() {
                               risk.riskrating_after === 1 ? "red" :
                               risk.riskrating_after === 2 ? "orange" :
                               risk.riskrating_after === 3 ? "yellow" :
-                              risk.riskrating_after === 4 ? "lime" :
-                              risk.riskrating_after === 5 ? "green" :
+                              risk.riskrating_after === 4 ? "yellow" :
+                              risk.riskrating_after === 5 ? "lime" :
+                              risk.riskrating_after === 6 ? "green" :
                               "gray"
                             }
                           >
