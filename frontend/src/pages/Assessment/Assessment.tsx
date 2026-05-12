@@ -337,8 +337,11 @@ export function Assessment() {
   }, [notification]);
 
   useEffect(() => {
-    console.log('formData', formData)
-  }, [formData])
+    // When the selected module changes, update the assessment name.
+    if (formData.module && formData.module.label && !formData.name) {
+      updateField('name', formData.module.label)
+    }
+  }, [formData.module])
 
   return (
     <>
@@ -450,7 +453,7 @@ export function Assessment() {
                           <TextInput
                             placeholder=""
                             label="Assessment name"
-                            value={formData.name ? formData.name : formData.module ? formData.module.label : ""}
+                            value={formData.name}
                             onChange={(e) => updateField('name', e.target.value)}
                             readOnly={viewStateProps.readOnly}
                           />
