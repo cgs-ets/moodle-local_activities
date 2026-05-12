@@ -54,6 +54,7 @@ class recurrence_lib {
             $activity->set('id', null);
             $activity->set('timestart', $occurrence->timestart);
             $activity->set('timeend', $occurrence->timeend);
+            $activity->set('permissionsdueby', $occurrence->timestart);
             $activity->set('recurring', false);
             $activity->set('recurrence', '{}');
             $activity->set('timesynclive', 0);
