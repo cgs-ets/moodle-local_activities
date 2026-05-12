@@ -914,9 +914,9 @@ export function Risk() {
                 { value: '1', label: '1 - Extreme' },
                 { value: '2', label: '2 - High' },
                 { value: '3', label: '3 - Medium' },
-                { value: '3', label: '4 - Medium' },
-                { value: '4', label: '5 - Low' },
-                { value: '5', label: '6 - Very Low' },
+                { value: '4', label: '4 - Medium' },
+                { value: '5', label: '5 - Low' },
+                { value: '6', label: '6 - Very Low' },
               ]}
             />
             <Select
@@ -929,9 +929,9 @@ export function Risk() {
                 { value: '1', label: '1 - Extreme' },
                 { value: '2', label: '2 - High' },
                 { value: '3', label: '3 - Medium' },
-                { value: '3', label: '4 - Medium' },
-                { value: '4', label: '5 - Low' },
-                { value: '5', label: '6 - Very Low' },
+                { value: '4', label: '4 - Medium' },
+                { value: '5', label: '5 - Low' },
+                { value: '6', label: '6 - Very Low' },
               ]}
             />
           </Group>
