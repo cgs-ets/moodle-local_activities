@@ -200,7 +200,7 @@ export function Assessment() {
 
 
   const handleSubmit = async (redirect?: string, goBack: boolean = false) => {
-    formData.name = formData.name ? formData.name : formData.module ? formData.module.label : ''
+    //formData.name = formData.name ? formData.name : formData.module ? formData.module.label : ''
     formData.cmid = formData.module?.value ?? ''
     formData.url = formData.module?.url ?? ''
 
@@ -336,12 +336,12 @@ export function Assessment() {
     }
   }, [notification]);
 
-  useEffect(() => {
+  /*useEffect(() => {
     // When the selected module changes, update the assessment name.
     if (formData.module && formData.module.label && !formData.name) {
       updateField('name', formData.module.label)
     }
-  }, [formData.module])
+  }, [formData.module])*/
 
   return (
     <>
