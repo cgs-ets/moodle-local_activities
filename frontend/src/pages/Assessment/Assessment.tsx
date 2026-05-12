@@ -338,7 +338,7 @@ export function Assessment() {
 
   useEffect(() => {
     // When the selected module changes, update the assessment name.
-    if (formData.module && formData.module.label && !formData.name) {
+    if (formData.module && formData.module.label) {
       updateField('name', formData.module.label)
     }
   }, [formData.module])
