@@ -456,6 +456,7 @@ export function Assessment() {
                             value={formData.name}
                             onChange={(e) => updateField('name', e.target.value)}
                             readOnly={viewStateProps.readOnly}
+                            error={formErrors.name}
                           />
                           
                           <div>
