@@ -23,6 +23,7 @@ export function BasicDetails() {
   const formData = useFormStore()
   const description = useFormStore((state) => (state.description))
   const activitytype = useFormStore((state) => (state.activitytype))
+  const campus = useFormStore((state) => (state.campus))
   const setState = useFormStore(state => state.setState)
   const viewStateProps = useStateStore((state) => (state.viewStateProps))
   const savedtime = useStateStore((state) => (state.savedtime))
@@ -566,15 +567,17 @@ export function BasicDetails() {
           {(activitytype == 'excursion' || activitytype == 'incursion') &&
             <>
               <div>
+                <Text fz="sm" fw={500} c="#212529">Transport</Text>
                 <Textarea
                     placeholder="E.g. walking, bus, taxi, including authorised driver."
-                    label="Transport"
+                    label=""
                     value={formData.transport}
                     onChange={(e) => updateField('transport', e.target.value)}
                     readOnly={viewStateProps.readOnly}
                     autosize
                     minRows={1}
                   />
+                { campus === 'primary' && <Text className="text-sm mb-1 text-gray-500">Booster seats mandatory for all students under 7 years of age in vehicles of 12 seats of less.</Text> }
               </div>
 
               <div>
