@@ -2120,25 +2120,6 @@ class activities_lib {
                 static::send_comment_email($activity, $comment, $nextapproval->nominated);
                 $recipients[] = $nextapproval->nominated;
             }
-            /*$approvers = workflow_lib::WORKFLOW[$nextapproval->type]['approvers'];
-            foreach($approvers as $approver) {
-                // Skip if approver does not want this notification.
-                if (isset($approver['notifications']) && !in_array('newcomment', $approver['notifications'])) {
-                    continue;
-                }
-                // Check email contacts.
-                if ($approver['contacts']) {
-                    foreach ($approver['contacts'] as $email) {
-                        static::send_comment_email($activity, $comment, $approver['username'], $email);
-                        $recipients[] = $approver['username'];
-                    }
-                } else {
-                    if ( ! in_array($approver['username'], $recipients)) {
-                        static::send_comment_email($activity, $comment, $approver['username']);
-                        $recipients[] = $approver['username'];
-                    }
-                }
-            }*/
             // Break after sending to next approver in line. Comment is not sent to approvers down stream.
             break;
         }
@@ -2173,10 +2154,11 @@ class activities_lib {
         //}
 
         // Send comment to the comment poster if they are not one of the above.
-        if ( ! in_array($USER->username, $recipients)) {
+        // Do not send to self!!
+        /*if ( ! in_array($USER->username, $recipients)) {
             static::send_comment_email($activity, $comment, $USER->username);
             $recipients[] = $USER->username;
-        }
+        }*/
 
         // Send to staff in charge.
         if ( ! in_array($activity->staffincharge, $recipients)) {
