@@ -182,11 +182,13 @@ export function List({setCaltype}: Props) {
           filterStaff.some((staff) => uniqueEventStaff.includes(staff));
 
         const matchesReviewStep = filters.reviewstep.length === 0 ||
-          ( event.status == statuses.inreview && 
+          ( event.status == statuses.inreview &&
             filters.reviewstep.some((step) => event.stepname.indexOf(step) > -1)
           );
 
-        return matchesName && matchesCategory && matchesType && matchesCampus && matchesStatus && matchesStaff && matchesReviewStep;
+        const matchesExtAttendees = !filters.ext_attendees || !!event.ext_attendees;
+
+        return matchesName && matchesCategory && matchesType && matchesCampus && matchesStatus && matchesStaff && matchesReviewStep && matchesExtAttendees;
 
       });
       return { ...day, events: filteredEvents, events_count: filteredEvents.length };
@@ -217,7 +219,7 @@ export function List({setCaltype}: Props) {
 
 
   const hasFilters = () => {
-    return filters.categories.length || filters.types.length || filters.status.length || filters.staff.length || filters.name.length || filters.reviewstep.length
+    return filters.categories.length || filters.types.length || filters.status.length || filters.staff.length || filters.name.length || filters.reviewstep.length || filters.ext_attendees
   }
 
   const toggleShowPast = () => {

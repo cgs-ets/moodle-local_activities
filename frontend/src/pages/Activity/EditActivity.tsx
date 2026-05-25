@@ -108,6 +108,8 @@ export function EditActivity() {
     const data = {
       ...fetchResponse.data,
       cocurr: !!Number(fetchResponse.data.cocurr),
+      ext_attendees: !!Number(fetchResponse.data.ext_attendees),
+      ext_attendees_processed: Number(fetchResponse.data.ext_attendees_processed) || 0,
       categories: JSON.parse(fetchResponse.data.categoriesjson || '[]'),
       timecreated: Number(fetchResponse.data.timecreated) ? fetchResponse.data.timecreated : dayjs().unix(),
       timemodified: Number(fetchResponse.data.timemodified) ? fetchResponse.data.timemodified : dayjs().unix(),

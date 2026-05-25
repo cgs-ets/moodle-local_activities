@@ -57,6 +57,15 @@ if ($hassiteconfig) {
     // Event reviewers
     $settings->add(new admin_setting_configtext('local_activities/eventreviewers', 'Event reviewers', 'Comma-separated usernames', ''));
 
+    // CDO email — notified when an activity is saved with external attendees.
+    $settings->add(new admin_setting_configtext(
+        'local_activities/cdoemail',
+        'CDO Email',
+        'Email address of the Community Development Office. Notified when an activity is saved with external attendees.',
+        '',
+        PARAM_EMAIL
+    ));
+
     // MS Graph API credentials
     $settings->add(new admin_setting_configtext('local_activities/graphclientid', 'Graph API Client ID', '', ''));
     $settings->add(new admin_setting_configtext('local_activities/graphclientsecret', 'Graph API Client Secret', '', ''));

@@ -166,6 +166,18 @@ export function FilterModal({opened, filters, setFilters, close}: Props) {
                 </Card.Section>
 
 
+                <Card.Section pos="relative" className='m-0 border-b flex items-start gap-1 px-4 py-4'>
+                  <div className='w-36 font-bold'>External attendees</div>
+                  <div>
+                    <Checkbox
+                      checked={!!filters.ext_attendees}
+                      onChange={(e) => handleFilterChange('ext_attendees', e.currentTarget.checked as any)}
+                      label="Has external attendees"
+                    />
+                  </div>
+                </Card.Section>
+
+
 
 
 

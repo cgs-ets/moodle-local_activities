@@ -325,7 +325,16 @@ export function BasicDetails() {
             onChange={(event) => updateField('cocurr', event.currentTarget.checked)}
             label={<Text fz="sm" mb="5px" fw={500} c="#212529">Is this co-curricular sports activity?</Text>}
           />
-          
+
+          <div>
+            <Switch
+              checked={!!formData.ext_attendees}
+              onChange={(event) => updateField('ext_attendees', event.currentTarget.checked)}
+              label={<Text fz="sm" fw={500} c="#212529">Will anyone outside of CGS staff and students be attending?</Text>}
+            />
+            <Text className="text-sm mb-1 text-gray-500 pl-[3.25rem]">This includes parents, alumni, community members, contractors, or any other visitors. Select this option if you are unsure.</Text>
+          </div>
+
           {!formData.recurring && (
             <>
               <div className="flex flex-col gap-2">

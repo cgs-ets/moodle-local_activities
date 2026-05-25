@@ -502,6 +502,22 @@ function xmldb_local_activities_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026041600, 'local', 'activities');
     }
 
+    if ($oldversion < 2026052500) {
+        $table = new xmldb_table('activities');
+
+        $field1 = new xmldb_field('ext_attendees', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'recurrence');
+        if (!$dbman->field_exists($table, $field1)) {
+            $dbman->add_field($table, $field1);
+        }
+
+        $field2 = new xmldb_field('ext_attendees_processed', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'ext_attendees');
+        if (!$dbman->field_exists($table, $field2)) {
+            $dbman->add_field($table, $field2);
+        }
+
+        upgrade_plugin_savepoint(true, 2026052500, 'local', 'activities');
+    }
+
     /*if ($oldversion < 2026022000) {
         $table = new xmldb_table('activities_logs');
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);

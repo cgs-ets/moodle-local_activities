@@ -68,6 +68,8 @@ class Activity {
         'assessmentid' => 0,
         'recurring' => 0,
         'recurrence' => '',
+        'ext_attendees' => 0,
+        'ext_attendees_processed' => 0,
     ];
 
 

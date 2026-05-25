@@ -191,11 +191,13 @@ export function Calendar({setCaltype}: Props) {
             filterStaff.some((staff) => uniqueEventStaff.includes(staff));
 
           const matchesReviewStep = filters.reviewstep.length === 0 ||
-            ( event.status == statuses.inreview && 
+            ( event.status == statuses.inreview &&
               filters.reviewstep.some((step) => event.stepname.indexOf(step) > -1)
-            ); 
+            );
 
-          if (matchesName && matchesCategory && matchesType && matchesCampus && matchesStatus && matchesStaff && matchesReviewStep) {
+          const matchesExtAttendees = !filters.ext_attendees || !!Number(event.ext_attendees);
+          
+          if (matchesName && matchesCategory && matchesType && matchesCampus && matchesStatus && matchesStaff && matchesReviewStep && matchesExtAttendees) {
             filteredEvents[eventId] = event;
           }
         }
@@ -209,7 +211,7 @@ export function Calendar({setCaltype}: Props) {
 
 
   const hasFilters = () => {
-    return filters.categories.length || filters.types.length || filters.campus.length || filters.status.length || filters.staff.length || filters.name.length || filters.reviewstep.length
+    return filters.categories.length || filters.types.length || filters.campus.length || filters.status.length || filters.staff.length || filters.name.length || filters.reviewstep.length || filters.ext_attendees
   }
 
 

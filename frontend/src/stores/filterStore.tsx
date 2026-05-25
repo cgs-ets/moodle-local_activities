@@ -10,6 +10,7 @@ export type Filters = {
   courses: string[];
   name: string;
   reviewstep: string[];
+  ext_attendees: boolean;
 }
 
 type FilterStore = Filters & {
@@ -26,6 +27,7 @@ const defaults: Filters = {
   courses: [],
   name: '',
   reviewstep: [],
+  ext_attendees: false,
 };
 
 const useFilterStore = create<FilterStore>((set) => ({

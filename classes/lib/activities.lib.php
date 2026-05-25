@@ -250,6 +250,14 @@ class activities_lib {
             $activity->set('campus', $data->campus);
             $activity->set('activitytype', $data->activitytype);
             $activity->set('cocurr', $data->cocurr ? 1 : 0);
+            // External attendees flag. If toggled off, reset the processed timestamp so a
+            // future re-enable will re-notify CDO.
+            $wasExt = !empty($activity->get('ext_attendees'));
+            $nowExt = !empty($data->ext_attendees);
+            $activity->set('ext_attendees', $nowExt ? 1 : 0);
+            if ($wasExt && !$nowExt) {
+                $activity->set('ext_attendees_processed', 0);
+            }
             $activity->set('location', $data->location);
             $activity->set('timestart', intval($data->timestart / 60) * 60); // Remove seconds.
             $activity->set('timeend', $timeend); // Remove seconds.
@@ -411,6 +419,14 @@ class activities_lib {
                 $DB->execute($sql, $params);
             }
 
+            // Notify CDO only once the activity is at least in-review (calendar entries
+            // auto-enter INREVIEW here; excursions stay in DRAFT and are handled via update_status).
+            if ($activity->get('status') >= static::ACTIVITY_STATUS_INREVIEW &&
+                $activity->get('ext_attendees') &&
+                (int)$activity->get('ext_attendees_processed') === 0) {
+                static::notify_cdo_external_attendees($activity);
+            }
+
 
             // Log the change
             /*$DB->insert_record('activities_logs', (object) array(
@@ -433,6 +449,41 @@ class activities_lib {
             'workflow' => $newstatusinfo->workflow,
             'newdates' => $newdates,
         );
+    }
+
+    /**
+     * Email the Community Development Office about an activity with external attendees,
+     * then stamp ext_attendees_processed so we don't notify again.
+     */
+    private static function notify_cdo_external_attendees($activity) {
+        global $USER, $CFG;
+
+        $config = get_config('local_activities');
+        if (empty($config->cdoemail)) {
+            return;
+        }
+
+        $toUser = \core_user::get_user_by_email($config->cdoemail);
+        if (empty($toUser)) {
+            $toUser = new \stdClass();
+            $toUser->email = $config->cdoemail;
+            $toUser->firstname = 'CDO';
+            $toUser->lastname = '';
+        }
+
+        $url = $CFG->wwwroot . '/local/activities/' . $activity->get('id');
+        $subject = 'External attendees: ' . $activity->get('activityname');
+        $body  = '<p>An activity has been saved with external attendees:</p>';
+        $body .= '<ul>';
+        $body .= '<li><strong>' . s($activity->get('activityname')) . '</strong></li>';
+        $body .= '<li>' . userdate($activity->get('timestart')) . ' &mdash; ' . userdate($activity->get('timeend')) . '</li>';
+        $body .= '<li>Location: ' . s($activity->get('location')) . '</li>';
+        $body .= '</ul>';
+        $body .= '<p><a href="' . $url . '">Open activity</a></p>';
+
+        service_lib::wrap_and_email_to_user($toUser, $USER, $subject, $body);
+        $activity->set('ext_attendees_processed', time());
+        $activity->save();
     }
 
     public static function create_recurring_activities($activityid) {
@@ -685,6 +736,13 @@ class activities_lib {
         $newstatusinfo = (object) array('status' => $status, 'workflow' => []);
         if ($status == static::ACTIVITY_STATUS_INREVIEW) {
             $newstatusinfo = workflow_lib::generate_approvals($originalactivity, $activity);
+        }
+
+        // Notify CDO if entering in-review (or higher) with external attendees and not yet notified.
+        if ($status >= static::ACTIVITY_STATUS_INREVIEW &&
+            $activity->get('ext_attendees') &&
+            (int)$activity->get('ext_attendees_processed') === 0) {
+            static::notify_cdo_external_attendees($activity);
         }
 
         return array(
