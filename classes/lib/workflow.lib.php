@@ -592,7 +592,7 @@ class workflow_lib extends \local_activities\local_activities_config {
         $activity = new Activity($activityid);
         $exported = $activity->export();
 
-        $toUser = \core_user::get_user_by_username($exported->creator);
+        $toUser = \core_user::get_user_by_username($exported->staffincharge);
         $fromUser = \core_user::get_noreply_user();
         $fromUser->bccaddress = array(); //array("lms.archive@cgs.act.edu.au"); 
 
@@ -614,7 +614,8 @@ class workflow_lib extends \local_activities\local_activities_config {
         $activity = new Activity($activityid);
         $activity = $activity->export();
 
-        $toUser = \core_user::get_user_by_username($activity->creator);
+        // Needs to go to staff in charge.
+        $toUser = \core_user::get_user_by_username($activity->staffincharge);
         $fromUser = \core_user::get_noreply_user();
         $fromUser->bccaddress = array(); //$fromUser->bccaddress = array("lms.archive@cgs.act.edu.au"); 
 
@@ -738,7 +739,7 @@ class workflow_lib extends \local_activities\local_activities_config {
         $recipients = array();
 
         // Send to all approvers.
-        $approvals = static::get_approvals($activityid);
+        /*$approvals = static::get_approvals($activityid);
         foreach ($approvals as $nextapproval) {
             // Get the approvers for this approval step.
             $approvers = workflow_lib::WORKFLOW[$nextapproval->type]['approvers'];
@@ -767,7 +768,7 @@ class workflow_lib extends \local_activities\local_activities_config {
                     }
                 }
             }
-        }
+        }*/
 
         // Send to staff in charge, planning staff and accompanying staff.
         $allstaff = activities_lib::get_all_staff($activityid);
@@ -782,12 +783,12 @@ class workflow_lib extends \local_activities\local_activities_config {
 
        
         // Send to activity creator.
-        if ( ! in_array($activity->get('creator'), $recipients)) {
+        /*if ( ! in_array($activity->get('creator'), $recipients)) {
             $usercontext = \core_user::get_user_by_username($activity->get('creator'));
             $exported = $activity->export($usercontext);
             static::send_approved_email($exported, $exported->creator);
             $recipients[] = $exported->creator;
-        }
+        }*/
 
 
     }
