@@ -326,6 +326,7 @@ export function BasicDetails() {
             label={<Text fz="sm" mb="5px" fw={500} c="#212529">Is this co-curricular sports activity?</Text>}
           />
 
+{false && (
           <div>
             <Switch
               checked={!!formData.ext_attendees}
@@ -334,7 +335,7 @@ export function BasicDetails() {
             />
             <Text className="text-sm mb-1 text-gray-500 pl-[3.25rem]">This includes parents, alumni, community members, contractors, or any other visitors. Select this option if you are unsure.</Text>
           </div>
-
+)}
           {!formData.recurring && (
             <>
               <div className="flex flex-col gap-2">
