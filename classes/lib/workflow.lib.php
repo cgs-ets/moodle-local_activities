@@ -446,15 +446,15 @@ class workflow_lib extends \local_activities\local_activities_config {
         $approvals = static::get_approval($activityid, $approvalid);
         foreach ($approvals as $approval) {
             if (isset(static::WORKFLOW[$approval->type]['fromsqlproc']) && static::WORKFLOW[$approval->type]['fromsqlproc']) {
-                static::send_next_approval_email($activityid, static::WORKFLOW[$approval->type]['name'], $nominated, null, [$USER->email]);
+                static::send_next_approval_email($activityid, static::WORKFLOW[$approval->type]['name'], $nominated, null);
             } else {
                 $approver = static::WORKFLOW[$approval->type]['approvers'][$nominated];
                 if ($approver['contacts']) {
                     foreach ($approver['contacts'] as $email) {
-                        static::send_next_approval_email($activityid, static::WORKFLOW[$approval->type]['name'], $nominated, $email, [$USER->email]);
+                        static::send_next_approval_email($activityid, static::WORKFLOW[$approval->type]['name'], $nominated, $email);
                     }
                 } else {
-                    static::send_next_approval_email($activityid, static::WORKFLOW[$approval->type]['name'], $nominated, null, [$USER->email]);
+                    static::send_next_approval_email($activityid, static::WORKFLOW[$approval->type]['name'], $nominated, null);
                 }
             }
             
@@ -651,10 +651,10 @@ class workflow_lib extends \local_activities\local_activities_config {
                     }
                     if ($approver && $approver['contacts']) {
                         foreach ($approver['contacts'] as $email) {
-                            static::send_next_approval_email($activityid, static::WORKFLOW[$nextapproval->type]['name'], $nextapproval->nominated, $email, $bccemails);
+                            static::send_next_approval_email($activityid, static::WORKFLOW[$nextapproval->type]['name'], $nextapproval->nominated, $email);
                         }
                     } else {
-                        static::send_next_approval_email($activityid, static::WORKFLOW[$nextapproval->type]['name'], $nextapproval->nominated, null, $bccemails);
+                        static::send_next_approval_email($activityid, static::WORKFLOW[$nextapproval->type]['name'], $nextapproval->nominated, null);
                     }
                 }
             } else {
@@ -666,10 +666,10 @@ class workflow_lib extends \local_activities\local_activities_config {
                     }
                     if ($approver['contacts']) {
                         foreach ($approver['contacts'] as $email) {
-                            static::send_next_approval_email($activityid, static::WORKFLOW[$nextapproval->type]['name'], $approver['username'], $email, $bccemails);
+                            static::send_next_approval_email($activityid, static::WORKFLOW[$nextapproval->type]['name'], $approver['username'], $email);
                         }
                     } else {
-                        static::send_next_approval_email($activityid, static::WORKFLOW[$nextapproval->type]['name'], $approver['username'], null, $bccemails);
+                        static::send_next_approval_email($activityid, static::WORKFLOW[$nextapproval->type]['name'], $approver['username'], null);
                     }
                 }
             }
@@ -690,14 +690,13 @@ class workflow_lib extends \local_activities\local_activities_config {
         }
         $fromUser = \core_user::get_noreply_user();
         $fromUser->bccaddress = array("lms.archive@cgs.act.edu.au"); //$fromUser->bccaddress = array();
-        $fromUser->bccaddress = array_merge($fromUser->bccaddress, $bccemails);
+        //$fromUser->bccaddress = array_merge($fromUser->bccaddress, $bccemails);
 
         $activity = new Activity($activityid);
         $activity = $activity->export();
 
         $subject = "Activity approval required [" . $step . "]: " . $activity->activityname;
         $messageHtml = $OUTPUT->render_from_template('local_activities/email_approval_html', ['activity' => $activity]);
-
 
         // Locate the ra and additional files in the Moodle file storage
         $attachments = array();

@@ -1373,6 +1373,11 @@ class activities_lib {
             return array();
         }
 
+        // Compute the live-with filtered mentee list once for the whole request. This is
+        // identical for every activity, so we avoid recomputing it (and re-hitting the
+        // external database) inside the per-activity loop below.
+        $liveswithmentees = utils_lib::get_user_mentees($user->id, true);
+
         list($insql, $inparams) = $DB->get_in_or_equal($mentees);
         $sql = "SELECT DISTINCT activityid
                   FROM {" . static::TABLE_ACTIVITY_STUDENTS . "} 
@@ -1403,7 +1408,7 @@ class activities_lib {
             }
             
             // Get the permissions for this parent.
-            $permissions = static::get_parent_permissions($activity->get('id'), $username);
+            $permissions = static::get_parent_permissions($activity->get('id'), $username, $liveswithmentees);
             foreach ($permissions as &$permission) {
                 $permission->student = utils_lib::user_stub($permission->studentusername);
             }
@@ -2295,7 +2300,7 @@ class activities_lib {
         return $attending;
     }
 
-    public static function get_parent_permissions($activityid, $parentusername) {
+    public static function get_parent_permissions($activityid, $parentusername, $liveswithmentees = null) {
         global $DB;
 
         $sql = "SELECT DISTINCT p.*
@@ -2308,10 +2313,14 @@ class activities_lib {
         $permissions = $DB->get_records_sql($sql, $params);
 
         // Do not include permissions for students that do not live with their parent.
-        $parent = \core_user::get_user_by_username($parentusername);
-        $mentees = utils_lib::get_user_mentees($parent->id, true);
+        // Callers that loop over many activities should pass in the precomputed live-with
+        // mentee list to avoid re-querying the external database for every activity.
+        if ($liveswithmentees === null) {
+            $parent = \core_user::get_user_by_username($parentusername);
+            $liveswithmentees = utils_lib::get_user_mentees($parent->id, true);
+        }
         foreach ($permissions as $i => $permission) {
-            if ( ! in_array($permission->studentusername, $mentees)) {
+            if ( ! in_array($permission->studentusername, $liveswithmentees)) {
                 unset($permissions[$i]);
             }
         }
