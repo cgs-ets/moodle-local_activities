@@ -16,6 +16,7 @@ import { RecurrenceModal } from "../../../../components/RecurrenceModal";
 import useFetch from "../../../../hooks/useFetch";
 import { OccurrenceModal } from "./OccurrenceModal";
 import { keyframes } from '@emotion/react';
+import { getConfig } from "../../../../utils";
 
 
 export function BasicDetails() {
@@ -326,7 +327,7 @@ export function BasicDetails() {
             label={<Text fz="sm" mb="5px" fw={500} c="#212529">Is this co-curricular sports activity?</Text>}
           />
 
-{false && (
+{(getConfig().user.un == '43563' || getConfig().user.un == '57056' || getConfig().user.un == '78055') && (
           <div>
             <Switch
               checked={!!formData.ext_attendees}
