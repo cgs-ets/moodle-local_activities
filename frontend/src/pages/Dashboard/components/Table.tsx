@@ -218,7 +218,7 @@ export function TableView({setCaltype}: Props) {
           filters.reviewstep.some((step) => event.stepname.indexOf(step) > -1)
         );
 
-      const matchesExtAttendees = !filters.ext_attendees || !!event.ext_attendees;
+      const matchesExtAttendees = !filters.ext_attendees || !!Number(event.ext_attendees);
 
       if (matchesName && matchesCategory && matchesType && matchesCampus && matchesStatus && matchesStaff && matchesReviewStep && matchesExtAttendees) {
         return event;

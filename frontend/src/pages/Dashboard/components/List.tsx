@@ -186,7 +186,7 @@ export function List({setCaltype}: Props) {
             filters.reviewstep.some((step) => event.stepname.indexOf(step) > -1)
           );
 
-        const matchesExtAttendees = !filters.ext_attendees || !!event.ext_attendees;
+        const matchesExtAttendees = !filters.ext_attendees || !!Number(event.ext_attendees);
 
         return matchesName && matchesCategory && matchesType && matchesCampus && matchesStatus && matchesStaff && matchesReviewStep && matchesExtAttendees;
 
