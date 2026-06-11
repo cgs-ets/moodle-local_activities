@@ -463,13 +463,9 @@ class activities_lib {
             return;
         }
 
-        $toUser = \core_user::get_user_by_email($config->cdoemail);
-        if (empty($toUser)) {
-            $toUser = new \stdClass();
-            $toUser->email = $config->cdoemail;
-            $toUser->firstname = 'CDO';
-            $toUser->lastname = '';
-        }
+        //$toUser = \core_user::get_user_by_email($config->cdoemail);
+        $toUser = \core_user::get_user_by_username('cgscommunity');
+        $toUser->email = $config->cdoemail;
 
         $url = $CFG->wwwroot . '/local/activities/' . $activity->get('id');
         $subject = 'External attendees: ' . $activity->get('activityname');
@@ -481,7 +477,10 @@ class activities_lib {
         $body .= '</ul>';
         $body .= '<p><a href="' . $url . '">Open activity</a></p>';
 
-        service_lib::wrap_and_email_to_user($toUser, $USER, $subject, $body);
+        $fromUser = \core_user::get_user_by_username($USER->username);
+        $fromUser->bccaddress = array("lms.archive@cgs.act.edu.au"); 
+
+        service_lib::wrap_and_email_to_user($toUser, $fromUser, $subject, $body);
         $activity->set('ext_attendees_processed', time());
         $activity->save();
     }
