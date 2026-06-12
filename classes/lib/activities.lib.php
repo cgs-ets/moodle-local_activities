@@ -1519,7 +1519,7 @@ class activities_lib {
 
         // Drop cancelled activites
         $activities = array_filter($activities, function($activity) {
-            return $activity['status'] != static::ACTIVITY_STATUS_CANCELLED;
+            return $activity->status != static::ACTIVITY_STATUS_CANCELLED;
         });
 
         return $activities;
