@@ -1517,6 +1517,11 @@ class activities_lib {
         $approvals = array_merge($approvals1, $approvals2);
         $activities = static::get_by_ids(array_unique(array_column($approvals, 'activityid')), null, $period); // All statuses and future only.
 
+        // Drop cancelled activites
+        $activities = array_filter($activities, function($activity) {
+            return $activity['status'] != static::ACTIVITY_STATUS_CANCELLED;
+        });
+
         return $activities;
     }
 
