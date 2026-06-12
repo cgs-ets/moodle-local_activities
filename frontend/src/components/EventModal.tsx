@@ -48,8 +48,10 @@ export function EventModal({activity, close, hideOpenButton, isPublic}: Props) {
                       { activity.status == statuses.approved
                         ? <Badge color='apprgreen.2' className='text-black normal-case'>Approved</Badge>
                         : activity.status == statuses.saved 
-                      ? <Badge color='gray.2' className='text-black normal-case'>Draft</Badge>
-                        : <Badge color='orange.1' className='text-black normal-case'>Pending - {activity.stepname}</Badge>
+                          ? <Badge color='gray.2' className='text-black normal-case'>Draft</Badge>
+                          : activity.status == statuses.cancelled
+                            ? <Badge color='red.2' className='text-black normal-case'>Cancelled</Badge>
+                            : <Badge color='orange.1' className='text-black normal-case'>Pending - {activity.stepname}</Badge>
                       }
                     </>
                   }
