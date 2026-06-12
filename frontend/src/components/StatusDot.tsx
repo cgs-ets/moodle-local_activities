@@ -8,7 +8,9 @@ export function StatusDot({status}: {status: number}) {
       ? "bg-[#4aa15d]" 
       : status == statuses.saved 
         ? "bg-gray-400"
-        : "bg-[#ffa94d]")}>
+        : status == statuses.cancelled 
+          ? "bg-red-500"
+          : "bg-[#ffa94d]")}>
     </div>
   );
 };
