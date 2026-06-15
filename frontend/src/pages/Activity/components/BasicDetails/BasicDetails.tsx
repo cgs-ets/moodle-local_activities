@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { TextInput, Text, SegmentedControl, Card, Button, Switch, Alert, Checkbox, Anchor, Tooltip, Notification, NotificationProps, rem, ActionIcon, CloseButton, Textarea } from '@mantine/core';
+import { TextInput, Text, SegmentedControl, Card, Button, Switch, Alert, Checkbox, Anchor, Tooltip, Notification, NotificationProps, rem, ActionIcon, CloseButton, Textarea, Radio, Group } from '@mantine/core';
 import { RichTextEditor, Link } from '@mantine/tiptap';
 import { Link as RouterLink } from 'react-router-dom';
 import { useEditor } from '@tiptap/react';
@@ -168,6 +168,17 @@ export function BasicDetails() {
     }
   }, [formData.recurring])
 
+  useEffect(() => {
+    if (formData.id) {
+      return
+    }
+    if (campus == 'commercial') {
+      updateField('ext_attendees', 1)
+    } else {
+      updateField('ext_attendees', 0)
+    }
+  }, [campus, formData.id])
+
   const arraysHaveSameElements = (arr1: {start: string, end: string}[], arr2: {start: string, end: string}[]) => {
     if (arr1.length !== arr2.length) return false;
   
@@ -329,12 +340,36 @@ export function BasicDetails() {
 
 {(getConfig().user.un == '43563' || getConfig().user.un == '57056' || getConfig().user.un == '78055') && (
           <div>
-            <Switch
-              checked={!!formData.ext_attendees}
-              onChange={(event) => updateField('ext_attendees', event.currentTarget.checked)}
-              label={<Text fz="sm" fw={500} c="#212529">Will anyone outside of CGS staff and students be attending?</Text>}
-            />
-            <Text className="text-sm mb-1 text-gray-500 pl-[3.25rem]">This includes parents, alumni, community members, contractors, or any other visitors. Select this option if you are unsure.</Text>
+
+            {false && (<>
+              <Switch
+                checked={!!formData.ext_attendees}
+                onChange={(event) => updateField('ext_attendees', event.currentTarget.checked)}
+                label={<Text fz="sm" fw={500} c="#212529">Will anyone outside of CGS staff and students be attending?</Text>}
+              />
+              <Text className="text-sm mb-1 text-gray-500 pl-[3.25rem]">This includes parents, alumni, community members, contractors, or any other visitors. Select this option if you are unsure.</Text>
+            </>)}
+
+            <Radio.Group
+              value={formData.ext_attendees ? '1' : '0'}
+              onChange={(value: string | null) => updateField('ext_attendees', value ? Number(value) : 0)}
+              name="favoriteFramework"
+              label="Will anyone outside of CGS staff and students be attending?"
+              description="This includes parents, alumni, community members, contractors, or any other visitors. Select this option if you are unsure."
+              styles={{
+                description: {
+                    marginTop: '-5px',
+                  },
+                }}
+            >
+              <Group mt="xs">
+                <Radio value="0" label="No" />
+                <Radio value="1" label="Yes" />
+              </Group>
+            </Radio.Group>
+
+
+
           </div>
 )}
           {!formData.recurring && (
