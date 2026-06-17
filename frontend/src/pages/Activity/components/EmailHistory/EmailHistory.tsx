@@ -131,7 +131,7 @@ export function EmailHistory() {
                 ))}
               </Group>
             </Box>
-            <div className="rendered-email text-base py-4 border-t mt-4">
+            <div className="rendered-email text-base py-4 border-t mt-4 [&_a]:text-blue-600 [&_a:hover]:text-blue-800">
               <div dangerouslySetInnerHTML={ {__html: selectedEmail?.rendered || ''} }></div>
             </div>
         </Modal>
