@@ -1,5 +1,8 @@
 
-import { Avatar, Badge, Box, Button, Checkbox, CloseButton, Flex, Group, Modal, Paper, ScrollArea, Text, TextInput, Textarea, Transition } from '@mantine/core';
+import { Avatar, Badge, Box, Button, Checkbox, CloseButton, Flex, Group, Modal, Paper, ScrollArea, Text, TextInput, Transition } from '@mantine/core';
+import { RichTextEditor, Link } from '@mantine/tiptap';
+import { useEditor } from '@tiptap/react';
+import { StarterKit } from '@tiptap/starter-kit';
 import { useEffect, useState } from 'react';
 import { IconCheck, IconMailOpened, IconSend, IconUser } from '@tabler/icons-react';
 import { useTimeout } from '@mantine/hooks';
@@ -20,7 +23,6 @@ export function EmailModal({opened, close, students, defaultAudiences, visibleAu
   const activityid = useFormStore((state) => (state.id))
   const activityname = useFormStore((state) => (state.activityname))
   const permissions = useFormStore((state) => (state.permissions))
-  const [message, setMessage] = useState<string>('')
   const [audiences, setAudiences] = useState<string[]>(defaultAudiences ?? ['students', 'parents', 'staff'])
   const [includes, setIncludes] = useState<string[]>(['details'])
   const [recipients, setRecipients] = useState<User[]>([])
@@ -28,13 +30,18 @@ export function EmailModal({opened, close, students, defaultAudiences, visibleAu
   const [submitResponse, submitError, submitLoading, submitAjax, setSubmitData] = useAjax();
   const {start, clear} = useTimeout(() => onClose(), 3000);
 
+  const editor = useEditor({
+    extensions: [StarterKit, Link],
+    content: '',
+  });
+
   const isOnlyStaffSelected = () => audiences.length === 1 && audiences.includes('staff')
 
 
 
   useEffect(() => {
     if (opened) {
-      setMessage('')
+      editor?.commands.setContent('')
       setShowSuccess(false)
       let includes = ['details']
       // Tick on permissions.
@@ -63,7 +70,7 @@ export function EmailModal({opened, close, students, defaultAudiences, visibleAu
         args: {
           scope: isOnlyStaffSelected() ? [] : recipients,
           activityid: activityid,
-          extratext: message,
+          extratext: editor && !editor.isEmpty ? editor.getHTML() : '',
           includes: includes,
           audiences: audiences,
         },
@@ -127,7 +134,7 @@ export function EmailModal({opened, close, students, defaultAudiences, visibleAu
   }, [includes])
 
   const onClose = () => {
-    setMessage('')
+    editor?.commands.setContent('')
     setAudiences(defaultAudiences ?? (isOnlyStaffSelected() ? ['staff'] : ['students', 'parents', 'staff']))
     let includes = ['details']
     if (permissions && !isOnlyStaffSelected()) {
@@ -177,15 +184,38 @@ export function EmailModal({opened, close, students, defaultAudiences, visibleAu
             <div>The following activity requires your permission for [Student] to attend.</div>
           }
 
-          <Textarea
-            label=""
-            placeholder="Type your message here"
-            autosize
-            minRows={4}
-            maxRows={10}
-            value={message}
-            onChange={(e) => setMessage(e.currentTarget.value)}
-          />
+          <RichTextEditor editor={editor}>
+            <RichTextEditor.Toolbar sticky>
+              <RichTextEditor.ControlsGroup>
+                <RichTextEditor.Bold />
+                <RichTextEditor.Italic />
+                <RichTextEditor.Strikethrough />
+                <RichTextEditor.ClearFormatting />
+                <RichTextEditor.Code />
+              </RichTextEditor.ControlsGroup>
+
+              <RichTextEditor.ControlsGroup>
+                <RichTextEditor.H1 />
+                <RichTextEditor.H2 />
+                <RichTextEditor.H3 />
+                <RichTextEditor.H4 />
+              </RichTextEditor.ControlsGroup>
+
+              <RichTextEditor.ControlsGroup>
+                <RichTextEditor.Blockquote />
+                <RichTextEditor.Hr />
+                <RichTextEditor.BulletList />
+                <RichTextEditor.OrderedList />
+              </RichTextEditor.ControlsGroup>
+
+              <RichTextEditor.ControlsGroup>
+                <RichTextEditor.Link />
+                <RichTextEditor.Unlink />
+              </RichTextEditor.ControlsGroup>
+            </RichTextEditor.Toolbar>
+
+            <RichTextEditor.Content />
+          </RichTextEditor>
 
           { includes.includes('details') &&
             <div className='rounded-sm bg-[#f0f4f6] p-4'>
