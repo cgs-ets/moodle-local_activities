@@ -338,24 +338,14 @@ export function BasicDetails() {
             label={<Text fz="sm" mb="5px" fw={500} c="#212529">Is this co-curricular sports activity?</Text>}
           />
 
-{(getConfig().user.un == '43563' || getConfig().user.un == '57056' || getConfig().user.un == '78055') && (
+
           <div>
-
-            {false && (<>
-              <Switch
-                checked={!!formData.ext_attendees}
-                onChange={(event) => updateField('ext_attendees', event.currentTarget.checked)}
-                label={<Text fz="sm" fw={500} c="#212529">Will anyone outside of CGS staff and students be attending?</Text>}
-              />
-              <Text className="text-sm mb-1 text-gray-500 pl-[3.25rem]">This includes parents, alumni, community members, contractors, or any other visitors. Select this option if you are unsure.</Text>
-            </>)}
-
             <Radio.Group
               value={formData.ext_attendees ? '1' : '0'}
               onChange={(value: string | null) => updateField('ext_attendees', value ? Number(value) : 0)}
               name="favoriteFramework"
               label="Will anyone outside of CGS staff and students be attending?"
-              description="This includes parents, alumni, community members, contractors, or any other visitors. Select this option if you are unsure."
+              description="This includes parents, alumni, community members, contractors, or any other visitors. Select 'Yes' if you are unsure."
               styles={{
                 description: {
                     marginTop: '-5px',
@@ -367,11 +357,8 @@ export function BasicDetails() {
                 <Radio value="1" label="Yes" />
               </Group>
             </Radio.Group>
-
-
-
           </div>
-)}
+
           {!formData.recurring && (
             <>
               <div className="flex flex-col gap-2">
