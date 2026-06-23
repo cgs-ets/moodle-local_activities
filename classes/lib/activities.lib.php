@@ -475,6 +475,8 @@ class activities_lib {
         $body .= '<li>' . userdate($activity->get('timestart')) . ' &mdash; ' . userdate($activity->get('timeend')) . '</li>';
         $body .= '<li>Location: ' . s($activity->get('location')) . '</li>';
         $body .= '</ul>';
+        $body .= '<p><strong>Description:</strong></p>';
+        $body .= '<div>' . format_text($activity->get('description'), FORMAT_HTML, ['noclean' => true]) . '</div>';
         $body .= '<p><a href="' . $url . '">Open activity</a></p>';
 
         $fromUser = \core_user::get_user_by_username($USER->username);
