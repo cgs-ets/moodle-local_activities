@@ -832,7 +832,8 @@ class assessments_lib {
 			has_capability('moodle/site:config', \context_user::instance($USER->id)) ||
 			$USER->username == '73445' || // B Robins
 			$USER->username == '21213' || // G Maltby
-			$USER->username == '68429' // A Hall
+			$USER->username == '68429' || // A Hall
+            $assessment->staffincharge == $USER->username
 		) {
 			return true;
 		}
