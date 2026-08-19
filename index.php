@@ -20,6 +20,15 @@
     $config->user = $user;
     $config->roles = \local_activities\lib\service_lib::get_user_roles($USER->username);
     $config->calroles = \local_activities\lib\utils_lib::get_cal_roles($USER->username);
+    // Staff who are also parents hold two accounts. The permission page needs to know which
+    // one they are in, so it can offer to switch. No returnurl here - the app is client
+    // routed, so the frontend appends the current location when the link is used.
+    $dualaccountmode = \local_activities\lib\utils_lib::get_dual_account_mode();
+    $config->dualaccount = $dualaccountmode ? (object) [
+        'mode' => $dualaccountmode,
+        'switchurl' => (new moodle_url('/theme/boostcgs3/switch.php',
+            ['sesskey' => $config->sesskey]))->out(false),
+    ] : null;
     $config->loginUrl = (new moodle_url('/login/index.php'))->out();
     $config->logoutUrl = (new moodle_url('/login/logout.php', ['sesskey' => $config->sesskey]))->out();
     

@@ -51,6 +51,34 @@ class utils_lib {
     }
 
     /**
+     * Which identity is the current user signed in as, when they hold both.
+     *
+     * Staff who are also parents have two accounts - `12345` for staff and `12345_p` for
+     * the parent identity. Mirrors \theme_boostcgs3\util::is_parent_staff(), reimplemented
+     * here so the plugin does not depend on which theme is active.
+     *
+     * @return string|null 'staff' or 'parent', or null when the user has only one account.
+     */
+    public static function get_dual_account_mode() {
+        global $DB, $USER;
+
+        if (empty($USER->username)) {
+            return null;
+        }
+
+        $isparentaccount = substr($USER->username, -2) === '_p';
+        $base = $isparentaccount ? substr($USER->username, 0, -2) : $USER->username;
+
+        $count = $DB->count_records_select('user', 'username IN (?, ?) AND deleted = 0',
+            array($base, $base . '_p'));
+        if ($count < 2) {
+            return null;
+        }
+
+        return $isparentaccount ? 'parent' : 'staff';
+    }
+
+    /**
      * Search staff.
      *
      * @param string $query

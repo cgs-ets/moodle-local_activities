@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { Box, Container, Grid, Center, Text, Loader, Card, Anchor, rem } from '@mantine/core';
+import { Box, Button, Container, Grid, Center, Text, Loader, Card, Anchor, rem } from '@mantine/core';
 import { useParams } from "react-router-dom";
 import { Header } from "../../components/Header";
 import { Footer } from "../../components/Footer";
 import dayjs from "dayjs";
 import { defaults, useFormStore } from "../../stores/formStore";
 import { cn } from "../../utils/utils";
+import { getConfig } from "../../utils";
 import { PageHeader } from "../Activity/components/PageHeader";
 import { StuPermission } from "./Components/StuPermission";
 import { ActivityDetails } from "./Components/ActivityDetails";
@@ -70,6 +71,15 @@ export function Permission() {
     return permissionshelper?.activitystarted || permissionshelper?.ispastdueby || permissionshelper?.ispastlimit
   }
 
+  // Staff who are also parents hold two accounts, and permission requests belong to the
+  // parent one. Following a link from an email usually lands them here as staff, where
+  // nothing can ever match, so point them at the account switcher instead.
+  const dualaccount = getConfig().dualaccount
+  const inStaffMode = dualaccount?.mode === 'staff'
+  const switchUrl = dualaccount
+    ? `${dualaccount.switchurl}&returnurl=${encodeURIComponent(window.location.pathname + window.location.search)}`
+    : ''
+
 
 
   return (
@@ -91,7 +101,19 @@ export function Permission() {
         { !api.state.loading && !api.state.error && activityid && !permissions.length ?
           <Container size="xl">
             <Center h={300}>
-              <Text fw={600} fz="lg">Sorry, activity not found or you do not have access to this page.</Text>
+              { inStaffMode
+                ? <Card withBorder maw={rem(560)} p="lg">
+                    <Text fw={600} fz="lg" mb="xs">You're signed in with your staff account</Text>
+                    <Text fz="sm" c="dimmed" mb="md">
+                      Permission requests are attached to your parent account. Switch across to respond to this one.
+                    </Text>
+                    <Button component="a" href={switchUrl}>Switch to my parent account</Button>
+                    <Text fz="xs" c="dimmed" mt="md">
+                      You can also switch between your staff and parent accounts at any time using the selector in the header on CGS Connect.
+                    </Text>
+                  </Card>
+                : <Text fw={600} fz="lg">Sorry, activity not found or you do not have access to this page.</Text>
+              }
             </Center>
           </Container> : null
         }
