@@ -66,6 +66,10 @@ class service_lib {
      * @return array error and data
      */
     public static function call_service_function($function, $args, $format = 'json') {
+        global $USER;
+
+        // Keep the requested name for logging, $function is reassigned to an object below.
+        $requestedfunction = $function;
         $response = array();
     
         try {
@@ -94,6 +98,14 @@ class service_lib {
             $exception->message = preg_replace('/^[^–-]+[-–]\s*/', '', $exception->message);
             unset($exception->a);
             $exception->backtrace = format_backtrace($exception->backtrace, true);
+            // Always record the full detail server-side. It is stripped from the response below,
+            // and service.php defines NO_DEBUG_DISPLAY, so this log is the only record of a failure.
+            error_log('[local_activities] ' . get_class($e)
+                . ' method=' . $requestedfunction
+                . ' user=' . (isset($USER->username) ? $USER->username : '')
+                . ' :: ' . $e->getMessage()
+                . ' :: debuginfo=' . (isset($e->debuginfo) ? $e->debuginfo : '')
+                . ' :: ' . $exception->backtrace);
             if (!debugging('', DEBUG_DEVELOPER)) {
                 unset($exception->debuginfo);
                 unset($exception->backtrace);

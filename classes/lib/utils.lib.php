@@ -419,12 +419,26 @@ class utils_lib {
         }
 
         $disallowedparents = static::get_disallowed_parents($userid);
+        if ($disallowedparents === false) {
+            // We could not determine who is disallowed. Fail closed rather than risk asking a
+            // parent who should be excluded - callers treat an empty list as "skip this student".
+            error_log('[local_activities] get_user_mentors: skipping userid ' . $userid .
+                ' because the disallowed parent lookup failed.');
+            return array();
+        }
         $mentors = array_diff($mentors, $disallowedparents);
         
         return $mentors;
     }
 
 
+    /**
+     * Parents that are not allowed to provide permission for the given student(s).
+     *
+     * @param int|array $userid Moodle user id, or an array of ids when $multiple is set.
+     * @param int $multiple Set when $userid is an array of ids.
+     * @return array|false Disallowed parent ids, or false if the external lookup failed.
+     */
     public static function get_disallowed_parents($userid, $multiple = 0) {
         global $DB, $CFG;
 
@@ -434,36 +448,42 @@ class utils_lib {
         if (empty($config->dbtype)) {
             return $disallowedparents;
         }
-        $externalDB = \moodle_database::get_driver_instance($config->dbtype, 'native', true);
-        $externalDB->connect($config->dbhost, $config->dbuser, $config->dbpass, $config->dbname, '');
 
-        // Get any blanked out users.
-        if (!empty($config->getdisalloweduserssql)) {
-            $results = $externalDB->get_records_sql($config->getdisalloweduserssql);
-            $disallowedparents = array_column($results, 'userid');
-        }
+        $externalDB = null;
+        try {
+            $externalDB = \moodle_database::get_driver_instance($config->dbtype, 'native', true);
+            $externalDB->connect($config->dbhost, $config->dbuser, $config->dbpass, $config->dbname, '');
 
-        // Check liveswith flag.
-        if ($multiple) {
-            foreach ($userid as $id) {
+            // Get any blanked out users.
+            if (!empty($config->getdisalloweduserssql)) {
+                $results = $externalDB->get_records_sql($config->getdisalloweduserssql);
+                $disallowedparents = array_column($results, 'userid');
+            }
+
+            // Check liveswith flag.
+            $liveswithsql = "SELECT * FROM cgs.UVW_Mentors WHERE StudentID = ? AND LivesWithFlag = 0";
+            $ids = $multiple ? $userid : array($userid);
+            foreach ($ids as $id) {
                 $user = \core_user::get_user($id);
                 if (empty($user)) {
                     continue;
                 }
-                $liveswithsql = "SELECT * FROM cgs.UVW_Mentors WHERE StudentID = ? AND LivesWithFlag = 0";
                 $liveswithresults = $externalDB->get_records_sql($liveswithsql, array($user->username));
                 $doesnotlivewithparents = array_column($liveswithresults, 'observerid');
                 $disallowedparents = array_merge($disallowedparents, $doesnotlivewithparents);
             }
-        } else {
-            $user = \core_user::get_user($userid);
-            if (empty($user)) {
-                return array();
+        } catch (\Throwable $e) {
+            // The external DB is the only source of truth for who may not give permission, so a
+            // failure here must not be read as "nobody is disallowed", and must not abort the
+            // activity save that called us. Signal the failure and let the caller skip.
+            error_log('[local_activities] get_disallowed_parents failed :: ' . get_class($e) .
+                ' :: ' . $e->getMessage() .
+                ' :: debuginfo=' . (isset($e->debuginfo) ? $e->debuginfo : ''));
+            return false;
+        } finally {
+            if ($externalDB) {
+                $externalDB->dispose();
             }
-            $liveswithsql = "SELECT * FROM cgs.UVW_Mentors WHERE StudentID = ? AND LivesWithFlag = 0";
-            $liveswithresults = $externalDB->get_records_sql($liveswithsql, array($user->username));
-            $doesnotlivewithparents = array_column($liveswithresults, 'observerid');
-            $disallowedparents = array_merge($disallowedparents, $doesnotlivewithparents);
         }
 
         return $disallowedparents;
@@ -531,6 +551,12 @@ class utils_lib {
 
         // Remove disallowed parents
         $disallowedparents = static::get_disallowed_parents($userids, 1);
+        if ($disallowedparents === false) {
+            // See get_user_mentors() - fail closed when the disallowed parent lookup fails.
+            error_log('[local_activities] get_users_mentors: skipping ' . count($userids) .
+                ' user(s) because the disallowed parent lookup failed.');
+            return array();
+        }
         $mentors = array_diff($mentors, $disallowedparents);
 
         return $mentors;
