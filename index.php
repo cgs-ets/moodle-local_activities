@@ -1,10 +1,17 @@
 <?php
     require(__DIR__.'/../../config.php');
     require_once __DIR__ . '/bootstrap.php';
-    // Not $_SERVER['REQUEST_URI'] - IIS rewrites that to index.php, which would send the user to
-    // the dashboard instead of the deep link after the login round trip.
-    $PAGE->set_url(new moodle_url(activities_request_url()));
-    require_login();
+    // Not $_SERVER['REQUEST_URI'] - the web server rewrites SPA routes to index.php and IIS does
+    // not preserve the original path, so the rewrite hands it over in "route" instead. Setting
+    // $PAGE->url before require_login() is what puts the deep link into $SESSION->wantsurl.
+    $pageurl = activities_request_url();
+    $PAGE->set_url($pageurl);
+
+    // The public view is served from this same entry point, without a login.
+    $ispublic = activities_is_public_url($pageurl);
+    if (!$ispublic) {
+        require_login();
+    }
     require_once(__DIR__.'/classes/lib/service.lib.php');
     require_once(__DIR__.'/classes/lib/utils.lib.php');
 
@@ -18,21 +25,24 @@
     $config->headerbg = $activitiesconfig->headerbg;
     $config->headerfg = $activitiesconfig->headerfg;
     $config->headerlogourl = $activitiesconfig->headerlogourl;
-    $user = \local_activities\lib\utils_lib::user_stub($USER->username);
-    $config->user = $user;
-    $config->roles = \local_activities\lib\service_lib::get_user_roles($USER->username);
-    $config->calroles = \local_activities\lib\utils_lib::get_cal_roles($USER->username);
-    // Staff who are also parents hold two accounts. The permission page needs to know which
-    // one they are in, so it can offer to switch. No returnurl here - the app is client
-    // routed, so the frontend appends the current location when the link is used.
-    $dualaccountmode = \local_activities\lib\utils_lib::get_dual_account_mode();
-    $config->dualaccount = $dualaccountmode ? (object) [
-        'mode' => $dualaccountmode,
-        'switchurl' => (new moodle_url('/theme/boostcgs3/switch.php',
-            ['sesskey' => $config->sesskey]))->out(false),
-    ] : null;
     $config->loginUrl = (new moodle_url('/login/index.php'))->out();
-    $config->logoutUrl = (new moodle_url('/login/logout.php', ['sesskey' => $config->sesskey]))->out();
+    $config->logoutUrl = '';
+    if (!$ispublic) {
+        $user = \local_activities\lib\utils_lib::user_stub($USER->username);
+        $config->user = $user;
+        $config->roles = \local_activities\lib\service_lib::get_user_roles($USER->username);
+        $config->calroles = \local_activities\lib\utils_lib::get_cal_roles($USER->username);
+        // Staff who are also parents hold two accounts. The permission page needs to know which
+        // one they are in, so it can offer to switch. No returnurl here - the app is client
+        // routed, so the frontend appends the current location when the link is used.
+        $dualaccountmode = \local_activities\lib\utils_lib::get_dual_account_mode();
+        $config->dualaccount = $dualaccountmode ? (object) [
+            'mode' => $dualaccountmode,
+            'switchurl' => (new moodle_url('/theme/boostcgs3/switch.php',
+                ['sesskey' => $config->sesskey]))->out(false),
+        ] : null;
+        $config->logoutUrl = (new moodle_url('/login/logout.php', ['sesskey' => $config->sesskey]))->out();
+    }
     
     $config->favicon = get_favicon('src/assets/favicon.ico');
     $config->logo = get_logo('src/assets/logo.png');

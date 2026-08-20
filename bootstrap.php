@@ -242,26 +242,43 @@ function cssUrls(string $entry): array
 /**
  * Get the URL originally requested by the browser.
  *
- * IIS URL Rewrite (see web.config) replaces the request URL in place, so REQUEST_URI holds the
- * rewritten target (index.php) rather than the deep link the user clicked. Recover the original so
- * $PAGE->url - and therefore $SESSION->wantsurl - points back at the deep link after login.
+ * The web server rewrites every SPA route to index.php (see web.config / .htaccess), and IIS does
+ * not preserve the original path in REQUEST_URI - which is how deep links used to collapse to the
+ * dashboard after the SSO round trip. The rewrite therefore hands the path over in "route".
  *
- * @return string Local path, always under the plugin.
+ * @return moodle_url The URL the browser actually asked for, always inside this plugin.
  */
-function activities_request_url(): string
+function activities_request_url(): moodle_url
 {
-    $candidates = [
-        $_SERVER['HTTP_X_ORIGINAL_URL'] ?? '',   // Set by IIS URL Rewrite.
-        $_SERVER['UNENCODED_URL'] ?? '',
-        $_SERVER['REQUEST_URI'] ?? '',
-    ];
-    foreach ($candidates as $candidate) {
-        // X-Original-URL is a request header and therefore client-controllable. Only trust values
-        // that stay inside this plugin, and fall through to REQUEST_URI otherwise.
-        $candidate = clean_param($candidate, PARAM_LOCALURL);
-        if ($candidate !== '' && strpos($candidate, PLUGIN_DIR . '/') === 0) {
-            return $candidate;
-        }
+    // The caller's own query string, minus the routing parameter the rewrite added.
+    $params = $_GET;
+    unset($params['route']);
+
+    $route = ltrim(clean_param($_GET['route'] ?? '', PARAM_PATH), '/');
+    // Tolerate a rewrite that hands over the full path rather than one relative to the plugin.
+    $prefix = ltrim(PLUGIN_DIR, '/') . '/';
+    if (strpos($route, $prefix) === 0) {
+        $route = substr($route, strlen($prefix));
     }
-    return PLUGIN_DIR . '/';
+
+    if ($route === '') {
+        // No rewrite involved: a direct hit on index.php, or on the directory itself.
+        $path = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: PLUGIN_DIR . '/';
+        return new moodle_url($path, $params);
+    }
+
+    return new moodle_url(PLUGIN_DIR . '/' . $route, $params);
+}
+
+/**
+ * Is this a request for the public, unauthenticated view?
+ *
+ * @param moodle_url $url As returned by activities_request_url().
+ * @return bool
+ */
+function activities_is_public_url(moodle_url $url): bool
+{
+    $path = $url->get_path();
+    $base = PLUGIN_DIR . '/public';
+    return $path === $base || strpos($path, $base . '/') === 0;
 }
