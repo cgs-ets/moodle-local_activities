@@ -91,7 +91,7 @@ class activities_lib {
         }
         $exported = $activity->export();
         
-        $permissions = static::get_parent_permissions($id, $USER->username, true);
+        $permissions = static::get_parent_permissions($id, $USER->username);
 
         foreach ($permissions as &$permission) {
             $permission->student = utils_lib::user_stub($permission->studentusername);
