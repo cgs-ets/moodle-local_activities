@@ -90,7 +90,8 @@ class activities_lib {
             exit;
         }
         $exported = $activity->export();
-        $permissions = static::get_parent_permissions($id, $USER->username);
+        
+        $permissions = static::get_parent_permissions($id, $USER->username, true);
 
         foreach ($permissions as &$permission) {
             $permission->student = utils_lib::user_stub($permission->studentusername);
@@ -2324,10 +2325,13 @@ class activities_lib {
         if ($liveswithmentees === null) {
             $parent = \core_user::get_user_by_username($parentusername);
             $liveswithmentees = utils_lib::get_user_mentees($parent->id, true);
-        }
-        foreach ($permissions as $i => $permission) {
-            if ( ! in_array($permission->studentusername, $liveswithmentees)) {
-                unset($permissions[$i]);
+
+            if ($liveswithmentees) {
+                foreach ($permissions as $i => $permission) {
+                    if ( ! in_array($permission->studentusername, $liveswithmentees)) {
+                        unset($permissions[$i]);
+                    }
+                }
             }
         }
 
