@@ -2325,12 +2325,12 @@ class activities_lib {
         if ($liveswithmentees === null) {
             $parent = \core_user::get_user_by_username($parentusername);
             $liveswithmentees = utils_lib::get_user_mentees($parent->id, true);
+        }
 
-            if ($liveswithmentees) {
-                foreach ($permissions as $i => $permission) {
-                    if ( ! in_array($permission->studentusername, $liveswithmentees)) {
-                        unset($permissions[$i]);
-                    }
+        if ($liveswithmentees) {
+            foreach ($permissions as $i => $permission) {
+                if ( ! in_array($permission->studentusername, $liveswithmentees)) {
+                    unset($permissions[$i]);
                 }
             }
         }
