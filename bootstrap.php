@@ -238,3 +238,30 @@ function cssUrls(string $entry): array
     }
     return $urls;
 }
+
+/**
+ * Get the URL originally requested by the browser.
+ *
+ * IIS URL Rewrite (see web.config) replaces the request URL in place, so REQUEST_URI holds the
+ * rewritten target (index.php) rather than the deep link the user clicked. Recover the original so
+ * $PAGE->url - and therefore $SESSION->wantsurl - points back at the deep link after login.
+ *
+ * @return string Local path, always under the plugin.
+ */
+function activities_request_url(): string
+{
+    $candidates = [
+        $_SERVER['HTTP_X_ORIGINAL_URL'] ?? '',   // Set by IIS URL Rewrite.
+        $_SERVER['UNENCODED_URL'] ?? '',
+        $_SERVER['REQUEST_URI'] ?? '',
+    ];
+    foreach ($candidates as $candidate) {
+        // X-Original-URL is a request header and therefore client-controllable. Only trust values
+        // that stay inside this plugin, and fall through to REQUEST_URI otherwise.
+        $candidate = clean_param($candidate, PARAM_LOCALURL);
+        if ($candidate !== '' && strpos($candidate, PLUGIN_DIR . '/') === 0) {
+            return $candidate;
+        }
+    }
+    return PLUGIN_DIR . '/';
+}

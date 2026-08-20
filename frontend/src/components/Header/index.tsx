@@ -27,7 +27,9 @@ export function Header() {
       }
     })
     if (response.error && (response.exception?.errorcode === 'requireloginerror' || response.errorcode === 'requireloginerror')) {
-      window.location.replace(getConfig().loginUrl + '?wantsurl=' + encodeURIComponent(window.location.href))
+      // Moodle core ignores ?wantsurl= outside Behat. Re-request the current URL instead and
+      // let index.php's require_login() capture it as wantsurl.
+      window.location.replace(window.location.href)
     }
   }
   const interval = useInterval(() => checkAuthStatus(), 30000); // 30 seconds.

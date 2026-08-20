@@ -1,8 +1,10 @@
 <?php
     require(__DIR__.'/../../config.php');
-    $PAGE->set_url(new moodle_url($_SERVER['REQUEST_URI']));
-    require_login();
     require_once __DIR__ . '/bootstrap.php';
+    // Not $_SERVER['REQUEST_URI'] - IIS rewrites that to index.php, which would send the user to
+    // the dashboard instead of the deep link after the login round trip.
+    $PAGE->set_url(new moodle_url(activities_request_url()));
+    require_login();
     require_once(__DIR__.'/classes/lib/service.lib.php');
     require_once(__DIR__.'/classes/lib/utils.lib.php');
 
