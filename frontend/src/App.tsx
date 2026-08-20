@@ -18,6 +18,7 @@ import { Risk } from "./pages/Risk/Risk";
 import { Settings } from "./pages/Risk/Settings";
 import { useSearchParams, Navigate } from "react-router-dom";
 import { WebExternal } from "./pages/Public/WebExternal";
+import { BASENAME } from "./utils/restoreRoute";
 
 
 function App() { 
@@ -52,7 +53,7 @@ function App() {
 
 
     ],
-    { basename: '/local/activities' }
+    { basename: BASENAME }
   );
 
   return (

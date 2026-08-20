@@ -3,6 +3,10 @@ import React from 'react'
 import { MantineProvider } from '@mantine/core';
 import { ModalsProvider } from '@mantine/modals';
 import App from './App'
+import { restoreRewrittenRoute } from './utils/restoreRoute'
+
+// Must run before the router reads window.location.
+restoreRewrittenRoute()
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
