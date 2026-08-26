@@ -23,6 +23,16 @@ class workflow_lib extends \local_activities\local_activities_config {
 
     private static function get_approvers_from_proc($approvaltype, $username = '9999999') {
         global $CFG, $USER;
+
+        // Memoise for the life of the request. get_workflow() calls is_approver_of_activity()
+        // once per approval row, so an un-cached proc call here means several external DB
+        // roundtrips to render a single activity.
+        static $memo = array();
+        $memokey = $approvaltype . '|' . $username;
+        if (array_key_exists($memokey, $memo)) {
+            return $memo[$memokey];
+        }
+
         // Load approvers from SQL.
         $approvers = [];
         // Prepare the SQL query based on the database type
@@ -36,15 +46,21 @@ class workflow_lib extends \local_activities\local_activities_config {
         
         $config = get_config('local_activities');
         if (empty($config->dbhost ?? '') || empty($config->dbuser ?? '') || empty($config->dbname ?? '')) {
-            return [];
+            error_log('[local_activities] get_approvers_from_proc: external db settings are not configured, cannot resolve approvers for ' . $approvaltype . '.');
+            return $memo[$memokey] = [];
         }
         try {
-            $externalDB = \moodle_database::get_driver_instance($config->dbtype, 'native', true);
-            @$externalDB->connect($config->dbhost, $config->dbuser, $config->dbpass, $config->dbname, '');
+            // Hold the connection for the life of the request. This is called once per
+            // (step, staffincharge) pair when resolving approvers in a loop.
+            static $externalDB = null;
+            if ($externalDB === null) {
+                $externalDB = \moodle_database::get_driver_instance($config->dbtype, 'native', true);
+                @$externalDB->connect($config->dbhost, $config->dbuser, $config->dbpass, $config->dbname, '');
+            }
             $rows = $externalDB->get_records_sql($sql, array($username));
             //$rows = $externalDB->get_records_sql($sql, array('9999999')); // Cannot filter out the current user because the UI fails when the assigned HoD comes into the activity to approve.
             if (empty($rows)) {
-                return null;
+                return $memo[$memokey] = null;
             }
             foreach ($rows as $row) {
                 $username = $row->staffid;
@@ -54,10 +70,70 @@ class workflow_lib extends \local_activities\local_activities_config {
                 );
             }
         } catch (\Exception $e) {
-            return null;
+            error_log('[local_activities] get_approvers_from_proc failed for ' . $approvaltype . ': ' . $e->getMessage());
+            return $memo[$memokey] = null;
         }
 
-        return $approvers;
+        return $memo[$memokey] = $approvers;
+    }
+
+    /**
+     * Resolve the non-silent approvers for a workflow step.
+     *
+     * Handles both config-listed approvers and steps that resolve their approvers from the
+     * external SIS proc. Memoised, because this is called once per pending approval row.
+     *
+     * @param string $type Workflow step code, e.g. 'senior_hoss'.
+     * @param string $staffincharge Username the proc resolves against, for fromsqlproc steps.
+     * @return array Approver config arrays, keyed by username where available.
+     */
+    public static function get_step_approvers($type, $staffincharge = '9999999') {
+        static $cache = array();
+
+        if (!isset(static::WORKFLOW[$type])) {
+            return array();
+        }
+
+        $key = $type . '|' . $staffincharge;
+        if (!array_key_exists($key, $cache)) {
+            if (!empty(static::WORKFLOW[$type]['fromsqlproc'])) {
+                $approvers = static::get_approvers_from_proc($type, $staffincharge);
+                $approvers = is_array($approvers) ? $approvers : array();
+            } else {
+                $approvers = static::WORKFLOW[$type]['approvers'] ?? array();
+            }
+            $cache[$key] = array_filter(
+                $approvers,
+                function($item) { return !isset($item['silent']) || !$item['silent']; }
+            );
+        }
+
+        return $cache[$key];
+    }
+
+    /**
+     * Is this user on the hook for this approval row?
+     *
+     * A nomination narrows the step to that one person. Without a nomination, every approver
+     * resolved for the step is eligible.
+     *
+     * @param \stdClass $approval Approval row, needs at least ->type and ->nominated.
+     * @param string $staffincharge The activity's staffincharge, for fromsqlproc steps.
+     * @param string $username
+     * @return bool
+     */
+    public static function is_eligible_approver($approval, $staffincharge, $username) {
+        if (!empty($approval->nominated)) {
+            return $approval->nominated == $username;
+        }
+
+        foreach (static::get_step_approvers($approval->type, $staffincharge) as $approver) {
+            if ($approver['username'] == $username) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static function get_approval_clone($name, $sequence, $activityid, $staffincharge = '9999999') {
@@ -567,7 +643,7 @@ class workflow_lib extends \local_activities\local_activities_config {
     public static function get_prerequisites($activityid, $type) {
         global $DB;
 
-        $prerequisites = static::WORKFLOW[$type]['prerequisites'];
+        $prerequisites = static::WORKFLOW[$type]['prerequisites'] ?? null;
         if ($prerequisites) {
             // Check for any yet to be approved.
             list($insql, $inparams) = $DB->get_in_or_equal($prerequisites);
@@ -965,18 +1041,8 @@ class workflow_lib extends \local_activities\local_activities_config {
             
             // Approvers and editors (planners etc) can see the approvers in the workflow.
             if ($approval->isapprover || $exported->usercanedit) {
-                // Get step approvers.
-                if (isset(static::WORKFLOW[$approval->type]['fromsqlproc'])) {
-                    $approvers = static::get_approvers_from_proc($approval->type, $exported->staffincharge);
-                } else {
-                    $approvers = static::WORKFLOW[$approval->type]['approvers'];
-                }
-
-                // Remove silent approvers.
-                $approval->approvers = array_filter(
-                    $approvers, 
-                    function($item) { return !isset($item['silent']) || !$item['silent']; }
-                );
+                // Get step approvers, silent ones already removed.
+                $approval->approvers = static::get_step_approvers($approval->type, $exported->staffincharge);
 
                 // Pull in the approvers name.
                 foreach ($approval->approvers as &$approver) {

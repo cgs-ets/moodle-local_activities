@@ -1118,7 +1118,7 @@ class activities_lib {
         $involvement['accompanying']['events'] = static::get_for_accompanying($USER->username, 'future');
 
         // Approver
-        $involvement['approver']['events'] = static::get_for_specific_approver($USER->username, 'future');
+        $involvement['approver']['events'] = static::get_for_approver($USER->username, 'future');
 
         return $involvement;
     }
@@ -1470,54 +1470,47 @@ class activities_lib {
         return $activities;
     }
 
-    public static function get_for_specific_approver($username, $period = null) {
+    /**
+     * Activities with a pending approval step this user is on the hook for.
+     *
+     * A nomination narrows a step to that one person. Without a nomination, every approver
+     * resolved for the step sees it - including steps whose approvers come from the SIS proc,
+     * which are resolved against the activity's own staffincharge.
+     */
+    public static function get_for_approver($username, $period = null) {
         global $DB;
 
-        $activities = array();
-
-        // Get where specifically nominated.
-        $sql = "SELECT id, activityid, type
-                    FROM mdl_activities_approvals
-                    WHERE nominated = ?
-                    AND invalidated = 0
-                    AND skip = 0
-                    AND status = 0";
-        $approvals1 = $DB->get_records_sql($sql, array($username));
-        $approvals1 = workflow_lib::filter_approvals_with_prerequisites($approvals1);
-
-
-        // Get where approver is the only real choice.
-        $approvertypes = array();
-        foreach (workflow_lib::WORKFLOW as $code => $type) {
-            foreach ($type['approvers'] as $approver) {
-                if ($approver['username'] == $username && (!isset($approver['silent']) || !$approver['silent'])) {
-                    // Check to see if there are any OTHER approvers at this level.
-                    $elephantintheroom = false;
-                    foreach ($type['approvers'] as $other) {
-                        if ($other['username'] != $username && (!isset($other['silent']) || !$other['silent'])) {
-                            $elephantintheroom = true;
-                        }
-                    }
-                    if (!$elephantintheroom) {
-                        $approvertypes[] = $code;
-                    }
-                }
-            }
+        // All pending approvals on live, non-cancelled activities. The time clause is a coarse
+        // bound only - recurring activities are let through because their real dates live in
+        // activities_occurrences, and get_by_ids() applies $period properly for both cases.
+        $sql = "SELECT ap.id, ap.activityid, ap.type, ap.nominated, a.staffincharge
+                  FROM {" . static::TABLE_ACTIVITY_APPROVALS . "} ap
+                  JOIN {" . static::TABLE . "} a ON a.id = ap.activityid
+                 WHERE ap.invalidated = 0
+                   AND ap.skip = 0
+                   AND ap.status = ?
+                   AND a.deleted = 0
+                   AND a.status <> ?";
+        $params = array(
+            workflow_lib::APPROVAL_STATUS_UNAPPROVED,
+            static::ACTIVITY_STATUS_CANCELLED,
+        );
+        if ($period == 'future') {
+            $sql .= " AND (a.recurring = 1 OR a.timeend >= ?)";
+            $params[] = time();
         }
-        $approvals2 = [];
-        if ($approvertypes) {
-            // The user has approver types. Check if any activities need this approval.
-            list($insql, $inparams) = $DB->get_in_or_equal($approvertypes);
-            $sql = "SELECT id, activityid, type
-                      FROM mdl_activities_approvals
-                     WHERE type $insql
-                       AND invalidated = 0
-                       AND skip = 0
-                       AND status = 0";
-            $approvals2 = $DB->get_records_sql($sql, $inparams);
-            $approvals2 = workflow_lib::filter_approvals_with_prerequisites($approvals2);
+        $approvals = $DB->get_records_sql($sql, $params);
+
+        // Eligibility first - it is memoised. Prerequisites second - one query per row.
+        $approvals = array_filter($approvals, function($approval) use ($username) {
+            return workflow_lib::is_eligible_approver($approval, $approval->staffincharge, $username);
+        });
+        $approvals = workflow_lib::filter_approvals_with_prerequisites($approvals);
+
+        if (empty($approvals)) {
+            return array();
         }
-        $approvals = array_merge($approvals1, $approvals2);
+
         $activities = static::get_by_ids(array_unique(array_column($approvals, 'activityid')), null, $period); // All statuses and future only.
 
         // Drop cancelled activites
@@ -1526,31 +1519,6 @@ class activities_lib {
         });
 
         return array_values($activities);
-    }
-
-
-    public static function get_for_approver($username, $period = null) {
-        global $DB;
-
-        $activities = array();
-
-        $approvertypes = workflow_lib::get_approver_types($username);
-        
-        if ($approvertypes) {
-            // The user has approver types. Check if any activities need this approval.
-            list($insql, $inparams) = $DB->get_in_or_equal($approvertypes);
-            $sql = "SELECT id, activityid, type
-                      FROM mdl_activities_approvals
-                     WHERE type $insql
-                       AND invalidated = 0
-                       AND skip = 0
-                       AND status = 0";
-            $approvals = $DB->get_records_sql($sql, $inparams);
-            $approvals = workflow_lib::filter_approvals_with_prerequisites($approvals);
-            $activities = static::get_by_ids(array_column($approvals, 'activityid'), null, $period); // All statuses and future only.
-        }
-
-        return $activities;
     }
 
 
