@@ -906,13 +906,76 @@ class activities_lib {
 
 
     /**
+     * Status visibility clause for the staff calendar.
+     *
+     * Everyone sees IN REVIEW and beyond; on top of that a user sees their own drafts, as
+     * creator, staff in charge, second in charge, or a named planning staff member.
+     * Deliberately NOT extended to utils_lib::is_user_approver() - that flag is global,
+     * not per-activity, so it would expose every draft on the site to every approver.
+     * AUTOSAVE (0) stays excluded - those are half-written rows.
+     *
+     * Second in charge has no denormalised column, so it is matched inside
+     * secondinchargejson, which stores a compact {"un":"...","fn":"...","ln":"..."} object.
+     * The trailing quote anchors the match, so "un":"jsmith" cannot match jsmith2.
+     *
+     * Emits four positional placeholders in this order: creator, staffincharge,
+     * secondincharge (a LIKE pattern, NOT a bare username), planner. Build the params with
+     * get_calendar_status_params() so the two stay in step.
+     *
+     * The alias is REQUIRED: the EXISTS subquery correlates on {$alias}.id, and
+     * activities_staff has an id column of its own, so an unqualified id would silently
+     * resolve to the inner table and correlate the subquery against itself.
+     *
+     * @param string $alias Table alias for {activities} in the calling query.
+     * @return string
+     */
+    private static function get_calendar_status_sql($alias) {
+        global $DB;
+
+        $p = $alias . '.';
+        // Case-insensitive: both sides originate from user.username, but the cost is
+        // negligible on a query that already scans, and it removes a class of doubt.
+        $secondlike = $DB->sql_like("{$p}secondinchargejson", '?', false);
+
+        return "AND ({$p}status >= " . static::ACTIVITY_STATUS_INREVIEW . "
+                 OR ({$p}status = " . static::ACTIVITY_STATUS_DRAFT . "
+                     AND ( {$p}creator = ?
+                        OR {$p}staffincharge = ?
+                        OR {$secondlike}
+                        OR EXISTS (SELECT 1
+                                     FROM {" . static::TABLE_ACTIVITY_STAFF . "} st
+                                    WHERE st.activityid = {$p}id
+                                      AND st.usertype = 'planning'
+                                      AND st.username = ?) )))";
+    }
+
+    /**
+     * The four params for get_calendar_status_sql(), in placeholder order.
+     *
+     * Note the third is a LIKE pattern, not the bare username - do not collapse this
+     * into array_fill().
+     *
+     * @param string $username
+     * @return array
+     */
+    private static function get_calendar_status_params($username) {
+        global $DB;
+
+        // sql_like_escape is required, not cosmetic: '_' is a LIKE wildcard and is legal
+        // in a Moodle username.
+        $pattern = '%' . $DB->sql_like_escape('"un":"' . $username . '"') . '%';
+
+        return [$username, $username, $pattern, $username];
+    }
+
+    /**
      * Staff can see all events. When they view an event, the editability is based on who they are and their involvement.
      *
      * @param array $args
      * @return array
      */
     public static function get_for_staff_calendar($args) {
-        global $DB;
+        global $DB, $USER;
 
         utils_lib::require_staff();
 
@@ -920,23 +983,31 @@ class activities_lib {
         $end = strtotime($args->scope->end . " 00:00:00");
         $end += 86400; //add a day
 
-        $statussql = "AND status >= " . static::ACTIVITY_STATUS_INREVIEW;
-        if (workflow_lib::is_cal_reviewer()) {
-            $statussql = "";
+        // Cal reviewers see everything. Everyone else sees IN REVIEW and beyond, plus
+        // their own drafts. Both queries below alias the table as 'a', so one
+        // fragment and one param set serve both.
+        $statussql = "";
+        $statusparams = [];
+        if (!workflow_lib::is_cal_reviewer()) {
+            $statussql = static::get_calendar_status_sql('a');
+            $statusparams = static::get_calendar_status_params($USER->username);
         }
 
-        $sql = "SELECT id 
-                FROM mdl_activities
-                WHERE deleted = 0
-                AND recurring = 0
+        $sql = "SELECT a.id
+                FROM mdl_activities a
+                WHERE a.deleted = 0
+                AND a.recurring = 0
                 $statussql
                 AND (
-                    (timestart >= ? AND timestart <= ?) OR 
-                    (timeend >= ? AND timeend <= ?) OR
-                    (timestart < ? AND timeend > ?)
+                    (a.timestart >= ? AND a.timestart <= ?) OR 
+                    (a.timeend >= ? AND a.timeend <= ?) OR
+                    (a.timestart < ? AND a.timeend > ?)
                 )
-                ORDER BY timestart ASC";
-        $params = [$start, $end, $start, $end, $start, $end];
+                ORDER BY a.timestart ASC";
+        // The status clause precedes the time clause in BOTH queries below, so one
+        // positional array serves both: four own-drafts params, then six time params.
+        // Do not reorder.
+        $params = array_merge($statusparams, [$start, $end, $start, $end, $start, $end]);
         $records = $DB->get_records_sql($sql, $params);
         $activities = array();
 
@@ -1072,6 +1143,7 @@ class activities_lib {
         // Student participant
         // Parent of participating student
         // Staff member in charge
+        // Second in charge
         // Planner
         // Accompanying
 
@@ -1086,6 +1158,10 @@ class activities_lib {
             ),
             'staff' => array(
                 'heading' => "Staff member in charge",
+                'events' => array(),
+            ),
+            'secondincharge' => array(
+                'heading' => "Second in charge",
                 'events' => array(),
             ),
             'planner' => array(
@@ -1110,6 +1186,9 @@ class activities_lib {
 
         // Staff member in charge
         $involvement['staff']['events'] = static::get_for_owner($USER->username, 'future');
+
+        // Second in charge
+        $involvement['secondincharge']['events'] = static::get_for_secondincharge($USER->username, 'future');
 
         // Planner
         $involvement['planner']['events'] = static::get_for_plannner($USER->username, 'future');
@@ -1431,6 +1510,32 @@ class activities_lib {
                   FROM {" . static::TABLE . "} 
                  WHERE staffincharge = ?";
         $ids = $DB->get_fieldset_sql($sql, array($username));
+
+        $activities = static::get_by_ids($ids, null, $period); // All statuses and future only.
+
+        return $activities;
+    }
+
+    public static function get_for_secondincharge($username, $period = null) {
+        global $DB;
+
+        $activities = array();
+
+        // get_by_involvement() is on service_lib::PARENT_FUNCTIONS, so it is reachable via
+        // service-public.php with no session at all. An empty username must match nothing -
+        // and it matters twice over here, since '%"un":""%' would be a broad pattern.
+        if (empty($username)) {
+            return $activities;
+        }
+
+        // No denormalised column for second in charge; match inside the JSON. sql_like_escape
+        // is load-bearing: '_' is a LIKE wildcard and is legal in a Moodle username.
+        $pattern = '%' . $DB->sql_like_escape('"un":"' . $username . '"') . '%';
+
+        $sql = "SELECT id
+                  FROM {" . static::TABLE . "}
+                 WHERE " . $DB->sql_like('secondinchargejson', '?', false);
+        $ids = $DB->get_fieldset_sql($sql, array($pattern));
 
         $activities = static::get_by_ids($ids, null, $period); // All statuses and future only.
 
