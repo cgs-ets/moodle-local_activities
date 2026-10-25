@@ -2310,11 +2310,24 @@ class activities_lib {
         }
 
         // Send comment to second in charge.
-        $secondincharge = json_decode($activity->secondinchargejson);
-        if (is_object($secondincharge)) {                
-            if (!in_array($secondincharge->un, $recipients)) {
-                static::send_comment_email($activity, $comment, $secondincharge->un);
-                $recipients[] = $secondincharge->un;
+        if ( ! empty($activity->secondinchargejson)) {
+            $secondincharge = json_decode($activity->secondinchargejson);
+            if (is_object($secondincharge)) {                
+                if (!in_array($secondincharge->un, $recipients)) {
+                    static::send_comment_email($activity, $comment, $secondincharge->un);
+                    $recipients[] = $secondincharge->un;
+                }
+            }
+        }   
+
+        // Send comment to all planners.
+        $planners = json_decode($activity->planningstaffjson ?? '[]');
+        if (is_array($planners)) {
+            foreach ($planners as $planner) {
+                if (!in_array($planner->un, $recipients)) {
+                    static::send_comment_email($activity, $comment, $planner->un);
+                    $recipients[] = $planner->un;
+                }
             }
         }
     }
