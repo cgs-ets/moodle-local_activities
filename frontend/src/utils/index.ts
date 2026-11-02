@@ -69,4 +69,11 @@ const statuses = {
   cancelled: 4,
 }
 
-export { fetchData, getConfig, queryString, createUrl, statuses };
+// Mirrors activities_lib::EMAIL_STATUS_*.
+const emailStatuses = {
+  queued: 0,
+  sent: 2,
+  failed: 3,
+}
+
+export { fetchData, getConfig, queryString, createUrl, statuses, emailStatuses };

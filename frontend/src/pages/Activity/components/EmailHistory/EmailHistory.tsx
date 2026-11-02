@@ -1,7 +1,7 @@
 import { Card, Text, Avatar, Group, Textarea, ActionIcon, Loader, LoadingOverlay, Modal, ScrollArea, Box, Badge, Flex, CloseButton } from '@mantine/core';
 import { IconEye, IconEyeCode, IconFileSearch, IconLiveView, IconMailSearch, IconMessage2Search, IconMessageSearch, IconSearch, IconSend, IconTrash, IconUser, IconView360 } from '@tabler/icons-react';
 import { useFormStore } from '../../../../stores/formStore';
-import { statuses } from '../../../../utils';
+import { emailStatuses, statuses } from '../../../../utils';
 import { useAjax } from '../../../../hooks/useAjax';
 import { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
@@ -89,7 +89,10 @@ export function EmailHistory() {
               emails.map((email, i) => {
                 return (
                   <div key={email.id} className='flex items-center gap-1 border-t px-4 py-2'>
-                    <div className='flex-1'>{dayjs.unix(Number(email.timecreated)).format("DD MMM YY h:mma")}</div>
+                    <div className='flex-1'>
+                      {dayjs.unix(Number(email.timecreated)).format("DD MMM YY h:mma")}
+                      { Number(email.status) === emailStatuses.failed && <Badge color="red" size="sm" ml="xs">Failed</Badge> }
+                    </div>
                     <div className='flex-1'>{email.sender.fn} {email.sender.ln}</div>
                     <div className='w-8 text-center'><ActionIcon onClick={() => setSelectedEmail(email as Email)} variant='subtle'><IconMailSearch className='size-5' /></ActionIcon></div>
                   </div>

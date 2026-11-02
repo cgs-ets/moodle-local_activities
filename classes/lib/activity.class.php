@@ -629,8 +629,9 @@ class Activity {
             $sql = "SELECT *
                     FROM {activities_emails}
                     WHERE activityid = ?
-                    AND includes LIKE '%permissions%'";
-            $params = array($this->data->id);   
+                    AND includes LIKE '%permissions%'
+                    AND status <> ?";
+            $params = array($this->data->id, activities_lib::EMAIL_STATUS_FAILED);
             $permissionemails = $DB->get_records_sql($sql, $params);
             if ($permissionemails) {
                 $permissionsent = true;

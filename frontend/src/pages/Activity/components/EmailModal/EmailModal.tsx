@@ -85,6 +85,11 @@ export function EmailModal({opened, close, students, defaultAudiences, visibleAu
     }
   }, [submitResponse])
 
+  // With no server message the request may still have succeeded, so don't invite a blind retry.
+  const errorMessage = submitError
+    ? (submitResponse?.exception?.message || "We couldn't confirm this was sent. Reload the page and check Email history before trying again.")
+    : ''
+
   const success = (
     <Transition mounted={showSuccess} transition="fade" duration={500} timingFunction="ease">
       {(styles) => 
@@ -141,11 +146,14 @@ export function EmailModal({opened, close, students, defaultAudiences, visibleAu
       includes.push('permissions')
     }
     setIncludes(includes)
-    setSubmitData({
-      response: null,
-      error: false,
-      loading: false,
-    })
+    // Resetting mid-send would re-enable the Send button while the request is still in flight.
+    if (!submitLoading) {
+      setSubmitData({
+        response: null,
+        error: false,
+        loading: false,
+      })
+    }
     close()
   }
 
@@ -242,6 +250,8 @@ export function EmailModal({opened, close, students, defaultAudiences, visibleAu
           </Flex>
         </Checkbox.Group>
       </Box>
+
+      { errorMessage && <Text c="red" fz="sm" mb="md">{errorMessage}</Text> }
 
       <Flex justify="end">
         <Button leftSection={<IconSend size="1rem" />} onClick={onSend} loading={submitLoading} type="submit" radius="xl" >Send</Button>

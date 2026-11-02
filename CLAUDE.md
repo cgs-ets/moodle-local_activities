@@ -229,8 +229,9 @@ In scheduled tasks, use the Moodle idiom: `use \core\task\logging_trait;` with
 - Everything else is raw `global $DB` inside a `*_lib` static class.
 - **Use placeholders, not string interpolation**, in SQL. Some existing code interpolates
   (e.g. `cron_emails_sys.php`); don't copy it.
-- No transactions are used anywhere. If you add multi-table writes that must be atomic,
-  introduce `start_delegated_transaction()` deliberately rather than assuming one is in scope.
+- The only transaction is per row in `cron_emails_user`, so a crash can't queue half a send. If
+  you add other multi-table writes that must be atomic, introduce `start_delegated_transaction()`
+  deliberately rather than assuming one is in scope.
 - **Denormalised `*json` columns mirror join tables** — `studentlistjson` alongside
   `activities_students`, `planningstaffjson` alongside `activities_staff`. Both are written
   on save and both are read in different code paths. Keep them in sync.

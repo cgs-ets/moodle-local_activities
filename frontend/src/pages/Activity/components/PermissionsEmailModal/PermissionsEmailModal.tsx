@@ -23,9 +23,15 @@ export function PermissionsEmailModal({opened, close} : {opened: boolean, close:
   )
 
   useEffect(() => {
-    if (opened) {
+    // Reopening while a send is in flight must keep the text and the disabled button.
+    if (opened && !submitLoading) {
       setOptionalText('')
       setShowSuccess(false)
+      setSubmitData({
+        response: null,
+        error: false,
+        loading: false,
+      })
     }
   }, [opened])
 
@@ -51,6 +57,11 @@ export function PermissionsEmailModal({opened, close} : {opened: boolean, close:
       setFormData({permissionsent: true} as Form)
     }
   }, [submitResponse])
+
+  // With no server message the request may still have succeeded, so don't invite a blind retry.
+  const errorMessage = submitError
+    ? (submitResponse?.exception?.message || "We couldn't confirm this was sent. Reload the page and check Email history before trying again.")
+    : ''
 
   const success = (
     <Transition mounted={showSuccess} transition="fade" duration={500} timingFunction="ease">
@@ -110,8 +121,9 @@ export function PermissionsEmailModal({opened, close} : {opened: boolean, close:
                   
                       <div>[Button for parent response]</div>
                     </div>
+                    { errorMessage && <Text c="red" fz="sm" className='px-5 pt-2'>{errorMessage}</Text> }
                     <div className='px-5 pt-2 pb-6 flex justify-end'>
-                      <Button onClick={onSend} size="compact-md" radius="xl" leftSection={<IconSend size={14} />}>Send email to parents</Button>
+                      <Button onClick={onSend} loading={submitLoading} size="compact-md" radius="xl" leftSection={<IconSend size={14} />}>Send email to parents</Button>
                     </div>
                   </div>
                 </>

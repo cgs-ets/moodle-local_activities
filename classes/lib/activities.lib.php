@@ -41,6 +41,17 @@ class activities_lib {
     const TABLE_ACTIVITY_STAFF = 'activities_staff';
     const TABLE_ACTIVITY_ACKNOWLEDGEMENTS = 'activities_acknowledgements';
 
+    /** activities_emails.status values. */
+    const EMAIL_STATUS_QUEUED = 0;
+    const EMAIL_STATUS_SENT = 2;
+    const EMAIL_STATUS_FAILED = 3;
+
+    /** Seconds in which an identical email for the same activity is refused. */
+    const EMAIL_DUPLICATE_WINDOW = 60;
+
+    /** Seconds after an email is queued that a failed attempt stops being retried (8 hours). */
+    const EMAIL_RETRY_LIMIT = 28800;
+
     public static function is_activity($activitytype) {
         return (
             $activitytype == 'excursion' || 
@@ -794,45 +805,73 @@ class activities_lib {
 
 
 
-    // TODO: This is slow. Iterating through every student/mentor. Need to do in bulk.
-    private static function generate_permissions($activityid) {
-        global $DB, $USER;
+    /**
+     * Create any missing permission rows for an activity's students.
+     *
+     * Saves use $onlymissing because this needs the external database and runs while the user's
+     * session is locked. Students with no rows are used rather than a diff of the student list so
+     * that a student skipped by a failed lookup is picked up by the next save. Parents linked to a
+     * student after their rows were created are picked up by cron_emails_user, which passes false.
+     *
+     * @param int $activityid
+     * @param bool $onlymissing Only process students who have no permission rows yet.
+     * @return void
+     */
+    public static function generate_permissions($activityid, $onlymissing = true) {
+        global $DB;
 
-        $activity = new static($activityid);
-        if (empty($activity)) {
+        $usernames = array_unique(array_column(static::get_activities_students($activityid), 'username'));
+
+        $existing = array();
+        $conds = array('activityid' => $activityid);
+        $records = $DB->get_records(static::TABLE_ACTIVITY_PERMISSIONS, $conds, '', 'id, studentusername, parentusername');
+        foreach ($records as $record) {
+            $existing[$record->studentusername][$record->parentusername] = true;
+        }
+
+        if ($onlymissing) {
+            $usernames = array_filter($usernames, function($username) use ($existing) {
+                return empty($existing[$username]);
+            });
+        }
+        if (empty($usernames)) {
             return;
         }
 
-        // Generate permissions for saved students.
-        $students = static::get_activities_students($activityid);
-        foreach ($students as $student) {
-            // Find the student's mentors.
-            $user = \core_user::get_user_by_username($student->username);
-            if (empty($user)) {
-                continue;
-            }
-            $mentors = utils_lib::get_user_mentors($user->id);
-            foreach ($mentors as $mentor) {
-                // Only insert this if it doesn't exist.
-                $exists = $DB->record_exists(activities_lib::TABLE_ACTIVITY_PERMISSIONS, array(
-                    'activityid' => $activityid,
-                    'studentusername' => $student->username,
-                    'parentusername' => $mentor,
-                ));
+        $users = array();
+        foreach (array_chunk($usernames, 1000) as $chunk) {
+            $users += $DB->get_records_list('user', 'username', $chunk, '', 'id, username');
+        }
 
-                if (!$exists) {
-                    // Create a permissions record for each mentor.
-                    $permission = new \stdClass();
-                    $permission->activityid = $activityid;
-                    $permission->studentusername = $student->username;
-                    $permission->parentusername = $mentor;
-                    $permission->queueforsending = 0;
-                    $permission->queuesendid = 0;
-                    $permission->response = 0;
-                    $permission->timecreated = time();
-                    $DB->insert_record(activities_lib::TABLE_ACTIVITY_PERMISSIONS, $permission);
+        $mentors = utils_lib::get_mentors_by_student(array_keys($users));
+        if ($mentors === false) {
+            // Fail closed, but don't abort the activity save that called us.
+            error_log('[local_activities] generate_permissions: skipping activity ' . $activityid .
+                ' because the disallowed parent lookup failed.');
+            return;
+        }
+
+        $now = time();
+        $permissions = array();
+        foreach ($users as $user) {
+            foreach ($mentors[$user->id] as $mentor) {
+                if (isset($existing[$user->username][$mentor])) {
+                    continue;
                 }
+                // Create a permissions record for each mentor.
+                $permission = new \stdClass();
+                $permission->activityid = $activityid;
+                $permission->studentusername = $user->username;
+                $permission->parentusername = $mentor;
+                $permission->queueforsending = 0;
+                $permission->queuesendid = 0;
+                $permission->response = 0;
+                $permission->timecreated = $now;
+                $permissions[] = $permission;
             }
+        }
+        if ($permissions) {
+            $DB->insert_records(static::TABLE_ACTIVITY_PERMISSIONS, $permissions);
         }
     }
 
@@ -2203,7 +2242,75 @@ class activities_lib {
         $output = $PAGE->get_renderer('core');
         $rec->rendered = $output->render_from_template('local_activities/history_email_html', $emaildata);
 
-        $DB->insert_record(static::TABLE_ACTIVITY_EMAILS, $rec);
+        static::insert_activity_email($rec);
+    }
+
+
+    /**
+     * Queue an email, unless an identical one for the activity has only just been queued.
+     *
+     * The session lock only serialises one user's requests in one session, so the check and the
+     * insert need their own lock to cover two planners, or one planner on two devices.
+     *
+     * @param \stdClass $rec the activities_emails record.
+     * @return void
+     */
+    protected static function insert_activity_email($rec) {
+        global $DB;
+
+        $lockfactory = \core\lock\lock_config::get_lock_factory('local_activities_send_email');
+        $lock = $lockfactory->get_lock("activity_{$rec->activityid}", 10);
+        if (!$lock) {
+            throw new \Exception("Another send is in progress. Please try again.");
+        }
+
+        try {
+            $recent = $DB->get_records_select(
+                static::TABLE_ACTIVITY_EMAILS,
+                'activityid = ? AND timecreated >= ?',
+                array($rec->activityid, time() - static::EMAIL_DUPLICATE_WINDOW),
+                '',
+                'id, studentsjson, audiences, extratext, includes'
+            );
+            foreach ($recent as $other) {
+                if (static::is_same_email($rec, $other)) {
+                    throw new \Exception("An identical email for this activity was queued less than a minute ago, so this one wasn't sent.");
+                }
+            }
+            $DB->insert_record(static::TABLE_ACTIVITY_EMAILS, $rec);
+        } finally {
+            $lock->release();
+        }
+    }
+
+
+    /**
+     * Would these two queued emails reach the same people with the same purpose?
+     *
+     * Compared in PHP as sorted lists, because the order of each list can differ between sends and
+     * text columns can't be compared portably in SQL. A permission request is the same request
+     * whatever its optional text, but a message with different text is a new message.
+     *
+     * @param \stdClass $a an activities_emails record.
+     * @param \stdClass $b an activities_emails record.
+     * @return bool
+     */
+    protected static function is_same_email($a, $b) {
+        foreach (array('includes', 'audiences', 'studentsjson') as $field) {
+            $first = (array) json_decode($a->$field);
+            $second = (array) json_decode($b->$field);
+            sort($first, SORT_STRING);
+            sort($second, SORT_STRING);
+            if ($first !== $second) {
+                return false;
+            }
+        }
+
+        if (in_array('permissions', (array) json_decode($a->includes))) {
+            return true;
+        }
+
+        return $a->extratext === $b->extratext;
     }
 
 

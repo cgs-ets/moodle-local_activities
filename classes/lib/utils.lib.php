@@ -425,37 +425,58 @@ class utils_lib {
 
 
 
-    // This function is only called in generate_permissions and cron_emails_user, when permissions are needed.
-    // We need to ensure that mentors does not include parents that are not allowed to provide permissions.
+    // Used when permissions are needed. Mentors must not include parents that are not allowed to
+    // provide permissions. For more than one student, use get_mentors_by_student().
     public static function get_user_mentors($userid) {
-        global $DB;
-
-        $mentors = array();
-        $mentorssql = "SELECT u.username
-                         FROM {role_assignments} ra, {context} c, {user} u
-                        WHERE c.instanceid = :menteeid
-                          AND c.contextlevel = :contextlevel
-                          AND ra.contextid = c.id
-                          AND u.id = ra.userid";
-        $mentorsparams = array(
-            'menteeid' => $userid,
-            'contextlevel' => CONTEXT_USER
-        );
-
-        if ($mentors = $DB->get_records_sql($mentorssql, $mentorsparams)) {
-            $mentors = array_column($mentors, 'username');
-        }
-
-        $disallowedparents = static::get_disallowed_parents($userid);
-        if ($disallowedparents === false) {
+        $mentors = static::get_mentors_by_student(array($userid));
+        if ($mentors === false) {
             // We could not determine who is disallowed. Fail closed rather than risk asking a
             // parent who should be excluded - callers treat an empty list as "skip this student".
             error_log('[local_activities] get_user_mentors: skipping userid ' . $userid .
                 ' because the disallowed parent lookup failed.');
             return array();
         }
-        $mentors = array_diff($mentors, $disallowedparents);
-        
+
+        return $mentors[$userid];
+    }
+
+
+    /**
+     * The parents who may provide permission, for each of the given students.
+     *
+     * Results are kept per student because "does not live with" applies to one student only.
+     * Unlike get_users_mentors(), a parent excluded for one child is not excluded for their siblings.
+     *
+     * @param array $userids Moodle user ids of the students.
+     * @return array|false [userid => [parent usernames]], or false if the external lookup failed.
+     */
+    public static function get_mentors_by_student(array $userids) {
+        global $DB;
+
+        $mentors = array_fill_keys($userids, array());
+        foreach (array_chunk($userids, 1000) as $chunk) {
+            [$insql, $params] = $DB->get_in_or_equal($chunk, SQL_PARAMS_NAMED);
+            $params['contextlevel'] = CONTEXT_USER;
+            $sql = "SELECT ra.id, c.instanceid AS menteeid, u.username
+                      FROM {role_assignments} ra, {context} c, {user} u
+                     WHERE c.instanceid $insql
+                       AND c.contextlevel = :contextlevel
+                       AND ra.contextid = c.id
+                       AND u.id = ra.userid";
+            foreach ($DB->get_records_sql($sql, $params) as $mentor) {
+                $mentors[$mentor->menteeid][] = $mentor->username;
+            }
+        }
+
+        $disallowed = static::get_disallowed_parents_by_student($userids);
+        if ($disallowed === false) {
+            return false;
+        }
+        foreach ($mentors as $userid => $usernames) {
+            $forstudent = isset($disallowed['students'][$userid]) ? $disallowed['students'][$userid] : array();
+            $mentors[$userid] = array_values(array_unique(array_diff($usernames, $disallowed['all'], $forstudent)));
+        }
+
         return $mentors;
     }
 
@@ -468,9 +489,26 @@ class utils_lib {
      * @return array|false Disallowed parent ids, or false if the external lookup failed.
      */
     public static function get_disallowed_parents($userid, $multiple = 0) {
-        global $DB, $CFG;
+        $disallowed = static::get_disallowed_parents_by_student($multiple ? $userid : array($userid));
+        if ($disallowed === false) {
+            return false;
+        }
 
-        $disallowedparents = array();
+        return array_merge($disallowed['all'], ...array_values($disallowed['students']));
+    }
+
+
+    /**
+     * Look up disallowed parents for many students over a single external connection.
+     *
+     * @param array $userids Moodle user ids of the students.
+     * @return array|false ['all' => parents disallowed for everyone, 'students' => [userid => parents]],
+     *                     or false if the external lookup failed.
+     */
+    protected static function get_disallowed_parents_by_student(array $userids) {
+        global $DB;
+
+        $disallowedparents = array('all' => array(), 'students' => array());
 
         $config = get_config('local_activities');
         if (empty($config->dbtype)) {
@@ -485,20 +523,17 @@ class utils_lib {
             // Get any blanked out users.
             if (!empty($config->getdisalloweduserssql)) {
                 $results = $externalDB->get_records_sql($config->getdisalloweduserssql);
-                $disallowedparents = array_column($results, 'userid');
+                $disallowedparents['all'] = array_column($results, 'userid');
             }
 
             // Check liveswith flag.
             $liveswithsql = "SELECT * FROM cgs.UVW_Mentors WHERE StudentID = ? AND LivesWithFlag = 0";
-            $ids = $multiple ? $userid : array($userid);
-            foreach ($ids as $id) {
-                $user = \core_user::get_user($id);
-                if (empty($user)) {
-                    continue;
+            foreach (array_chunk($userids, 1000) as $chunk) {
+                $users = $DB->get_records_list('user', 'id', $chunk, '', 'id, username');
+                foreach ($users as $user) {
+                    $liveswithresults = $externalDB->get_records_sql($liveswithsql, array($user->username));
+                    $disallowedparents['students'][$user->id] = array_column($liveswithresults, 'observerid');
                 }
-                $liveswithresults = $externalDB->get_records_sql($liveswithsql, array($user->username));
-                $doesnotlivewithparents = array_column($liveswithresults, 'observerid');
-                $disallowedparents = array_merge($disallowedparents, $doesnotlivewithparents);
             }
         } catch (\Throwable $e) {
             // The external DB is the only source of truth for who may not give permission, so a
