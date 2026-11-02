@@ -526,8 +526,9 @@ class utils_lib {
                 $disallowedparents['all'] = array_column($results, 'userid');
             }
 
-            // Check liveswith flag.
-            $liveswithsql = "SELECT * FROM cgs.UVW_Mentors WHERE StudentID = ? AND LivesWithFlag = 0";
+            // Check liveswith flag. Only select ObserverID: get_records_sql keeps one row per value
+            // of the first column, so leading with StudentID would keep just one parent per student.
+            $liveswithsql = "SELECT DISTINCT ObserverID AS observerid FROM cgs.UVW_Mentors WHERE StudentID = ? AND LivesWithFlag = 0";
             foreach (array_chunk($userids, 1000) as $chunk) {
                 $users = $DB->get_records_list('user', 'id', $chunk, '', 'id, username');
                 foreach ($users as $user) {
