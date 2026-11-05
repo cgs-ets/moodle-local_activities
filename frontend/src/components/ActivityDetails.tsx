@@ -1,5 +1,5 @@
 import { Text, Card, Avatar, Badge } from '@mantine/core';
-import dayjs from "dayjs";
+import { schoolTime } from "../utils/schoolTime";
 import { Form } from '../stores/formStore';
 import { IconUser } from '@tabler/icons-react';
 import { User } from '../types/types';
@@ -42,12 +42,12 @@ export function ActivityDetails({activity, isPublic}: {activity: Form, isPublic:
         <div className='w-36 font-bold'>Time</div>
         <div className='text-base flex items-center gap-3'>
           { !!Number(activity.isallday)
-            ? dayjs.unix(Number(activity.timestart)).format("DDMM") == dayjs.unix(Number(activity.timeend)).format("DDMM") 
-              ? <div>All day {dayjs.unix(Number(activity.timestart)).format("DD MMM")}</div>
-              : <div>All day {dayjs.unix(Number(activity.timestart)).format("DD MMM")} - {dayjs.unix(Number(activity.timeend)).format("DD MMM")}</div>
-            : dayjs.unix(Number(activity.timestart)).format("DDMM") == dayjs.unix(Number(activity.timeend)).format("DDMM") 
-              ? <div>{dayjs.unix(Number(activity.timestart)).format("DD MMM h:mma ")} - {dayjs.unix(Number(activity.timeend)).format("h:mma")}</div>
-              : <div>{dayjs.unix(Number(activity.timestart)).format("DD MMM h:mma ")} - {dayjs.unix(Number(activity.timeend)).format("DD MMM h:mma")}</div>
+            ? schoolTime(activity.timestart).format("DDMM") == schoolTime(activity.timeend).format("DDMM") 
+              ? <div>All day {schoolTime(activity.timestart).format("DD MMM")}</div>
+              : <div>All day {schoolTime(activity.timestart).format("DD MMM")} - {schoolTime(activity.timeend).format("DD MMM")}</div>
+            : schoolTime(activity.timestart).format("DDMM") == schoolTime(activity.timeend).format("DDMM") 
+              ? <div>{schoolTime(activity.timestart).format("DD MMM h:mma ")} - {schoolTime(activity.timeend).format("h:mma")}</div>
+              : <div>{schoolTime(activity.timestart).format("DD MMM h:mma ")} - {schoolTime(activity.timeend).format("DD MMM h:mma")}</div>
           }
         </div>
       </Card.Section>

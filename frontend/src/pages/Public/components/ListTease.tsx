@@ -1,5 +1,5 @@
 import { Anchor } from "@mantine/core";
-import dayjs from "dayjs";
+import { schoolTime } from "../../../utils/schoolTime";
 import { Form } from "../../../stores/formStore";
 import { cn } from "../../../utils/utils";
 
@@ -18,11 +18,11 @@ export function ListTease({celldate, event, setSelectedEvent}: Props) {
         title={event.activityname}
       >
         <div>
-          { dayjs.unix(celldate).format("YYYYMMDD") != dayjs.unix(event.timestart).format("YYYYMMDD")
+          { schoolTime(celldate).format("YYYYMMDD") != schoolTime(event.timestart).format("YYYYMMDD")
             ? <div className="te-start-time">Cont.</div>
             : !!Number(event.isallday)
               ? <div className="te-start-time">All Day:</div>
-              : <div className="te-start-time">{dayjs.unix(Number(event.timestart)).format("H:mm")}</div>
+              : <div className="te-start-time">{schoolTime(event.timestart).format("H:mm")}</div>
           }
           <div className="te-deets">
             <div className="te-title flex items-center gap-2">
@@ -31,9 +31,9 @@ export function ListTease({celldate, event, setSelectedEvent}: Props) {
             { 
               !!Number(event.isallday)
               ? ''
-              : dayjs.unix(celldate).format("YYYYMMDD") == dayjs.unix(event.timeend).format("YYYYMMDD")
-                ? <span className="text-gray-500">Ends at {dayjs.unix(event.timeend).format("H:mm a")}</span>
-                : <span className="text-gray-500">Ends {dayjs.unix(event.timeend).format("D MMM")} at {dayjs.unix(event.timeend).format("H:mm a")}</span>
+              : schoolTime(celldate).format("YYYYMMDD") == schoolTime(event.timeend).format("YYYYMMDD")
+                ? <span className="text-gray-500">Ends at {schoolTime(event.timeend).format("H:mm a")}</span>
+                : <span className="text-gray-500">Ends {schoolTime(event.timeend).format("D MMM")} at {schoolTime(event.timeend).format("H:mm a")}</span>
             }
             {event.location && <span className="text-gray-500"> - {event.location}</span>}
           </div>

@@ -1,6 +1,6 @@
 import { ActionIcon, Button, Card, Loader, LoadingOverlay, Select, Text } from "@mantine/core";
 import { IconAdjustments, IconArrowNarrowLeft, IconArrowNarrowRight, IconCalendarWeek, IconListDetails, IconRotateClockwise2, IconX } from "@tabler/icons-react";
-import dayjs from "dayjs";
+import { dateKey, schoolNow } from "../../../utils/schoolTime";
 import { useEffect, useMemo, useState } from "react";
 import useFetch from "../../../hooks/useFetch";
 import { Form } from "../../../stores/formStore";
@@ -37,12 +37,17 @@ export function List({hideFilters, hideViews}: Props) {
   const [filterOpened, {close: closeFilter, open: openFilter}] = useDisclosure(false)
   const [showPast, setShowPast] = useState(false)
 
-  const currterm = dayjs().format("MM-DD") > '09-28' ? 4 
-    : dayjs().format("MM-DD") > '06-29' ? 3
-    : dayjs().format("MM-DD") > '04-13' ? 2
+  // "Now" in school time, not the browser's, so it matches the server's day keys.
+  const now = schoolNow()
+  const todayKey = now.format("YYYY-MM-DD")
+  const thisYear = now.format("YYYY")
+
+  const currterm = now.format("MM-DD") > '09-28' ? 4
+    : now.format("MM-DD") > '06-29' ? 3
+    : now.format("MM-DD") > '04-13' ? 2
     : 1
-  
-  const initYear = searchParams.get('year') || dayjs().format("YYYY");
+
+  const initYear = searchParams.get('year') || thisYear;
   // If coming from calendar view, a certain month may have been in view. Get term based on that.
   const initTerm = searchParams.get('term') 
     ? searchParams.get('term') 
@@ -126,7 +131,7 @@ export function List({hideFilters, hideViews}: Props) {
 
   const handleYearSelect = (year: string | null) => {
     setSearchParams(params => {
-      params.set("year", year || dayjs().format("YYYY"));
+      params.set("year", year || thisYear);
       params.set("term", date.term);
       params.set("month", getMonthFromTerm(date.term).toString());
       return params;
@@ -135,7 +140,7 @@ export function List({hideFilters, hideViews}: Props) {
 
   const goToToday = () => {
     setSearchParams(params => {
-      params.set("year", dayjs().format("YYYY"));
+      params.set("year", thisYear);
       params.set("term", currterm.toString());
       params.set("month", getMonthFromTerm(currterm.toString()).toString());
       params.delete("month");
@@ -230,7 +235,7 @@ export function List({hideFilters, hideViews}: Props) {
             <Select
               placeholder="Year"
               data={Array
-                .from({ length: 11 }, (_, i) => parseInt(dayjs().format("YYYY"), 10) - 5 + i)
+                .from({ length: 11 }, (_, i) => parseInt(thisYear, 10) - 5 + i)
                 .map(year => year.toString())  
               }
               value={date.year} onChange={handleYearSelect} 
@@ -258,7 +263,7 @@ export function List({hideFilters, hideViews}: Props) {
                 </div>
               }
 
-              { !loading && date.term == currterm.toString() && date.year == dayjs().format("YYYY") && !showPast &&
+              { !loading && date.term == currterm.toString() && date.year == thisYear && !showPast &&
                 <ActionIcon variant="light" aria-label="Show past events" title="Show past events" className="size-8" onClick={() => toggleShowPast()}><IconRotateClockwise2 className="transform rotate-90 scale-x-[-1]" stroke={1.5} /></ActionIcon>
               }
             </div>
@@ -288,7 +293,7 @@ export function List({hideFilters, hideViews}: Props) {
 
         <Card className="ev-calendar list-calendar rounded-none" p={0}>
 
-          { !!filteredList.days.current.length && date.term == currterm.toString() && date.year == dayjs().format("YYYY") &&
+          { !!filteredList.days.current.length && date.term == currterm.toString() && date.year == thisYear &&
             <div className="px-4 py-3">
               <span className="font-semibold text-gray-500 text-sm uppercase tracking-wider">Currently on</span>
             </div>
@@ -298,9 +303,9 @@ export function List({hideFilters, hideViews}: Props) {
             !!day.events.length &&
             <div key={day.date_key} className="ev-calendar-item ev-calendar-item-current">
               <div className="flex justify-between px-4 py-2">
-                { day.date_key == dayjs().format("YYYY-MM-DD")
+                { day.date_key == todayKey
                   ? <Text className="font-semibold text-lg">Started today</Text>
-                  : <Text className="font-semibold text-lg">Started on {dayjs.unix(Number(day.date)).format("D MMM")}</Text>
+                  : <Text className="font-semibold text-lg">Started on {dateKey(day.date_key).format("D MMM")}</Text>
                 }
               </div>
               
@@ -316,7 +321,7 @@ export function List({hideFilters, hideViews}: Props) {
         </Card>
 
         <Card className="ev-calendar list-calendar border-b rounded-none" p={0}>
-          { !!filteredList.days.current.length && !!filteredList.days.upcoming.length && date.term == currterm.toString() && date.year == dayjs().format("YYYY") &&
+          { !!filteredList.days.current.length && !!filteredList.days.upcoming.length && date.term == currterm.toString() && date.year == thisYear &&
             <div className="px-4 py-3 border-t">
               <span className="font-semibold text-gray-500 text-sm uppercase tracking-wider">{!showPast ? "Upcoming" : "All"}</span>
             </div>
@@ -325,10 +330,10 @@ export function List({hideFilters, hideViews}: Props) {
           { filteredList.days.upcoming.map((day: any, i: number) => (
             !!day.events.length &&
             <div key={day.date_key} className="ev-calendar-item ev-calendar-item-current">
-              <div className={`flex justify-between px-4 py-2 ${day.date_key == dayjs().format("YYYY-MM-DD") ? 'bg-blue-50 border-y border-blue-500' : ''}`}>
-                { day.date_key == dayjs().format("YYYY-MM-DD")
+              <div className={`flex justify-between px-4 py-2 ${day.date_key == todayKey ? 'bg-blue-50 border-y border-blue-500' : ''}`}>
+                { day.date_key == todayKey
                   ? <Text className="font-semibold text-xl">Today</Text>
-                  : <Text className="font-semibold text-lg">{dayjs.unix(Number(day.date)).format("ddd, D MMM YYYY")}</Text>
+                  : <Text className="font-semibold text-lg">{dateKey(day.date_key).format("ddd, D MMM YYYY")}</Text>
                 }
               </div>
               <ul>

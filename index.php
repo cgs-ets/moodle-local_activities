@@ -25,6 +25,9 @@
     $config->headerbg = $activitiesconfig->headerbg;
     $config->headerfg = $activitiesconfig->headerfg;
     $config->headerlogourl = $activitiesconfig->headerlogourl;
+    // The zone the server builds calendar dates in. The frontend displays times in it, so a
+    // parent viewing from overseas sees school time rather than their browser's.
+    $config->timezone = \core_date::get_server_timezone();
     $config->loginUrl = (new moodle_url('/login/index.php'))->out();
     $config->logoutUrl = '';
     if (!$ispublic) {

@@ -3,6 +3,7 @@ import { IconExternalLink, IconMenu, IconSearch, IconX, IconCalendar, IconCheck,
 import { getConfig } from "../../../utils";
 import useFetch from "../../../hooks/useFetch";
 import dayjs from "dayjs";
+import { schoolTime } from "../../../utils/schoolTime";
 import { cn } from "../../../utils/utils";
 import { useEffect, useState } from "react";
 import { EventModal } from "../../../components/EventModal";
@@ -268,7 +269,7 @@ export function Header({hideSearch, hideNav}: Props) {
                       <div className="flex items-center gap-2">
                         <Anchor className="first-letter:capitalize" onClick={() => setSelectedEvent(result)}>{result.activityname}</Anchor>
                       </div>
-                      <span className="text-xs">{dayjs.unix(result.timestart).format('DD MMM YY HH:mm')} - {dayjs.unix(result.timeend).format('DD MMM YY HH:mm')}</span>
+                      <span className="text-xs">{schoolTime(result.timestart).format('DD MMM YY HH:mm')} - {schoolTime(result.timeend).format('DD MMM YY HH:mm')}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       {result.campus && <Pill className="capitalize">{result.campus}</Pill>}
@@ -290,7 +291,7 @@ export function Header({hideSearch, hideNav}: Props) {
                       <div className="flex items-center gap-2">
                         <Anchor className="first-letter:capitalize" onClick={() => setSelectedEvent(result)}>{result.activityname}</Anchor>
                       </div>
-                      <span className="text-xs">{dayjs.unix(result.timestart).format('DD MMM YY HH:mm')} - {dayjs.unix(result.timeend).format('DD MMM YY HH:mm')}</span>
+                      <span className="text-xs">{schoolTime(result.timestart).format('DD MMM YY HH:mm')} - {schoolTime(result.timeend).format('DD MMM YY HH:mm')}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       {result.campus && <Pill className="capitalize">{result.campus}</Pill>}

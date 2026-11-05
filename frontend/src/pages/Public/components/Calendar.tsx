@@ -1,6 +1,6 @@
 import { ActionIcon, Button, Card, LoadingOverlay, Select } from "@mantine/core";
 import { IconAdjustments, IconArrowNarrowLeft, IconArrowNarrowRight, IconCalendarDue, IconCalendarWeek, IconClockCheck, IconListDetails, IconTable, IconX } from "@tabler/icons-react";
-import dayjs from "dayjs";
+import { dateKey, schoolNow } from "../../../utils/schoolTime";
 import { useEffect, useMemo, useState } from "react";
 import useFetch from "../../../hooks/useFetch";
 import { Form } from "../../../stores/formStore";
@@ -38,8 +38,8 @@ export function Calendar({hideFilters, hideViews}: Props) {
   const [filterOpened, {close: closeFilter, open: openFilter}] = useDisclosure(false)
 
   const [date, setDate] = useState<MoYear>({
-    month: searchParams.get('month') || dayjs().format("M"),
-    year: searchParams.get('year') || dayjs().format("YYYY"),
+    month: searchParams.get('month') || schoolNow().format("M"),
+    year: searchParams.get('year') || schoolNow().format("YYYY"),
   })
   
   const getCalendarAPI = useFetch()
@@ -77,8 +77,8 @@ export function Calendar({hideFilters, hideViews}: Props) {
   // If search params change, update the date.
   useEffect(() => {
     setDate({
-      month: searchParams.get('month') || dayjs().format("M"), 
-      year: searchParams.get('year') || dayjs().format("YYYY"), 
+      month: searchParams.get('month') || schoolNow().format("M"), 
+      year: searchParams.get('year') || schoolNow().format("YYYY"), 
     })
   }, [searchParams.get('month'), searchParams.get('year')]);
 
@@ -121,7 +121,7 @@ export function Calendar({hideFilters, hideViews}: Props) {
 
   const handleMonthSelect = (month: string | null) => {
     setSearchParams(params => {
-      const m = month || dayjs().format("MM")
+      const m = month || schoolNow().format("MM")
       params.set("year", date.year);
       params.set("month", m);
       params.set("term", getTermFromMonth(m, date.year).toString());
@@ -131,7 +131,7 @@ export function Calendar({hideFilters, hideViews}: Props) {
 
   const handleYearSelect = (year: string | null) => {
     setSearchParams(params => {
-      const y = year || dayjs().format("YYYY")
+      const y = year || schoolNow().format("YYYY")
       params.set("year", y);
       params.set("month", date.month);
       params.set("term", getTermFromMonth(date.month, y).toString());
@@ -141,9 +141,9 @@ export function Calendar({hideFilters, hideViews}: Props) {
 
   const goToToday = () => {
     setSearchParams(params => {
-      params.set("year", dayjs().format("YYYY"));
-      params.set("month", dayjs().format("M"));
-      params.set("term", getTermFromMonth(dayjs().format("M"), dayjs().format("YYYY")).toString());
+      params.set("year", schoolNow().format("YYYY"));
+      params.set("month", schoolNow().format("M"));
+      params.set("term", getTermFromMonth(schoolNow().format("M"), schoolNow().format("YYYY")).toString());
       return params;
     });
   }
@@ -230,7 +230,7 @@ export function Calendar({hideFilters, hideViews}: Props) {
             <Select
               placeholder="Year"
               data={Array
-                .from({ length: 11 }, (_, i) => parseInt(dayjs().format("YYYY"), 10) - 5 + i)
+                .from({ length: 11 }, (_, i) => parseInt(schoolNow().format("YYYY"), 10) - 5 + i)
                 .map(year => year.toString())  
               }
               value={date.year} 
@@ -277,7 +277,7 @@ export function Calendar({hideFilters, hideViews}: Props) {
                       return (
                         !!Object.entries(cell.events).length
                         ? <td key={cell.date} className={`eventful ${cell.type} ${cell.type == 'today' ? 'bg-blue-50 !border-b-blue-500' : ''}`}>
-                            <span className="day-num">{dayjs.unix(cell.date).format("D") }</span>
+                            <span className="day-num">{dateKey(cell.day_key).format("D")}</span>
                             <ul>
                               { Object.keys(cell.events).map((ts) => {
                                 const event = cell.events[ts]
@@ -288,7 +288,7 @@ export function Calendar({hideFilters, hideViews}: Props) {
                             </ul>
                           </td>
                         : <td key={cell.date} className={`eventless ${cell.type}`}>
-                            <span className="day-num">{dayjs.unix(cell.date).format("D") }</span>
+                            <span className="day-num">{dateKey(cell.day_key).format("D")}</span>
                           </td>
                       )
                     })}

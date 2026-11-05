@@ -1,6 +1,7 @@
 import { ActionIcon, Button, Card, LoadingOverlay, Select } from "@mantine/core";
 import { IconAdjustments, IconArrowNarrowLeft, IconArrowNarrowRight, IconCalendarDue, IconCalendarWeek, IconClockCheck, IconListDetails, IconTable, IconX } from "@tabler/icons-react";
 import dayjs from "dayjs";
+import { dateKey } from "../../../utils/schoolTime";
 import { useEffect, useMemo, useState } from "react";
 import useFetch from "../../../hooks/useFetch";
 import { CalendarTease } from "./CalendarTease";
@@ -304,7 +305,7 @@ export function Calendar({setCaltype}: Props) {
                       return (
                         !!Object.entries(cell.events).length
                         ? <td key={cell.date} className={`eventful ${cell.type} ${cell.type == 'today' ? 'bg-blue-50 !border-b-blue-500' : ''}`}>
-                            <span className="day-num">{dayjs.unix(cell.date).format("D") }</span>
+                            <span className="day-num">{dateKey(cell.day_key).format("D")}</span>
                             <ul>
                               { Object.keys(cell.events).map((ts) => {
                                 const event = cell.events[ts]
@@ -315,7 +316,7 @@ export function Calendar({setCaltype}: Props) {
                             </ul>
                           </td>
                         : <td key={cell.date} className={`eventless ${cell.type}`}>
-                            <span className="day-num">{dayjs.unix(cell.date).format("D") }</span>
+                            <span className="day-num">{dateKey(cell.day_key).format("D")}</span>
                           </td>
                       )
                     })}
