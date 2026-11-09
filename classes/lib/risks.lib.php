@@ -721,6 +721,49 @@ class risks_lib {
 
 
     /**
+     * Copy the latest risk assessment generation of one activity to another.
+     *
+     * The copy is unapproved, because an approval of the source activity does not apply to a new
+     * activity. Its PDF is regenerated rather than copied, so that it shows the target activity's details.
+     *
+     * @param int $fromactivityid
+     * @param int $toactivityid
+     * @return int|null The new generation id, or null if the source has no generation to copy.
+     */
+    public static function copy_latest_ra_generation($fromactivityid, $toactivityid) {
+        global $DB;
+
+        $generation = static::get_last_ra_gen($fromactivityid);
+        if (!$generation) {
+            return null;
+        }
+
+        $customrisks = $generation->custom_risks;
+        unset($generation->custom_risks, $generation->id);
+        $generation->activityid = $toactivityid;
+        $generation->approved = 0;
+        $generation->timecreated = time();
+        $newid = $DB->insert_record(static::TABLE_RA_GENS, $generation);
+
+        foreach ($customrisks as $customrisk) {
+            unset($customrisk->id);
+            $customrisk->ra_gen_id = $newid;
+            $DB->insert_record(static::TABLE_RA_GENS_RISKS, $customrisk);
+        }
+
+        // The activity already exists by now, so a PDF failure should not fail the whole duplicate.
+        // The generation stays usable: the user can regenerate from it to get a PDF.
+        try {
+            static::generate_pdf($newid);
+        } catch (\Throwable $e) {
+            error_log('[local_activities] Failed to generate PDF for copied RA generation ' . $newid . ': ' . $e->getMessage());
+        }
+
+        return $newid;
+    }
+
+
+    /**
      * Delete a risk assessment generation.
      *
      * @param int $id

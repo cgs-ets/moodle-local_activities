@@ -10,6 +10,7 @@ require_once(__DIR__.'/utils.lib.php');
 require_once(__DIR__.'/service.lib.php');
 require_once(__DIR__.'/workflow.lib.php');
 require_once(__DIR__.'/recurrence.lib.php');
+require_once(__DIR__.'/risks.lib.php');
 require_once($CFG->dirroot . '/local/activities/vendor/autoload.php');
 
 use \local_activities\lib\Activity;
@@ -17,6 +18,7 @@ use \local_activities\lib\utils_lib;
 use \local_activities\lib\service_lib;
 use \local_activities\lib\workflow_lib;
 use \local_activities\lib\recurrence_lib;
+use \local_activities\lib\risks_lib;
 use \moodle_exception;
 use FineDiff\Diff;
 
@@ -316,8 +318,9 @@ class activities_lib {
 
             $activity->set('planningstaffjson', $data->planningstaffjson);
             $activity->set('accompanyingstaffjson', $data->accompanyingstaffjson);
-            if ($data->secondinchargejson == '""') {
-                $data->secondinchargejson = null;
+            // Empty string rather than null: the column is NOT NULL on fresh installs.
+            if (empty($data->secondinchargejson) || $data->secondinchargejson == '""') {
+                $data->secondinchargejson = '';
             }
             $activity->set('secondinchargejson', $data->secondinchargejson);
             $activity->save();
@@ -3014,6 +3017,11 @@ class activities_lib {
                 $newrecord->filearea = 'riskassessment';
                 $fs->create_file_from_storedfile($newrecord, $file);
             }
+        }
+
+        // Digital risk assessments are stored as generations rather than in the riskassessment file area.
+        if ($options['riskassessment']) {
+            risks_lib::copy_latest_ra_generation($activityid, $result->id);
         }
 
         if ($options['attachments'] && $files = $fs->get_area_files(1, 'local_activities', 'attachments', $activityid, "filename", true)) {

@@ -176,7 +176,7 @@ export function Paperwork() {
                 </div> : null
               }
 
-              { !activityid || (status == statuses.draft) || haschanges ? 
+              { !activityid || haschanges || (status == statuses.draft && raGenerations.length === 0) ?
                 (
                   <div className='border-b p-4 space-y-2'>
                     <Text className="font-semibold">Digital Risk Assessment</Text>
@@ -218,7 +218,7 @@ export function Paperwork() {
                                   <Group className="justify-end pr-1">
                                     <ActionIcon onClick={() => deleteRaGeneration(raGeneration.id)} color='red' variant='light' size='compact-xs'><IconTrash className='size-4' /></ActionIcon>
                                   
-                                    <Button onClick={() => window.open(raGeneration.download_url + '?action=open', '_blank')} variant='light' size='compact-xs' rightSection={<IconDownload className='size-3' />}>PDF</Button>
+                                    {raGeneration.download_url && <Button onClick={() => window.open(raGeneration.download_url + '?action=open', '_blank')} variant='light' size='compact-xs' rightSection={<IconDownload className='size-3' />}>PDF</Button>}
 
                                     {isapprover ? (
                                       <Checkbox disabled={api.state.loading} checked={Number(raGeneration.approved) === 1} onChange={(v) => approveRaGeneration(raGeneration.id, v.target.checked)} />
