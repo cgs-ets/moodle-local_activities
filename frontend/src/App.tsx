@@ -16,6 +16,7 @@ import { PublicSingle } from "./pages/Public/PublicSingle";
 import { VerifySync } from "./pages/VerifySync/VerifySync";
 import { Risk } from "./pages/Risk/Risk";
 import { Settings } from "./pages/Risk/Settings";
+import { WorkflowSettings } from "./pages/Settings/WorkflowSettings";
 import { useSearchParams, Navigate } from "react-router-dom";
 import { WebExternal } from "./pages/Public/WebExternal";
 import { BASENAME } from "./utils/restoreRoute";
@@ -48,6 +49,7 @@ function App() {
       { path: ":activityid/risk", element: <Risk /> },
       { path: ":activityid/risk/:id", element: <Risk /> },
       { path: "risk/settings", element: <Settings /> },
+      { path: "settings/workflow", element: <WorkflowSettings /> },
 
       { path: ":id", element: <EditActivity /> },
 

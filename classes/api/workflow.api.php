@@ -6,9 +6,13 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__.'/../lib/workflow.lib.php');
 require_once(__DIR__.'/../lib/activities.lib.php');
+require_once(__DIR__.'/../lib/workflow_config.lib.php');
+require_once(__DIR__.'/../lib/risk_versions.lib.php');
 
 use \local_activities\lib\workflow_lib;
 use \local_activities\lib\activities_lib;
+use \local_activities\lib\workflow_config_lib;
+use \local_activities\lib\risk_versions_lib;
 
 /**
  * Activity API trait
@@ -91,4 +95,27 @@ trait workflow_api {
         return workflow_lib::make_public_now($activityid, $pushpublic);
     }
     
+    /**
+     * Get workflow steps and approvers from config.php for the workflow settings screen.
+     * Same access as risk settings.
+     *
+     * @return array
+     */
+    static public function get_workflow_config() {
+        risk_versions_lib::check_risk_settings_access();
+        return workflow_config_lib::get_config();
+    }
+
+    /**
+     * Save approver lists for workflow steps to config.php (backs up the current file first).
+     *
+     * @param array $args ['hash' => string, 'steps' => [stepkey => [['username' => .., 'silent' => ..], ..]]]
+     * @return array
+     */
+    static public function save_workflow_approvers($args) {
+        risk_versions_lib::check_risk_settings_access();
+        ['hash' => $hash, 'steps' => $steps] = $args;
+        return workflow_config_lib::save_approvers($hash, $steps);
+    }
+
 }
