@@ -94,7 +94,7 @@ class workflow_config_lib {
      * @return array the new config, as get_config().
      */
     public static function save_approvers($hash, $steps) {
-        global $USER;
+        global $DB, $USER;
 
         if (!is_string($hash) || !is_array($steps) || empty($steps)) {
             throw new \Exception('Malformed request.');
@@ -125,6 +125,7 @@ class workflow_config_lib {
 
             $expected = $current;
             $summary = array();
+            $changelog = array();
             $newsource = $source;
             foreach ($steps as $stepkey => $list) {
                 $stepkey = (string) $stepkey;
@@ -135,6 +136,7 @@ class workflow_config_lib {
                 $expected[$stepkey]['approvers'] = $approvers;
                 $newsource = static::splice_approvers($newsource, $stepkey, $approvers);
                 $summary[] = $stepkey . ' [' . implode(', ', $changes) . ']';
+                $changelog[$stepkey] = $changes;
             }
 
             if (empty($summary)) {
@@ -166,6 +168,25 @@ class workflow_config_lib {
 
             error_log('[local_activities] workflow config updated by ' . $USER->username
                 . ' (backup ' . basename($backup) . '): ' . implode('; ', $summary));
+
+            // Audit record. Written only after config.php has changed. A failure here must not
+            // report the save as failed, because the file has already been written.
+            try {
+                $DB->insert_record('activities_logs', (object) array(
+                    'activityid' => 0, // 0 = not tied to an activity.
+                    'action' => 'workflow_config_updated',
+                    'timecreated' => time(),
+                    'datajson' => json_encode(array(
+                        'userid' => (int) $USER->id,
+                        'username' => $USER->username,
+                        'fullname' => fullname($USER),
+                        'backup' => basename($backup), // Diff against config.php for the exact before/after.
+                        'changes' => $changelog, // stepkey => [change, ...]
+                    )),
+                ));
+            } catch (\Throwable $e) {
+                error_log('[local_activities] workflow config audit log insert failed: ' . $e->getMessage());
+            }
 
             return static::export($actual, sha1($newsource));
         } finally {
