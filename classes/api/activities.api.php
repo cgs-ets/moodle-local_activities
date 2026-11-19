@@ -213,6 +213,26 @@ trait activities_api {
     }
 
     /**
+     * Get draft and in-review excursions/incursions starting in the next 14 days.
+     *
+     * @return array Compact rows for the upcoming unapproved list.
+     */
+    static public function get_upcoming_unapproved() {
+        return activities_lib::get_upcoming_unapproved();
+    }
+
+    /**
+     * Get past excursions/incursions that ran while in review (incl. approved late).
+     *
+     * @return array Compact rows for the past unapproved list.
+     */
+    static public function get_past_unapproved() {
+        $from = required_param('from', PARAM_INT);
+        $to = required_param('to', PARAM_INT);
+        return activities_lib::get_past_unapproved($from, $to);
+    }
+
+    /**
      * Duplicate an activity.
      *
      * @return array containing activityid.

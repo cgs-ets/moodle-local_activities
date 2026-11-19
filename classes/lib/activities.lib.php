@@ -1960,6 +1960,268 @@ class activities_lib {
         return $result;
     }
 
+    /**
+     * Get draft and in-review excursions/incursions starting within the next 14 days.
+     *
+     * Returns a slim row per activity (or per occurrence for recurring series),
+     * including the next unactioned approval step, for the compact approver list.
+     *
+     * @return array
+     */
+    public static function get_upcoming_unapproved() {
+        global $DB;
+
+        if (!utils_lib::is_user_approver()) {
+            throw new \Exception('Permission denied.');
+        }
+
+        $now = time();
+        $todaymidnight = strtotime('today midnight');
+        $end = strtotime('+14 days', strtotime('tomorrow')) - 1;
+        $params = array(
+            'draft' => static::ACTIVITY_STATUS_DRAFT,
+            'inreview' => static::ACTIVITY_STATUS_INREVIEW,
+            'rangestart' => $now,
+            'rangeend' => $end,
+        );
+
+        // Non-recurring activities.
+        $sql = "SELECT id, timestart, timeend
+                  FROM {" . static::TABLE . "}
+                 WHERE status IN (:draft, :inreview)
+                   AND deleted = 0
+                   AND recurring = 0
+                   AND timestart >= :rangestart
+                   AND timestart <= :rangeend";
+        $rows = array();
+        foreach ($DB->get_records_sql($sql, $params) as $record) {
+            $rows[] = (object) array(
+                'activityid' => $record->id,
+                'timestart' => $record->timestart,
+                'timeend' => $record->timeend,
+                'is_occurrence' => false,
+            );
+        }
+
+        // Occurrences of recurring activities.
+        $sql = "SELECT ao.id, ao.activityid, ao.timestart, ao.timeend
+                  FROM {" . static::TABLE . "} a
+                  JOIN {activities_occurrences} ao ON ao.activityid = a.id
+                 WHERE a.status IN (:draft, :inreview)
+                   AND a.deleted = 0
+                   AND a.recurring = 1
+                   AND ao.timestart >= :rangestart
+                   AND ao.timestart <= :rangeend";
+        foreach ($DB->get_records_sql($sql, $params) as $record) {
+            $rows[] = (object) array(
+                'activityid' => $record->activityid,
+                'timestart' => $record->timestart,
+                'timeend' => $record->timeend,
+                'is_occurrence' => true,
+            );
+        }
+
+        // Approval data is per activity, so cache it across occurrences.
+        $cache = array();
+        $result = array();
+        foreach ($rows as $row) {
+            $id = (int) $row->activityid;
+            if (!array_key_exists($id, $cache)) {
+                $cache[$id] = static::unapproved_row_helper($id);
+            }
+            if ($cache[$id] === null) {
+                continue;
+            }
+
+            $item = $cache[$id];
+            $item['timestart'] = (int) $row->timestart;
+            $item['timeend'] = (int) $row->timeend;
+            $item['is_occurrence'] = $row->is_occurrence;
+            $item['daysuntil'] = (int) floor(($row->timestart - $todaymidnight) / DAYSECS);
+            $result[] = $item;
+        }
+
+        usort($result, function($a, $b) {
+            return $a['timestart'] <=> $b['timestart'];
+        });
+
+        return $result;
+    }
+
+    /**
+     * Get past excursions/incursions that ran while still in review.
+     *
+     * Includes activities still in review, and activities approved after they
+     * started. There is no status history, so "approved late" is derived from the
+     * latest non-invalidated approve/skip timestamp being after the start time.
+     *
+     * @param int $from Range start (unix).
+     * @param int $to Range end (unix), clamped to now.
+     * @return array
+     */
+    public static function get_past_unapproved($from, $to) {
+        global $DB;
+
+        if (!utils_lib::is_user_approver()) {
+            throw new \Exception('Permission denied.');
+        }
+
+        $now = time();
+        $from = (int) $from;
+        $to = min(strtotime('tomorrow', (int) $to) - 1, $now);
+        if ($from > $to) {
+            throw new \Exception('Invalid date range.');
+        }
+
+        $todaymidnight = strtotime('today midnight');
+        $params = array(
+            'approved' => workflow_lib::APPROVAL_STATUS_APPROVED,
+            'inreview' => static::ACTIVITY_STATUS_INREVIEW,
+            'approvedstatus' => static::ACTIVITY_STATUS_APPROVED,
+            'rangestart' => $from,
+            'rangeend' => $to,
+        );
+        $approvalsjoin = "LEFT JOIN {activities_approvals} ap
+                                 ON ap.activityid = a.id
+                                AND ap.invalidated = 0
+                                AND (ap.status = :approved OR ap.skip = 1)";
+
+        // Non-recurring activities.
+        $sql = "SELECT a.id, a.timestart, a.timeend, a.status, MAX(ap.timemodified) AS lastapproval
+                  FROM {" . static::TABLE . "} a
+                  $approvalsjoin
+                 WHERE a.deleted = 0
+                   AND a.recurring = 0
+                   AND a.status IN (:inreview, :approvedstatus)
+                   AND a.timestart >= :rangestart
+                   AND a.timestart <= :rangeend
+              GROUP BY a.id, a.timestart, a.timeend, a.status";
+        $rows = array();
+        foreach ($DB->get_records_sql($sql, $params) as $record) {
+            $record->activityid = $record->id;
+            $record->is_occurrence = false;
+            $rows[] = $record;
+        }
+
+        // Occurrences of recurring activities.
+        $sql = "SELECT ao.id, ao.activityid, ao.timestart, ao.timeend, a.status, MAX(ap.timemodified) AS lastapproval
+                  FROM {" . static::TABLE . "} a
+                  JOIN {activities_occurrences} ao ON ao.activityid = a.id
+                  $approvalsjoin
+                 WHERE a.deleted = 0
+                   AND a.recurring = 1
+                   AND a.status IN (:inreview, :approvedstatus)
+                   AND ao.timestart >= :rangestart
+                   AND ao.timestart <= :rangeend
+              GROUP BY ao.id, ao.activityid, ao.timestart, ao.timeend, a.status";
+        foreach ($DB->get_records_sql($sql, $params) as $record) {
+            $record->is_occurrence = true;
+            $rows[] = $record;
+        }
+
+        $cache = array();
+        $result = array();
+        foreach ($rows as $row) {
+            $timestart = (int) $row->timestart;
+            $lastapproval = $row->lastapproval ? (int) $row->lastapproval : null;
+            $approvedlate = false;
+            if ($row->status == static::ACTIVITY_STATUS_APPROVED) {
+                // Approved in time (or no approval record to go on) -> not in this list.
+                if (!$lastapproval || $lastapproval <= $timestart) {
+                    continue;
+                }
+                $approvedlate = true;
+            }
+
+            $id = (int) $row->activityid;
+            if (!array_key_exists($id, $cache)) {
+                $cache[$id] = static::unapproved_row_helper($id);
+            }
+            if ($cache[$id] === null) {
+                continue;
+            }
+
+            $item = $cache[$id];
+            $item['timestart'] = $timestart;
+            $item['timeend'] = (int) $row->timeend;
+            $item['is_occurrence'] = $row->is_occurrence;
+            $item['approvedlate'] = $approvedlate;
+            $item['timeapproved'] = $approvedlate ? $lastapproval : null;
+            $item['daysago'] = (int) floor(($todaymidnight - strtotime('today midnight', $timestart)) / DAYSECS);
+            $result[] = $item;
+        }
+
+        usort($result, function($a, $b) {
+            return $b['timestart'] <=> $a['timestart'];
+        });
+
+        return $result;
+    }
+
+    /**
+     * Build the per-activity part of an unapproved-list row.
+     *
+     * @param int $id Activity id.
+     * @return array|null Null when the activity is not an excursion/incursion.
+     */
+    private static function unapproved_row_helper($id) {
+        $activity = new Activity($id);
+        if (!static::is_activity($activity->get('activitytype'))) {
+            return null;
+        }
+
+        $status = (int) $activity->get('status');
+        $approvedcount = 0;
+        $totalsteps = 0;
+        $next = null;
+        // Drafts have no (or only stale) approvals, so only report progress once submitted.
+        if ($status != static::ACTIVITY_STATUS_DRAFT) {
+            foreach (workflow_lib::get_approvals($id) as $approval) {
+                if ($approval->skip) {
+                    continue;
+                }
+                $totalsteps++;
+                if ($approval->status == workflow_lib::APPROVAL_STATUS_APPROVED) {
+                    $approvedcount++;
+                }
+            }
+            $unactioned = workflow_lib::get_unactioned_approvals($id);
+            $next = reset($unactioned) ?: null;
+        }
+
+        return array(
+            'id' => (int) $id,
+            'activityname' => $activity->get('activityname'),
+            'activitytype' => $activity->get('activitytype'),
+            'campus' => $activity->get('campus'),
+            'status' => $status,
+            'staffincharge' => utils_lib::user_stub($activity->get('staffincharge')),
+            'approvedcount' => $approvedcount,
+            'totalsteps' => $totalsteps,
+            'nextstep' => $next ? static::approval_step_stub($next) : null,
+        );
+    }
+
+    /**
+     * Compact description of an approval step for the unapproved lists.
+     *
+     * @param \stdClass $approval Approval row.
+     * @return array
+     */
+    private static function approval_step_stub($approval) {
+        $nominatedname = '';
+        if (!empty($approval->nominated)) {
+            $user = \core_user::get_user_by_username($approval->nominated);
+            $nominatedname = $user ? fullname($user) : $approval->nominated;
+        }
+        return array(
+            'name' => workflow_lib::WORKFLOW[$approval->type]['name'] ?? $approval->type,
+            'status' => (int) $approval->status,
+            'nominated' => $approval->nominated ?? '',
+            'nominatedname' => $nominatedname,
+        );
+    }
+
     public static function get_for_roll_creation($now, $startlimit) {
         global $DB;
     

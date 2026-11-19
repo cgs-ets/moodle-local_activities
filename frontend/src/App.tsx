@@ -14,6 +14,7 @@ import { Preview } from "./pages/Preview/Preview";
 import { Public } from "./pages/Public/Public";
 import { PublicSingle } from "./pages/Public/PublicSingle";
 import { VerifySync } from "./pages/VerifySync/VerifySync";
+import { UnapprovedChecks } from "./pages/UnapprovedChecks/UnapprovedChecks";
 import { Risk } from "./pages/Risk/Risk";
 import { Settings } from "./pages/Risk/Settings";
 import { WorkflowSettings } from "./pages/Settings/WorkflowSettings";
@@ -45,6 +46,7 @@ function App() {
       { path: ":id/permission", element: <Permission /> },
       { path: ":id/preview", element: <Preview /> },
       { path: "verify-sync", element: <VerifySync /> },
+      { path: "unapproved-checks", element: <UnapprovedChecks /> },
 
       { path: ":activityid/risk", element: <Risk /> },
       { path: ":activityid/risk/:id", element: <Risk /> },
