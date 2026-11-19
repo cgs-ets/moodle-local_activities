@@ -8,6 +8,7 @@ import { MyActivities } from "./components/MyActivities";
 import { useSearchParams } from "react-router-dom";
 import { TableView } from "./components/Table";
 import { MyHistory } from "./components/MyHistory";
+import { ApprovalChecksButton } from "./components/ApprovalChecksButton";
 
 export function Dashboard() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -51,6 +52,7 @@ export function Dashboard() {
                     <Grid.Col span={{ base: 12, lg: 3 }}>
                       <div className="flex flex-col gap-0">
                         <MyActivities />
+                        <ApprovalChecksButton />
                         <MyHistory />
                       </div>
                   

@@ -2049,9 +2049,9 @@ class activities_lib {
     }
 
     /**
-     * Get past excursions/incursions that ran while still in review.
+     * Get past excursions/incursions that ran while still in draft or in review.
      *
-     * Includes activities still in review, and activities approved after they
+     * Includes activities still in draft or review, and activities approved after they
      * started. There is no status history, so "approved late" is derived from the
      * latest non-invalidated approve/skip timestamp being after the start time.
      *
@@ -2076,6 +2076,7 @@ class activities_lib {
         $todaymidnight = strtotime('today midnight');
         $params = array(
             'approved' => workflow_lib::APPROVAL_STATUS_APPROVED,
+            'draft' => static::ACTIVITY_STATUS_DRAFT,
             'inreview' => static::ACTIVITY_STATUS_INREVIEW,
             'approvedstatus' => static::ACTIVITY_STATUS_APPROVED,
             'rangestart' => $from,
@@ -2092,7 +2093,7 @@ class activities_lib {
                   $approvalsjoin
                  WHERE a.deleted = 0
                    AND a.recurring = 0
-                   AND a.status IN (:inreview, :approvedstatus)
+                   AND a.status IN (:draft, :inreview, :approvedstatus)
                    AND a.timestart >= :rangestart
                    AND a.timestart <= :rangeend
               GROUP BY a.id, a.timestart, a.timeend, a.status";
@@ -2110,7 +2111,7 @@ class activities_lib {
                   $approvalsjoin
                  WHERE a.deleted = 0
                    AND a.recurring = 1
-                   AND a.status IN (:inreview, :approvedstatus)
+                   AND a.status IN (:draft, :inreview, :approvedstatus)
                    AND ao.timestart >= :rangestart
                    AND ao.timestart <= :rangeend
               GROUP BY ao.id, ao.activityid, ao.timestart, ao.timeend, a.status";

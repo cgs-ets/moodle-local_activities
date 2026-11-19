@@ -77,6 +77,7 @@ export function UpcomingTab() {
             <Table striped highlightOnHover verticalSpacing="xs">
               <Table.Thead>
                 <Table.Tr>
+                  <Table.Th>Starts in</Table.Th>
                   <Table.Th>Starts</Table.Th>
                   <Table.Th>Activity</Table.Th>
                   <Table.Th>Type / campus</Table.Th>
@@ -89,12 +90,12 @@ export function UpcomingTab() {
                 {rows.map((row) => (
                   <Table.Tr key={`${row.id}-${row.timestart}`}>
                     <Table.Td className="whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <Text size="sm">{dayjs.unix(row.timestart).format('ddd D MMM, h:mma')}</Text>
-                        <Badge color={row.daysuntil <= 7 ? 'red' : 'orange'} variant="light" size="xs">
-                          {row.daysuntil <= 0 ? 'today' : `in ${row.daysuntil}d`}
-                        </Badge>
-                      </div>
+                      <Badge color={row.daysuntil <= 7 ? 'red' : 'orange'} variant="filled" size="md" w={80}>
+                        {row.daysuntil <= 0 ? 'Today' : `${row.daysuntil} ${row.daysuntil === 1 ? 'day' : 'days'}`}
+                      </Badge>
+                    </Table.Td>
+                    <Table.Td className="whitespace-nowrap">
+                      <Text size="sm">{dayjs.unix(row.timestart).format('ddd D MMM, h:mma')}</Text>
                     </Table.Td>
                     <Table.Td>
                       <Anchor component={Link} to={`/${row.id}`} target="_blank" size="sm" fw={500}>

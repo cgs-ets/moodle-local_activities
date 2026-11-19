@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import useFetch from "../../../hooks/useFetch";
 import { ApprovalWaitingOn, UnapprovedRow } from "../../../components/ApprovalWaitingOn";
 import { capitalise, staffName } from "../../../utils/unapproved";
+import { statuses } from "../../../utils";
 
 interface PastRow extends UnapprovedRow {
   daysago: number;
@@ -52,7 +53,10 @@ export function PastTab() {
     }
   };
 
+  const isDraft = (row: PastRow) => row.status === statuses.saved;
   const lateCount = rows.filter((row) => row.approvedlate).length;
+  const draftCount = rows.filter(isDraft).length;
+  const reviewCount = rows.length - lateCount - draftCount;
 
   const renderOutcome = (row: PastRow) => {
     if (row.approvedlate && row.timeapproved) {
@@ -67,6 +71,14 @@ export function PastTab() {
         </div>
       );
     }
+    if (isDraft(row)) {
+      return (
+        <div className="flex flex-wrap items-center gap-1">
+          <Badge color="gray" variant="light" size="xs">Draft</Badge>
+          <Text size="sm" c="dimmed">Never submitted</Text>
+        </div>
+      );
+    }
     return (
       <div className="flex flex-wrap items-center gap-1">
         <Badge color="red" variant="light" size="xs">Still in review</Badge>
@@ -78,7 +90,7 @@ export function PastTab() {
   return (
     <>
       <Text mb="lg" c="dimmed">
-        Excursions and incursions that <strong>ran while still in review</strong>, including those <strong>approved after the fact</strong>.
+        Excursions and incursions that <strong>ran while still in draft or in review</strong>, including those <strong>approved after the fact</strong>.
       </Text>
 
       <Card withBorder mb="lg">
@@ -109,13 +121,13 @@ export function PastTab() {
       ) : rows.length === 0 ? (
         <Card withBorder>
           <Center h={120}>
-            <Text c="dimmed">No activities ran while in review in the selected range.</Text>
+            <Text c="dimmed">No unapproved activities ran in the selected range.</Text>
           </Center>
         </Card>
       ) : (
         <Card withBorder p={0}>
           <Text size="sm" c="dimmed" px="md" py="xs" className="border-b">
-            {rows.length} {rows.length === 1 ? 'activity' : 'activities'} · {rows.length - lateCount} still in review · {lateCount} approved late
+            {rows.length} {rows.length === 1 ? 'activity' : 'activities'} · {reviewCount} still in review · {draftCount} draft · {lateCount} approved late
           </Text>
           <Table.ScrollContainer minWidth={1000}>
             <Table striped highlightOnHover verticalSpacing="xs">
@@ -152,7 +164,7 @@ export function PastTab() {
                     </Table.Td>
                     <Table.Td>{renderOutcome(row)}</Table.Td>
                     <Table.Td>
-                      <Text size="sm">{row.approvedcount}/{row.totalsteps}</Text>
+                      <Text size="sm">{isDraft(row) ? '—' : `${row.approvedcount}/${row.totalsteps}`}</Text>
                     </Table.Td>
                   </Table.Tr>
                 ))}

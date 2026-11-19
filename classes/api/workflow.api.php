@@ -8,11 +8,13 @@ require_once(__DIR__.'/../lib/workflow.lib.php');
 require_once(__DIR__.'/../lib/activities.lib.php');
 require_once(__DIR__.'/../lib/workflow_config.lib.php');
 require_once(__DIR__.'/../lib/risk_versions.lib.php');
+require_once(__DIR__.'/../lib/utils.lib.php');
 
 use \local_activities\lib\workflow_lib;
 use \local_activities\lib\activities_lib;
 use \local_activities\lib\workflow_config_lib;
 use \local_activities\lib\risk_versions_lib;
+use \local_activities\lib\utils_lib;
 
 /**
  * Activity API trait
@@ -69,6 +71,14 @@ trait workflow_api {
     static public function skip_approval($args) { 
         ['activityid' => $activityid, 'approvalid' => $approvalid, 'skip' => $skip] = $args;
         return workflow_lib::save_skip($activityid, $approvalid, $skip);
+    }
+
+   /**
+    * Whether the current user is an approver on any workflow step.
+    * Fetched lazily by the dashboard, as it may query the SIS.
+    */
+    static public function get_is_approver() {
+        return utils_lib::is_user_approver();
     }
 
    /**
